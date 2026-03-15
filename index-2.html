@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Garden — Callicoon</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111210">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Garden">
+<style>
+:root {
+  --bg: #111210;
+  --bg2: #1a1a17;
+  --bg3: #222220;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e2ddd4;
+  --muted: #7a7870;
+  --hint: #48473f;
+  --green: #5c9e6e;
+  --green2: rgba(92,158,110,0.13);
+  --amber: #b88a28;
+  --amber2: rgba(184,138,40,0.13);
+  --blue: #4f87b8;
+  --blue2: rgba(79,135,184,0.13);
+  --red: #b85050;
+  --red2: rgba(184,80,80,0.13);
+  --soil: #7a5c3a;
+  --mono: 'SF Mono','Fira Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);font-size:13px;max-width:680px;margin:0 auto;padding:env(safe-area-inset-top,0) 0 72px}
+
+/* HEADER */
+.hd{padding:18px 18px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:baseline;gap:8px}
+.hd h1{font-size:16px;font-weight:500;letter-spacing:-0.02em}
+.pill{font-size:9px;color:var(--muted);background:var(--bg3);border:0.5px solid var(--border);padding:2px 8px;border-radius:20px;letter-spacing:.05em}
+.hd .right{margin-left:auto;font-size:10px;color:var(--muted)}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:680px;background:rgba(17,18,16,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0);z-index:50}
+.nb{flex:1;padding:10px 4px 8px;border:none;background:none;color:var(--hint);font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color .15s}
+.nb.on{color:var(--green)}
+.nb svg{width:17px;height:17px}
+
+/* PANELS */
+.pnl{display:none;padding:14px 16px}
+.pnl.on{display:block}
+
+/* TODAY */
+.date-bar{font-size:11px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.date-nav{display:flex;gap:4px}
+.dnav{background:var(--bg2);border:0.5px solid var(--border);border-radius:6px;padding:3px 10px;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer}
+.dnav:active{background:var(--bg3)}
+
+/* Progress ring */
+.prog-wrap{display:flex;align-items:center;gap:14px;background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.ring-svg{flex-shrink:0}
+.prog-info{}
+.prog-count{font-size:22px;font-weight:500;color:var(--green);line-height:1}
+.prog-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.prog-sub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* Task cards */
+.task-card{border:0.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border-color .15s;-webkit-user-select:none}
+.task-card:active{background:var(--bg2)}
+.task-card.done{opacity:.38}
+.task-card.done .tc-text{text-decoration:line-through;color:var(--muted)}
+.tc{display:flex;align-items:flex-start;gap:10px;padding:12px 14px}
+.tc-check{width:18px;height:18px;border:0.5px solid var(--border2);border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s}
+.task-card.done .tc-check{background:var(--green);border-color:var(--green);color:#fff}
+.tc-body{flex:1}
+.tc-text{font-size:13px;line-height:1.45}
+.tc-meta{display:flex;align-items:center;gap:6px;margin-top:5px}
+.tag{font-size:9px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:10px}
+.t-water{background:var(--blue2);color:var(--blue)}
+.t-feed{background:var(--amber2);color:var(--amber)}
+.t-plant{background:var(--green2);color:var(--green)}
+.t-weed{background:rgba(122,92,58,.2);color:var(--soil)}
+.t-check{background:var(--bg3);color:var(--muted)}
+.t-harvest{background:var(--amber2);color:var(--amber)}
+.t-prep{background:var(--blue2);color:var(--blue)}
+.t-prune{background:rgba(184,80,80,.12);color:var(--red)}
+.t-order{background:rgba(155,100,220,.15);color:#a070e0;border:0.5px solid rgba(155,100,220,.3)}
+.tc-bed{font-size:9px;color:var(--hint);letter-spacing:.04em}
+.task-card.order-card{border-color:rgba(155,100,220,.35);background:rgba(155,100,220,.06)}
+
+.no-tasks{padding:20px 14px;color:var(--muted);font-size:12px;line-height:1.7;background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;text-align:center}
+
+/* BED VIEW */
+.bed-section{margin-bottom:16px}
+.bed-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.bed-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.bslot{background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:10px 8px}
+.bslot.active{border-color:var(--green);background:rgba(92,158,110,.07)}
+.bs-id{font-size:9px;color:var(--hint)}
+.bs-name{font-size:12px;font-weight:500;margin-top:3px;color:var(--text)}
+.bs-when{font-size:10px;color:var(--muted);margin-top:3px}
+.bs-dot{width:5px;height:5px;border-radius:50%;display:inline-block;margin-right:4px}
+
+/* CALENDAR */
+.cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-m{font-size:15px;font-weight:500}
+.cal-btns{display:flex;gap:4px}
+.cb{background:var(--bg2);border:0.5px solid var(--border);border-radius:6px;padding:4px 12px;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cdow{text-align:center;font-size:9px;color:var(--hint);text-transform:uppercase;padding:0 0 7px}
+.cday{border:0.5px solid var(--border);border-radius:5px;min-height:46px;padding:4px 3px;cursor:pointer;background:var(--bg)}
+.cday.today{border-color:var(--green)}
+.cday.other{opacity:.2;pointer-events:none}
+.cday:active{background:var(--bg2)}
+.cn{font-size:10px;color:var(--muted)}
+.cday.today .cn{color:var(--green);font-weight:500}
+.cdots{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
+.cdot{width:4px;height:4px;border-radius:50%}
+.day-det{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:10px;display:none}
+.day-det.on{display:block}
+.dd-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px}
+.dd-task{display:flex;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:12px;line-height:1.5;align-items:flex-start}
+.dd-task:last-child{border-bottom:none}
+
+/* ADVISOR */
+.adv-box{border:0.5px solid var(--border);border-radius:10px;overflow:hidden}
+.msgs{padding:14px;min-height:300px;max-height:460px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:90%}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.ml{font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.bubble{padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5}
+.msg.ai .bubble{background:var(--bg2);border:0.5px solid var(--border)}
+.msg.user .bubble{background:var(--green2);border:0.5px solid rgba(92,158,110,.2)}
+.inp-row{border-top:0.5px solid var(--border);display:flex}
+.inp-row input{flex:1;padding:13px 14px;background:transparent;border:none;font-family:var(--mono);font-size:13px;color:var(--text);outline:none}
+.inp-row input::placeholder{color:var(--hint)}
+.snd{padding:13px 16px;background:var(--green);border:none;color:#fff;font-family:var(--mono);font-size:11px;font-weight:500;cursor:pointer;transition:background .15s}
+.snd:active{background:#4a8a5e}
+.typing{display:flex;gap:4px;align-items:center;padding:10px 12px;background:var(--bg2);border:0.5px solid var(--border);border-radius:12px;width:fit-content}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:bl 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.15}40%{opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>garden</h1>
+  <span class="pill">callicoon · zone 6a</span>
+  <span class="right" id="frost-ct"></span>
+</div>
+
+<div id="p-today" class="pnl on">
+  <div class="date-bar">
+    <span id="date-label"></span>
+    <div class="date-nav">
+      <button class="dnav" onclick="shiftDay(-1)">←</button>
+      <button class="dnav" onclick="shiftDay(0)">today</button>
+      <button class="dnav" onclick="shiftDay(1)">→</button>
+    </div>
+  </div>
+
+  <div class="prog-wrap">
+    <svg class="ring-svg" width="56" height="56" viewBox="0 0 56 56">
+      <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="4"/>
+      <circle id="prog-ring" cx="28" cy="28" r="22" fill="none" stroke="#5c9e6e" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="138" stroke-dashoffset="138"
+        transform="rotate(-90 28 28)" style="transition:stroke-dashoffset .4s"/>
+    </svg>
+    <div class="prog-info">
+      <div class="prog-count"><span id="done-count">0</span>/<span id="total-count">0</span></div>
+      <div class="prog-label">tasks done</div>
+      <div class="prog-sub" id="prog-msg"></div>
+    </div>
+  </div>
+
+  <div id="task-list"></div>
+</div>
+
+<div id="p-beds" class="pnl">
+  <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.7">Your two beds are pre-planned for maximum output based on what works in Callicoon. Layout is fixed so the app can tell you exactly what to do and when.</div>
+  <div class="bed-section">
+    <div class="bed-title"><span>Bed A — cucumbers + tomatoes</span><span>4 × 8 ft</span></div>
+    <div class="bed-grid" id="bed-a-grid"></div>
+  </div>
+  <div class="bed-section">
+    <div class="bed-title"><span>Bed B — zucchini + peppers + herbs</span><span>4 × 8 ft</span></div>
+    <div class="bed-grid" id="bed-b-grid"></div>
+  </div>
+  <div style="font-size:10px;color:var(--hint);margin-top:4px;line-height:1.7">Marigolds border both beds — they repel cucumber beetles and aphids. Chicken coop manure compost goes in before planting in April.</div>
+</div>
+
+<div id="p-cal" class="pnl">
+  <div class="cal-hd">
+    <span class="cal-m" id="cal-m"></span>
+    <div class="cal-btns">
+      <button class="cb" onclick="chM(-1)">←</button>
+      <button class="cb" onclick="chM(1)">→</button>
+    </div>
+  </div>
+  <div class="cal-g" id="cal-g"></div>
+  <div class="day-det" id="day-det"></div>
+</div>
+
+<div id="p-adv" class="pnl">
+  <div class="adv-box">
+    <div class="msgs" id="msgs">
+      <div class="msg ai">
+        <div class="ml">Garden AI</div>
+        <div class="bubble">Your beds are pre-planned. I'll tell you exactly what to do and when — water, fertilize, weed, harvest, everything.<br><br>You can also ask me anything: "why are my cucumber leaves yellowing?", "is it too late to plant tomatoes?", "what do I do if I see a striped beetle?"</div>
+      </div>
+    </div>
+    <div class="inp-row">
+      <input id="adv-in" type="text" placeholder="Ask anything about your garden…" />
+      <button class="snd" onclick="send()">Send</button>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nb on" onclick="go('today',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41"/></svg>
+    Today
+  </button>
+  <button class="nb" onclick="go('beds',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M2 11h20M7 7V4a1 1 0 011-1h8a1 1 0 011 1v3"/></svg>
+    Beds
+  </button>
+  <button class="nb" onclick="go('cal',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Calendar
+  </button>
+  <button class="nb" onclick="go('adv',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Ask AI
+  </button>
+</nav>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────
+const LAST_FROST = new Date(2026,4,10); // May 10
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOWS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+// Current view date (start at today)
+let viewDate = new Date(2026,2,15);
+
+// ─── BED LAYOUT (fixed, pre-planned) ─────────────────────────────
+const BED_A = [
+  {id:'A1', name:'Cucumber', emoji:'🥒', startDate:'2026-05-17', note:'Trellis slot. Sow direct after frost.'},
+  {id:'A2', name:'Cucumber', emoji:'🥒', startDate:'2026-05-17', note:'Trellis slot. Sow direct after frost.'},
+  {id:'A3', name:'Tomato', emoji:'🍅', startDate:'2026-05-10', note:'Transplant from indoor start.'},
+  {id:'A4', name:'Tomato', emoji:'🍅', startDate:'2026-05-10', note:'Transplant from indoor start.'},
+  {id:'A5', name:'Marigold', emoji:'🌼', startDate:'2026-05-17', note:'Pest border. Sow direct.'},
+  {id:'A6', name:'Lettuce', emoji:'🥬', startDate:'2026-04-05', note:'Cold start. Replace with beans in June.'},
+];
+const BED_B = [
+  {id:'B1', name:'Zucchini', emoji:'🫛', startDate:'2026-05-17', note:'Big plant — this slot only.'},
+  {id:'B2', name:'Zucchini', emoji:'🫛', startDate:'2026-05-17', note:'Second plant. Keep space clear.'},
+  {id:'B3', name:'Pepper', emoji:'🌶️', startDate:'2026-05-15', note:'Transplant from indoor start.'},
+  {id:'B4', name:'Basil', emoji:'🌿', startDate:'2026-06-01', note:'Companion to pepper. Direct sow.'},
+  {id:'B5', name:'Green Beans', emoji:'🫘', startDate:'2026-05-17', note:'Bush variety. Direct sow.'},
+  {id:'B6', name:'Marigold', emoji:'🌼', startDate:'2026-05-17', note:'Pest border. Sow direct.'},
+];
+
+// ─── FULL TASK SCHEDULE ───────────────────────────────────────────
+// Every task has: d (YYYY-MM-DD), text, tag, bed (optional)
+// Tags: water | feed | plant | weed | check | harvest | prep | prune | order
+const TASKS = [
+// ══ ORDER TASKS — placed 6+ days before the item is needed ══
+// Seeds + trays needed Mar 15 → order TODAY (expedited)
+{d:'2026-03-15',tag:'order',text:'ORDER NOW (expedited): tomato seeds (Early Girl or Brandywine), pepper seeds, seed-starting trays (72-cell), and seed-starting mix. Try True Leaf Market, Johnny\'s Seeds, or Amazon. You need these within 2 days — order with fast shipping or pick up locally today.'},
+// Lettuce seeds needed Apr 5 → order Mar 30
+{d:'2026-03-30',tag:'order',text:'ORDER: Lettuce seeds (any loose-leaf variety), kale seeds (Red Russian or Lacinato). Needed by April 5 for direct sowing. Standard shipping is fine.'},
+// Trellis needed May 3 → order Apr 27
+{d:'2026-04-27',tag:'order',text:'ORDER: Cucumber trellis netting (4ft tall × 8ft wide, or two 4×4 panels) + bamboo stakes or T-posts + soft plant ties or velcro garden tape. Needed in hand by May 3. Amazon or local farm supply.'},
+// Straw mulch needed May 24 → order May 18
+{d:'2026-05-18',tag:'order',text:'ORDER: 1 bale of straw mulch (for tomato beds). Also: liquid fertilizer if you don\'t have it — Neptune\'s Harvest Fish & Seaweed or Fox Farm Grow Big. Needed by May 24.'},
+// Tomato cages needed Jun 5 → order May 30
+{d:'2026-05-30',tag:'order',text:'ORDER: 2× heavy-gauge wire tomato cages, 4–5ft tall. Needed by June 5 before tomatoes outgrow staking. Hardware store or Amazon.'},
+// Fall kale seeds needed Aug 16 → order Aug 10
+{d:'2026-08-10',tag:'order',text:'ORDER: Kale seeds (Red Russian or Lacinato) for fall planting. Needed by Aug 16. True Leaf Market or Amazon with standard shipping.'},
+// Frost row cover needed ~Oct 1 → order Sep 25
+{d:'2026-09-25',tag:'order',text:'ORDER: Frost row cover cloth (1.5oz, 6ft × 25ft) to protect late tomatoes from October frost. Reusable every year. Get it now before the first cold snap.'},
+
+// ══ MARCH ══
+{d:'2026-03-15',tag:'prep',text:'Clear dead stalks and old tarp from both beds. Pull out all of last year\'s plant debris by hand.'},
+{d:'2026-03-15',tag:'prep',text:'Collect chicken coop bedding and manure into a pile or bags. This will become your fertilizer — let it age 4+ weeks before using.'},
+{d:'2026-03-15',tag:'plant',text:'Fill seed trays: sow tomato seeds indoors. Use moist seed-starting mix, 2 seeds per cell, ¼" deep. Label them. Put on a sunny windowsill or under a grow light.'},
+{d:'2026-03-15',tag:'plant',text:'Fill seed trays: sow pepper seeds indoors. Same setup as tomatoes. Peppers are slow — they need this head start.'},
+{d:'2026-03-20',tag:'water',text:'Water tomato and pepper seedling trays. Soil should feel like a wrung-out sponge — damp but not soggy. Check daily from now on.'},
+{d:'2026-03-22',tag:'check',text:'Check tomato seedlings. They should be sprouting by now. Thin to 1 seedling per cell — snip the weaker one with scissors, don\'t pull.'},
+{d:'2026-03-22',tag:'water',text:'Water tomato and pepper trays again. Don\'t let them dry out.'},
+{d:'2026-03-25',tag:'check',text:'Check pepper seedlings. Peppers sprout slower than tomatoes — be patient. If no sprouts, that\'s normal. Keep moist.'},
+{d:'2026-03-27',tag:'water',text:'Water indoor seedling trays.'},
+{d:'2026-03-29',tag:'check',text:'Confirm trellis order is placed. If not, order today — you need it in hand by May 3.'},
+
+// ══ APRIL ══
+{d:'2026-04-01',tag:'water',text:'Water indoor seedling trays.'},
+{d:'2026-04-03',tag:'water',text:'Water indoor seedling trays.'},
+{d:'2026-04-05',tag:'prep',text:'Amend both beds. Spread 2–3" of compost over the surface of both beds and work it in 4" deep with a fork or trowel. Use the aged chicken manure if it\'s been 3+ weeks.'},
+{d:'2026-04-05',tag:'plant',text:'Bed A, slot 6: Direct sow lettuce. Scatter seeds thinly across the slot, barely cover with ¼" soil, water gently.'},
+{d:'2026-04-05',tag:'water',text:'Water the lettuce slot and indoor trays.'},
+{d:'2026-04-07',tag:'water',text:'Water indoor trays and lettuce slot in Bed A.'},
+{d:'2026-04-09',tag:'water',text:'Water indoor trays. Check lettuce — if soil looks dry and cracked, water gently.'},
+{d:'2026-04-10',tag:'check',text:'Check if lettuce has sprouted (small green threads). If yes: great. If not: normal, keep waiting.'},
+{d:'2026-04-10',tag:'check',text:'Check tomatoes and peppers indoors. Tomatoes should have first true leaves now. They\'re ready to get more light.'},
+{d:'2026-04-12',tag:'prep',text:'Harden off tomatoes: put the seedling tray outside in a sheltered, shaded spot for 1 hour. Bring back in. Do this every day, adding 30 min each day.'},
+{d:'2026-04-12',tag:'water',text:'Water indoor trays and Bed A lettuce slot.'},
+{d:'2026-04-13',tag:'prep',text:'Harden off: 1.5 hours outside, shaded. Bring back in.'},
+{d:'2026-04-14',tag:'water',text:'Water indoor trays.'},
+{d:'2026-04-14',tag:'prep',text:'Harden off: 2 hours outside, partial shade ok. Bring back in.'},
+{d:'2026-04-15',tag:'weed',text:'Quick weed check: run your fingers through both beds and pull anything that doesn\'t look like lettuce. Small weeds now = less work later.'},
+{d:'2026-04-15',tag:'prep',text:'Harden off: 2.5 hours outside. Bring back in.'},
+{d:'2026-04-16',tag:'prep',text:'Harden off: 3 hours outside, move to slight sun. Bring back in.'},
+{d:'2026-04-17',tag:'water',text:'Water indoor trays and Bed A lettuce.'},
+{d:'2026-04-17',tag:'prep',text:'Harden off: 3.5 hours in morning sun. Bring back in.'},
+{d:'2026-04-18',tag:'prep',text:'Harden off: 4 hours, morning sun. Bring back in.'},
+{d:'2026-04-19',tag:'prep',text:'Harden off: 5 hours, direct sun ok now. Bring back in overnight.'},
+{d:'2026-04-20',tag:'water',text:'Water indoor trays.'},
+{d:'2026-04-20',tag:'prep',text:'Harden off: 6 hours outside. Bring back in.'},
+{d:'2026-04-21',tag:'feed',text:'First feed for indoor seedlings: mix a half-strength dose of liquid tomato fertilizer (or fish emulsion) in water. Apply to tomato and pepper trays instead of plain water.'},
+{d:'2026-04-21',tag:'prep',text:'Harden off: 7 hours outside including afternoon sun. Bring back in.'},
+{d:'2026-04-22',tag:'prep',text:'Harden off: Leave outside all day, bring in overnight only.'},
+{d:'2026-04-23',tag:'water',text:'Water indoor trays and Bed A lettuce.'},
+{d:'2026-04-24',tag:'weed',text:'Weed both beds. Pull anything that isn\'t lettuce in Bed A. Clear Bed B completely.'},
+{d:'2026-04-26',tag:'check',text:'Check 10-day forecast. If nighttime temps staying above 40°F, tomatoes/peppers can start spending nights outside. If temps drop to 35°F or below, bring them in.'},
+{d:'2026-04-27',tag:'water',text:'Water indoor trays and Bed A lettuce.'},
+{d:'2026-04-28',tag:'feed',text:'Feed tomato and pepper seedlings again: half-strength liquid fertilizer instead of plain water.'},
+
+// ══ MAY ══
+{d:'2026-05-01',tag:'water',text:'Water indoor seedlings and Bed A lettuce.'},
+{d:'2026-05-02',tag:'weed',text:'Weed both beds. Five minutes per bed — pull anything with two or more leaves that you didn\'t plant.'},
+{d:'2026-05-03',tag:'prep',text:'Install trellis in Bed A for cucumber slots (A1 and A2). Pound stakes at each corner of the two slots and run netting or string between them at 6" intervals up to 4ft high.'},
+{d:'2026-05-05',tag:'water',text:'Water Bed A lettuce — it should be looking full and leafy now.'},
+{d:'2026-05-05',tag:'check',text:'Check indoor tomato and pepper seedlings. They should be 4–6" tall with 3+ sets of leaves. If they look leggy and pale, they need more light.'},
+{d:'2026-05-07',tag:'water',text:'Water Bed A lettuce and any indoor seedlings not yet fully hardened.'},
+{d:'2026-05-09',tag:'prep',text:'Tomorrow is last frost date. Check tonight\'s forecast. If below 35°F, cover lettuce in Bed A with a towel or row cover cloth overnight.'},
+{d:'2026-05-10',tag:'prep',text:'🌿 LAST FROST — May 10. Warm-season crops can go in starting now. Final check: are your tomato and pepper transplants hardened off? They should have been outside for 10+ days.'},
+{d:'2026-05-10',tag:'harvest',text:'Harvest lettuce from Bed A slot A6. Cut leaves 1" above soil — it will regrow. Take outer leaves first.'},
+{d:'2026-05-12',tag:'water',text:'Water Bed A (lettuce). Soil should stay moist but not puddle.'},
+{d:'2026-05-13',tag:'weed',text:'Last weed clearance before planting. Pull everything in Beds A and B that isn\'t lettuce in A6.'},
+{d:'2026-05-15',tag:'plant',text:'Bed B slot B3: Transplant pepper seedlings. Dig a hole slightly deeper than the root ball. Place plant, backfill, firm down gently. Water in well.'},
+{d:'2026-05-15',tag:'water',text:'Water pepper transplants deeply — 1 full watering can per plant.'},
+{d:'2026-05-17',tag:'plant',text:'Bed A slots A1+A2: Direct sow cucumbers. Make 3 holes per slot, 1" deep, 6" apart. Drop 2 seeds per hole. Cover. Water gently.'},
+{d:'2026-05-17',tag:'plant',text:'Bed A slots A3+A4: Transplant tomatoes. Dig a deep hole. Bury 2/3 of the stem — roots will form along the buried stem. Water in well.'},
+{d:'2026-05-17',tag:'plant',text:'Bed A slot A5: Sow marigold seeds. Scatter 6–8 seeds across the slot, press lightly into soil, water.'},
+{d:'2026-05-17',tag:'plant',text:'Bed B slots B1+B2: Direct sow zucchini. 1 seed per slot, 1" deep, centered. Cover and water.'},
+{d:'2026-05-17',tag:'plant',text:'Bed B slot B5: Direct sow green beans. Sow 6 seeds across the slot, 1" deep, 3" apart. Cover and water.'},
+{d:'2026-05-17',tag:'plant',text:'Bed B slot B6: Sow marigold seeds. Same as Bed A border slot.'},
+{d:'2026-05-18',tag:'water',text:'Water ALL of both beds — everything just went in or was disturbed. Water slowly and deeply.'},
+{d:'2026-05-20',tag:'water',text:'Water both beds. Check if cucumber seeds have started showing (tiny curved sprouts). Also check zucchini.'},
+{d:'2026-05-22',tag:'water',text:'Water both beds.'},
+{d:'2026-05-23',tag:'check',text:'Cucumber check: if two seeds sprouted per hole, snip the weaker one at soil level. Keep only the strongest sprout per hole.'},
+{d:'2026-05-24',tag:'water',text:'Water both beds. Tomatoes need deep water — hold hose at base for 30 seconds per plant.'},
+{d:'2026-05-24',tag:'prep',text:'Mulch tomatoes in Bed A: spread 2" of straw or wood chips around the base of each tomato plant. Keep mulch 2" away from the stem itself.'},
+{d:'2026-05-26',tag:'water',text:'Water both beds.'},
+{d:'2026-05-28',tag:'feed',text:'First outdoor feed: mix liquid fertilizer (tomato food or fish emulsion) at recommended strength. Apply to Bed A tomato slots A3+A4 and Bed B pepper slot B3. Pour slowly at the base.'},
+{d:'2026-05-28',tag:'weed',text:'Weed check both beds. 5 minutes. Anything coming up between plants — pull it now while it\'s small.'},
+{d:'2026-05-30',tag:'water',text:'Water both beds. Deep soak.'},
+{d:'2026-06-01',tag:'plant',text:'Bed B slot B4: Direct sow basil. Scatter 10 seeds across slot surface, barely cover with 1/8" soil, water gently. Basil is tiny — don\'t bury deep.'},
+
+// ══ JUNE ══
+{d:'2026-06-02',tag:'water',text:'Water both beds.'},
+{d:'2026-06-03',tag:'check',text:'Cucumber check: plants should be 3–4" tall. Begin guiding the main vine toward the trellis. Use a soft twist tie or strip of cloth — do not squeeze the stem.'},
+{d:'2026-06-03',tag:'check',text:'Zucchini check: plants should have 2–3 large leaves. If soil around base looks dry, water now.'},
+{d:'2026-06-04',tag:'water',text:'Water both beds.'},
+{d:'2026-06-05',tag:'prep',text:'Stake or cage tomatoes in Bed A (slots A3+A4). Push a tomato cage or 4ft stake into the soil next to each plant. Loosely tie main stem to stake with soft cloth.'},
+{d:'2026-06-06',tag:'water',text:'Water both beds.'},
+{d:'2026-06-07',tag:'feed',text:'Feed tomatoes (A3+A4) and peppers (B3) with liquid fertilizer. Apply at the base — avoid leaves. This is their growth-stage feed.'},
+{d:'2026-06-07',tag:'weed',text:'Weed both beds. Focus on spaces between plants. The cucumbers, zucchini, and tomatoes need all the water and nutrients — don\'t let weeds compete.'},
+{d:'2026-06-08',tag:'water',text:'Water both beds.'},
+{d:'2026-06-10',tag:'water',text:'Water both beds. Hot week coming — don\'t skip.'},
+{d:'2026-06-10',tag:'check',text:'Scout for cucumber beetles: small yellow beetles with black stripes or spots on cucumber plants. If you see any, pick them off by hand and drop in soapy water.'},
+{d:'2026-06-12',tag:'water',text:'Water both beds.'},
+{d:'2026-06-12',tag:'prune',text:'Tomato suckers: look for shoots growing in the "V" between the main stem and a branch. Pinch these off with your fingers while they\'re small (under 2"). Keeps energy in the fruit.'},
+{d:'2026-06-14',tag:'water',text:'Water both beds.'},
+{d:'2026-06-14',tag:'check',text:'Basil check (B4): should be sprouting by now. If crowded, thin to 4–5 plants per slot by snipping extras at soil level.'},
+{d:'2026-06-15',tag:'harvest',text:'Harvest lettuce from Bed A slot A6 — cut any leaves that are getting big. Once temps hit 80°F+ consistently, lettuce will bolt. Harvest everything before that.'},
+{d:'2026-06-16',tag:'water',text:'Water both beds. In heat over 80°F, water every day.'},
+{d:'2026-06-17',tag:'feed',text:'Feed all plants: tomatoes, cucumbers, peppers, zucchini, beans. Use liquid fertilizer at base of each plant. Skip marigolds and basil — they don\'t need feeding.'},
+{d:'2026-06-18',tag:'water',text:'Water both beds.'},
+{d:'2026-06-19',tag:'weed',text:'Weed both beds. By now the plants should be shading the soil — fewer weeds. Focus on the edges and between plants.'},
+{d:'2026-06-20',tag:'water',text:'Water both beds.'},
+{d:'2026-06-21',tag:'check',text:'Cucumber flowers appearing? Male flowers come first (thin stem). Female flowers have a tiny cucumber behind the petals. Both are needed for fruit. Leave all flowers alone.'},
+{d:'2026-06-22',tag:'water',text:'Water both beds.'},
+{d:'2026-06-23',tag:'prune',text:'Tomato suckers again: check the V joints on both tomato plants. Pinch off any new suckers under 2".'},
+{d:'2026-06-24',tag:'water',text:'Water both beds.'},
+{d:'2026-06-25',tag:'check',text:'Zucchini: Large yellow flowers should be open. You may see tiny zucchini forming behind female flowers. Do not pick yet.'},
+{d:'2026-06-26',tag:'water',text:'Water both beds.'},
+{d:'2026-06-28',tag:'water',text:'Water both beds.'},
+{d:'2026-06-28',tag:'feed',text:'Feed tomatoes and peppers: every 2 weeks with liquid fertilizer is the schedule. Apply now.'},
+
+// ══ JULY ══
+{d:'2026-07-01',tag:'water',text:'Water both beds. July is peak heat — water every 2 days minimum, every day if above 88°F.'},
+{d:'2026-07-01',tag:'check',text:'First cucumber check for harvest: if any cucumbers are 6–8" long and dark green, pick them. If you leave them on the vine too long they go yellow and bitter, and the plant stops producing.'},
+{d:'2026-07-02',tag:'water',text:'Water both beds.'},
+{d:'2026-07-03',tag:'harvest',text:'Check cucumbers in Bed A daily from now through August. Pick any that are 6–8" long. Twist and pull — don\'t yank the vine.'},
+{d:'2026-07-04',tag:'water',text:'Water both beds.'},
+{d:'2026-07-05',tag:'harvest',text:'First zucchini harvest: if any zucchini are 6–8" long, pick them NOW. Don\'t wait. Small zucchini taste better and picking encourages more fruit.'},
+{d:'2026-07-05',tag:'weed',text:'Weed check — quick scan of both beds.'},
+{d:'2026-07-06',tag:'water',text:'Water both beds.'},
+{d:'2026-07-07',tag:'feed',text:'Feed: tomatoes (A3+A4), cucumbers (A1+A2), peppers (B3), zucchini (B1+B2). Liquid fertilizer at the base of each. Also apply half-strength to green beans (B5).'},
+{d:'2026-07-08',tag:'water',text:'Water both beds.'},
+{d:'2026-07-09',tag:'prune',text:'Tomato suckers: check and pinch. Also remove any lower tomato leaves that are touching the soil — this prevents soil diseases splashing up.'},
+{d:'2026-07-10',tag:'water',text:'Water both beds.'},
+{d:'2026-07-10',tag:'harvest',text:'Cucumber and zucchini daily check. Pick anything 6–8". Check beans — they should be fingertip-length and starting to fill out.'},
+{d:'2026-07-11',tag:'water',text:'Water both beds.'},
+{d:'2026-07-12',tag:'check',text:'Squash vine borer warning: look at the base of both zucchini stems. If you see tiny holes or sawdust-like frass, a borer is inside. Wrap the lower 6" of stem with foil as prevention now.'},
+{d:'2026-07-12',tag:'water',text:'Water both beds.'},
+{d:'2026-07-13',tag:'harvest',text:'Cucumber check: pick any 6"+ cucumbers. Zucchini: pick any 6"+ zucchini. They grow fast — check every day.'},
+{d:'2026-07-14',tag:'water',text:'Water both beds.'},
+{d:'2026-07-15',tag:'harvest',text:'Green bean harvest check: if beans feel full and snap cleanly, pick them. Pick from the bottom of the plant upward.'},
+{d:'2026-07-16',tag:'water',text:'Water both beds.'},
+{d:'2026-07-17',tag:'feed',text:'Feed tomatoes and peppers — this is critical timing as tomatoes are setting fruit. Use a phosphorus-heavy fertilizer (the middle number on the label) to support fruiting.'},
+{d:'2026-07-18',tag:'water',text:'Water both beds.'},
+{d:'2026-07-19',tag:'harvest',text:'Daily harvest check: cucumbers and zucchini. Pick everything that\'s 6"+ — ruthlessly. Leaving large ones signals the plant to stop producing.'},
+{d:'2026-07-20',tag:'water',text:'Water both beds.'},
+{d:'2026-07-21',tag:'weed',text:'Weed check. The canopy should be blocking a lot of light, so weeds slow down, but check edges.'},
+{d:'2026-07-21',tag:'prune',text:'Prune basil (B4): pinch off any flower buds that are forming. Once basil flowers, the leaves get bitter. Keep it bushy.'},
+{d:'2026-07-22',tag:'water',text:'Water both beds.'},
+{d:'2026-07-23',tag:'harvest',text:'Harvest check: cucumbers, zucchini, beans. Also harvest basil leaves for kitchen — take from the top, leaving 2 sets of leaves on each branch.'},
+{d:'2026-07-24',tag:'water',text:'Water both beds.'},
+{d:'2026-07-25',tag:'check',text:'Tomato check: look for blossom end rot (dark sunken patch on bottom of tomato). If present, the soil needs calcium and more consistent watering. Start watering more evenly.'},
+{d:'2026-07-26',tag:'water',text:'Water both beds.'},
+{d:'2026-07-27',tag:'feed',text:'Feed tomatoes and cucumbers with liquid fertilizer.'},
+{d:'2026-07-28',tag:'water',text:'Water both beds.'},
+{d:'2026-07-29',tag:'harvest',text:'Daily harvest check: cucumbers, zucchini, beans.'},
+{d:'2026-07-30',tag:'water',text:'Water both beds.'},
+{d:'2026-07-31',tag:'check',text:'End of July assessment: Are tomatoes starting to blush/color? Are cucumbers still producing? Is zucchini plant still healthy (not yellowing)? Note anything unusual.'},
+
+// ══ AUGUST ══
+{d:'2026-08-01',tag:'water',text:'Water both beds.'},
+{d:'2026-08-02',tag:'harvest',text:'Tomato harvest begins: check for tomatoes with full color and that give slightly when pressed. Pick and bring inside. They continue ripening off the vine.'},
+{d:'2026-08-02',tag:'harvest',text:'Cucumbers and zucchini: daily harvest check. Pick everything 6"+.'},
+{d:'2026-08-03',tag:'water',text:'Water both beds.'},
+{d:'2026-08-04',tag:'feed',text:'Last major feed of the season: tomatoes, peppers, cucumbers. Skip zucchini — it should be self-sustaining now.'},
+{d:'2026-08-05',tag:'water',text:'Water both beds.'},
+{d:'2026-08-06',tag:'harvest',text:'Tomato and cucumber daily harvest check. Pick tomatoes as they color fully.'},
+{d:'2026-08-07',tag:'prune',text:'Remove lower tomato leaves (bottom 12" of stem should be bare). Also remove any leaves that look spotted, yellow, or powdery. Dispose in trash — not compost.'},
+{d:'2026-08-08',tag:'water',text:'Water both beds.'},
+{d:'2026-08-10',tag:'water',text:'Water both beds.'},
+{d:'2026-08-10',tag:'harvest',text:'Full harvest sweep: tomatoes, cucumbers, zucchini, beans, basil.'},
+{d:'2026-08-12',tag:'water',text:'Water both beds.'},
+{d:'2026-08-14',tag:'water',text:'Water both beds.'},
+{d:'2026-08-14',tag:'harvest',text:'Harvest sweep. Check for any oversized cucumbers hiding under leaves.'},
+{d:'2026-08-16',tag:'plant',text:'Bed A slot A6 (or any empty slot): Sow fall kale seeds directly. 6 seeds, 1" deep, 4" apart. This batch will harvest through November.'},
+{d:'2026-08-18',tag:'water',text:'Water both beds. Water fall kale seedlings gently.'},
+{d:'2026-08-20',tag:'water',text:'Water both beds.'},
+{d:'2026-08-21',tag:'harvest',text:'Harvest sweep: everything. Cucumber production will start slowing now.'},
+{d:'2026-08-22',tag:'prune',text:'Trim any completely dead or diseased branches from tomatoes and zucchini.'},
+{d:'2026-08-24',tag:'water',text:'Water both beds.'},
+{d:'2026-08-26',tag:'water',text:'Water both beds.'},
+{d:'2026-08-28',tag:'harvest',text:'Final big tomato and pepper harvest sweep. Pick any peppers that have some color.'},
+{d:'2026-08-30',tag:'water',text:'Water fall kale and anything still producing.'},
+
+// ══ SEPTEMBER ══
+{d:'2026-09-02',tag:'water',text:'Water fall kale and remaining producers.'},
+{d:'2026-09-04',tag:'harvest',text:'Cucumber plants winding down. Pick last cucumbers. If vines are completely brown, they\'re done.'},
+{d:'2026-09-06',tag:'water',text:'Water fall kale. Kale likes cool weather — it\'ll look better this month.'},
+{d:'2026-09-08',tag:'check',text:'First frost warning check: Callicoon average first frost is around October 10. Watch forecasts from now on. Any night below 35°F, cover tomatoes with cloth or bring indoors.'},
+{d:'2026-09-10',tag:'harvest',text:'Harvest all remaining tomatoes — green ones will ripen on a windowsill. Better to pick early than lose to frost.'},
+{d:'2026-09-12',tag:'prep',text:'Pull spent cucumber vines from Bed A (slots A1+A2). Compost them if disease-free, trash if spotted or moldy.'},
+{d:'2026-09-14',tag:'water',text:'Water fall kale.'},
+{d:'2026-09-16',tag:'prep',text:'Clear spent bean plants and zucchini from Bed B. Cut at the base — leave roots to decompose.'},
+{d:'2026-09-18',tag:'water',text:'Water fall kale.'},
+{d:'2026-09-20',tag:'harvest',text:'Harvest kale outer leaves — any leaf bigger than your hand is ready. Cut 1" above the stem junction.'},
+{d:'2026-09-22',tag:'water',text:'Water fall kale.'},
+{d:'2026-09-25',tag:'prep',text:'Apply 2" of compost to cleared sections of both beds. Leave it on top — frost and winter moisture will work it in.'},
+{d:'2026-09-28',tag:'water',text:'Water fall kale.'},
+
+// ══ OCTOBER ══
+{d:'2026-10-01',tag:'harvest',text:'Kale harvest: pick outer leaves. Cold makes kale sweeter — this is peak flavor time.'},
+{d:'2026-10-05',tag:'water',text:'Water kale if no rain in past 5 days. Check soil with your finger — if top inch is dry, water.'},
+{d:'2026-10-08',tag:'prep',text:'First frost likely within days. Pull all remaining tomato and pepper plants. Compost healthy material, trash any disease-spotted leaves.'},
+{d:'2026-10-10',tag:'prep',text:'Clear and clean both beds for winter. Remove stakes, trellis netting, cages. Rinse and store them. Beds stay open — no cover needed.'},
+{d:'2026-10-15',tag:'harvest',text:'Kale can stay in the ground through frost — harvest as needed. It gets sweeter after each cold snap.'},
+];
+
+// ─── DONE STATE ──────────────────────────────────────────────────
+let done = new Set(JSON.parse(localStorage.getItem('gdn_done') || '[]'));
+function saveDone(){ localStorage.setItem('gdn_done', JSON.stringify([...done])); }
+
+// ─── DATE HELPERS ────────────────────────────────────────────────
+function ds(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDate(d){ return MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear(); }
+function shiftDay(dir){
+  if(dir===0){ viewDate = new Date(2026,2,15); }
+  else { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), viewDate.getDate()+dir); }
+  renderToday();
+}
+
+// ─── HEADER ──────────────────────────────────────────────────────
+function updateFrost(){
+  const now = new Date(2026,2,15);
+  const diff = Math.round((LAST_FROST - now)/86400000);
+  document.getElementById('frost-ct').textContent = diff > 0 ? diff+'d to frost' : 'past frost';
+}
+updateFrost();
+
+// ─── TODAY ───────────────────────────────────────────────────────
+const TAG_LABELS = {water:'water',feed:'fertilize',plant:'plant',weed:'weed',check:'check',harvest:'harvest',prep:'prep',prune:'prune',order:'order →'};
+const TAG_COLORS = {water:'var(--blue)',feed:'var(--amber)',plant:'var(--green)',weed:'var(--soil)',check:'var(--muted)',harvest:'var(--amber)',prep:'var(--blue)',prune:'var(--red)',order:'#a070e0'};
+
+function renderToday(){
+  const key = ds(viewDate);
+  document.getElementById('date-label').textContent = fmtDate(viewDate);
+
+  const tasks = TASKS.filter(t => t.d === key);
+  const doneToday = tasks.filter((_,i) => done.has(key+':'+i)).length;
+  const total = tasks.length;
+
+  // Progress ring
+  const pct = total > 0 ? doneToday/total : 0;
+  const circ = 138;
+  document.getElementById('prog-ring').style.strokeDashoffset = circ - pct * circ;
+  document.getElementById('done-count').textContent = doneToday;
+  document.getElementById('total-count').textContent = total;
+
+  const msgs = ['Clear today\'s list and you\'re done.','Keep going — you\'re making progress.','Almost there!','All done — great work.'];
+  const msgEl = document.getElementById('prog-msg');
+  if(total === 0){ msgEl.textContent = 'Rest day — nothing scheduled.'; }
+  else if(doneToday === total){ msgEl.textContent = 'All done — great work today.'; }
+  else if(doneToday === 0){ msgEl.textContent = total+' tasks scheduled for today.'; }
+  else { msgEl.textContent = (total-doneToday)+' task'+(total-doneToday===1?'':'s')+' left.'; }
+
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+
+  if(tasks.length === 0){
+    list.innerHTML = '<div class="no-tasks">Nothing scheduled today. Use the ← → buttons to browse other days, or check the Calendar tab for upcoming tasks.</div>';
+    return;
+  }
+
+  tasks.forEach((t,i) => {
+    const k = key+':'+i;
+    const isDone = done.has(k);
+    const card = document.createElement('div');
+    card.className = 'task-card'+(isDone?' done':'')+(t.tag==='order'?' order-card':'');
+    card.innerHTML = `<div class="tc">
+      <div class="tc-check">${isDone?'✓':''}</div>
+      <div class="tc-body">
+        <div class="tc-text">${t.text}</div>
+        <div class="tc-meta">
+          <span class="tag t-${t.tag}">${TAG_LABELS[t.tag]}</span>
+          ${t.bed ? `<span class="tc-bed">${t.bed}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+    card.onclick = () => {
+      isDone ? done.delete(k) : done.add(k);
+      saveDone();
+      renderToday();
+    };
+    list.appendChild(card);
+  });
+}
+renderToday();
+
+// ─── BEDS ────────────────────────────────────────────────────────
+function renderBeds(){
+  function makeSlot(slot){
+    const now = new Date(2026,2,15);
+    const start = new Date(slot.startDate);
+    const active = now >= start;
+    const el = document.createElement('div');
+    el.className = 'bslot'+(active?' active':'');
+    const dotColor = active ? 'var(--green)' : 'var(--hint)';
+    el.innerHTML = `
+      <div class="bs-id">${slot.id}</div>
+      <div class="bs-name">${slot.emoji} ${slot.name}</div>
+      <div class="bs-when"><span class="bs-dot" style="background:${dotColor}"></span>${active?'in season':'starts '+slot.startDate.slice(5).replace('-','/')}</div>`;
+    return el;
+  }
+  const ga = document.getElementById('bed-a-grid');
+  const gb = document.getElementById('bed-b-grid');
+  ga.innerHTML = ''; gb.innerHTML = '';
+  BED_A.forEach(s => ga.appendChild(makeSlot(s)));
+  BED_B.forEach(s => gb.appendChild(makeSlot(s)));
+}
+renderBeds();
+
+// ─── CALENDAR ────────────────────────────────────────────────────
+let calY=2026, calM=2;
+function renderCal(){
+  document.getElementById('cal-m').textContent = MONTHS[calM]+' '+calY;
+  const g = document.getElementById('cal-g');
+  g.innerHTML = '';
+  DOWS.forEach(d => { const e=document.createElement('div'); e.className='cdow'; e.textContent=d; g.appendChild(e); });
+  const first = new Date(calY,calM,1).getDay();
+  const dim = new Date(calY,calM+1,0).getDate();
+  const prev = new Date(calY,calM,0).getDate();
+  for(let i=first-1;i>=0;i--){ const e=document.createElement('div'); e.className='cday other'; e.innerHTML=`<div class="cn">${prev-i}</div>`; g.appendChild(e); }
+  for(let d=1;d<=dim;d++){
+    const dstr=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const tasks=TASKS.filter(t=>t.d===dstr);
+    const isToday=d===15&&calM===2&&calY===2026;
+    const e=document.createElement('div');
+    e.className='cday'+(isToday?' today':'');
+    const tags=[...new Set(tasks.map(t=>t.tag))];
+    e.innerHTML=`<div class="cn">${d}</div><div class="cdots">${tags.map(t=>`<div class="cdot" style="background:${TAG_COLORS[t]}"></div>`).join('')}</div>`;
+    e.onclick=()=>showDet(dstr,tasks,d);
+    g.appendChild(e);
+  }
+  document.getElementById('day-det').className='day-det';
+}
+function chM(dir){ calM+=dir; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} renderCal(); }
+function showDet(dstr,tasks,d){
+  const el=document.getElementById('day-det');
+  if(!tasks.length){el.className='day-det';return;}
+  el.className='day-det on';
+  el.innerHTML=`<div class="dd-title">${MONTHS[calM]} ${d} — ${tasks.length} task${tasks.length===1?'':'s'}</div>`+
+    tasks.map(t=>`<div class="dd-task"><span class="tag t-${t.tag}" style="flex-shrink:0;margin-top:1px">${TAG_LABELS[t.tag]}</span><span>${t.text}</span></div>`).join('');
+}
+renderCal();
+
+// ─── ADVISOR ─────────────────────────────────────────────────────
+document.getElementById('adv-in').addEventListener('keydown', e => { if(e.key==='Enter') send(); });
+
+async function send(){
+  const inp = document.getElementById('adv-in');
+  const text = inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  const msgs = document.getElementById('msgs');
+
+  const uEl=document.createElement('div'); uEl.className='msg user';
+  uEl.innerHTML=`<div class="bubble">${text}</div>`; msgs.appendChild(uEl);
+
+  const tEl=document.createElement('div'); tEl.className='msg ai';
+  tEl.innerHTML=`<div class="typing"><span></span><span></span><span></span></div>`; msgs.appendChild(tEl);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  const bedLayout = 'Bed A: A1=Cucumber, A2=Cucumber (on trellis), A3=Tomato, A4=Tomato (caged), A5=Marigold border, A6=Lettuce (→fall kale). Bed B: B1=Zucchini, B2=Zucchini, B3=Pepper, B4=Basil, B5=Green Beans, B6=Marigold border.';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:350,
+        system:`You are the garden AI for Pablo Delcan in Callicoon, NY (Zone 6a, Sullivan County). He has two 4×8 ft raised wooden beds next to a chicken coop. Bed layout: ${bedLayout}. Last frost May 10. Today March 15 2026. His successes: cucumbers, zucchini. Needs improvement: tomatoes. He also has free composted chicken manure next door. The app already gives him day-by-day instructions for water, fertilize, weed, harvest, prune. Answer any garden question with specific, direct advice. Reference his actual bed layout. Under 140 words.`,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?.find(b=>b.type==='text')?.text||'Connection failed.';
+    tEl.innerHTML=`<div class="ml">Garden AI</div><div class="bubble">${reply.replace(/\n/g,'<br>')}</div>`;
+  } catch {
+    tEl.innerHTML=`<div class="ml">Garden AI</div><div class="bubble">Connection error — try again.</div>`;
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ─── PANEL NAV ───────────────────────────────────────────────────
+function go(name, btn){
+  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+name).classList.add('on');
+  btn.classList.add('on');
+}
+</script>
+</body>
+</html>
