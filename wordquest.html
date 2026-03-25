@@ -588,7 +588,7 @@ const G = {
   mode:'fill', activeWordmon:0, caughtWordmons:[0],
   wordmonXP:{}, // {0: 12, 1: 5, ...} tracks XP per wordmon
   currentEnemy:null, enemyHp:0, enemyMaxHp:0, playerHp:0, playerMaxHp:0,
-  answering:false, enemyIdx:0,
+  answering:false, enemyIdx:0, modeWins:0,
   usedWords:[], usedStories:[],
   purchased:[],
 
@@ -646,6 +646,7 @@ const G = {
         document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
         t.classList.add('active');
         this.mode = t.dataset.mode;
+        this.modeWins=0;
         this.loadMode(this.mode);
       });
     });
@@ -1315,6 +1316,7 @@ const G = {
     SFX.play('correct');
     this.score+=5;
     this.streak++;
+    this.modeWins++;
     this.addXP(10);
     this.addCoins(1);
     this.showMoneyAnimation(1);
@@ -1323,7 +1325,12 @@ const G = {
     this.addWordmonXP(1);
     this.showJoke(wd);
     const willKill = this.enemyHp <= 0;
-    this.autoNext(willKill ? 3000 : 2000);
+    // after 5 correct in a row in one mode, force a rotation
+    if(this.modeWins>=5){
+      this.autoNext(willKill?3000:2000,true);
+    } else {
+      this.autoNext(willKill?3000:2000);
+    }
     this.saveGame();
   },
 
@@ -1382,9 +1389,36 @@ const G = {
     this.autoNext(2500);
   },
 
-  autoNext(delay){
+  autoNext(delay,forceRotate){
     if(this._autoTimer) clearTimeout(this._autoTimer);
-    this._autoTimer = setTimeout(()=>{ this._autoTimer=null; this.loadMode(this.mode); },delay);
+    this._autoTimer = setTimeout(()=>{
+      this._autoTimer=null;
+      if(forceRotate) this.rotateMode();
+      else this.loadMode(this.mode);
+    },delay);
+  },
+
+  rotateMode(){
+    const gameModes=['fill','spell','tricky','hear','flash','decode','story'];
+    const others=gameModes.filter(m=>m!==this.mode);
+    const next=others[Math.floor(Math.random()*others.length)];
+    this.modeWins=0;
+    // show a fun "switch it up" banner
+    const msgs=["You're on fire! 🔥 Let's try something new!","Too easy! 💪 Time to mix it up!","Wow, 5 in a row! ⭐ New challenge!","Super smart! 🧠 Switching games!","Champion mode! 🏆 New game time!"];
+    const msg=msgs[Math.floor(Math.random()*msgs.length)];
+    const banner=document.createElement('div');
+    banner.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;padding:16px 28px;border-radius:16px;font-family:Fredoka One,cursive;font-size:1.2rem;z-index:9998;text-align:center;box-shadow:0 8px 32px rgba(249,115,22,.5);animation:popIn .3s ease';
+    banner.textContent=msg;
+    document.body.appendChild(banner);
+    setTimeout(()=>{
+      banner.remove();
+      // switch the tab
+      this.mode=next;
+      document.querySelectorAll('.tab').forEach(t=>{
+        t.classList.toggle('active',t.dataset.mode===next);
+      });
+      this.loadMode(next);
+    },1800);
   },
 
   showJoke(wd){
