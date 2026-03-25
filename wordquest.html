@@ -701,7 +701,11 @@ const G = {
 
   // get evolution stage for a wordmon (0=baby, 1=mid, 2=final)
   getStage(idx){ const xp=this.wordmonXP[idx]||0; return xp>=25?2:xp>=10?1:0; },
-  getWordmon(idx){ const wm=WORDMONS[idx]; const s=this.getStage(idx); return{...wm,...wm.stages[s],stage:s}; },
+  getWordmon(idx){ const wm=WORDMONS[idx]; const s=this.getStage(idx); const d={...wm,...wm.stages[s],stage:s}; d.spriteImg='sprites/'+wm.id+'_'+(s+1)+'.png'; return d; },
+  spriteHtml(wm,size){
+    size=size||80;
+    return '<img src="'+wm.spriteImg+'" alt="'+wm.name+'" style="width:'+size+'px;height:'+size+'px;object-fit:contain;image-rendering:pixelated" onerror="this.style.display=\'none\'">';
+  },
 
   // ---- INIT ----
   init(){
@@ -786,14 +790,16 @@ const G = {
     document.getElementById('xpFill').style.width = pct+'%';
     document.getElementById('xpLabel').textContent = this.xp+' / '+this.xpNeeded+' XP';
     // streak dots
-    const streakMod = this.streak % 5;
+    const catchAt = this.caughtWordmons.length < 8 ? 10 : 15;
+    const streakMod = this.streak % catchAt;
     for(let i=0;i<5;i++){
-      document.getElementById('sd'+i).classList.toggle('filled', i < streakMod);
+      const threshold = Math.floor((i+1) * catchAt / 5);
+      document.getElementById('sd'+i).classList.toggle('filled', streakMod >= threshold);
     }
     // player
     const wm = this.getWordmon(this.activeWordmon);
     document.getElementById('playerName').textContent = wm.name;
-    document.getElementById('playerSprite').innerHTML = wm.svg;
+    document.getElementById('playerSprite').innerHTML = this.spriteHtml(wm,90);
     this.updateHpBar('player');
     // enemy
     if(this.currentEnemy){
@@ -934,7 +940,9 @@ const G = {
 
   // ---- STREAK / CATCH ----
   checkCatch(){
-    if(this.streak>0 && this.streak%5===0){
+    // need 10-streak for catches; harder ones need 15
+    const catchAt = this.caughtWordmons.length < 8 ? 10 : 15;
+    if(this.streak>0 && this.streak%catchAt===0){
       const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!this.caughtWordmons.includes(i));
       if(uncaught.length>0){
         const pick=uncaught[Math.floor(Math.random()*uncaught.length)];
@@ -950,7 +958,7 @@ const G = {
   showCatchModal(wm){
     document.getElementById('catchTitle').textContent='New Wordmon!';
     document.getElementById('catchDesc').textContent='You caught '+wm.name+' the '+wm.type+' type!';
-    document.getElementById('catchSprite').innerHTML=wm.svg;
+    document.getElementById('catchSprite').innerHTML=this.spriteHtml(wm,100);
     document.getElementById('catchName').textContent=wm.name;
     document.getElementById('catchModal').classList.add('show');
   },
@@ -992,7 +1000,7 @@ const G = {
       const nextEvo=wm.stage===0?10:wm.stage===1?25:null;
       const card=document.createElement('div');
       card.className='roster-card'+(active?' active':'')+(caught?'':' locked');
-      card.innerHTML=(caught?wm.svg:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#cbd5e1"/><text x="50" y="56" text-anchor="middle" fill="#94a3b8" font-size="20">?</text></svg>')+
+      card.innerHTML=(caught?this.spriteHtml(wm,64):'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#cbd5e1"/><text x="50" y="56" text-anchor="middle" fill="#94a3b8" font-size="20">?</text></svg>')+
         '<div class="rc-name">'+(caught?wm.name:'???')+'</div>'+
         '<div class="rc-type">'+(caught?wm.type:'Unknown')+'</div>'+
         (caught&&nextEvo?'<div style="font-size:.5rem;color:var(--accent);font-weight:700;margin-top:1px">'+wxp+'/'+nextEvo+' XP</div>':'')+
@@ -1534,7 +1542,7 @@ const G = {
     overlay.innerHTML='<div style="background:#fff;border-radius:20px;padding:24px;max-width:320px;text-align:center;animation:popIn .4s ease .1s both">'+
       '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:var(--accent);margin-bottom:8px">⚡ EVOLUTION! ⚡</div>'+
       '<div style="font-size:1.1rem;font-weight:700;color:var(--text2);margin-bottom:12px">'+oldName+' is evolving!</div>'+
-      '<div id="evoSprite" style="width:120px;height:120px;margin:0 auto;animation:evoPulse 1.5s ease both">'+wm.stages[oldStage].svg+'</div>'+
+      '<div id="evoSprite" style="width:120px;height:120px;margin:0 auto;animation:evoPulse 1.5s ease both"><img src="sprites/'+wm.id+'_'+(oldStage+1)+'.png" style="width:120px;height:120px;object-fit:contain;image-rendering:pixelated"></div>'+
       '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:var(--text);margin-top:12px" id="evoNewName"></div>'+
       '<div style="font-size:.9rem;color:var(--text2);font-weight:600" id="evoHP"></div>'+
       '<button onclick="this.closest(\'div[style]\').remove();G.updateHUD()" style="margin-top:16px;font-family:Fredoka One,cursive;font-size:1.1rem;padding:10px 28px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer">Awesome!</button>'+
@@ -1546,7 +1554,7 @@ const G = {
       if(sprite){
         sprite.style.animation='evoFlash .3s ease';
         setTimeout(()=>{
-          sprite.innerHTML=newData.svg;
+          sprite.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:120px;height:120px;object-fit:contain;image-rendering:pixelated">';
           sprite.style.animation='evoPop .4s ease';
           document.getElementById('evoNewName').textContent=newData.name+'!';
           document.getElementById('evoHP').textContent='HP: '+newData.hp+' (+' +(newData.hp-wm.stages[oldStage].hp)+')';
