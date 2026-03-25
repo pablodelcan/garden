@@ -213,6 +213,13 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .help-speaker:hover{transform:scale(1.1)}
 .help-speaker.speaking{background:#ea580c;animation:none}
 @keyframes speakerPulse{0%,100%{box-shadow:0 4px 16px rgba(249,115,22,.4)}50%{box-shadow:0 4px 24px rgba(249,115,22,.7)}}
+.milestone-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease}
+.milestone-card{background:linear-gradient(135deg,#fff8f0,#fff);border-radius:24px;padding:32px;max-width:340px;text-align:center;animation:popIn .5s ease .1s both;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.milestone-number{font-family:'Fredoka One',cursive;font-size:4rem;background:linear-gradient(135deg,#f97316,#ef4444,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.milestone-label{font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--text);margin:8px 0}
+.milestone-sub{font-size:1rem;color:var(--text2);font-weight:600;margin-bottom:16px}
+.milestone-stars{font-size:2.5rem;margin:8px 0;animation:starSpin 1s ease}
+@keyframes starSpin{0%{transform:scale(0) rotate(-180deg)}60%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes evoPulse{0%{transform:scale(1)}25%{transform:scale(1.1);filter:brightness(1.5)}50%{transform:scale(.9);filter:brightness(2) saturate(0)}75%{transform:scale(1.15);filter:brightness(2.5) saturate(0)}100%{transform:scale(1);filter:brightness(3) saturate(0)}}
 @keyframes evoFlash{0%{transform:scale(1.2);filter:brightness(3) saturate(0)}100%{transform:scale(0);filter:brightness(4) saturate(0)}}
 @keyframes evoPop{0%{transform:scale(0);filter:brightness(3)}50%{transform:scale(1.3);filter:brightness(1.5)}100%{transform:scale(1);filter:brightness(1)}}
@@ -434,6 +441,57 @@ const SFX = {
           o.start(now+i*.1);o.stop(now+i*.1+.2);
         });break;
       }
+      case'whoosh':{
+        const o=c.createOscillator(),g=c.createGain();
+        const n=c.createBufferSource(),nb=c.createBuffer(1,c.sampleRate*.15,c.sampleRate);
+        const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*.3;
+        n.buffer=nb;const ng=c.createGain();n.connect(ng);ng.connect(c.destination);
+        ng.gain.setValueAtTime(.15,now);ng.gain.exponentialRampToValueAtTime(.01,now+.15);
+        n.start(now);
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(400,now);o.frequency.exponentialRampToValueAtTime(1200,now+.12);
+        g.gain.setValueAtTime(.1,now);g.gain.exponentialRampToValueAtTime(.01,now+.15);
+        o.start(now);o.stop(now+.15);break;
+      }
+      case'modeSwitch':{
+        [440,554,659,880].forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='triangle';o.frequency.setValueAtTime(f,now+i*.08);
+          g.gain.setValueAtTime(.2,now+i*.08);g.gain.exponentialRampToValueAtTime(.01,now+i*.08+.2);
+          o.start(now+i*.08);o.stop(now+i*.08+.2);
+        });break;
+      }
+      case'fanfare':{
+        // epic ascending fanfare for big milestones
+        const notes=[392,494,587,698,784,880,988,1047,1175,1318];
+        notes.forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type=i<5?'sine':'triangle';
+          o.frequency.setValueAtTime(f,now+i*.08);
+          g.gain.setValueAtTime(.25,now+i*.08);g.gain.exponentialRampToValueAtTime(.01,now+i*.08+.3);
+          o.start(now+i*.08);o.stop(now+i*.08+.3);
+        });
+        // add a final chord
+        [1047,1318,1568].forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='sine';o.frequency.setValueAtTime(f,now+.8);
+          g.gain.setValueAtTime(.2,now+.8);g.gain.exponentialRampToValueAtTime(.01,now+1.5);
+          o.start(now+.8);o.stop(now+1.5);
+        });
+        break;
+      }
+      case'drumroll':{
+        for(let i=0;i<20;i++){
+          const n=c.createBufferSource(),nb=c.createBuffer(1,Math.floor(c.sampleRate*.03),c.sampleRate);
+          const d=nb.getChannelData(0);for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1);
+          n.buffer=nb;const g=c.createGain();n.connect(g);g.connect(c.destination);
+          g.gain.setValueAtTime(.08+i*.008,now+i*.04);g.gain.exponentialRampToValueAtTime(.01,now+i*.04+.05);
+          n.start(now+i*.04);
+        }break;
+      }
     }
   }
 };
@@ -637,7 +695,7 @@ const G = {
   mode:'fill', activeWordmon:0, caughtWordmons:[0],
   wordmonXP:{}, // {0: 12, 1: 5, ...} tracks XP per wordmon
   currentEnemy:null, enemyHp:0, enemyMaxHp:0, playerHp:0, playerMaxHp:0,
-  answering:false, enemyIdx:0, modeWins:0,
+  answering:false, enemyIdx:0, modeWins:0, totalCorrect:0,
   usedWords:[], usedStories:[],
   purchased:[],
 
@@ -653,7 +711,7 @@ const G = {
     this.renderRoster();
     this.updateHUD();
     this.updateBackpack();
-    this.loadMode('fill');
+    this.loadMode(this.mode);
     this.updateModeBar();
     // auto-save every 30s
     setInterval(()=>this.saveGame(),30000);
@@ -663,7 +721,8 @@ const G = {
   saveGame(){
     const d={score:this.score,streak:this.streak,lives:this.lives,xp:this.xp,level:this.level,
       xpNeeded:this.xpNeeded,coins:this.coins,activeWordmon:this.activeWordmon,
-      caughtWordmons:this.caughtWordmons,purchased:this.purchased,wordmonXP:this.wordmonXP};
+      caughtWordmons:this.caughtWordmons,purchased:this.purchased,wordmonXP:this.wordmonXP,
+      mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
   },
   loadGame(){
@@ -682,6 +741,9 @@ const G = {
       if(d.caughtWordmons) this.caughtWordmons=d.caughtWordmons;
       if(d.purchased) this.purchased=d.purchased;
       if(d.wordmonXP) this.wordmonXP=d.wordmonXP;
+      if(d.mode && d.mode!=='shop') this.mode=d.mode;
+      if(d.modeWins!==undefined) this.modeWins=d.modeWins;
+      if(d.totalCorrect!==undefined) this.totalCorrect=d.totalCorrect;
     }catch(e){}
   },
 
@@ -1275,6 +1337,7 @@ const G = {
     setTimeout(()=>{
       const fw=document.getElementById('flashWord');
       if(fw){
+        SFX.play('whoosh');
         fw.style.opacity='0';
         fw.style.fontSize='0';
         fw.style.padding='0';
@@ -1385,6 +1448,7 @@ const G = {
     this.score+=5;
     this.streak++;
     this.modeWins++;
+    this.totalCorrect++;
     this.addXP(10);
     this.addCoins(1);
     this.showMoneyAnimation(1);
@@ -1394,13 +1458,42 @@ const G = {
     this.showJoke(wd);
     const willKill = this.enemyHp <= 0;
     this.updateModeBar();
-    // after 15 correct in one mode, force a rotation
-    if(this.modeWins>=15){
+    // check for streak milestones
+    const milestones=[10,20,30,50,100];
+    if(milestones.includes(this.streak)){
+      this.showMilestone(this.streak);
+      this.autoNext(willKill?5500:4500, this.modeWins>=15);
+    } else if(this.modeWins>=15){
       this.autoNext(willKill?3000:2000,true);
     } else {
       this.autoNext(willKill?3000:2000);
     }
     this.saveGame();
+  },
+
+  showMilestone(n){
+    SFX.play('drumroll');
+    setTimeout(()=>SFX.play('fanfare'),800);
+    this.fireConfetti();
+    setTimeout(()=>this.fireConfetti(),600);
+    setTimeout(()=>this.fireConfetti(),1200);
+    const titles={10:'🔥 ON FIRE!',20:'⚡ UNSTOPPABLE!',30:'🌟 LEGENDARY!',50:'👑 WORD MASTER!',100:'🏆 ULTIMATE CHAMPION!'};
+    const subs={10:'10 in a row — amazing!',20:'20 in a row — you\'re a genius!',30:'30 in a row — INCREDIBLE!',50:'50 in a row — is this even possible?!',100:'100 IN A ROW!!! You are the GREATEST!'};
+    const stars={10:'⭐⭐',20:'⭐⭐⭐',30:'⭐⭐⭐⭐',50:'⭐⭐⭐⭐⭐',100:'👑⭐⭐⭐⭐⭐👑'};
+    const bonusCoins={10:5,20:10,30:20,50:50,100:100};
+    const overlay=document.createElement('div');
+    overlay.className='milestone-overlay';
+    overlay.innerHTML='<div class="milestone-card">'+
+      '<div class="milestone-stars">'+stars[n]+'</div>'+
+      '<div class="milestone-number">'+n+'</div>'+
+      '<div class="milestone-label">'+(titles[n]||'AMAZING!')+'</div>'+
+      '<div class="milestone-sub">'+(subs[n]||n+' correct in a row!')+'</div>'+
+      '<div style="font-size:1.1rem;font-weight:700;color:#f59e0b;margin-bottom:12px">🪙 BONUS: +'+bonusCoins[n]+' coins!</div>'+
+      '<button onclick="this.closest(\'.milestone-overlay\').remove()" style="font-family:Fredoka One,cursive;font-size:1.2rem;padding:12px 32px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4)">LET\'S GO! 🚀</button>'+
+    '</div>';
+    document.body.appendChild(overlay);
+    this.addCoins(bonusCoins[n]||5);
+    this.showMoneyAnimation(bonusCoins[n]||5);
   },
 
   addWordmonXP(n){
@@ -1468,6 +1561,7 @@ const G = {
   },
 
   rotateMode(){
+    SFX.play('modeSwitch');
     const others=this.GAME_MODES.filter(m=>m!==this.mode);
     const next=others[Math.floor(Math.random()*others.length)];
     this.modeWins=0;
