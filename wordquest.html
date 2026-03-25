@@ -1478,9 +1478,22 @@ const G = {
     setTimeout(()=>this.fireConfetti(),600);
     setTimeout(()=>this.fireConfetti(),1200);
     const titles={10:'🔥 ON FIRE!',20:'⚡ UNSTOPPABLE!',30:'🌟 LEGENDARY!',50:'👑 WORD MASTER!',100:'🏆 ULTIMATE CHAMPION!'};
+    const voiceLines={10:'On fire! Ten in a row! Amazing!',20:'Unstoppable! Twenty in a row! You are a genius!',30:'Legendary! Thirty in a row! That is incredible!',50:'Word master! Fifty in a row! Is this even possible?!',100:'Ultimate champion! One hundred in a row! You are the greatest reader in the world!'};
     const subs={10:'10 in a row — amazing!',20:'20 in a row — you\'re a genius!',30:'30 in a row — INCREDIBLE!',50:'50 in a row — is this even possible?!',100:'100 IN A ROW!!! You are the GREATEST!'};
     const stars={10:'⭐⭐',20:'⭐⭐⭐',30:'⭐⭐⭐⭐',50:'⭐⭐⭐⭐⭐',100:'👑⭐⭐⭐⭐⭐👑'};
     const bonusCoins={10:5,20:10,30:20,50:50,100:100};
+    // speak the milestone title after the drumroll
+    setTimeout(()=>{
+      if('speechSynthesis' in window){
+        speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(voiceLines[n]||n+' in a row! Amazing!');
+        u.rate=0.9; u.pitch=1.2; u.volume=1;
+        const voices=speechSynthesis.getVoices();
+        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        if(good) u.voice=good;
+        speechSynthesis.speak(u);
+      }
+    },1000);
     const overlay=document.createElement('div');
     overlay.className='milestone-overlay';
     overlay.innerHTML='<div class="milestone-card">'+
