@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Río Reads</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#fff8f0;--accent:#f97316;--accent2:#fb923c;
+  --green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;
+  --text:#1e293b;--text2:#64748b;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,.08);
+  --coin:#fbbf24;
+}
+html{font-size:16px}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--accent),#ea580c);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
+.header h1{color:#fff;font-size:1.3rem;text-shadow:2px 2px 0 rgba(0,0,0,.2)}
+.hud{display:flex;gap:5px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.25);color:#fff;padding:4px 10px;border-radius:20px;font-weight:700;font-size:.8rem;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px)}
+.pill svg{width:14px;height:14px}
+
+/* XP BAR */
+.xp-wrap{width:100%;margin-top:4px}
+.xp-bar{background:rgba(255,255,255,.3);border-radius:10px;height:8px;overflow:hidden}
+.xp-fill{background:linear-gradient(90deg,#fbbf24,#f59e0b);height:100%;border-radius:10px;transition:width .5s ease}
+.xp-label{color:rgba(255,255,255,.8);font-size:.65rem;font-weight:700;text-align:center;margin-top:2px}
+
+/* STREAK DOTS */
+.streak-wrap{display:flex;gap:6px;align-items:center;padding:8px 16px}
+.streak-dot{width:20px;height:20px;border-radius:50%;border:3px solid rgba(249,115,22,.25);background:transparent;transition:all .3s ease}
+.streak-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.15);box-shadow:0 0 8px rgba(249,115,22,.4)}
+.streak-label{font-size:.75rem;font-weight:700;color:var(--text2)}
+
+/* BATTLE SCENE */
+.battle{background:linear-gradient(180deg,#e0f2fe 0%,#bae6fd 40%,#86efac 40%,#4ade80 100%);border-radius:20px;margin:8px 12px;padding:14px;min-height:190px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.battle-ground{display:flex;justify-content:space-between;align-items:flex-end;min-height:150px;position:relative}
+.fighter{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:2}
+.sprite-box{transition:transform .5s ease}
+.sprite-box svg{width:90px;height:90px;filter:drop-shadow(2px 4px 3px rgba(0,0,0,.15))}
+.fighter.player .sprite-box{animation:bounce 1.5s ease-in-out infinite}
+.fighter.enemy .sprite-box{animation:bounce 1.5s ease-in-out infinite .3s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hp-bar-wrap{width:110px;text-align:center}
+.hp-name{font-family:'Fredoka One',cursive;font-size:.7rem;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-bar{background:#e2e8f0;border-radius:6px;height:8px;overflow:hidden;border:2px solid #cbd5e1}
+.hp-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.hp-fill.green{background:linear-gradient(90deg,#22c55e,#4ade80)}
+.hp-fill.yellow{background:linear-gradient(90deg,#eab308,#facc15)}
+.hp-fill.red{background:linear-gradient(90deg,#ef4444,#f87171)}
+.hp-text{font-size:.6rem;font-weight:700;color:var(--text2)}
+.battle-msg{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:1.3rem;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.3);opacity:0;pointer-events:none;z-index:10;white-space:nowrap}
+.battle-msg.show{animation:msgPop .8s ease forwards}
+@keyframes msgPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}40%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
+.hit-flash{position:absolute;inset:0;background:rgba(255,255,255,.7);opacity:0;pointer-events:none;z-index:5;border-radius:20px}
+.hit-flash.show{animation:flash .3s ease}
+@keyframes flash{0%{opacity:.7}100%{opacity:0}}
+@keyframes attackRight{0%{transform:translateX(0)}30%{transform:translateX(50px)}60%{transform:translateX(50px) scale(1.1)}100%{transform:translateX(0)}}
+@keyframes attackLeft{0%{transform:translateX(0)}30%{transform:translateX(-50px)}60%{transform:translateX(-50px) scale(1.1)}100%{transform:translateX(0)}}
+@keyframes hurt{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}100%{transform:translateX(0)}}
+.shake .sprite-box{animation:hurt .4s ease!important}
+.atk-right .sprite-box{animation:attackRight .5s ease!important}
+.atk-left .sprite-box{animation:attackLeft .5s ease!important}
+.vs-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:.9rem;color:var(--accent);background:#fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:3px solid var(--accent);z-index:3}
+
+/* TABS */
+.tabs{display:flex;gap:4px;padding:6px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:'Fredoka One',cursive;font-size:.75rem;padding:7px 12px;border-radius:12px;border:none;cursor:pointer;white-space:nowrap;transition:all .2s;background:#fff;color:var(--text2);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(249,115,22,.3);transform:translateY(-1px)}
+.tab:hover:not(.active){background:#fff7ed}
+.tab.shop-tab{background:#fef3c7;color:#92400e;border:2px solid #fbbf24}
+.tab.shop-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* GAME AREA */
+.game-area{padding:10px 12px;min-height:180px}
+.card{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow);max-width:500px;margin:0 auto;position:relative}
+.card.wrong-shake{animation:cardShake .5s ease}
+@keyframes cardShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.question-text{font-size:1.25rem;font-weight:800;text-align:center;margin-bottom:16px;line-height:1.4}
+.question-text .blank{display:inline-block;min-width:70px;border-bottom:4px solid var(--accent);color:var(--accent);font-family:'Fredoka One',cursive;padding:0 4px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{font-family:'Nunito',sans-serif;font-size:1.05rem;font-weight:700;padding:12px 8px;border-radius:14px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center}
+.choice-btn:hover{border-color:var(--accent);background:#fff7ed;transform:translateY(-2px)}
+.choice-btn:active{transform:translateY(0)}
+.choice-btn.correct{background:#dcfce7;border-color:var(--green);color:#15803d}
+.choice-btn.wrong-pick{background:#fef2f2;border-color:var(--red);color:#b91c1c}
+.choice-btn.disabled{pointer-events:none;opacity:.7}
+
+/* SPELL IT */
+.spell-hint{font-size:1rem;text-align:center;color:var(--text2);margin-bottom:8px}
+.spell-display{display:flex;justify-content:center;gap:5px;margin:14px 0;min-height:48px;flex-wrap:wrap}
+.spell-slot{width:40px;height:48px;border-radius:10px;border:3px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--accent);background:#fff7ed;transition:all .2s}
+.spell-slot.filled{border-style:solid;border-color:var(--accent);background:#fff;transform:scale(1.05)}
+.letter-tiles{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.letter-tile{width:40px;height:44px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--text);transition:all .15s;box-shadow:0 3px 0 #e2e8f0}
+.letter-tile:hover{transform:translateY(-2px);border-color:var(--accent)}
+.letter-tile:active{transform:translateY(1px);box-shadow:none}
+.letter-tile.used{opacity:.25;pointer-events:none}
+.spell-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.spell-actions button{font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;padding:8px 18px;border-radius:10px;border:none;cursor:pointer;transition:all .15s}
+.backspace-btn{background:#fef2f2;color:var(--red)}
+.submit-spell{background:var(--accent);color:#fff}
+.submit-spell:hover{background:#ea580c}
+
+/* DECODE */
+.clues{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.clue{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8fafc;border-radius:10px;font-weight:700;font-size:.95rem}
+.clue-icon{font-size:1.2rem}
+.decode-input{width:100%;padding:12px;border-radius:14px;border:3px solid #e2e8f0;font-family:'Fredoka One',cursive;font-size:1.3rem;text-align:center;color:var(--accent);letter-spacing:4px;text-transform:lowercase}
+.decode-input:focus{outline:none;border-color:var(--accent)}
+.decode-submit{display:block;margin:10px auto 0;font-family:'Fredoka One',cursive;font-size:1rem;padding:10px 36px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:all .15s}
+.decode-submit:hover{background:#ea580c;transform:translateY(-2px)}
+
+/* STORY */
+.story-box{background:#f8fafc;border-radius:14px;padding:16px;margin-bottom:12px;line-height:2}
+.story-word{display:inline;cursor:pointer;padding:2px 3px;border-radius:4px;font-size:1.1rem;font-weight:600;transition:all .15s}
+.story-word:hover{background:#fed7aa}
+.story-word.highlighted{background:#fdba74;color:#9a3412}
+.story-question{font-size:1rem;font-weight:700;text-align:center;margin:10px 0}
+
+/* JOKE */
+.joke-box{margin-top:14px;padding:12px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:14px;text-align:center;animation:jokeIn .4s ease}
+.joke-box .joke-emoji{font-size:1.4rem}
+.joke-box p{font-size:.9rem;font-weight:700;color:#92400e;margin-top:4px}
+@keyframes jokeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* COIN DISPLAY */
+.coin-reward{margin-top:10px;padding:8px 14px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-radius:12px;text-align:center;font-weight:800;color:#92400e;font-size:.95rem;animation:jokeIn .4s ease .2s both;display:flex;align-items:center;justify-content:center;gap:6px}
+.coin-icon{display:inline-block;width:22px;height:22px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:50%;border:2px solid #d97706;font-size:.7rem;line-height:18px;text-align:center;color:#92400e;font-weight:900}
+
+/* ROSTER */
+.roster-section{padding:10px 12px}
+.roster-title{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.roster-grid{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.roster-grid::-webkit-scrollbar{height:4px}
+.roster-grid::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px}
+.roster-card{background:#fff;border-radius:14px;padding:8px;min-width:90px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.05);flex-shrink:0;border:2px solid transparent;transition:all .2s;cursor:pointer}
+.roster-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
+.roster-card.active{border-color:var(--accent);background:#fff7ed}
+.roster-card.locked{opacity:.35;filter:grayscale(1);cursor:default}
+.roster-card svg{width:55px;height:55px}
+.roster-card .rc-name{font-family:'Fredoka One',cursive;font-size:.65rem;color:var(--text);margin-top:2px}
+.roster-card .rc-type{font-size:.55rem;color:var(--text2);font-weight:700}
+
+/* SHOP SECTION */
+.shop-section{padding:10px 12px 30px}
+.shop-banner{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:16px;margin-bottom:12px;text-align:center;border:2px solid #fbbf24}
+.shop-banner h2{font-family:'Fredoka One',cursive;font-size:1.2rem;color:#92400e;margin-bottom:4px}
+.shop-banner p{font-size:.85rem;font-weight:700;color:#a16207;line-height:1.4}
+.shop-banner .real-deal{background:#fff;border-radius:10px;padding:8px 12px;margin-top:8px;font-size:.8rem;color:#92400e;font-weight:800;border:2px dashed #f59e0b}
+.shop-title{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.shop-subtitle{font-size:.8rem;color:var(--text2);font-weight:600;margin-bottom:10px}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding-bottom:10px}
+@media(min-width:600px){.shop-grid{grid-template-columns:repeat(3,1fr)}}
+.shop-item{background:#fff;border-radius:16px;padding:12px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.06);border:2px solid #e2e8f0;transition:all .2s;position:relative}
+.shop-item:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1)}
+.shop-item.purchased{border-color:var(--green);background:#f0fdf4}
+.shop-item.locked{border-color:#e2e8f0;background:#f8fafc}
+.shop-item.purchased::after{content:'✅ EARNED!';position:absolute;top:6px;right:6px;font-size:.6rem;font-weight:800;color:#16a34a;background:#dcfce7;padding:2px 6px;border-radius:6px}
+.shop-item svg,.shop-item img{width:90px;height:90px;margin:0 auto 6px;display:block}
+.shop-item .item-name{font-family:'Fredoka One',cursive;font-size:.8rem;color:var(--text)}
+.shop-item .item-desc{font-size:.65rem;color:var(--text2);font-weight:600;margin:2px 0}
+.shop-item .item-price{font-size:.8rem;font-weight:800;color:#92400e;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px}
+.shop-item .item-price .coin-icon{width:18px;height:18px;font-size:.65rem;line-height:14px}
+.progress-bar{background:#e2e8f0;border-radius:6px;height:6px;margin:6px 0 4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#fbbf24,#f59e0b);transition:width .4s}
+.progress-text{font-size:.6rem;color:var(--text2);font-weight:700}
+.shop-buy{margin-top:6px;font-family:'Fredoka One',cursive;font-size:.75rem;padding:8px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:all .15s}
+.shop-buy:hover{background:#ea580c;transform:translateY(-1px)}
+.shop-buy:disabled{background:#cbd5e1;cursor:default;transform:none}
+.shop-buy.bought{background:var(--green)}
+.wallet-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#92400e;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-radius:12px;margin-bottom:12px;border:2px solid #fde68a}
+.wallet-bar .coin-icon{width:28px;height:28px;font-size:.9rem;line-height:24px}
+
+/* CONFETTI */
+.confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;overflow:hidden}
+.confetti-piece{position:absolute;width:10px;height:10px;top:-20px;animation:confettiFall 2s ease forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* CATCH MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal-box{background:#fff;border-radius:24px;padding:28px;text-align:center;max-width:320px;width:90%;transform:scale(.8);transition:transform .3s;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-overlay.show .modal-box{transform:scale(1)}
+.modal-box h2{font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--accent);margin-bottom:6px}
+.modal-box p{color:var(--text2);font-weight:600;margin-bottom:12px;font-size:.9rem}
+.modal-box svg{width:100px;height:100px;margin:8px auto}
+.modal-btn{font-family:'Fredoka One',cursive;font-size:1rem;padding:10px 32px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:all .15s}
+.modal-btn:hover{background:#ea580c;transform:translateY(-2px)}
+
+/* RESULT BANNERS */
+.result-banner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;border-radius:20px;animation:bannerIn .5s ease}
+.result-banner.victory{background:rgba(34,197,94,.85)}
+.result-banner.defeat{background:rgba(239,68,68,.85)}
+.result-banner span{font-family:'Fredoka One',cursive;font-size:1.8rem;color:#fff;text-shadow:2px 3px 0 rgba(0,0,0,.2)}
+@keyframes bannerIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+
+/* LEVEL UP */
+.levelup-text{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:2.2rem;color:#fbbf24;text-shadow:3px 3px 0 #92400e;z-index:300;pointer-events:none;animation:levelPop 1.5s ease forwards}
+@keyframes levelPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}40%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+
+/* NEXT BTN */
+.next-btn{display:block;margin:14px auto 0;font-family:'Fredoka One',cursive;font-size:1rem;padding:10px 32px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:all .15s;box-shadow:0 4px 12px rgba(249,115,22,.3)}
+.next-btn:hover{background:#ea580c;transform:translateY(-2px)}
+
+/* BACKPACK + MONEY ANIMATION */
+.backpack{position:fixed;bottom:16px;right:16px;z-index:150;width:56px;height:56px;cursor:pointer;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.2));transition:transform .2s;animation:bpBounce 3s ease-in-out infinite}
+.backpack:hover{transform:scale(1.1)}
+.backpack.pulse{animation:bpPulse .4s ease}
+@keyframes bpBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes bpPulse{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+.backpack-badge{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;font-family:'Fredoka One',cursive;font-size:.6rem;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;padding:0 4px}
+.money-fly{position:fixed;z-index:160;pointer-events:none;font-size:2.5rem;filter:drop-shadow(2px 3px 4px rgba(0,0,0,.3))}
+.money-fly.animate{animation:moneyToBackpack 1s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes moneyToBackpack{
+  0%{opacity:1;transform:scale(1.5) rotate(-10deg)}
+  30%{opacity:1;transform:scale(1.8) rotate(5deg) translateY(-40px)}
+  100%{opacity:0;transform:scale(.3) rotate(15deg)}
+}
+.money-big-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:155;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px;animation:bigFlash 1.2s ease forwards}
+.money-big-flash .bill{font-size:4rem;filter:drop-shadow(3px 4px 6px rgba(0,0,0,.3))}
+.money-big-flash .amount{font-family:'Fredoka One',cursive;font-size:1.8rem;color:#16a34a;text-shadow:2px 2px 0 rgba(0,0,0,.15)}
+@keyframes bigFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}30%{transform:translate(-50%,-50%) scale(1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.5) translateY(30px)}}
+
+@media(max-width:400px){
+  .header h1{font-size:1.1rem}
+  .pill{font-size:.7rem;padding:3px 7px}
+  .question-text{font-size:1.1rem}
+  .choice-btn{font-size:.95rem;padding:10px 6px}
+  .sprite-box svg{width:70px!important;height:70px!important}
+  .battle{min-height:160px;padding:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1 class="fredoka" style="letter-spacing:1px">RÍO READS</h1>
+  <div class="hud">
+    <div class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg><span id="scoreVal">0</span></div>
+    <div class="pill">🔥 <span id="streakVal">0</span></div>
+    <div class="pill">❤️ <span id="livesVal">3</span></div>
+    <div class="pill">Lv <span id="levelVal">1</span></div>
+    <div class="pill" style="background:rgba(251,191,36,.4)">🪙 <span id="coinVal">0</span></div>
+  </div>
+  <div class="xp-wrap">
+    <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    <div class="xp-label" id="xpLabel">0 / 50 XP</div>
+  </div>
+</div>
+
+<!-- STREAK DOTS -->
+<div class="streak-wrap">
+  <div class="streak-dot" id="sd0"></div>
+  <div class="streak-dot" id="sd1"></div>
+  <div class="streak-dot" id="sd2"></div>
+  <div class="streak-dot" id="sd3"></div>
+  <div class="streak-dot" id="sd4"></div>
+  <span class="streak-label">Catch streak!</span>
+</div>
+
+<!-- BATTLE -->
+<div class="battle" id="battleScene">
+  <div class="battle-ground">
+    <div class="fighter player" id="playerFighter">
+      <div class="hp-bar-wrap">
+        <div class="hp-name" id="playerName">Sparky</div>
+        <div class="hp-bar"><div class="hp-fill green" id="playerHpBar" style="width:100%"></div></div>
+        <div class="hp-text" id="playerHpText">30/30 HP</div>
+      </div>
+      <div class="sprite-box" id="playerSprite"></div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="fighter enemy" id="enemyFighter">
+      <div class="hp-bar-wrap">
+        <div class="hp-name" id="enemyName">Grumblob</div>
+        <div class="hp-bar"><div class="hp-fill green" id="enemyHpBar" style="width:100%"></div></div>
+        <div class="hp-text" id="enemyHpText">20/20 HP</div>
+      </div>
+      <div class="sprite-box" id="enemySprite"></div>
+    </div>
+  </div>
+  <div class="battle-msg" id="battleMsg"></div>
+  <div class="hit-flash" id="hitFlash"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabs">
+  <button class="tab active" data-mode="fill">Fill In</button>
+  <button class="tab" data-mode="spell">Spell It</button>
+  <button class="tab" data-mode="rhyme">Rhyme</button>
+  <button class="tab" data-mode="decode">Decode</button>
+  <button class="tab" data-mode="story">Story</button>
+  <button class="tab shop-tab" data-mode="shop">🪙 Shop</button>
+</div>
+
+<!-- GAME AREA -->
+<div class="game-area" id="gameArea"></div>
+
+<!-- ROSTER -->
+<div class="roster-section">
+  <div class="roster-title">🎒 My Wordmons (<span id="rosterCount">1</span>/<span id="rosterTotal">8</span>)</div>
+  <div class="roster-grid" id="rosterGrid"></div>
+</div>
+
+<!-- SHOP (rendered inline in game area when Shop tab is active) -->
+
+<!-- CATCH MODAL -->
+<div class="modal-overlay" id="catchModal">
+  <div class="modal-box">
+    <h2 id="catchTitle">New Wordmon!</h2>
+    <p id="catchDesc">You caught a new friend!</p>
+    <div id="catchSprite"></div>
+    <p id="catchName" class="fredoka" style="font-size:1.1rem;color:var(--accent);margin:6px 0"></p>
+    <button class="modal-btn" onclick="G.closeCatchModal()">Awesome!</button>
+  </div>
+</div>
+
+<!-- BACKPACK -->
+<div class="backpack" id="backpack" onclick="document.querySelector('.tab[data-mode=&quot;shop&quot;]').click()">
+  <svg viewBox="0 0 60 60"><rect x="12" y="18" width="36" height="32" rx="8" fill="#92400e"/><rect x="16" y="22" width="28" height="24" rx="5" fill="#b45309"/><rect x="20" y="14" width="20" height="10" rx="5" fill="#92400e"/><rect x="24" y="28" width="12" height="10" rx="3" fill="#fbbf24"/><circle cx="30" cy="33" r="2" fill="#92400e"/><rect x="22" y="48" width="16" height="4" rx="2" fill="#78350f"/></svg>
+  <div class="backpack-badge" id="bpBadge">0</div>
+</div>
+
+<!-- CONFETTI CONTAINER -->
+<div class="confetti-container" id="confettiBox"></div>
+
+<script>
+// ========================================================
+// SOUND ENGINE (Web Audio API — no files needed)
+// ========================================================
+const SFX = {
+  ctx: null,
+  init(){ if(!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)(); },
+  play(type){
+    this.init();
+    const c=this.ctx, now=c.currentTime;
+    switch(type){
+      case'correct':{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(523,now);o.frequency.setValueAtTime(659,now+.08);o.frequency.setValueAtTime(784,now+.16);
+        g.gain.setValueAtTime(.3,now);g.gain.exponentialRampToValueAtTime(.01,now+.35);
+        o.start(now);o.stop(now+.35);break;
+      }
+      case'wrong':{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='square';o.frequency.setValueAtTime(200,now);o.frequency.setValueAtTime(150,now+.15);
+        g.gain.setValueAtTime(.2,now);g.gain.exponentialRampToValueAtTime(.01,now+.3);
+        o.start(now);o.stop(now+.3);break;
+      }
+      case'attack':{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sawtooth';o.frequency.setValueAtTime(300,now);o.frequency.exponentialRampToValueAtTime(80,now+.15);
+        g.gain.setValueAtTime(.25,now);g.gain.exponentialRampToValueAtTime(.01,now+.2);
+        o.start(now);o.stop(now+.2);break;
+      }
+      case'hurt':{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sawtooth';o.frequency.setValueAtTime(400,now);o.frequency.exponentialRampToValueAtTime(100,now+.25);
+        g.gain.setValueAtTime(.2,now);g.gain.exponentialRampToValueAtTime(.01,now+.25);
+        o.start(now);o.stop(now+.25);break;
+      }
+      case'coin':{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(1200,now);o.frequency.setValueAtTime(1600,now+.06);
+        g.gain.setValueAtTime(.2,now);g.gain.exponentialRampToValueAtTime(.01,now+.2);
+        o.start(now);o.stop(now+.2);break;
+      }
+      case'victory':{
+        [523,659,784,1047].forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='sine';o.frequency.setValueAtTime(f,now+i*.12);
+          g.gain.setValueAtTime(.25,now+i*.12);g.gain.exponentialRampToValueAtTime(.01,now+i*.12+.3);
+          o.start(now+i*.12);o.stop(now+i*.12+.3);
+        });break;
+      }
+      case'levelup':{
+        [392,494,587,784,988].forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='sine';o.frequency.setValueAtTime(f,now+i*.1);
+          g.gain.setValueAtTime(.3,now+i*.1);g.gain.exponentialRampToValueAtTime(.01,now+i*.1+.25);
+          o.start(now+i*.1);o.stop(now+i*.1+.25);
+        });break;
+      }
+      case'catch':{
+        [660,880,1100,1320,1100,1320].forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='sine';o.frequency.setValueAtTime(f,now+i*.08);
+          g.gain.setValueAtTime(.2,now+i*.08);g.gain.exponentialRampToValueAtTime(.01,now+i*.08+.15);
+          o.start(now+i*.08);o.stop(now+i*.08+.15);
+        });break;
+      }
+      case'click':{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(800,now);
+        g.gain.setValueAtTime(.1,now);g.gain.exponentialRampToValueAtTime(.01,now+.06);
+        o.start(now);o.stop(now+.06);break;
+      }
+      case'buy':{
+        [523,659,784,1047,784,1047].forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='triangle';o.frequency.setValueAtTime(f,now+i*.1);
+          g.gain.setValueAtTime(.25,now+i*.1);g.gain.exponentialRampToValueAtTime(.01,now+i*.1+.2);
+          o.start(now+i*.1);o.stop(now+i*.1+.2);
+        });break;
+      }
+    }
+  }
+};
+
+// ========================================================
+// WORDMONS — custom creatures (NOT real Pokémon)
+// ========================================================
+const WORDMONS = [
+  {
+    id:'sparky', name:'Sparky', type:'Electric', hp:30, color:'#fbbf24',
+    svg:`<svg viewBox="0 0 100 100"><rect x="30" y="20" width="40" height="40" rx="8" fill="#fbbf24"/><rect x="26" y="14" width="10" height="16" rx="3" fill="#fbbf24" transform="rotate(-15 31 22)"/><rect x="64" y="14" width="10" height="16" rx="3" fill="#fbbf24" transform="rotate(15 69 22)"/><circle cx="40" cy="35" r="5" fill="#1e293b"/><circle cx="60" cy="35" r="5" fill="#1e293b"/><circle cx="42" cy="33" r="2" fill="#fff"/><circle cx="62" cy="33" r="2" fill="#fff"/><path d="M42 48 Q50 55 58 48" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="20,45 6,58 22,52" fill="#fbbf24"/><polygon points="80,45 94,58 78,52" fill="#fbbf24"/><rect x="36" y="60" width="8" height="14" rx="4" fill="#f59e0b"/><rect x="56" y="60" width="8" height="14" rx="4" fill="#f59e0b"/><polygon points="50,70 42,90 50,82 58,90" fill="#fbbf24" stroke="#f59e0b" stroke-width="1"/></svg>`
+  },
+  {
+    id:'flamepup', name:'Flamepup', type:'Fire', hp:28, color:'#ef4444',
+    svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="28" ry="25" fill="#ef4444"/><ellipse cx="50" cy="52" rx="22" ry="18" fill="#fca5a5"/><circle cx="40" cy="45" r="5" fill="#1e293b"/><circle cx="60" cy="45" r="5" fill="#1e293b"/><circle cx="42" cy="43" r="2" fill="#fff"/><circle cx="62" cy="43" r="2" fill="#fff"/><ellipse cx="50" cy="56" rx="4" ry="2.5" fill="#1e293b"/><path d="M44 60 Q50 65 56 60" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M36 22 Q30 5 42 18" fill="#f97316"/><path d="M50 18 Q50 0 56 16" fill="#ef4444"/><path d="M64 22 Q70 5 58 18" fill="#f97316"/><rect x="28" y="68" width="10" height="12" rx="5" fill="#ef4444"/><rect x="62" y="68" width="10" height="12" rx="5" fill="#ef4444"/></svg>`
+  },
+  {
+    id:'bubblefin', name:'Bubblefin', type:'Water', hp:32, color:'#3b82f6',
+    svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="24" fill="#3b82f6"/><ellipse cx="50" cy="52" rx="22" ry="16" fill="#93c5fd"/><circle cx="40" cy="46" r="6" fill="#fff"/><circle cx="60" cy="46" r="6" fill="#fff"/><circle cx="42" cy="45" r="3.5" fill="#1e293b"/><circle cx="62" cy="45" r="3.5" fill="#1e293b"/><circle cx="43" cy="44" r="1.5" fill="#fff"/><circle cx="63" cy="44" r="1.5" fill="#fff"/><path d="M44 58 Q50 63 56 58" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M80 45 Q95 35 88 55 Q82 50 80 45Z" fill="#3b82f6"/><path d="M50 26 L46 16 L54 16Z" fill="#60a5fa"/><circle cx="28" cy="36" r="4" fill="#bfdbfe" opacity=".6"/><circle cx="76" cy="60" r="3" fill="#bfdbfe" opacity=".5"/><rect x="34" y="70" width="10" height="8" rx="5" fill="#3b82f6"/><rect x="56" y="70" width="10" height="8" rx="5" fill="#3b82f6"/></svg>`
+  },
+  {
+    id:'leafwhisk', name:'Leafwhisk', type:'Grass', hp:30, color:'#22c55e',
+    svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="25" ry="22" fill="#22c55e"/><ellipse cx="50" cy="57" rx="18" ry="14" fill="#86efac"/><circle cx="42" cy="50" r="5" fill="#1e293b"/><circle cx="58" cy="50" r="5" fill="#1e293b"/><circle cx="43" cy="48" r="2" fill="#fff"/><circle cx="59" cy="48" r="2" fill="#fff"/><path d="M45 62 Q50 66 55 62" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M50 33 Q40 10 30 25 Q40 20 50 33Z" fill="#4ade80"/><path d="M50 33 Q60 10 70 25 Q60 20 50 33Z" fill="#22c55e"/><rect x="30" y="72" width="10" height="10" rx="5" fill="#22c55e"/><rect x="60" y="72" width="10" height="10" rx="5" fill="#22c55e"/></svg>`
+  },
+  {
+    id:'spookle', name:'Spookle', type:'Ghost', hp:26, color:'#a855f7',
+    svg:`<svg viewBox="0 0 100 100"><path d="M25 50 Q25 20 50 20 Q75 20 75 50 L75 75 Q70 68 65 75 Q60 82 55 75 Q50 68 45 75 Q40 82 35 75 Q30 68 25 75Z" fill="#a855f7"/><path d="M32 50 Q32 28 50 28 Q68 28 68 50 L68 65 Q65 60 60 65 Q55 70 50 65 Q45 60 40 65 Q35 70 32 65Z" fill="#d8b4fe"/><circle cx="42" cy="44" r="7" fill="#fff"/><circle cx="58" cy="44" r="7" fill="#fff"/><circle cx="43" cy="44" r="4" fill="#1e293b"/><circle cx="59" cy="44" r="4" fill="#1e293b"/><ellipse cx="50" cy="58" rx="5" ry="6" fill="#1e293b"/></svg>`
+  },
+  {
+    id:'crunchstone', name:'Crunchstone', type:'Rock', hp:35, color:'#78716c',
+    svg:`<svg viewBox="0 0 100 100"><path d="M25 65 L30 30 L50 22 L70 30 L78 65 L65 78 L35 78Z" fill="#78716c"/><path d="M30 62 L34 35 L50 28 L66 35 L72 62 L62 72 L38 72Z" fill="#a8a29e"/><circle cx="42" cy="48" r="5" fill="#1e293b"/><circle cx="60" cy="48" r="5" fill="#1e293b"/><circle cx="43" cy="46" r="2" fill="#fff"/><circle cx="61" cy="46" r="2" fill="#fff"/><path d="M46 60 L54 60" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/><rect x="20" y="58" width="8" height="14" rx="4" fill="#78716c"/><rect x="72" y="58" width="8" height="14" rx="4" fill="#78716c"/><rect x="38" y="74" width="8" height="10" rx="4" fill="#78716c"/><rect x="54" y="74" width="8" height="10" rx="4" fill="#78716c"/></svg>`
+  },
+  {
+    id:'frostbite', name:'Frostbite', type:'Ice', hp:27, color:'#38bdf8',
+    svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="52" rx="26" ry="24" fill="#38bdf8"/><ellipse cx="50" cy="54" rx="20" ry="17" fill="#bae6fd"/><circle cx="40" cy="48" r="5" fill="#1e293b"/><circle cx="60" cy="48" r="5" fill="#1e293b"/><circle cx="42" cy="46" r="2" fill="#fff"/><circle cx="62" cy="46" r="2" fill="#fff"/><path d="M44 60 Q50 56 56 60" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/><polygon points="42,28 38,14 46,20" fill="#7dd3fc"/><polygon points="50,26 50,10 54,20" fill="#38bdf8"/><polygon points="58,28 62,14 54,20" fill="#7dd3fc"/><rect x="30" y="70" width="10" height="10" rx="5" fill="#38bdf8"/><rect x="60" y="70" width="10" height="10" rx="5" fill="#38bdf8"/><line x1="22" y1="52" x2="14" y2="52" stroke="#7dd3fc" stroke-width="2"/><line x1="78" y1="52" x2="86" y2="52" stroke="#7dd3fc" stroke-width="2"/></svg>`
+  },
+  {
+    id:'giggleslime', name:'Giggleslime', type:'Poison', hp:29, color:'#84cc16',
+    svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="32" ry="22" fill="#84cc16"/><ellipse cx="50" cy="60" rx="26" ry="16" fill="#bef264"/><circle cx="38" cy="52" r="7" fill="#fff"/><circle cx="62" cy="52" r="7" fill="#fff"/><circle cx="40" cy="52" r="4" fill="#1e293b"/><circle cx="64" cy="52" r="4" fill="#1e293b"/><circle cx="41" cy="50" r="1.5" fill="#fff"/><circle cx="65" cy="50" r="1.5" fill="#fff"/><path d="M42 66 Q50 74 58 66" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M44 68 L46 72" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round"/><path d="M56 68 L54 72" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round"/><ellipse cx="50" cy="80" rx="28" ry="3" fill="#84cc16" opacity=".3"/></svg>`
+  }
+];
+
+// ========================================================
+// ENEMY MONSTERS
+// ========================================================
+const ENEMIES = [
+  {name:'Grumblob',hp:20,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="30" ry="28" fill="#6b7280"/><ellipse cx="50" cy="57" rx="24" ry="20" fill="#9ca3af"/><circle cx="38" cy="48" r="6" fill="#fef08a"/><circle cx="62" cy="48" r="6" fill="#fef08a"/><circle cx="40" cy="48" r="3" fill="#1e293b"/><circle cx="64" cy="48" r="3" fill="#1e293b"/><path d="M38 64 L44 60 L50 64 L56 60 L62 64" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M36 28 L32 18" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/><path d="M64 28 L68 18" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/></svg>`},
+  {name:'Muddle',hp:22,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="28" ry="26" fill="#92400e"/><ellipse cx="50" cy="57" rx="22" ry="18" fill="#b45309"/><circle cx="40" cy="48" r="5" fill="#fff"/><circle cx="60" cy="48" r="5" fill="#fff"/><circle cx="41" cy="48" r="3" fill="#1e293b"/><circle cx="61" cy="48" r="3" fill="#1e293b"/><ellipse cx="50" cy="62" rx="8" ry="5" fill="#1e293b"/><path d="M44 62 L47 58" stroke="#fff" stroke-width="2"/><path d="M56 62 L53 58" stroke="#fff" stroke-width="2"/></svg>`},
+  {name:'Fumeworm',hp:18,svg:`<svg viewBox="0 0 100 100"><path d="M30 70 Q20 50 30 35 Q40 20 50 22 Q60 20 70 35 Q80 50 70 70 Q60 80 50 78 Q40 80 30 70Z" fill="#65a30d"/><path d="M35 65 Q28 50 36 38 Q44 28 50 30 Q56 28 64 38 Q72 50 65 65 Q58 72 50 70 Q42 72 35 65Z" fill="#84cc16"/><circle cx="42" cy="46" r="5" fill="#fef08a"/><circle cx="58" cy="46" r="5" fill="#fef08a"/><circle cx="43" cy="46" r="3" fill="#1e293b"/><circle cx="59" cy="46" r="3" fill="#1e293b"/><path d="M45 58 Q50 62 55 58" stroke="#1e293b" stroke-width="2" fill="none"/></svg>`},
+  {name:'Snarlpix',hp:24,svg:`<svg viewBox="0 0 100 100"><rect x="28" y="28" width="44" height="40" rx="6" fill="#7c3aed"/><rect x="34" y="34" width="32" height="28" rx="4" fill="#a78bfa"/><rect x="26" y="22" width="10" height="14" rx="2" fill="#7c3aed" transform="rotate(-10 31 29)"/><rect x="64" y="22" width="10" height="14" rx="2" fill="#7c3aed" transform="rotate(10 69 29)"/><circle cx="42" cy="44" r="4" fill="#fbbf24"/><circle cx="58" cy="44" r="4" fill="#fbbf24"/><circle cx="43" cy="44" r="2.5" fill="#1e293b"/><circle cx="59" cy="44" r="2.5" fill="#1e293b"/><path d="M42 56 L46 52 L50 56 L54 52 L58 56" stroke="#1e293b" stroke-width="2" fill="none"/><rect x="34" y="68" width="8" height="10" rx="4" fill="#7c3aed"/><rect x="58" y="68" width="8" height="10" rx="4" fill="#7c3aed"/></svg>`},
+  {name:'Bogbreath',hp:20,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="30" ry="25" fill="#15803d"/><ellipse cx="50" cy="57" rx="24" ry="18" fill="#22c55e"/><circle cx="40" cy="48" r="6" fill="#fff"/><circle cx="60" cy="48" r="6" fill="#fff"/><circle cx="41" cy="49" r="3.5" fill="#1e293b"/><circle cx="61" cy="49" r="3.5" fill="#1e293b"/><ellipse cx="50" cy="64" rx="10" ry="5" fill="#1e293b"/><circle cx="46" cy="62" r="1.5" fill="#fff"/><circle cx="54" cy="62" r="1.5" fill="#fff"/></svg>`}
+];
+
+// ========================================================
+// SHOP ITEMS — real toy rewards with SVG illustrations
+// ========================================================
+// simple placeholder SVG for items with photos
+const PH=`<svg viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="12" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/><text x="50" y="55" text-anchor="middle" fill="#cbd5e1" font-size="28">📦</text></svg>`;
+const SHOP_ITEMS = [
+  // --- STICKERS & CARDS ---
+  {id:'poke_stickers',name:'Pokémon Stickers',price:50,desc:'A sheet of cool stickers!',realPrice:'~$6',url:'https://www.amazon.com/s?k=pokemon+stickers+kids',img:null,svg:`<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="10" fill="#fef08a" stroke="#eab308" stroke-width="2"/><circle cx="32" cy="38" r="14" fill="#fbbf24"/><circle cx="27" cy="35" r="3" fill="#1e293b"/><circle cx="37" cy="35" r="3" fill="#1e293b"/><path d="M29 42 Q32 46 35 42" stroke="#1e293b" stroke-width="1.5" fill="none"/><circle cx="68" cy="38" r="14" fill="#ef4444"/><circle cx="63" cy="35" r="3" fill="#fff"/><circle cx="73" cy="35" r="3" fill="#fff"/><path d="M66 42 Q68 38 70 42" stroke="#1e293b" stroke-width="1.5" fill="none"/><circle cx="50" cy="68" r="14" fill="#3b82f6"/><circle cx="45" cy="65" r="4" fill="#fff"/><circle cx="55" cy="65" r="4" fill="#fff"/><text x="50" y="95" text-anchor="middle" fill="#92400e" font-size="7" font-weight="bold" font-family="sans-serif">STICKERS</text></svg>`},
+  {id:'poke_cards',name:'Pokémon Card Pack',price:100,desc:'A booster pack with 10 cards!',realPrice:'~$10',url:'https://www.amazon.com/Pokemon-TCG-Individually-Holofoil-097712556710/dp/B09YS3LL3N',img:'https://m.media-amazon.com/images/I/81lYlP-nzFL._AC_SL500_.jpg',svg:PH},
+  // --- 2-INCH FIGURES (Río's favorites!) ---
+  {id:'poke_fig_pikachu',name:'Pikachu Evolution Set',price:200,desc:'Pichu → Pikachu → Raichu!',realPrice:'~$13',url:'https://www.amazon.com/Pokemon-Select-Evolution-Multipack-Pikachu/dp/B0BV8WDNT1',img:'https://m.media-amazon.com/images/I/41HEG5CI03L._AC_SL500_.jpg',svg:PH},
+  {id:'poke_fig_charmander',name:'Charmander Evolution Set',price:250,desc:'Charmander → Charmeleon → Charizard!',realPrice:'~$28',url:'https://www.amazon.com/Pokemon-Evolution-Multipack-Style-1/dp/B09PLKLZ27',img:'https://m.media-amazon.com/images/I/41xqSrar7GL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_fig_6pack',name:'Battle Figure 6-Pack',price:350,desc:'Pikachu, Squirtle, Charmander & more!',realPrice:'~$22',url:'https://www.amazon.com/Pokemon-PKW2684-Pack-Features-Charmander-Toxel-Authentic/dp/B09YMJH8BZ',img:'https://m.media-amazon.com/images/I/51gv6BKvKwL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_fig_10pack',name:'Battle Figure 10-Pack',price:500,desc:'10 figures including a 4.5" one!',realPrice:'~$28',url:'https://www.amazon.com/Pok%C3%A9mon-Battle-Figure-Pack-Cinderace/dp/B0C8ZJ1KTL',img:'https://m.media-amazon.com/images/I/81OZGf2-zOL._AC_SL500_.jpg',svg:PH},
+  // --- PLUSH TOYS ---
+  {id:'poke_plush_eevee',name:'Eevee Plush (8")',price:300,desc:'A soft cuddly Eevee to hug!',realPrice:'~$24',url:'https://www.amazon.com/dp/B07K1F8TXG',img:'https://m.media-amazon.com/images/I/41r16DqKNZL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_plush_snorlax',name:'Snorlax Plush (12")',price:350,desc:'A big sleepy Snorlax!',realPrice:'~$23',url:'https://www.amazon.com/dp/B0B7XX5SSF',img:'https://m.media-amazon.com/images/I/319Jh0Xez5L._AC_SL500_.jpg',svg:PH},
+  {id:'poke_plush_gengar',name:'Gengar Plush (12")',price:500,desc:'A spooky Gengar friend!',realPrice:'~$40',url:'https://www.amazon.com/dp/B07NXVHHN2',img:'https://m.media-amazon.com/images/I/51TlUj6xNpL._AC_SL500_.jpg',svg:PH},
+  // --- BIG SETS ---
+  {id:'poke_mega_box',name:'Mega Collection Box',price:750,desc:'Cards + figure + playmat!',realPrice:'~$50',url:'https://www.amazon.com/Pok%C3%A9mon-TCG-Super-Premium-Collection-Card-Display/dp/B0DG2XTYDP',img:'https://m.media-amazon.com/images/I/81VESsb4YTL._AC_SL500_.jpg',svg:PH},
+  // --- VIDEO GAMES (big goals!) ---
+  {id:'poke_game_arceus',name:'Pokémon Legends: Arceus',price:1500,desc:'Nintendo Switch game!',realPrice:'~$46',url:'https://www.amazon.com/Pokemon-Legends-Arceus-Nintendo-Switch/dp/B0914YGQSH',img:'https://m.media-amazon.com/images/I/51V+8OyYfrS._AC_SL500_.jpg',svg:PH},
+  {id:'poke_game_scarlet',name:'Pokémon Scarlet',price:1500,desc:'Nintendo Switch game!',realPrice:'~$39',url:'https://www.amazon.com/Pokemon-Scarlet-Nintendo-Switch/dp/B09WZYJCWG',img:'https://m.media-amazon.com/images/I/51kwSrrotUL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_game_violet',name:'Pokémon Violet',price:1500,desc:'Nintendo Switch game!',realPrice:'~$41',url:'https://www.amazon.com/Pok%C3%A9mon-Violet-Nintendo-Switch/dp/B09TMHDVLD',img:'https://m.media-amazon.com/images/I/51raso-dQcL._AC_SL500_.jpg',svg:PH},
+];
+
+// ========================================================
+// WORD DATA (UFLI Tier 1)
+// ========================================================
+const WORDS = [
+  {w:'the',sent:'I saw ___ big dog.',joke:'Why is "the" always tired? It shows up in EVERY sentence!',rhymes:['me','free','see','tree']},
+  {w:'a',sent:'She has ___ red hat.',joke:'The letter A is the bravest — it always goes first!',rhymes:['ha','la','ma','ba']},
+  {w:'is',sent:'My cat ___ fluffy.',joke:'"Is" walked into a bar. The bartender said "You are always present!"',rhymes:['his','fizz','quiz','whiz']},
+  {w:'it',sent:'I like ___ a lot.',joke:'Knock knock! Who\'s there? It. It who? It\'s me, the word "it"!',rhymes:['bit','sit','fit','hit']},
+  {w:'in',sent:'The frog jumped ___ the pond.',joke:'What\'s always IN trouble? The word "in"!',rhymes:['bin','win','fin','pin']},
+  {w:'can',sent:'I ___ run fast!',joke:'What did the can of beans say? "I CAN do anything!"',rhymes:['man','fan','ran','pan']},
+  {w:'see',sent:'I ___ a rainbow!',joke:'Why do eyes love "see"? It\'s their favorite thing to do!',rhymes:['me','he','we','be']},
+  {w:'my',sent:'This is ___ toy.',joke:'MY oh MY, this word is quite possessive!',rhymes:['fly','sky','try','cry']},
+  {w:'go',sent:'Let\'s ___ to the park!',joke:'Where does "go" go? Everywhere!',rhymes:['no','so','low','show']},
+  {w:'on',sent:'The book is ___ the table.',joke:'What sits ON everything? The word "on" — very clingy!',rhymes:['fun','run','sun','bun']},
+  {w:'up',sent:'The balloon went ___.',joke:'What\'s always looking UP? The word "up" — very positive!',rhymes:['cup','pup','sup','tup']},
+  {w:'big',sent:'That is a ___ tree!',joke:'How big is "big"? B-I-G! Only 3 letters but SO huge!',rhymes:['pig','wig','dig','fig']},
+  {w:'we',sent:'___ are best friends.',joke:'WE is the friendliest word — it includes everyone!',rhymes:['he','me','see','be']},
+  {w:'he',sent:'___ likes pizza.',joke:'HE and SHE had a race. HE came first alphabetically!',rhymes:['we','me','see','be']},
+  {w:'she',sent:'___ has a puppy.',joke:'SHE is so fancy — starts with SH, like "shiny"!',rhymes:['we','he','me','see']},
+  {w:'was',sent:'The cake ___ yummy.',joke:'WAS is what IS becomes when it grows old!',rhymes:['fuzz','buzz','does','because']},
+  {w:'for',sent:'This gift is ___ you.',joke:'FOR is always giving things away — how generous!',rhymes:['door','more','four','store']},
+  {w:'at',sent:'I am ___ school.',joke:'A cat sat on AT. Now it\'s a cat-at!',rhymes:['bat','cat','hat','mat']},
+  {w:'not',sent:'I am ___ scared.',joke:'NOT is the most negative word — it always says no!',rhymes:['hot','dot','got','pot']},
+  {w:'with',sent:'Come ___ me!',joke:'WITH is the buddy word — never goes anywhere alone!',rhymes:['smith','myth','pith','kith']},
+  {w:'are',sent:'They ___ playing.',joke:'ARE you ready? ARE you sure? ARE is always asking!',rhymes:['car','star','far','bar']},
+  {w:'all',sent:'We ate ___ the cookies.',joke:'ALL the cookies? ALL of them?! Burrrp!',rhymes:['ball','call','fall','tall']},
+  {w:'like',sent:'I ___ ice cream.',joke:'Everyone likes LIKE — it\'s the most likeable word!',rhymes:['bike','hike','mike','spike']},
+  {w:'have',sent:'I ___ a pet frog.',joke:'HAVE sounds like it should rhyme with CAVE but nope!',rhymes:['gave','wave','cave','brave']},
+  {w:'they',sent:'___ are coming!',joke:'THEY sounds like it should have an A... oh wait, it does!',rhymes:['day','say','play','way']},
+  {w:'said',sent:'Mom ___ to come home.',joke:'SAID looks like it should rhyme with "paid" but NOPE!',rhymes:['bed','red','fed','head']},
+  {w:'come',sent:'Please ___ here.',joke:'COME here, word! No wait, COME back!',rhymes:['some','gum','drum','plum']},
+  {w:'some',sent:'Can I have ___ cake?',joke:'I want SOME cake. Actually ALL the cake!',rhymes:['come','gum','drum','plum']},
+  {w:'get',sent:'Let\'s ___ a snack!',joke:'GET ready, GET set, GET out of my way — I smell cookies!',rhymes:['pet','wet','set','net']},
+  {w:'one',sent:'I have ___ cookie left.',joke:'ONE is the loneliest number, but it rhymes with FUN!',rhymes:['fun','run','sun','bun']},
+  {w:'her',sent:'I gave ___ a flower.',joke:'HER starts with H-E-R — is HE hiding inside HER?!',rhymes:['fur','sir','stir','blur']},
+  {w:'but',sent:'I like cats ___ I love dogs more.',joke:'No BUTS about it... okay fine, just one BUT!',rhymes:['cut','gut','hut','nut']},
+  {w:'had',sent:'She ___ a great idea.',joke:'I HAD a joke about HAD but I already told it!',rhymes:['bad','dad','mad','sad']},
+  {w:'him',sent:'I told ___ a joke.',joke:'HIM rhymes with SWIM — maybe HIM should go swimming!',rhymes:['dim','gym','swim','trim']},
+  {w:'his',sent:'That is ___ book.',joke:'HIS sounds like a snake talking — hissssss!',rhymes:['is','fizz','quiz','whiz']},
+  {w:'from',sent:'The letter is ___ Grandma.',joke:'I\'m FROM Earth. Where are you FROM? Planet Word?',rhymes:['mom','tom','prom','calm']},
+];
+
+// ========================================================
+// STORIES
+// ========================================================
+const STORIES = [
+  {text:'A big Creeper said "I can see you!" Steve said "not if I go in my house!" The Creeper was sad. It wanted a hug but all it got was a door.', q:'What did the Creeper want?', choices:['A hug','A sword','A cake','A bed'], answer:0},
+  {text:'My cat can not come with me to school. She is big and she likes to sit on all the books. One time she sat on my homework and my teacher said "is that fur on your math?"', q:'What did the cat sit on?', choices:['The homework','The dog','The bed','The car'], answer:0},
+  {text:'He had a pet frog from the pond. The frog said "ribbit" but it was not a ribbit. It was a big loud burp! She said "that is the grossest frog!"', q:'What sound did the frog make?', choices:['A song','A burp','A bark','A hiss'], answer:1},
+  {text:'They said "we can not go up!" But the slime block was like a trampoline. One jump and they were up on top. "See? We are at the sky!" said Steve.', q:'What helped them go up?', choices:['A ladder','Wings','A slime block','A rocket'], answer:2},
+  {text:'She had some beans for lunch. Her tummy said "gurgle gurgle." Then came the biggest, loudest fart in all the land! "Oops!" she said. But the dog was not happy at all.', q:'What happened after lunch?', choices:['She slept','A big fart','She danced','She sang'], answer:1},
+  {text:'One time a fish can not swim. It said "I like to walk on land!" All the other fish said "that is not how it works!" But the fish got some legs and walked to school.', q:'What did the fish want to do?', choices:['Fly','Walk on land','Sing','Sleep'], answer:1},
+  {text:'His friend was a zombie but a nice one. The zombie said "I like brains" and his friend said "have some cake!" Now the zombie likes cake more. Brains are yucky anyway.', q:'What does the zombie like now?', choices:['Brains','Pizza','Cake','Cookies'], answer:2},
+  {text:'We all went to get ice cream. But the shop had run out! "Not one scoop?" we said. Then the shop lady said "we have fart-flavor." We said "no thank you!" and went home.', q:'What flavor was left?', choices:['Chocolate','Vanilla','Fart','Strawberry'], answer:2},
+];
+
+// ========================================================
+// GAME ENGINE
+// ========================================================
+const G = {
+  score:0, streak:0, lives:3, xp:0, level:1, xpNeeded:50, coins:0,
+  mode:'fill', activeWordmon:0, caughtWordmons:[0],
+  currentEnemy:null, enemyHp:0, enemyMaxHp:0, playerHp:0, playerMaxHp:0,
+  answering:false, enemyIdx:0,
+  usedWords:[], usedStories:[],
+  purchased:[],
+
+  // ---- INIT ----
+  init(){
+    this.loadGame();
+    this.setupTabs();
+    this.spawnEnemy();
+    this.renderRoster();
+    this.updateHUD();
+    this.updateBackpack();
+    this.loadMode('fill');
+    // auto-save every 30s
+    setInterval(()=>this.saveGame(),30000);
+  },
+
+  // ---- SAVE / LOAD (localStorage) ----
+  saveGame(){
+    const d={score:this.score,streak:this.streak,lives:this.lives,xp:this.xp,level:this.level,
+      xpNeeded:this.xpNeeded,coins:this.coins,activeWordmon:this.activeWordmon,
+      caughtWordmons:this.caughtWordmons,purchased:this.purchased};
+    try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
+  },
+  loadGame(){
+    try{
+      const s=localStorage.getItem('rio_reads_save');
+      if(!s)return;
+      const d=JSON.parse(s);
+      if(d.score!==undefined) this.score=d.score;
+      if(d.streak!==undefined) this.streak=d.streak;
+      if(d.lives!==undefined) this.lives=d.lives;
+      if(d.xp!==undefined) this.xp=d.xp;
+      if(d.level!==undefined) this.level=d.level;
+      if(d.xpNeeded!==undefined) this.xpNeeded=d.xpNeeded;
+      if(d.coins!==undefined) this.coins=d.coins;
+      if(d.activeWordmon!==undefined) this.activeWordmon=d.activeWordmon;
+      if(d.caughtWordmons) this.caughtWordmons=d.caughtWordmons;
+      if(d.purchased) this.purchased=d.purchased;
+    }catch(e){}
+  },
+
+  updateBackpack(){
+    document.getElementById('bpBadge').textContent=this.coins;
+  },
+
+  setupTabs(){
+    document.querySelectorAll('.tab').forEach(t=>{
+      t.addEventListener('click',()=>{
+        if(this.answering) return;
+        document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        this.mode = t.dataset.mode;
+        this.loadMode(this.mode);
+      });
+    });
+  },
+
+  // ---- HUD ----
+  updateHUD(){
+    document.getElementById('scoreVal').textContent = this.score;
+    document.getElementById('streakVal').textContent = this.streak;
+    document.getElementById('livesVal').textContent = this.lives;
+    document.getElementById('levelVal').textContent = this.level;
+    document.getElementById('coinVal').textContent = this.coins;
+    const wv=document.getElementById('walletVal');if(wv)wv.textContent=this.coins;
+    const iw=document.getElementById('inlineWallet');if(iw)iw.textContent=this.coins;
+    this.updateBackpack();
+    const pct = Math.min(100,(this.xp/this.xpNeeded)*100);
+    document.getElementById('xpFill').style.width = pct+'%';
+    document.getElementById('xpLabel').textContent = this.xp+' / '+this.xpNeeded+' XP';
+    // streak dots
+    const streakMod = this.streak % 5;
+    for(let i=0;i<5;i++){
+      document.getElementById('sd'+i).classList.toggle('filled', i < streakMod);
+    }
+    // player
+    const wm = WORDMONS[this.activeWordmon];
+    document.getElementById('playerName').textContent = wm.name;
+    document.getElementById('playerSprite').innerHTML = wm.svg;
+    this.updateHpBar('player');
+    // enemy
+    if(this.currentEnemy){
+      document.getElementById('enemyName').textContent = this.currentEnemy.name;
+      document.getElementById('enemySprite').innerHTML = this.currentEnemy.svg;
+      this.updateHpBar('enemy');
+    }
+    document.getElementById('rosterCount').textContent = this.caughtWordmons.length;
+  },
+
+  updateHpBar(who){
+    const hp = who==='player'?this.playerHp:this.enemyHp;
+    const max = who==='player'?this.playerMaxHp:this.enemyMaxHp;
+    const pct = Math.max(0,(hp/max)*100);
+    const bar = document.getElementById(who+'HpBar');
+    bar.style.width = pct+'%';
+    bar.className = 'hp-fill '+(pct>50?'green':pct>25?'yellow':'red');
+    document.getElementById(who+'HpText').textContent = Math.max(0,hp)+'/'+max+' HP';
+  },
+
+  // ---- BATTLE ----
+  spawnEnemy(){
+    this.enemyIdx = (this.enemyIdx+1) % ENEMIES.length;
+    this.currentEnemy = ENEMIES[this.enemyIdx];
+    const bonus = Math.floor(this.level*2);
+    this.enemyMaxHp = this.currentEnemy.hp + bonus;
+    this.enemyHp = this.enemyMaxHp;
+    const wm = WORDMONS[this.activeWordmon];
+    this.playerMaxHp = wm.hp;
+    this.playerHp = wm.hp;
+    this.updateHUD();
+  },
+
+  showBattleMsg(txt){
+    const el = document.getElementById('battleMsg');
+    el.textContent = txt;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+  },
+
+  playerAttack(){
+    const dmg = 4+Math.floor(Math.random()*3);
+    this.enemyHp = Math.max(0, this.enemyHp-dmg);
+    const pf = document.getElementById('playerFighter');
+    const ef = document.getElementById('enemyFighter');
+    pf.classList.add('atk-right');
+    setTimeout(()=>{
+      SFX.play('attack');
+      ef.classList.add('shake');
+      document.getElementById('hitFlash').classList.add('show');
+      const msgs=['Super effective!','Critical hit!','POW!','WHAM!','Take that!','Boom!','Zap!','Nice one!'];
+      this.showBattleMsg(msgs[Math.floor(Math.random()*msgs.length)]);
+    },250);
+    setTimeout(()=>{
+      pf.classList.remove('atk-right');
+      ef.classList.remove('shake');
+      document.getElementById('hitFlash').classList.remove('show');
+      this.updateHUD();
+      if(this.enemyHp<=0) this.enemyDefeated();
+    },700);
+  },
+
+  enemyAttack(){
+    const dmg = 3+Math.floor(Math.random()*3);
+    this.playerHp = Math.max(0, this.playerHp-dmg);
+    const ef = document.getElementById('enemyFighter');
+    const pf = document.getElementById('playerFighter');
+    ef.classList.add('atk-left');
+    setTimeout(()=>{
+      SFX.play('hurt');
+      pf.classList.add('shake');
+      document.getElementById('hitFlash').classList.add('show');
+      const msgs=['Ouch!','Oh no!','Yikes!','Oof!','Watch out!'];
+      this.showBattleMsg(msgs[Math.floor(Math.random()*msgs.length)]);
+    },250);
+    setTimeout(()=>{
+      ef.classList.remove('atk-left');
+      pf.classList.remove('shake');
+      document.getElementById('hitFlash').classList.remove('show');
+      this.updateHUD();
+      if(this.playerHp<=0) this.playerDefeated();
+    },700);
+  },
+
+  enemyDefeated(){
+    SFX.play('victory');
+    const b = document.getElementById('battleScene');
+    const banner = document.createElement('div');
+    banner.className='result-banner victory';
+    banner.innerHTML='<span>VICTORY! 🎉</span>';
+    b.appendChild(banner);
+    this.score+=10; this.addXP(15); this.addCoins(5);
+    setTimeout(()=>{banner.remove();this.spawnEnemy();},1500);
+  },
+
+  playerDefeated(){
+    const b = document.getElementById('battleScene');
+    const banner = document.createElement('div');
+    banner.className='result-banner defeat';
+    banner.innerHTML='<span>Try Again! 💪</span>';
+    b.appendChild(banner);
+    this.lives--;
+    if(this.lives<=0) this.lives=3;
+    this.streak=0;
+    setTimeout(()=>{banner.remove();this.spawnEnemy();this.updateHUD();},1500);
+  },
+
+  // ---- XP / LEVEL ----
+  addXP(n){
+    this.xp+=n;
+    while(this.xp>=this.xpNeeded){
+      this.xp-=this.xpNeeded;
+      this.level++;
+      this.xpNeeded=Math.floor(this.xpNeeded*1.3);
+      this.levelUp();
+    }
+    this.updateHUD();
+  },
+
+  levelUp(){
+    SFX.play('levelup');
+    const el=document.createElement('div');
+    el.className='levelup-text';
+    el.textContent='LEVEL UP! Lv'+this.level;
+    document.body.appendChild(el);
+    this.fireConfetti();
+    setTimeout(()=>el.remove(),1600);
+  },
+
+  // ---- COINS ----
+  addCoins(n){
+    this.coins+=n;
+    this.updateHUD();
+    if(this.mode==='shop') this.loadShopView();
+  },
+
+  // ---- STREAK / CATCH ----
+  checkCatch(){
+    if(this.streak>0 && this.streak%5===0){
+      const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!this.caughtWordmons.includes(i));
+      if(uncaught.length>0){
+        const pick=uncaught[Math.floor(Math.random()*uncaught.length)];
+        this.caughtWordmons.push(pick);
+        SFX.play('catch');
+        this.showCatchModal(WORDMONS[pick]);
+        this.fireConfetti();
+      }
+    }
+    setTimeout(()=>this.updateHUD(),100);
+  },
+
+  showCatchModal(wm){
+    document.getElementById('catchTitle').textContent='New Wordmon!';
+    document.getElementById('catchDesc').textContent='You caught '+wm.name+' the '+wm.type+' type!';
+    document.getElementById('catchSprite').innerHTML=wm.svg;
+    document.getElementById('catchName').textContent=wm.name;
+    document.getElementById('catchModal').classList.add('show');
+  },
+
+  closeCatchModal(){
+    document.getElementById('catchModal').classList.remove('show');
+    this.renderRoster();
+    this.updateHUD();
+  },
+
+  // ---- CONFETTI ----
+  fireConfetti(){
+    const box=document.getElementById('confettiBox');
+    const colors=['#f97316','#fbbf24','#22c55e','#3b82f6','#a855f7','#ef4444','#ec4899'];
+    for(let i=0;i<40;i++){
+      const p=document.createElement('div');
+      p.className='confetti-piece';
+      p.style.left=Math.random()*100+'%';
+      p.style.background=colors[Math.floor(Math.random()*colors.length)];
+      p.style.animationDelay=Math.random()*.5+'s';
+      p.style.animationDuration=(1.5+Math.random())+'s';
+      p.style.width=(6+Math.random()*8)+'px';
+      p.style.height=(6+Math.random()*8)+'px';
+      p.style.borderRadius=Math.random()>.5?'50%':'2px';
+      box.appendChild(p);
+      setTimeout(()=>p.remove(),2500);
+    }
+  },
+
+  // ---- ROSTER ----
+  renderRoster(){
+    const grid=document.getElementById('rosterGrid');
+    grid.innerHTML='';
+    WORDMONS.forEach((wm,i)=>{
+      const caught=this.caughtWordmons.includes(i);
+      const active=i===this.activeWordmon;
+      const card=document.createElement('div');
+      card.className='roster-card'+(active?' active':'')+(caught?'':' locked');
+      card.innerHTML=(caught?wm.svg:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#cbd5e1"/><text x="50" y="56" text-anchor="middle" fill="#94a3b8" font-size="20">?</text></svg>')+
+        '<div class="rc-name">'+(caught?wm.name:'???')+'</div>'+
+        '<div class="rc-type">'+(caught?wm.type:'Unknown')+'</div>';
+      if(caught){
+        card.addEventListener('click',()=>{
+          this.activeWordmon=i;
+          this.playerMaxHp=wm.hp;
+          this.playerHp=wm.hp;
+          this.renderRoster();
+          this.updateHUD();
+        });
+      }
+      grid.appendChild(card);
+    });
+  },
+
+  buyItem(item){
+    if(this.coins<item.price || this.purchased.includes(item.id)) return;
+    SFX.play('buy');
+    this.coins-=item.price;
+    this.purchased.push(item.id);
+    this.fireConfetti();
+    this.showMoneyAnimation(0);
+    document.getElementById('catchTitle').textContent='🎉 You earned a toy!';
+    document.getElementById('catchDesc').textContent='You unlocked: '+item.name+'! Show this to Mom or Dad — they\'ll get you the real one!';
+    document.getElementById('catchSprite').innerHTML=item.svg;
+    document.getElementById('catchName').textContent=item.name+(item.realPrice?' ('+item.realPrice+' on Amazon)':'');
+    document.getElementById('catchModal').classList.add('show');
+    this.updateHUD();
+    this.saveGame();
+    this.loadShopView();
+  },
+
+  // ---- PICK WORD ----
+  pickWord(){
+    if(this.usedWords.length>=WORDS.length) this.usedWords=[];
+    let idx;
+    do{idx=Math.floor(Math.random()*WORDS.length);}while(this.usedWords.includes(idx));
+    this.usedWords.push(idx);
+    return WORDS[idx];
+  },
+
+  pickStory(){
+    if(this.usedStories.length>=STORIES.length) this.usedStories=[];
+    let idx;
+    do{idx=Math.floor(Math.random()*STORIES.length);}while(this.usedStories.includes(idx));
+    this.usedStories.push(idx);
+    return STORIES[idx];
+  },
+
+  // ---- LOAD MODE ----
+  loadMode(mode){
+    this.answering=false;
+    const area=document.getElementById('gameArea');
+    area.innerHTML='';
+    if(mode==='shop'){
+      this.loadShopView();
+      return;
+    }
+    switch(mode){
+      case'fill':this.loadFillIn();break;
+      case'spell':this.loadSpellIt();break;
+      case'rhyme':this.loadRhyme();break;
+      case'decode':this.loadDecode();break;
+      case'story':this.loadStory();break;
+    }
+  },
+
+  // ---- SHOP VIEW (inline) ----
+  loadShopView(){
+    const area=document.getElementById('gameArea');
+    let html='<div class="shop-banner">'+
+      '<h2>🎁 Earn REAL Toys!</h2>'+
+      '<p>Every correct answer earns you coins.<br>Save up your coins to unlock real Pokémon toys!</p>'+
+      '<div class="real-deal">💡 When you buy a toy here, Mom or Dad will order the real one from Amazon!</div>'+
+      '</div>'+
+      '<div class="wallet-bar"><span class="coin-icon">$</span> Your coins: <span id="inlineWallet">'+this.coins+'</span></div>'+
+      '<div class="shop-grid" id="inlineShopGrid"></div>';
+    area.innerHTML=html;
+    const grid=document.getElementById('inlineShopGrid');
+    SHOP_ITEMS.forEach(item=>{
+      const bought=this.purchased.includes(item.id);
+      const canBuy=this.coins>=item.price && !bought;
+      const locked=!canBuy && !bought;
+      const pct=bought?100:Math.min(100,Math.floor((this.coins/item.price)*100));
+      const div=document.createElement('div');
+      div.className='shop-item'+(bought?' purchased':'')+(locked?' locked':'');
+      const imgHtml=item.img?'<img src="'+item.img+'" alt="'+item.name+'" style="width:90px;height:90px;object-fit:contain;border-radius:8px" onerror="this.outerHTML=\''+item.svg.replace(/'/g,"\\'")+'\'">':item.svg;
+      div.innerHTML='<div style="'+(locked?'filter:grayscale(.8) opacity:.5;':'')+'">'+imgHtml+'</div>'+
+        '<div class="item-name">'+item.name+'</div>'+
+        '<div class="item-desc">'+item.desc+'</div>'+
+        (item.realPrice?'<div style="font-size:.6rem;color:var(--green);font-weight:800">Real price: '+item.realPrice+'</div>':'')+
+        '<div class="item-price"><span class="coin-icon">$</span>'+item.price+' coins</div>'+
+        (bought?'':'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
+        '<div class="progress-text">'+(locked?'Need '+(item.price-this.coins)+' more coins!':this.coins+' / '+item.price)+'</div>')+
+        (bought?'<button class="shop-buy bought" disabled>Earned! ✅</button>'+
+          (item.url?'<a href="'+item.url+'" target="_blank" rel="noopener" style="display:block;margin-top:4px;font-size:.65rem;font-weight:700;color:var(--blue);text-decoration:none">📦 View on Amazon</a>':'')
+        :canBuy?'<button class="shop-buy">Buy Now! 🎉</button>'
+        :'<button class="shop-buy" disabled>🔒 Keep playing!</button>');
+      if(!bought && canBuy){
+        div.querySelector('.shop-buy').addEventListener('click',()=>{SFX.play('click');this.buyItem(item);});
+      }
+      grid.appendChild(div);
+    });
+  },
+
+  // ---- FILL IN ----
+  loadFillIn(){
+    const wd=this.pickWord();
+    const area=document.getElementById('gameArea');
+    const sent=wd.sent.replace('___','<span class="blank">_____</span>');
+    const wrongs=WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+    const choices=shuffle([wd.w,...wrongs]);
+    area.innerHTML='<div class="card" id="qCard"><div class="question-text">'+sent+'</div><div class="choices">'+
+      choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+
+      '</div><div id="jokeArea"></div></div>';
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(btn.dataset.val===wd.w){
+          btn.classList.add('correct');
+          card.querySelector('.blank').textContent=wd.w;
+          this.onCorrect(wd);
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===wd.w)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          card.querySelector('.blank').textContent=wd.w;
+          this.onWrong(wd);
+        }
+      });
+    });
+  },
+
+  // ---- SPELL IT ----
+  loadSpellIt(){
+    const wd=this.pickWord();
+    const area=document.getElementById('gameArea');
+    const letters=wd.w.split('');
+    const extras='abcdefghiklmnoprstuw'.split('').filter(l=>!letters.includes(l)).sort(()=>Math.random()-.5).slice(0,Math.max(2,5-letters.length));
+    const allLetters=shuffle([...letters,...extras]);
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text">Spell the word!</div>'+
+      '<div class="spell-hint">'+wd.sent.replace('___','<strong style="color:var(--accent)">???</strong>')+'</div>'+
+      '<div class="spell-display" id="spellDisplay">'+letters.map(()=>'<div class="spell-slot"></div>').join('')+'</div>'+
+      '<div class="letter-tiles" id="letterTiles">'+allLetters.map((l,i)=>'<button class="letter-tile" data-idx="'+i+'" data-letter="'+l+'">'+l+'</button>').join('')+'</div>'+
+      '<div class="spell-actions">'+
+      '<button class="backspace-btn" id="spellBack">⬅ Back</button>'+
+      '<button class="submit-spell" id="spellSubmit">Check ✓</button>'+
+      '</div><div id="jokeArea"></div></div>';
+    let typed=[];
+    const slots=document.querySelectorAll('.spell-slot');
+    const tiles=document.querySelectorAll('.letter-tile');
+    tiles.forEach(t=>{
+      t.addEventListener('click',()=>{
+        if(this.answering||typed.length>=letters.length)return;
+        typed.push({letter:t.dataset.letter,idx:t.dataset.idx});
+        t.classList.add('used');
+        upd();
+      });
+    });
+    document.getElementById('spellBack').addEventListener('click',()=>{
+      if(this.answering||typed.length===0)return;
+      const rem=typed.pop();
+      tiles.forEach(t=>{if(t.dataset.idx===rem.idx)t.classList.remove('used');});
+      upd();
+    });
+    document.getElementById('spellSubmit').addEventListener('click',()=>{
+      if(this.answering)return;
+      this.answering=true;
+      const attempt=typed.map(t=>t.letter).join('');
+      const card=document.getElementById('qCard');
+      if(attempt===wd.w){
+        slots.forEach(s=>s.style.borderColor='var(--green)');
+        this.onCorrect(wd);
+      }else{
+        slots.forEach((s,i)=>{s.textContent=letters[i];s.style.borderColor='var(--green)';});
+        card.classList.add('wrong-shake');
+        this.onWrong(wd);
+      }
+    });
+    function upd(){
+      slots.forEach((s,i)=>{
+        if(typed[i]){s.textContent=typed[i].letter;s.classList.add('filled');}
+        else{s.textContent='';s.classList.remove('filled');}
+      });
+    }
+  },
+
+  // ---- RHYME ----
+  loadRhyme(){
+    const wd=this.pickWord();
+    const area=document.getElementById('gameArea');
+    const correctRhyme=wd.rhymes[0];
+    const nonRhymes=WORDS.filter(x=>x.w!==wd.w&&!wd.rhymes.includes(x.w)).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+    const choices=shuffle([correctRhyme,...nonRhymes]);
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text">Which word rhymes with<br><span style="color:var(--accent);font-size:1.6rem">'+wd.w+'</span>?</div>'+
+      '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+
+      '</div><div id="jokeArea"></div></div>';
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(wd.rhymes.includes(btn.dataset.val)){
+          btn.classList.add('correct');
+          this.onCorrect(wd);
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===correctRhyme)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this.onWrong(wd);
+        }
+      });
+    });
+  },
+
+  // ---- DECODE ----
+  loadDecode(){
+    const wd=this.pickWord();
+    const area=document.getElementById('gameArea');
+    const vowels=wd.w.split('').filter(l=>'aeiou'.includes(l)).length;
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text">Mystery Word!</div>'+
+      '<div class="clues">'+
+      '<div class="clue"><span class="clue-icon">🔤</span> Starts with: <strong style="color:var(--accent);font-size:1.2rem;margin-left:4px">'+wd.w[0].toUpperCase()+'</strong></div>'+
+      '<div class="clue"><span class="clue-icon">📏</span> Letters: <strong style="color:var(--accent);margin-left:4px">'+wd.w.length+'</strong></div>'+
+      '<div class="clue"><span class="clue-icon">🌟</span> Vowels: <strong style="color:var(--accent);margin-left:4px">'+vowels+'</strong></div>'+
+      '<div class="clue"><span class="clue-icon">💬</span> '+wd.sent.replace('___','???')+'</div>'+
+      '</div>'+
+      '<input class="decode-input" id="decodeInput" maxlength="'+(wd.w.length+3)+'" placeholder="type here..." autocomplete="off" autocapitalize="none">'+
+      '<button class="decode-submit" id="decodeSubmit">Check!</button>'+
+      '<div id="jokeArea"></div></div>';
+    const input=document.getElementById('decodeInput');
+    setTimeout(()=>input.focus(),100);
+    const submit=()=>{
+      if(this.answering)return;
+      this.answering=true;
+      const val=input.value.trim().toLowerCase();
+      const card=document.getElementById('qCard');
+      if(val===wd.w){
+        input.style.borderColor='var(--green)';input.style.background='#dcfce7';
+        this.onCorrect(wd);
+      }else{
+        input.style.borderColor='var(--red)';input.style.background='#fef2f2';
+        input.value=wd.w;
+        card.classList.add('wrong-shake');
+        this.onWrong(wd);
+      }
+    };
+    document.getElementById('decodeSubmit').addEventListener('click',submit);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
+  },
+
+  // ---- STORY ----
+  loadStory(){
+    const st=this.pickStory();
+    const area=document.getElementById('gameArea');
+    const words=st.text.split(/(\s+)/);
+    const storyHtml=words.map(w=>{
+      const clean=w.replace(/[^a-zA-Z]/g,'');
+      if(!clean)return w;
+      return '<span class="story-word">'+w+'</span>';
+    }).join('');
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text">Read the story!</div>'+
+      '<div class="story-box">'+storyHtml+'</div>'+
+      '<div class="story-question">'+st.q+'</div>'+
+      '<div class="choices">'+st.choices.map((c,i)=>'<button class="choice-btn" data-val="'+i+'">'+c+'</button>').join('')+
+      '</div><div id="jokeArea"></div></div>';
+    area.querySelectorAll('.story-word').forEach(sw=>{
+      sw.addEventListener('click',()=>sw.classList.toggle('highlighted'));
+    });
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(parseInt(btn.dataset.val)===st.answer){
+          btn.classList.add('correct');
+          this.onCorrect(null);
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.val)===st.answer)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this.onWrong(null);
+        }
+      });
+    });
+  },
+
+  // ---- CORRECT / WRONG ----
+  onCorrect(wd){
+    SFX.play('correct');
+    this.score+=5;
+    this.streak++;
+    this.addXP(10);
+    this.addCoins(3);
+    this.playerAttack();
+    this.checkCatch();
+    this.showJoke(wd);
+    this.showMoneyAnimation(3);
+    this.showNextBtn();
+    this.saveGame();
+  },
+
+  onWrong(wd){
+    SFX.play('wrong');
+    this.streak=0;
+    this.enemyAttack();
+    this.updateHUD();
+    this.showJoke(wd);
+    this.showNextBtn();
+  },
+
+  showJoke(wd){
+    const jokeArea=document.getElementById('jokeArea');
+    if(jokeArea&&wd&&wd.joke){
+      jokeArea.innerHTML='<div class="joke-box"><span class="joke-emoji">😂</span><p>'+wd.joke+'</p></div>';
+    }
+  },
+
+  showMoneyAnimation(n){
+    // Big bill flash in center
+    const flash=document.createElement('div');
+    flash.className='money-big-flash';
+    flash.innerHTML='<div class="bill">💵</div><div class="amount">+'+n+' coins!</div>';
+    document.body.appendChild(flash);
+    SFX.play('coin');
+    // After flash, fly a bill to the backpack
+    setTimeout(()=>{
+      flash.remove();
+      const bill=document.createElement('div');
+      bill.className='money-fly';
+      bill.textContent='💵';
+      const bp=document.getElementById('backpack');
+      const bpRect=bp.getBoundingClientRect();
+      bill.style.left='50%';bill.style.top='40%';
+      document.body.appendChild(bill);
+      // Animate to backpack
+      requestAnimationFrame(()=>{
+        bill.style.transition='all .8s cubic-bezier(.2,.8,.3,1)';
+        bill.style.left=bpRect.left+'px';
+        bill.style.top=bpRect.top+'px';
+        bill.style.fontSize='.5rem';
+        bill.style.opacity='0';
+      });
+      setTimeout(()=>{
+        bill.remove();
+        bp.classList.remove('pulse');
+        void bp.offsetWidth;
+        bp.classList.add('pulse');
+      },800);
+    },900);
+    // Also show in joke area
+    const jokeArea=document.getElementById('jokeArea');
+    if(jokeArea){
+      jokeArea.innerHTML+='<div class="coin-reward"><span class="coin-icon">$</span> +'+n+' coins earned!</div>';
+    }
+  },
+
+  showNextBtn(){
+    const card=document.querySelector('#gameArea .card');
+    if(!card)return;
+    const btn=document.createElement('button');
+    btn.className='next-btn';
+    btn.textContent='Next →';
+    btn.addEventListener('click',()=>this.loadMode(this.mode));
+    card.appendChild(btn);
+  }
+};
+
+// ---- UTILS ----
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+// GO!
+G.init();
+</script>
+</body>
+</html>

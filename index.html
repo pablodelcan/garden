@@ -660,6 +660,16 @@ function go(name, btn){
   document.getElementById('p-'+name).classList.add('on');
   btn.classList.add('on');
 }
+
+// ─── HIDDEN GAME (type "rio" to access) ──────────────────────────
+(function(){
+  let buf='';
+  document.addEventListener('keydown',e=>{
+    buf+=e.key.toLowerCase();
+    if(buf.length>10) buf=buf.slice(-10);
+    if(buf.includes('rio')) window.location.href='/wordquest.html';
+  });
+})();
 </script>
 </body>
 </html>
