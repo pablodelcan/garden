@@ -81,10 +81,10 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .card{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow);max-width:500px;margin:0 auto;position:relative}
 .card.wrong-shake{animation:cardShake .5s ease}
 @keyframes cardShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-.question-text{font-size:1.25rem;font-weight:800;text-align:center;margin-bottom:16px;line-height:1.4}
+.question-text{font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:16px;line-height:1.4}
 .question-text .blank{display:inline-block;min-width:70px;border-bottom:4px solid var(--accent);color:var(--accent);font-family:'Fredoka One',cursive;padding:0 4px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.choice-btn{font-family:'Nunito',sans-serif;font-size:1.05rem;font-weight:700;padding:12px 8px;border-radius:14px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center}
+.choice-btn{font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:700;padding:14px 10px;border-radius:14px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:54px;display:flex;align-items:center;justify-content:center}
 .choice-btn:hover{border-color:var(--accent);background:#fff7ed;transform:translateY(-2px)}
 .choice-btn:active{transform:translateY(0)}
 .choice-btn.correct{background:#dcfce7;border-color:var(--green);color:#15803d}
@@ -92,12 +92,12 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .choice-btn.disabled{pointer-events:none;opacity:.7}
 
 /* SPELL IT */
-.spell-hint{font-size:1rem;text-align:center;color:var(--text2);margin-bottom:8px}
+.spell-hint{font-size:1.15rem;text-align:center;color:var(--text2);margin-bottom:8px}
 .spell-display{display:flex;justify-content:center;gap:5px;margin:14px 0;min-height:48px;flex-wrap:wrap}
-.spell-slot{width:40px;height:48px;border-radius:10px;border:3px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--accent);background:#fff7ed;transition:all .2s}
+.spell-slot{width:46px;height:54px;border-radius:10px;border:3px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--accent);background:#fff7ed;transition:all .2s}
 .spell-slot.filled{border-style:solid;border-color:var(--accent);background:#fff;transform:scale(1.05)}
 .letter-tiles{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-.letter-tile{width:40px;height:44px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--text);transition:all .15s;box-shadow:0 3px 0 #e2e8f0}
+.letter-tile{width:46px;height:50px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--text);transition:all .15s;box-shadow:0 3px 0 #e2e8f0}
 .letter-tile:hover{transform:translateY(-2px);border-color:var(--accent)}
 .letter-tile:active{transform:translateY(1px);box-shadow:none}
 .letter-tile.used{opacity:.25;pointer-events:none}
@@ -109,7 +109,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 /* DECODE */
 .clues{display:flex;flex-direction:column;gap:6px;margin:12px 0}
-.clue{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8fafc;border-radius:10px;font-weight:700;font-size:.95rem}
+.clue{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f8fafc;border-radius:10px;font-weight:700;font-size:1.1rem}
 .clue-icon{font-size:1.2rem}
 .decode-input{width:100%;padding:12px;border-radius:14px;border:3px solid #e2e8f0;font-family:'Fredoka One',cursive;font-size:1.3rem;text-align:center;color:var(--accent);letter-spacing:4px;text-transform:lowercase}
 .decode-input:focus{outline:none;border-color:var(--accent)}
@@ -118,10 +118,10 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 /* STORY */
 .story-box{background:#f8fafc;border-radius:14px;padding:16px;margin-bottom:12px;line-height:2}
-.story-word{display:inline;cursor:pointer;padding:2px 3px;border-radius:4px;font-size:1.1rem;font-weight:600;transition:all .15s}
+.story-word{display:inline;cursor:pointer;padding:2px 3px;border-radius:4px;font-size:1.3rem;font-weight:600;transition:all .15s}
 .story-word:hover{background:#fed7aa}
 .story-word.highlighted{background:#fdba74;color:#9a3412}
-.story-question{font-size:1rem;font-weight:700;text-align:center;margin:10px 0}
+.story-question{font-size:1.2rem;font-weight:700;text-align:center;margin:10px 0}
 
 /* JOKE */
 .joke-box{margin-top:14px;padding:12px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:14px;text-align:center;animation:jokeIn .4s ease}
@@ -294,7 +294,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 <div class="tabs" id="tabs">
   <button class="tab active" data-mode="fill">Fill In</button>
   <button class="tab" data-mode="spell">Spell It</button>
-  <button class="tab" data-mode="rhyme">Rhyme</button>
+  <button class="tab" data-mode="tricky">Tricky</button>
   <button class="tab" data-mode="decode">Decode</button>
   <button class="tab" data-mode="story">Story</button>
   <button class="tab shop-tab" data-mode="shop">🪙 Shop</button>
@@ -480,23 +480,23 @@ const ENEMIES = [
 const PH=`<svg viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="12" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/><text x="50" y="55" text-anchor="middle" fill="#cbd5e1" font-size="28">📦</text></svg>`;
 const SHOP_ITEMS = [
   // --- STICKERS & CARDS ---
-  {id:'poke_stickers',name:'Pokémon Stickers',price:50,desc:'A sheet of cool stickers!',realPrice:'~$6',url:'https://www.amazon.com/s?k=pokemon+stickers+kids',img:null,svg:`<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="10" fill="#fef08a" stroke="#eab308" stroke-width="2"/><circle cx="32" cy="38" r="14" fill="#fbbf24"/><circle cx="27" cy="35" r="3" fill="#1e293b"/><circle cx="37" cy="35" r="3" fill="#1e293b"/><path d="M29 42 Q32 46 35 42" stroke="#1e293b" stroke-width="1.5" fill="none"/><circle cx="68" cy="38" r="14" fill="#ef4444"/><circle cx="63" cy="35" r="3" fill="#fff"/><circle cx="73" cy="35" r="3" fill="#fff"/><path d="M66 42 Q68 38 70 42" stroke="#1e293b" stroke-width="1.5" fill="none"/><circle cx="50" cy="68" r="14" fill="#3b82f6"/><circle cx="45" cy="65" r="4" fill="#fff"/><circle cx="55" cy="65" r="4" fill="#fff"/><text x="50" y="95" text-anchor="middle" fill="#92400e" font-size="7" font-weight="bold" font-family="sans-serif">STICKERS</text></svg>`},
-  {id:'poke_cards',name:'Pokémon Card Pack',price:100,desc:'A booster pack with 10 cards!',realPrice:'~$10',url:'https://www.amazon.com/Pokemon-TCG-Individually-Holofoil-097712556710/dp/B09YS3LL3N',img:'https://m.media-amazon.com/images/I/81lYlP-nzFL._AC_SL500_.jpg',svg:PH},
-  // --- 2-INCH FIGURES (Río's favorites!) ---
-  {id:'poke_fig_pikachu',name:'Pikachu Evolution Set',price:200,desc:'Pichu → Pikachu → Raichu!',realPrice:'~$13',url:'https://www.amazon.com/Pokemon-Select-Evolution-Multipack-Pikachu/dp/B0BV8WDNT1',img:'https://m.media-amazon.com/images/I/41HEG5CI03L._AC_SL500_.jpg',svg:PH},
-  {id:'poke_fig_charmander',name:'Charmander Evolution Set',price:250,desc:'Charmander → Charmeleon → Charizard!',realPrice:'~$28',url:'https://www.amazon.com/Pokemon-Evolution-Multipack-Style-1/dp/B09PLKLZ27',img:'https://m.media-amazon.com/images/I/41xqSrar7GL._AC_SL500_.jpg',svg:PH},
-  {id:'poke_fig_6pack',name:'Battle Figure 6-Pack',price:350,desc:'Pikachu, Squirtle, Charmander & more!',realPrice:'~$22',url:'https://www.amazon.com/Pokemon-PKW2684-Pack-Features-Charmander-Toxel-Authentic/dp/B09YMJH8BZ',img:'https://m.media-amazon.com/images/I/51gv6BKvKwL._AC_SL500_.jpg',svg:PH},
-  {id:'poke_fig_10pack',name:'Battle Figure 10-Pack',price:500,desc:'10 figures including a 4.5" one!',realPrice:'~$28',url:'https://www.amazon.com/Pok%C3%A9mon-Battle-Figure-Pack-Cinderace/dp/B0C8ZJ1KTL',img:'https://m.media-amazon.com/images/I/81OZGf2-zOL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_stickers',name:'Pokémon Stickers',price:100,desc:'A sheet of cool stickers!',realPrice:'~$6',url:'https://www.amazon.com/s?k=pokemon+stickers+kids',img:null,svg:`<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="10" fill="#fef08a" stroke="#eab308" stroke-width="2"/><circle cx="32" cy="38" r="14" fill="#fbbf24"/><circle cx="27" cy="35" r="3" fill="#1e293b"/><circle cx="37" cy="35" r="3" fill="#1e293b"/><path d="M29 42 Q32 46 35 42" stroke="#1e293b" stroke-width="1.5" fill="none"/><circle cx="68" cy="38" r="14" fill="#ef4444"/><circle cx="63" cy="35" r="3" fill="#fff"/><circle cx="73" cy="35" r="3" fill="#fff"/><path d="M66 42 Q68 38 70 42" stroke="#1e293b" stroke-width="1.5" fill="none"/><circle cx="50" cy="68" r="14" fill="#3b82f6"/><circle cx="45" cy="65" r="4" fill="#fff"/><circle cx="55" cy="65" r="4" fill="#fff"/><text x="50" y="95" text-anchor="middle" fill="#92400e" font-size="7" font-weight="bold" font-family="sans-serif">STICKERS</text></svg>`},
+  {id:'poke_cards',name:'Pokémon Card Pack',price:200,desc:'A booster pack with 10 cards!',realPrice:'~$10',url:'https://www.amazon.com/Pokemon-TCG-Individually-Holofoil-097712556710/dp/B09YS3LL3N',img:'https://m.media-amazon.com/images/I/81lYlP-nzFL._AC_SL500_.jpg',svg:PH},
+  // --- 2-INCH FIGURES ---
+  {id:'poke_fig_pikachu',name:'Pikachu Evolution Set',price:400,desc:'Pichu → Pikachu → Raichu!',realPrice:'~$13',url:'https://www.amazon.com/Pokemon-Select-Evolution-Multipack-Pikachu/dp/B0BV8WDNT1',img:'https://m.media-amazon.com/images/I/41HEG5CI03L._AC_SL500_.jpg',svg:PH},
+  {id:'poke_fig_charmander',name:'Charmander Evolution Set',price:500,desc:'Charmander → Charmeleon → Charizard!',realPrice:'~$28',url:'https://www.amazon.com/Pokemon-Evolution-Multipack-Style-1/dp/B09PLKLZ27',img:'https://m.media-amazon.com/images/I/41xqSrar7GL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_fig_6pack',name:'Battle Figure 6-Pack',price:600,desc:'Pikachu, Squirtle, Charmander & more!',realPrice:'~$22',url:'https://www.amazon.com/Pokemon-PKW2684-Pack-Features-Charmander-Toxel-Authentic/dp/B09YMJH8BZ',img:'https://m.media-amazon.com/images/I/51gv6BKvKwL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_fig_10pack',name:'Battle Figure 10-Pack',price:800,desc:'10 figures including a 4.5" one!',realPrice:'~$28',url:'https://www.amazon.com/Pok%C3%A9mon-Battle-Figure-Pack-Cinderace/dp/B0C8ZJ1KTL',img:'https://m.media-amazon.com/images/I/81OZGf2-zOL._AC_SL500_.jpg',svg:PH},
   // --- PLUSH TOYS ---
-  {id:'poke_plush_eevee',name:'Eevee Plush (8")',price:300,desc:'A soft cuddly Eevee to hug!',realPrice:'~$24',url:'https://www.amazon.com/dp/B07K1F8TXG',img:'https://m.media-amazon.com/images/I/41r16DqKNZL._AC_SL500_.jpg',svg:PH},
-  {id:'poke_plush_snorlax',name:'Snorlax Plush (12")',price:350,desc:'A big sleepy Snorlax!',realPrice:'~$23',url:'https://www.amazon.com/dp/B0B7XX5SSF',img:'https://m.media-amazon.com/images/I/319Jh0Xez5L._AC_SL500_.jpg',svg:PH},
-  {id:'poke_plush_gengar',name:'Gengar Plush (12")',price:500,desc:'A spooky Gengar friend!',realPrice:'~$40',url:'https://www.amazon.com/dp/B07NXVHHN2',img:'https://m.media-amazon.com/images/I/51TlUj6xNpL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_plush_eevee',name:'Eevee Plush (8")',price:600,desc:'A soft cuddly Eevee to hug!',realPrice:'~$24',url:'https://www.amazon.com/dp/B07K1F8TXG',img:'https://m.media-amazon.com/images/I/41r16DqKNZL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_plush_snorlax',name:'Snorlax Plush (12")',price:700,desc:'A big sleepy Snorlax!',realPrice:'~$23',url:'https://www.amazon.com/dp/B0B7XX5SSF',img:'https://m.media-amazon.com/images/I/319Jh0Xez5L._AC_SL500_.jpg',svg:PH},
+  {id:'poke_plush_gengar',name:'Gengar Plush (12")',price:900,desc:'A spooky Gengar friend!',realPrice:'~$40',url:'https://www.amazon.com/dp/B07NXVHHN2',img:'https://m.media-amazon.com/images/I/51TlUj6xNpL._AC_SL500_.jpg',svg:PH},
   // --- BIG SETS ---
-  {id:'poke_mega_box',name:'Mega Collection Box',price:750,desc:'Cards + figure + playmat!',realPrice:'~$50',url:'https://www.amazon.com/Pok%C3%A9mon-TCG-Super-Premium-Collection-Card-Display/dp/B0DG2XTYDP',img:'https://m.media-amazon.com/images/I/81VESsb4YTL._AC_SL500_.jpg',svg:PH},
-  // --- VIDEO GAMES (big goals!) ---
-  {id:'poke_game_arceus',name:'Pokémon Legends: Arceus',price:1500,desc:'Nintendo Switch game!',realPrice:'~$46',url:'https://www.amazon.com/Pokemon-Legends-Arceus-Nintendo-Switch/dp/B0914YGQSH',img:'https://m.media-amazon.com/images/I/51V+8OyYfrS._AC_SL500_.jpg',svg:PH},
-  {id:'poke_game_scarlet',name:'Pokémon Scarlet',price:1500,desc:'Nintendo Switch game!',realPrice:'~$39',url:'https://www.amazon.com/Pokemon-Scarlet-Nintendo-Switch/dp/B09WZYJCWG',img:'https://m.media-amazon.com/images/I/51kwSrrotUL._AC_SL500_.jpg',svg:PH},
-  {id:'poke_game_violet',name:'Pokémon Violet',price:1500,desc:'Nintendo Switch game!',realPrice:'~$41',url:'https://www.amazon.com/Pok%C3%A9mon-Violet-Nintendo-Switch/dp/B09TMHDVLD',img:'https://m.media-amazon.com/images/I/51raso-dQcL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_mega_box',name:'Mega Collection Box',price:1500,desc:'Cards + figure + playmat!',realPrice:'~$50',url:'https://www.amazon.com/Pok%C3%A9mon-TCG-Super-Premium-Collection-Card-Display/dp/B0DG2XTYDP',img:'https://m.media-amazon.com/images/I/81VESsb4YTL._AC_SL500_.jpg',svg:PH},
+  // --- VIDEO GAMES (huge goals!) ---
+  {id:'poke_game_arceus',name:'Pokémon Legends: Arceus',price:3000,desc:'Nintendo Switch game!',realPrice:'~$46',url:'https://www.amazon.com/Pokemon-Legends-Arceus-Nintendo-Switch/dp/B0914YGQSH',img:'https://m.media-amazon.com/images/I/51V+8OyYfrS._AC_SL500_.jpg',svg:PH},
+  {id:'poke_game_scarlet',name:'Pokémon Scarlet',price:3000,desc:'Nintendo Switch game!',realPrice:'~$39',url:'https://www.amazon.com/Pokemon-Scarlet-Nintendo-Switch/dp/B09WZYJCWG',img:'https://m.media-amazon.com/images/I/51kwSrrotUL._AC_SL500_.jpg',svg:PH},
+  {id:'poke_game_violet',name:'Pokémon Violet',price:3000,desc:'Nintendo Switch game!',realPrice:'~$41',url:'https://www.amazon.com/Pok%C3%A9mon-Violet-Nintendo-Switch/dp/B09TMHDVLD',img:'https://m.media-amazon.com/images/I/51raso-dQcL._AC_SL500_.jpg',svg:PH},
 ];
 
 // ========================================================
@@ -734,7 +734,7 @@ const G = {
     banner.className='result-banner victory';
     banner.innerHTML='<span>VICTORY! 🎉</span>';
     b.appendChild(banner);
-    this.score+=10; this.addXP(15); this.addCoins(5);
+    this.score+=10; this.addXP(15); this.addCoins(1); this.showMoneyAnimation(1);
     setTimeout(()=>{banner.remove();this.spawnEnemy();},1500);
   },
 
@@ -898,7 +898,7 @@ const G = {
     switch(mode){
       case'fill':this.loadFillIn();break;
       case'spell':this.loadSpellIt();break;
-      case'rhyme':this.loadRhyme();break;
+      case'tricky':this.loadTricky();break;
       case'decode':this.loadDecode();break;
       case'story':this.loadStory();break;
     }
@@ -1028,16 +1028,63 @@ const G = {
     }
   },
 
-  // ---- RHYME ----
-  loadRhyme(){
-    const wd=this.pickWord();
+  // ---- TRICKY LETTERS (b/d, p/q, u/n confusion) ----
+  loadTricky(){
     const area=document.getElementById('gameArea');
-    const correctRhyme=wd.rhymes[0];
-    const nonRhymes=WORDS.filter(x=>x.w!==wd.w&&!wd.rhymes.includes(x.w)).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
-    const choices=shuffle([correctRhyme,...nonRhymes]);
+    // Tricky letter pairs and words that use them
+    const TRICKY_PAIRS=[
+      {letters:['b','d'],words:[
+        {word:'bed',display:'___ed',answer:'b',img:'🛏️',hint:'You sleep in a…'},
+        {word:'bad',display:'___ad',answer:'b',img:'👎',hint:'The opposite of good'},
+        {word:'dog',display:'___og',answer:'d',img:'🐕',hint:'A pet that barks'},
+        {word:'big',display:'___ig',answer:'b',img:'🐘',hint:'Not small — very…'},
+        {word:'dip',display:'___ip',answer:'d',img:'🫕',hint:'Dunk a chip in…'},
+        {word:'bat',display:'___at',answer:'b',img:'🦇',hint:'Flies at night'},
+        {word:'dig',display:'___ig',answer:'d',img:'⛏️',hint:'Make a hole'},
+        {word:'bug',display:'___ug',answer:'b',img:'🐛',hint:'A tiny crawling critter'},
+        {word:'dad',display:'___ad',answer:'d',img:'👨',hint:'Your father'},
+        {word:'bin',display:'___in',answer:'b',img:'🗑️',hint:'Where trash goes'},
+        {word:'den',display:'___en',answer:'d',img:'🏠',hint:'A cozy room'},
+        {word:'bud',display:'___ud',answer:'b',img:'🌱',hint:'A flower before it opens'},
+      ]},
+      {letters:['p','d'],words:[
+        {word:'pig',display:'___ig',answer:'p',img:'🐷',hint:'Oink oink!'},
+        {word:'pan',display:'___an',answer:'p',img:'🍳',hint:'Cook eggs in a…'},
+        {word:'dug',display:'___ug',answer:'d',img:'🕳️',hint:'Past tense of dig'},
+        {word:'pet',display:'___et',answer:'p',img:'🐾',hint:'A cat or dog is a…'},
+        {word:'dot',display:'___ot',answer:'d',img:'⚫',hint:'A tiny round spot'},
+        {word:'pin',display:'___in',answer:'p',img:'📌',hint:'Stick it on a board'},
+        {word:'den',display:'___en',answer:'d',img:'🏠',hint:'A bear\'s home'},
+        {word:'pod',display:'___od',answer:'p',img:'🫛',hint:'Peas grow in a…'},
+      ]},
+      {letters:['u','n'],words:[
+        {word:'up',display:'___p',answer:'u',img:'⬆️',hint:'The opposite of down'},
+        {word:'nut',display:'___ut',answer:'n',img:'🥜',hint:'Squirrels love these'},
+        {word:'us',display:'___s',answer:'u',img:'👫',hint:'You and me together'},
+        {word:'nap',display:'___ap',answer:'n',img:'😴',hint:'A short sleep'},
+        {word:'fun',display:'f___n',answer:'u',img:'🎉',hint:'Playing games is…'},
+        {word:'sun',display:'s___n',answer:'u',img:'☀️',hint:'Bright and in the sky'},
+        {word:'run',display:'r___n',answer:'u',img:'🏃',hint:'Go fast on your feet'},
+        {word:'net',display:'___et',answer:'n',img:'🥅',hint:'Catch butterflies with a…'},
+        {word:'under',display:'___nder',answer:'u',img:'⬇️',hint:'Below something'},
+        {word:'cup',display:'c___p',answer:'u',img:'☕',hint:'Drink from a…'},
+        {word:'bun',display:'b___n',answer:'u',img:'🍔',hint:'A hamburger is in a…'},
+        {word:'nine',display:'___ine',answer:'n',img:'9️⃣',hint:'The number after 8'},
+      ]},
+    ];
+    const pair=TRICKY_PAIRS[Math.floor(Math.random()*TRICKY_PAIRS.length)];
+    const item=pair.words[Math.floor(Math.random()*pair.words.length)];
+    const wrongLetter=pair.letters.find(l=>l!==item.answer);
+    const choices=shuffle([item.answer,wrongLetter]);
     area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text">Which word rhymes with<br><span style="color:var(--accent);font-size:1.6rem">'+wd.w+'</span>?</div>'+
-      '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+
+      '<div class="question-text">Which letter goes here?</div>'+
+      '<div style="text-align:center;font-size:2.5rem;margin:6px 0">'+item.img+'</div>'+
+      '<div style="text-align:center;font-size:1.1rem;color:var(--text2);margin-bottom:8px;font-weight:600">'+item.hint+'</div>'+
+      '<div style="text-align:center;font-family:\'Fredoka One\',cursive;font-size:2.8rem;color:var(--text);margin:10px 0;letter-spacing:3px">'+
+        item.display.replace('___','<span style="color:var(--accent);border-bottom:4px solid var(--accent)"> ? </span>')+
+      '</div>'+
+      '<div class="choices" style="max-width:260px;margin:0 auto">'+
+        choices.map(c=>'<button class="choice-btn" data-val="'+c+'" style="font-size:2rem;font-family:\'Fredoka One\',cursive;padding:16px">'+c+'</button>').join('')+
       '</div><div id="jokeArea"></div></div>';
     area.querySelectorAll('.choice-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
@@ -1045,14 +1092,14 @@ const G = {
         this.answering=true;
         const card=document.getElementById('qCard');
         card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
-        if(wd.rhymes.includes(btn.dataset.val)){
+        if(btn.dataset.val===item.answer){
           btn.classList.add('correct');
-          this.onCorrect(wd);
+          this.onCorrect(null);
         }else{
           btn.classList.add('wrong-pick');
-          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===correctRhyme)b.classList.add('correct');});
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===item.answer)b.classList.add('correct');});
           card.classList.add('wrong-shake');
-          this.onWrong(wd);
+          this.onWrong(null);
         }
       });
     });
@@ -1139,12 +1186,11 @@ const G = {
     this.score+=5;
     this.streak++;
     this.addXP(10);
-    this.addCoins(3);
     this.playerAttack();
     this.checkCatch();
     this.showJoke(wd);
-    this.showMoneyAnimation(3);
-    this.showNextBtn();
+    // coins only awarded when enemy is defeated (see enemyDefeated)
+    this.autoNext(1800);
     this.saveGame();
   },
 
@@ -1154,7 +1200,12 @@ const G = {
     this.enemyAttack();
     this.updateHUD();
     this.showJoke(wd);
-    this.showNextBtn();
+    // skip to next question automatically after wrong answer
+    this.autoNext(2200);
+  },
+
+  autoNext(delay){
+    setTimeout(()=>this.loadMode(this.mode),delay);
   },
 
   showJoke(wd){
@@ -1204,13 +1255,7 @@ const G = {
   },
 
   showNextBtn(){
-    const card=document.querySelector('#gameArea .card');
-    if(!card)return;
-    const btn=document.createElement('button');
-    btn.className='next-btn';
-    btn.textContent='Next →';
-    btn.addEventListener('click',()=>this.loadMode(this.mode));
-    card.appendChild(btn);
+    // auto-advance now — no manual next button needed
   }
 };
 
