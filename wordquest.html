@@ -154,6 +154,27 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .roster-card .rc-name{font-family:'Fredoka One',cursive;font-size:.65rem;color:var(--text);margin-top:2px}
 .roster-card .rc-type{font-size:.55rem;color:var(--text2);font-weight:700}
 
+/* POKÉDEX MODAL */
+.pokedex-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.pokedex-overlay.open{display:flex}
+.pokedex-modal{background:var(--bg);border-radius:24px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative}
+.pokedex-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.pokedex-header h2{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--text);display:flex;align-items:center;gap:8px}
+.pokedex-close{background:var(--accent);color:#fff;border:none;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(249,115,22,.3)}
+.pokedex-close:hover{transform:scale(1.1)}
+.pokedex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.pdex-card{background:#fff;border-radius:16px;padding:10px 6px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);border:2px solid transparent;transition:all .2s;cursor:pointer;position:relative}
+.pdex-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.pdex-card.active{border-color:var(--accent);background:#fff7ed}
+.pdex-card.locked{opacity:.3;filter:grayscale(1);cursor:default}
+.pdex-card.locked:hover{transform:none;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.pdex-card img,.pdex-card svg{width:70px;height:70px;margin:0 auto 4px;display:block}
+.pdex-card .pdex-name{font-family:'Fredoka One',cursive;font-size:.7rem;color:var(--text);margin-top:4px}
+.pdex-card .pdex-type{font-size:.6rem;color:#fff;background:var(--accent);border-radius:8px;padding:1px 6px;display:inline-block;margin-top:2px}
+.pdex-card .pdex-type.locked-type{background:#cbd5e1}
+.pdex-card .pdex-num{position:absolute;top:4px;right:6px;font-size:.55rem;color:var(--text2);font-weight:700}
+.pdex-card .pdex-xp{font-size:.55rem;color:var(--text2);font-weight:700;margin-top:2px}
+
 /* SHOP SECTION */
 .shop-section{padding:10px 12px 30px}
 .shop-banner{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:16px;margin-bottom:12px;text-align:center;border:2px solid #fbbf24}
@@ -331,8 +352,19 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 <!-- ROSTER -->
 <div class="roster-section">
-  <div class="roster-title"><img src="sprites/backpack_detailed.png" style="width:22px;height:22px"> My Wordmons (<span id="rosterCount">1</span> / <span id="rosterTotal">16</span>)</div>
+  <div class="roster-title" onclick="openPokedex()" style="cursor:pointer"><img src="sprites/backpack_detailed.png" style="width:22px;height:22px"> My Wordmons (<span id="rosterCount">1</span> / <span id="rosterTotal">16</span>) <span style="font-family:'Nunito',sans-serif;font-size:.7rem;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;margin-left:4px">View All</span></div>
   <div class="roster-grid" id="rosterGrid"></div>
+</div>
+
+<!-- POKÉDEX MODAL -->
+<div class="pokedex-overlay" id="pokedexOverlay" onclick="if(event.target===this)closePokedex()">
+  <div class="pokedex-modal">
+    <div class="pokedex-header">
+      <h2><img src="sprites/backpack_detailed.png" style="width:28px;height:28px"> Wordmon Collection</h2>
+      <button class="pokedex-close" onclick="closePokedex()">✕</button>
+    </div>
+    <div class="pokedex-grid" id="pokedexGrid"></div>
+  </div>
 </div>
 
 <!-- SHOP (rendered inline in game area when Shop tab is active) -->
@@ -1193,6 +1225,39 @@ const G = {
           this.playerMaxHp=w2.hp;
           this.playerHp=w2.hp;
           this.renderRoster();
+          this.updateHUD();
+        });
+      }
+      grid.appendChild(card);
+    });
+  },
+
+  renderPokedex(){
+    const grid=document.getElementById('pokedexGrid');
+    if(!grid) return;
+    grid.innerHTML='';
+    WORDMONS.forEach((_,i)=>{
+      const wm=this.getWordmon(i);
+      const caught=this.caughtWordmons.includes(i);
+      const active=i===this.activeWordmon;
+      const wxp=this.wordmonXP[i]||0;
+      const nextEvo=wm.stage===0?10:wm.stage===1?25:null;
+      const card=document.createElement('div');
+      card.className='pdex-card'+(active?' active':'')+(caught?'':' locked');
+      card.innerHTML='<div class="pdex-num">#'+(i+1)+'</div>'+
+        (caught?this.spriteHtml(wm,70):'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="#e2e8f0"/><text x="50" y="58" text-anchor="middle" fill="#94a3b8" font-size="24" font-weight="bold">?</text></svg>')+
+        '<div class="pdex-name">'+(caught?wm.name:'???')+'</div>'+
+        '<div class="pdex-type'+(caught?'':' locked-type')+'">'+(caught?wm.type:'???')+'</div>'+
+        (caught&&nextEvo?'<div class="pdex-xp">'+wxp+'/'+nextEvo+' XP</div>':'')+
+        (caught&&!nextEvo?'<div class="pdex-xp" style="color:#22c55e">MAX ⭐</div>':'');
+      if(caught){
+        card.addEventListener('click',()=>{
+          this.activeWordmon=i;
+          const w2=this.getWordmon(i);
+          this.playerMaxHp=w2.hp;
+          this.playerHp=w2.hp;
+          this.renderRoster();
+          this.renderPokedex();
           this.updateHUD();
         });
       }
@@ -2177,6 +2242,16 @@ if('serviceWorker' in navigator){
       localStorage.setItem('rio_precached','1');
     }
   }).catch(()=>{});
+}
+
+// POKÉDEX MODAL
+function openPokedex(){
+  document.getElementById('pokedexOverlay').classList.add('open');
+  G.renderPokedex();
+  try{SFX.play('catch');}catch(e){}
+}
+function closePokedex(){
+  document.getElementById('pokedexOverlay').classList.remove('open');
 }
 
 // GO!
