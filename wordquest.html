@@ -77,6 +77,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .mode-progress{font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;color:var(--text2);background:#f1f5f9;padding:6px 12px;border-radius:10px;white-space:nowrap}
 .tab.shop-tab{background:#fef3c7;color:#92400e;border:2px solid #fbbf24}
 .tab.shop-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mode-icon{width:20px;height:20px;vertical-align:middle;margin-right:2px}
 
 /* GAME AREA */
 .game-area{padding:10px 12px;min-height:180px}
@@ -262,13 +263,13 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 <!-- HEADER -->
 <div class="header">
-  <h1 class="fredoka" style="letter-spacing:1px">RÍO READS</h1>
+  <img src="sprites/logo_rioreads_v4.png" alt="Río Reads" style="height:48px;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.3));position:relative;z-index:2;margin-bottom:-10px">
   <div class="hud">
-    <div class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg><span id="scoreVal">0</span></div>
-    <div class="pill">🔥 <span id="streakVal">0</span></div>
-    <div class="pill">❤️ <span id="livesVal">3</span></div>
-    <div class="pill">Lv <span id="levelVal">1</span></div>
-    <div class="pill" style="background:rgba(251,191,36,.4)">🪙 <span id="coinVal">0</span></div>
+    <div class="pill"><img src="sprites/hud_star.png" style="width:16px;height:16px"> <span id="scoreVal">0</span></div>
+    <div class="pill"><img src="sprites/hud_fire.png" style="width:16px;height:16px"> <span id="streakVal">0</span></div>
+    <div class="pill"><img src="sprites/hud_heart.png" style="width:16px;height:16px"> <span id="livesVal">3</span></div>
+    <div class="pill"><img src="sprites/hud_level.png" style="width:16px;height:16px"> <span id="levelVal">1</span></div>
+    <div class="pill" style="background:rgba(251,191,36,.4)"><img src="sprites/hud_coin.png" style="width:16px;height:16px"> <span id="coinVal">0</span></div>
   </div>
   <div class="xp-wrap">
     <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
@@ -313,9 +314,9 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 <!-- MODE BAR -->
 <div class="tabs" id="tabs">
-  <div class="mode-indicator" id="modeIndicator">🎮 Fill In</div>
+  <div class="mode-indicator" id="modeIndicator"><img src="sprites/mode_fillin.png" class="mode-icon"> Fill In</div>
   <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 15</div>
-  <button class="tab shop-tab" data-mode="shop">🪙 Shop</button>
+  <button class="tab shop-tab" data-mode="shop"><img src="sprites/mode_shop.png" class="mode-icon"> Shop</button>
 </div>
 
 <!-- GAME AREA -->
@@ -323,7 +324,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 <!-- ROSTER -->
 <div class="roster-section">
-  <div class="roster-title">🎒 My Wordmons (<span id="rosterCount">1</span> / <span id="rosterTotal">16</span>)</div>
+  <div class="roster-title"><img src="sprites/backpack_detailed.png" style="width:22px;height:22px"> My Wordmons (<span id="rosterCount">1</span> / <span id="rosterTotal">16</span>)</div>
   <div class="roster-grid" id="rosterGrid"></div>
 </div>
 
@@ -341,11 +342,11 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 </div>
 
 <!-- HELP SPEAKER -->
-<button class="help-speaker" id="helpSpeaker" onclick="G.speakHelp()" title="How to play">🔊</button>
+<button class="help-speaker" id="helpSpeaker" onclick="G.speakHelp()" title="How to play"><img src="sprites/btn_speaker.png" style="width:32px;height:32px"></button>
 
 <!-- BACKPACK -->
 <div class="backpack" id="backpack" onclick="document.querySelector('.tab[data-mode=&quot;shop&quot;]').click()">
-  <svg viewBox="0 0 60 60"><rect x="12" y="18" width="36" height="32" rx="8" fill="#92400e"/><rect x="16" y="22" width="28" height="24" rx="5" fill="#b45309"/><rect x="20" y="14" width="20" height="10" rx="5" fill="#92400e"/><rect x="24" y="28" width="12" height="10" rx="3" fill="#fbbf24"/><circle cx="30" cy="33" r="2" fill="#92400e"/><rect x="22" y="48" width="16" height="4" rx="2" fill="#78350f"/></svg>
+  <img src="sprites/backpack_detailed.png" style="width:56px;height:56px;object-fit:contain">
   <div class="backpack-badge" id="bpBadge">0</div>
 </div>
 
@@ -918,12 +919,14 @@ const G = {
     document.getElementById('bpBadge').textContent=this.coins;
   },
 
-  MODE_NAMES:{fill:'🎮 Fill In',spell:'✏️ Spell It',tricky:'🔀 Tricky Letters',hear:'🔊 Hear It',flash:'⚡ Flash',decode:'🔍 Decode',story:'📖 Story',shop:'🪙 Shop'},
+  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop'},
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',shop:'Shop'},
   GAME_MODES:['fill','spell','tricky','hear','flash','decode','story'],
 
   updateModeBar(){
     const mi=document.getElementById('modeIndicator');
-    if(mi) mi.textContent=this.MODE_NAMES[this.mode]||this.mode;
+    const icon=this.MODE_ICONS[this.mode]||'mode_fillin';
+    if(mi) mi.innerHTML='<img src="sprites/'+icon+'.png" class="mode-icon"> '+((this.MODE_NAMES[this.mode])||this.mode);
     const mp=document.getElementById('modePoints');
     if(mp) mp.textContent=this.modeWins;
   },
@@ -1764,7 +1767,7 @@ const G = {
     const msg=msgs[Math.floor(Math.random()*msgs.length)];
     const banner=document.createElement('div');
     banner.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;padding:20px 32px;border-radius:16px;font-family:Fredoka One,cursive;font-size:1.3rem;z-index:9998;text-align:center;box-shadow:0 8px 32px rgba(249,115,22,.5);animation:popIn .3s ease';
-    banner.innerHTML=msg+'<br><span style="font-size:.9rem;opacity:.8">Next: '+this.MODE_NAMES[next]+'</span>';
+    banner.innerHTML=msg+'<br><span style="font-size:.9rem;opacity:.8">Next: <img src="sprites/'+(this.MODE_ICONS[next]||'mode_fillin')+'.png" style="width:20px;height:20px;vertical-align:middle"> '+this.MODE_NAMES[next]+'</span>';
     document.body.appendChild(banner);
     setTimeout(()=>{
       banner.remove();
