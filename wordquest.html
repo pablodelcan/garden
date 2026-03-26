@@ -37,7 +37,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .streak-label{font-size:.75rem;font-weight:700;color:var(--text2)}
 
 /* BATTLE SCENE */
-.battle{background:linear-gradient(180deg,#e0f2fe 0%,#bae6fd 40%,#86efac 40%,#4ade80 100%);border-radius:20px;margin:8px 12px;padding:14px;min-height:190px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.battle{background:linear-gradient(180deg,#e0f2fe 0%,#bae6fd 40%,#86efac 40%,#4ade80 100%);background-size:cover;background-position:center bottom;border-radius:20px;margin:8px 12px;padding:14px;min-height:190px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:background-image .5s ease}
 .battle-ground{display:flex;justify-content:space-between;align-items:flex-end;min-height:150px;position:relative}
 .fighter{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:2}
 .sprite-box{transition:transform .5s ease}
@@ -46,13 +46,13 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .fighter.enemy .sprite-box{animation:bounce 1.5s ease-in-out infinite .3s}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .hp-bar-wrap{width:110px;text-align:center}
-.hp-name{font-family:'Fredoka One',cursive;font-size:.7rem;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-name{font-family:'Fredoka One',cursive;font-size:.7rem;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,.7);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hp-bar{background:#e2e8f0;border-radius:6px;height:8px;overflow:hidden;border:2px solid #cbd5e1}
 .hp-fill{height:100%;border-radius:4px;transition:width .4s ease}
 .hp-fill.green{background:linear-gradient(90deg,#22c55e,#4ade80)}
 .hp-fill.yellow{background:linear-gradient(90deg,#eab308,#facc15)}
 .hp-fill.red{background:linear-gradient(90deg,#ef4444,#f87171)}
-.hp-text{font-size:.6rem;font-weight:700;color:var(--text2)}
+.hp-text{font-size:.6rem;font-weight:700;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.6)}
 .battle-msg{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:1.3rem;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.3);opacity:0;pointer-events:none;z-index:10;white-space:nowrap}
 .battle-msg.show{animation:msgPop .8s ease forwards}
 @keyframes msgPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}40%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
@@ -263,7 +263,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 <!-- HEADER -->
 <div class="header">
-  <img src="sprites/logo_rioreads_v4.png" alt="Río Reads" style="height:48px;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.3));position:relative;z-index:2;margin-bottom:-10px">
+  <img src="sprites/logo_rioreads_v5.png" alt="Río Reads" style="height:52px;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35));position:relative;z-index:2;margin-bottom:-12px">
   <div class="hud">
     <div class="pill"><img src="sprites/hud_star.png" style="width:16px;height:16px"> <span id="scoreVal">0</span></div>
     <div class="pill"><img src="sprites/hud_fire.png" style="width:16px;height:16px"> <span id="streakVal">0</span></div>
@@ -669,15 +669,16 @@ const WORDMONS = [
 // ========================================================
 // ENEMY MONSTERS
 // ========================================================
+const BATTLE_BGS = ['bg_forest','bg_volcano','bg_ocean','bg_cave','bg_sky','bg_snow','bg_castle','bg_space'];
 const ENEMIES = [
-  {name:'Grumblob',hp:20,sprite:'sprites/enemy_grumblob.png'},
-  {name:'Muddle',hp:22,sprite:'sprites/enemy_muddle.png'},
-  {name:'Fumeworm',hp:18,sprite:'sprites/enemy_fumeworm.png'},
-  {name:'Snarlpix',hp:24,sprite:'sprites/enemy_snarlpix.png'},
-  {name:'Bogbreath',hp:20,sprite:'sprites/enemy_bogbreath.png'},
-  {name:'Glitchghost',hp:26,sprite:'sprites/enemy_glitchghost.png'},
-  {name:'Rustclaw',hp:28,sprite:'sprites/enemy_rustclaw.png'},
-  {name:'Shadowmaw',hp:30,sprite:'sprites/enemy_shadowmaw.png'},
+  {name:'Grumblob',hp:20,sprite:'sprites/enemy_grumblob.png',bg:'bg_forest'},
+  {name:'Muddle',hp:22,sprite:'sprites/enemy_muddle.png',bg:'bg_ocean'},
+  {name:'Fumeworm',hp:18,sprite:'sprites/enemy_fumeworm.png',bg:'bg_volcano'},
+  {name:'Snarlpix',hp:24,sprite:'sprites/enemy_snarlpix.png',bg:'bg_cave'},
+  {name:'Bogbreath',hp:20,sprite:'sprites/enemy_bogbreath.png',bg:'bg_snow'},
+  {name:'Glitchghost',hp:26,sprite:'sprites/enemy_glitchghost.png',bg:'bg_space'},
+  {name:'Rustclaw',hp:28,sprite:'sprites/enemy_rustclaw.png',bg:'bg_castle'},
+  {name:'Shadowmaw',hp:30,sprite:'sprites/enemy_shadowmaw.png',bg:'bg_sky'},
 ];
 
 // ========================================================
@@ -997,6 +998,12 @@ const G = {
     const wm = this.getWordmon(this.activeWordmon);
     this.playerMaxHp = wm.hp;
     this.playerHp = wm.hp;
+    // Set battle background
+    const bg = this.currentEnemy.bg || BATTLE_BGS[this.enemyIdx % BATTLE_BGS.length];
+    const scene = document.getElementById('battleScene');
+    scene.style.backgroundImage = 'url(sprites/'+bg+'.png)';
+    scene.style.backgroundSize = 'cover';
+    scene.style.backgroundPosition = 'center bottom';
     this.updateHUD();
   },
 
@@ -2142,6 +2149,26 @@ function shuffle(arr){
   const a=[...arr];
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   return a;
+}
+
+// SERVICE WORKER — offline play for airplane mode!
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw-wordquest.js').then(()=>{
+    // Pre-cache all sprites on first load
+    if(!localStorage.getItem('rio_precached')){
+      const imgs=document.querySelectorAll('img[src*="sprites/"]');
+      const srcs=new Set();
+      imgs.forEach(i=>srcs.add(i.src));
+      // Also cache all wordmon + enemy sprites
+      WORDMONS.forEach(wm=>{for(let s=1;s<=3;s++)srcs.add('/sprites/'+wm.id+'_'+s+'.png');});
+      ENEMIES.forEach(e=>srcs.add(e.sprite));
+      // Cache battle backgrounds
+      ['forest','volcano','ocean','cave','sky','snow','castle','space'].forEach(b=>srcs.add('/sprites/bg_'+b+'.png'));
+      // Preload all
+      srcs.forEach(src=>{const i=new Image();i.src=src;});
+      localStorage.setItem('rio_precached','1');
+    }
+  }).catch(()=>{});
 }
 
 // GO!
