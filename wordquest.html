@@ -977,6 +977,7 @@ const G = {
     document.querySelectorAll('.tab[data-mode="shop"]').forEach(t=>{
       t.addEventListener('click',()=>{
         if(this.answering) return;
+        if(this.mode!=='shop') this._modeBeforeShop=this.mode;
         this.mode='shop';
         this.loadMode('shop');
       });
@@ -1266,9 +1267,8 @@ const G = {
   },
 
   backToGame(){
-    // pick a random game mode when returning from shop
-    this.mode=this.GAME_MODES[Math.floor(Math.random()*this.GAME_MODES.length)];
-    this.modeWins=0;
+    // restore mode but DON'T re-randomize — same mode, new question from same pool
+    this.mode=this._modeBeforeShop||this.mode;
     this.updateModeBar();
     this.loadMode(this.mode);
   },
@@ -1292,11 +1292,18 @@ const G = {
 
   // ---- PICK WORD ----
   pickWord(){
+    // If there's a pending word the player hasn't answered yet, force them to do it
+    if(this._pendingWord) return this._pendingWord;
     if(this.usedWords.length>=WORDS.length) this.usedWords=[];
     let idx;
     do{idx=Math.floor(Math.random()*WORDS.length);}while(this.usedWords.includes(idx));
     this.usedWords.push(idx);
-    return WORDS[idx];
+    const wd=WORDS[idx];
+    this._pendingWord=wd; // lock this word until answered
+    return wd;
+  },
+  clearPendingWord(){
+    this._pendingWord=null;
   },
 
   pickStory(){
@@ -1701,6 +1708,7 @@ const G = {
 
   // ---- CORRECT / WRONG ----
   onCorrect(wd){
+    this.clearPendingWord();
     SFX.play('correct');
     this.score+=5;
     this.streak++;
@@ -1821,6 +1829,7 @@ const G = {
   },
 
   onWrong(wd){
+    this.clearPendingWord();
     SFX.play('wrong');
     this.streak=0;
     this.enemyAttack();
