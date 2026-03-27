@@ -97,6 +97,10 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .choice-btn.correct{background:#dcfce7;border-color:var(--green);color:#15803d}
 .choice-btn.wrong-pick{background:#fef2f2;border-color:var(--red);color:#b91c1c}
 .choice-btn.disabled{pointer-events:none;opacity:.7}
+.choices.think-first{position:relative;pointer-events:none}
+.choices.think-first .choice-btn{opacity:.3;filter:blur(2px);transition:all .3s}
+.think-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--accent);text-align:center;animation:thinkPulse 1s ease-in-out infinite}
+@keyframes thinkPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
 /* SPELL IT */
 .spell-hint{font-size:1.4rem;text-align:center;color:var(--text2);margin-bottom:8px}
@@ -961,8 +965,8 @@ const G = {
   },
 
   MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',shop:'Shop'},
-  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story'],
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',shop:'Shop'},
+  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong'],
 
   updateModeBar(){
     const mi=document.getElementById('modeIndicator');
@@ -1320,6 +1324,8 @@ const G = {
     // clean up mini-game timers
     if(this._blockTimer){clearInterval(this._blockTimer);this._blockTimer=null;}
     if(this._blockKeys){document.removeEventListener('keydown',this._blockKeys);this._blockKeys=null;}
+    if(this._dodgeTimer){clearInterval(this._dodgeTimer);this._dodgeTimer=null;}
+    if(this._dodgeKeys){document.removeEventListener('keydown',this._dodgeKeys);this._dodgeKeys=null;}
     const area=document.getElementById('gameArea');
     area.innerHTML='';
     if(mode==='shop'){
@@ -1334,6 +1340,7 @@ const G = {
       case'flash':this.loadFlash();break;
       case'decode':this.loadDecode();break;
       case'story':this.loadStory();break;
+      case'readalong':this.loadReadAlong();break;
     }
   },
 
@@ -1376,6 +1383,27 @@ const G = {
     });
   },
 
+  // ---- THINK FIRST (anti-guessing) ----
+  thinkFirst(container, seconds=2){
+    const choices=container.querySelector('.choices');
+    if(!choices) return;
+    choices.classList.add('think-first');
+    const overlay=document.createElement('div');
+    overlay.className='think-overlay';
+    overlay.innerHTML='👀 Read first! ('+seconds+'s)';
+    choices.appendChild(overlay);
+    let t=seconds;
+    const iv=setInterval(()=>{
+      t--;
+      if(t>0){overlay.innerHTML='👀 Read first! ('+t+'s)';}
+      else{
+        clearInterval(iv);
+        choices.classList.remove('think-first');
+        overlay.remove();
+      }
+    },1000);
+  },
+
   // ---- FILL IN ----
   loadFillIn(){
     const wd=this.pickWord();
@@ -1405,6 +1433,7 @@ const G = {
         }
       });
     });
+    this.thinkFirst(document.getElementById('qCard'));
   },
 
   // ---- SPELL IT ----
@@ -1537,6 +1566,7 @@ const G = {
         }
       });
     });
+    this.thinkFirst(document.getElementById('qCard'));
   },
 
   // ---- HEAR IT (audio + word recognition) ----
@@ -1581,6 +1611,7 @@ const G = {
         }
       });
     });
+    this.thinkFirst(document.getElementById('qCard'),3);
   },
 
   // ---- FLASH (sight word speed recognition) ----
@@ -1918,13 +1949,15 @@ const G = {
 
   // ================ BONUS MINI-GAMES ================
   loadBonusGame(){
-    const games=['tictactoe','blockstack','memorymatch'];
+    const games=['tictactoe','blockstack','memorymatch','typematch','dodgeattack'];
     const pick=games[Math.floor(Math.random()*games.length)];
     SFX.play('fanfare');
     const area=document.getElementById('gameArea');
-    area.innerHTML='<div class="card" style="text-align:center;padding:20px"><div style="font-family:Fredoka One,cursive;font-size:1.6rem;color:var(--accent);margin-bottom:4px">🎮 BONUS GAME!</div><div style="font-size:1rem;color:var(--text2);font-weight:600;margin-bottom:16px">Take a break and win extra coins!</div><div id="miniGameArea"></div></div>';
+    area.innerHTML='<div class="card" style="text-align:center;padding:20px"><div style="font-family:Fredoka One,cursive;font-size:1.6rem;color:var(--accent);margin-bottom:4px">⚔️ BONUS BATTLE!</div><div style="font-size:1rem;color:var(--text2);font-weight:600;margin-bottom:16px">A wild challenge appeared! No coins — just glory!</div><div id="miniGameArea"></div></div>';
     if(pick==='tictactoe') this.loadTicTacToe();
     else if(pick==='memorymatch') this.loadMemoryMatch();
+    else if(pick==='typematch') this.loadTypeMatch();
+    else if(pick==='dodgeattack') this.loadDodgeAttack();
     else this.loadBlockStack();
   },
 
@@ -1991,14 +2024,14 @@ const G = {
       render();
       const res=document.getElementById('tttResult');
       if(result===PLAYER){
-        res.innerHTML='<span style="color:#22c55e">YOU WIN! 🎉 +5 coins!</span>';
-        SFX.play('victory');this.addCoins(5);this.showMoneyAnimation(5);this.fireConfetti();
+        res.innerHTML='<span style="color:#22c55e">YOU WIN! ⚡ Super trainer!</span>';
+        SFX.play('victory');this.fireConfetti();
       }else if(result===CPU){
-        res.innerHTML='<span style="color:#ef4444">CPU wins! Try again next time!</span>';
+        res.innerHTML='<span style="color:#ef4444">The wild Pokémon wins! Try again!</span>';
         SFX.play('wrong');
       }else{
-        res.innerHTML='<span style="color:var(--accent)">Draw! +2 coins!</span>';
-        SFX.play('coin');this.addCoins(2);this.showMoneyAnimation(2);
+        res.innerHTML='<span style="color:var(--accent)">Draw! Good battle!</span>';
+        SFX.play('coin');
       }
       setTimeout(()=>{
         const btn=document.createElement('button');
@@ -2104,9 +2137,8 @@ const G = {
         if(py<=0){
           dropping=false;
           render();
-          const coins=Math.max(1,Math.floor(score/5));
-          document.getElementById('bsResult').innerHTML='<div style="color:var(--accent)">Game Over! Score: '+score+' → +'+coins+' coins!</div>';
-          SFX.play('victory');this.addCoins(coins);this.showMoneyAnimation(coins);
+          document.getElementById('bsResult').innerHTML='<div style="color:var(--accent)">Game Over! Score: '+score+'! Nice building!</div>';
+          SFX.play('victory');
           if(score>=30)this.fireConfetti();
           setTimeout(()=>{
             const btn=document.createElement('button');
@@ -2182,9 +2214,8 @@ const G = {
       }
     };
     const endMM=()=>{
-      const coins=Math.max(1,12-Math.floor(moves/3));
-      document.getElementById('mmResult').innerHTML='<div style="color:#22c55e">You did it in '+moves+' moves! +'+coins+' coins! 🎉</div>';
-      SFX.play('victory');this.addCoins(coins);this.showMoneyAnimation(coins);this.fireConfetti();
+      document.getElementById('mmResult').innerHTML='<div style="color:#22c55e">You did it in '+moves+' moves! Great memory! 🎉</div>';
+      SFX.play('victory');this.fireConfetti();
       setTimeout(()=>{
         const btn=document.createElement('button');
         btn.textContent='Back to Reading! →';
@@ -2194,6 +2225,241 @@ const G = {
       },1200);
     };
     render();
+  },
+
+  // ---- TYPE MATCHUP (Pokémon type quiz) ----
+  loadTypeMatch(){
+    const mg=document.getElementById('miniGameArea');
+    const MATCHUPS=[
+      {q:'Water vs Fire?',a:'Water wins!',wrong:'Fire wins!',emoji:'💧🔥',explain:'Water puts out fire!'},
+      {q:'Fire vs Grass?',a:'Fire wins!',wrong:'Grass wins!',emoji:'🔥🌿',explain:'Fire burns grass!'},
+      {q:'Grass vs Water?',a:'Grass wins!',wrong:'Water wins!',emoji:'🌿💧',explain:'Grass drinks water!'},
+      {q:'Electric vs Water?',a:'Electric wins!',wrong:'Water wins!',emoji:'⚡💧',explain:'Electricity zaps water!'},
+      {q:'Water vs Rock?',a:'Water wins!',wrong:'Rock wins!',emoji:'💧🗿',explain:'Water erodes rock!'},
+      {q:'Fire vs Ice?',a:'Fire wins!',wrong:'Ice wins!',emoji:'🔥❄️',explain:'Fire melts ice!'},
+      {q:'Ghost vs Ghost?',a:'Ghost wins!',wrong:'Neither wins!',emoji:'👻👻',explain:'Ghosts can hit ghosts!'},
+      {q:'Electric vs Grass?',a:'Grass wins!',wrong:'Electric wins!',emoji:'⚡🌿',explain:'Grass is grounded!'},
+      {q:'Rock vs Fire?',a:'Rock wins!',wrong:'Fire wins!',emoji:'🗿🔥',explain:'Rock doesn\'t burn!'},
+      {q:'Ice vs Grass?',a:'Ice wins!',wrong:'Grass wins!',emoji:'❄️🌿',explain:'Ice freezes grass!'},
+    ];
+    let round=0,correct=0;
+    const total=5;
+    const picks=shuffle(MATCHUPS).slice(0,total);
+
+    const showQ=()=>{
+      if(round>=total){
+        mg.innerHTML='<div style="font-family:Fredoka One,cursive;font-size:1.3rem;margin-bottom:10px;color:'+(correct>=3?'#22c55e':'var(--accent)')+'">'+
+          (correct>=4?'Type Master! 🏆':'You got '+correct+'/'+total+'!')+
+          '</div><div style="font-size:1rem;margin-bottom:12px">Great battle knowledge!</div>';
+        if(correct>=3){SFX.play('victory');this.fireConfetti();}else SFX.play('coin');
+        setTimeout(()=>{
+          const btn=document.createElement('button');
+          btn.textContent='Back to Reading! →';
+          btn.style.cssText='display:block;margin:8px auto;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer';
+          btn.onclick=()=>this.loadMode(this.mode);
+          mg.appendChild(btn);
+        },1200);
+        return;
+      }
+      const mu=picks[round];
+      mg.innerHTML='<div style="font-family:Fredoka One,cursive;font-size:1rem;margin-bottom:4px">Type Battle! ('+round+'/'+total+')</div>'+
+        '<div style="font-size:3rem;margin:8px 0">'+mu.emoji+'</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.3rem;margin-bottom:12px">'+mu.q+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:300px;margin:0 auto">'+
+        '<button class="choice-btn tm-btn" data-val="correct">'+mu.a+'</button>'+
+        '<button class="choice-btn tm-btn" data-val="wrong">'+mu.wrong+'</button>'+
+        '</div><div id="tmFeedback" style="margin-top:8px;font-weight:700;min-height:24px"></div>';
+      const btns=shuffle([...mg.querySelectorAll('.tm-btn')]);
+      // randomize button order visually
+      btns[0].parentElement.appendChild(btns[1]);
+      mg.querySelectorAll('.tm-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          mg.querySelectorAll('.tm-btn').forEach(b=>b.style.pointerEvents='none');
+          if(btn.dataset.val==='correct'){
+            correct++;
+            btn.classList.add('correct');
+            document.getElementById('tmFeedback').innerHTML='<span style="color:#22c55e">✓ '+mu.explain+'</span>';
+            SFX.play('correct');
+          }else{
+            btn.classList.add('wrong-pick');
+            mg.querySelector('[data-val="correct"]').classList.add('correct');
+            document.getElementById('tmFeedback').innerHTML='<span style="color:#ef4444">✗ '+mu.explain+'</span>';
+            SFX.play('wrong');
+          }
+          round++;
+          setTimeout(showQ,1500);
+        });
+      });
+    };
+    showQ();
+  },
+
+  // ---- DODGE ATTACK (tap to dodge falling attacks) ----
+  loadDodgeAttack(){
+    const mg=document.getElementById('miniGameArea');
+    const W=5,ROWS=6;
+    let playerX=2,score=0,lives=3,gameOver=false;
+    let attacks=[];
+    const ATTACKS=['🔥','💧','⚡','🗿','❄️','🌿','💀'];
+    const PLAYER='⚡';
+
+    const render=()=>{
+      let html='<div style="font-family:Fredoka One,cursive;font-size:1rem;margin-bottom:6px">Dodge Attack! ❤️×'+lives+' Score: '+score+'</div>';
+      html+='<div style="display:grid;grid-template-columns:repeat('+W+',50px);gap:3px;justify-content:center;margin:0 auto">';
+      for(let r=0;r<ROWS;r++){
+        for(let c=0;c<W;c++){
+          const atk=attacks.find(a=>a.x===c&&a.y===r);
+          const isPlayer=r===ROWS-1&&c===playerX;
+          let content='';let bg='#f1f5f9';
+          if(isPlayer){content=PLAYER;bg='#fef3c7';}
+          if(atk){content=atk.emoji;bg='#fef2f2';}
+          if(isPlayer&&atk){content='💥';bg='#fca5a5';}
+          html+='<div style="width:50px;height:50px;border-radius:8px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.6rem;border:2px solid #e2e8f0">'+content+'</div>';
+        }
+      }
+      html+='</div>';
+      html+='<div style="display:flex;gap:10px;justify-content:center;margin-top:10px">'+
+        '<button id="daL" style="width:60px;height:50px;border-radius:12px;border:2px solid #e2e8f0;background:#fff;font-size:1.4rem;cursor:pointer">⬅️</button>'+
+        '<button id="daR" style="width:60px;height:50px;border-radius:12px;border:2px solid #e2e8f0;background:#fff;font-size:1.4rem;cursor:pointer">➡️</button>'+
+        '</div><div id="daResult" style="margin-top:6px;font-family:Fredoka One,cursive;font-size:1rem"></div>';
+      mg.innerHTML=html;
+      if(!gameOver){
+        mg.querySelector('#daL').onclick=()=>{if(playerX>0){playerX--;render();}};
+        mg.querySelector('#daR').onclick=()=>{if(playerX<W-1){playerX++;render();}};
+      }
+    };
+
+    const tick=()=>{
+      if(gameOver)return;
+      // move attacks down
+      attacks.forEach(a=>a.y++);
+      // check hits
+      attacks=attacks.filter(a=>{
+        if(a.y===ROWS-1&&a.x===playerX){lives--;SFX.play('hurt');return false;}
+        if(a.y>=ROWS){score++;return false;}
+        return true;
+      });
+      // spawn new attack
+      if(Math.random()<0.5){
+        attacks.push({x:Math.floor(Math.random()*W),y:0,emoji:ATTACKS[Math.floor(Math.random()*ATTACKS.length)]});
+      }
+      render();
+      if(lives<=0){
+        gameOver=true;
+        document.getElementById('daResult').innerHTML='<div style="color:var(--accent)">Game Over! You dodged '+score+' attacks!</div>';
+        if(score>=8){SFX.play('victory');this.fireConfetti();}else SFX.play('coin');
+        setTimeout(()=>{
+          const btn=document.createElement('button');
+          btn.textContent='Back to Reading! →';
+          btn.style.cssText='display:block;margin:8px auto;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer';
+          btn.onclick=()=>{clearInterval(this._dodgeTimer);this._dodgeTimer=null;this.loadMode(this.mode);};
+          document.getElementById('daResult').appendChild(btn);
+        },1200);
+      }
+    };
+
+    render();
+    this._dodgeTimer=setInterval(()=>tick(),700);
+    // keyboard
+    this._dodgeKeys=(e)=>{
+      if(gameOver)return;
+      if(e.key==='ArrowLeft'&&playerX>0){playerX--;render();}
+      if(e.key==='ArrowRight'&&playerX<W-1){playerX++;render();}
+    };
+    document.addEventListener('keydown',this._dodgeKeys);
+  },
+
+  // ---- READ ALONG (TTS reads sentence but pauses for target word) ----
+  loadReadAlong(){
+    const wd=this.pickWord();
+    const area=document.getElementById('gameArea');
+    const sent=wd.sent.replace('___',wd.w);
+    const words=sent.split(/\s+/);
+    // pick which word(s) Río must read (the target word + maybe 1 more)
+    const targetIdx=words.findIndex(w=>w.toLowerCase().replace(/[^a-z]/g,'')===wd.w);
+    const gapIndices=new Set([targetIdx>=0?targetIdx:0]);
+    // add another gap if sentence is long enough
+    if(words.length>5){
+      let extra;
+      do{extra=Math.floor(Math.random()*words.length);}while(gapIndices.has(extra)||words[extra].length<2);
+      gapIndices.add(extra);
+    }
+    // build display
+    const displayWords=words.map((w,i)=>{
+      if(gapIndices.has(i)) return '<span class="ra-gap" data-word="'+w.toLowerCase().replace(/[^a-z]/g,'')+'" style="background:var(--accent);color:#fff;padding:4px 12px;border-radius:10px;font-weight:800;cursor:pointer;display:inline-block;margin:2px">'+w+'</span>';
+      return '<span class="ra-word" style="display:inline-block;margin:2px">'+w+'</span>';
+    });
+    const wrongs=WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+    const choices=shuffle([wd.w,...wrongs]);
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text" style="font-size:1.1rem;margin-bottom:6px">Listen and read along!</div>'+
+      '<div style="text-align:center;margin-bottom:8px"><button id="raPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
+      '<div id="raSentence" style="font-size:1.5rem;font-weight:700;text-align:center;line-height:2;margin-bottom:12px">'+displayWords.join(' ')+'</div>'+
+      '<div class="question-text" style="font-size:1rem;margin-bottom:8px">Which orange word did YOU read?</div>'+
+      '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+'</div>'+
+      '<div id="jokeArea"></div></div>';
+    // TTS: read all words but pause/skip the gap words
+    const speakSentence=()=>{
+      if(!('speechSynthesis' in window)) return;
+      speechSynthesis.cancel();
+      const before=words.slice(0,targetIdx>=0?targetIdx:0).join(' ');
+      const after=words.slice((targetIdx>=0?targetIdx:0)+1).join(' ');
+      // read words before gap
+      if(before){
+        const u1=new SpeechSynthesisUtterance(before);
+        u1.rate=0.7;u1.pitch=1.0;
+        const voices=speechSynthesis.getVoices();
+        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        if(good)u1.voice=good;
+        u1.onend=()=>{
+          // pause then say "your turn!"
+          setTimeout(()=>{
+            const uPause=new SpeechSynthesisUtterance('... your turn! ...');
+            uPause.rate=0.8;uPause.pitch=1.2;
+            if(good)uPause.voice=good;
+            uPause.onend=()=>{
+              if(after){
+                setTimeout(()=>{
+                  const u2=new SpeechSynthesisUtterance(after);
+                  u2.rate=0.7;u2.pitch=1.0;if(good)u2.voice=good;
+                  speechSynthesis.speak(u2);
+                },800);
+              }
+            };
+            speechSynthesis.speak(uPause);
+          },500);
+        };
+        speechSynthesis.speak(u1);
+      } else {
+        const uPause=new SpeechSynthesisUtterance('Your turn! ... '+after);
+        uPause.rate=0.7;uPause.pitch=1.0;
+        const voices=speechSynthesis.getVoices();
+        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        if(good)uPause.voice=good;
+        speechSynthesis.speak(uPause);
+      }
+    };
+    setTimeout(speakSentence,600);
+    document.getElementById('raPlay').addEventListener('click',speakSentence);
+    // answer handling
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(btn.dataset.val===wd.w){
+          btn.classList.add('correct');
+          this.onCorrect(wd);
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===wd.w)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this.onWrong(wd);
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),3);
   },
 
   // ---- VOICE HELP ----
@@ -2210,6 +2476,7 @@ const G = {
       flash:"Flash! A word will appear on screen for a moment, then disappear. Try to remember it and pick the right one!",
       decode:"Mystery word! Use the clues to figure out the secret word. Look at the first letter, how many letters it has, and the sentence. Then type the word!",
       story:"Story time! Read the short story, then answer the question about it. Tap the right answer!",
+      readalong:"Read along! I will read the sentence out loud, but I will stop at some words. You need to read those words! Then tap the word you read.",
       shop:"This is the shop! You earn coins by playing the game. Save up your coins to buy real Pokémon toys!"
     };
     const text=instructions[this.mode]||"Pick a game from the tabs at the top! Each one helps you practice reading. You earn coins when you beat monsters!";
