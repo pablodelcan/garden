@@ -368,6 +368,20 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
       <button class="pokedex-close" onclick="closePokedex()">✕</button>
     </div>
     <div class="pokedex-grid" id="pokedexGrid"></div>
+    <!-- Secret code input -->
+    <div style="margin-top:16px;text-align:center;border-top:2px dashed #e2e8f0;padding-top:12px">
+      <div style="font-family:Fredoka One,cursive;font-size:.8rem;color:var(--text2);margin-bottom:6px">🔑 Got a secret code?</div>
+      <div style="display:flex;gap:6px;justify-content:center;align-items:center">
+        <input id="secretCodeInput" type="text" placeholder="type code..." maxlength="10" autocomplete="off" autocapitalize="none" style="font-family:Nunito,sans-serif;font-size:1rem;padding:8px 12px;border:2px solid #e2e8f0;border-radius:10px;width:140px;text-align:center">
+        <button onclick="trySecretCode()" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer">Try!</button>
+      </div>
+      <div id="secretResult" style="margin-top:6px;font-size:.8rem;font-weight:700;min-height:20px"></div>
+    </div>
+    <!-- Achievement badges -->
+    <div style="margin-top:16px;border-top:2px dashed #e2e8f0;padding-top:12px">
+      <div style="font-family:Fredoka One,cursive;font-size:1rem;color:var(--text);margin-bottom:8px;text-align:center">🏅 Achievements</div>
+      <div id="achievementGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px"></div>
+    </div>
   </div>
 </div>
 
@@ -725,6 +739,53 @@ const ENEMIES = [
   {name:'Shadowmaw',hp:30,sprite:'sprites/enemy_shadowmaw.png',bg:'bg_sky'},
 ];
 
+// BOSS ENEMIES (appear every 50 correct answers)
+const BOSSES = [
+  {name:'Word Dragon',hp:80,sprite:'sprites/boss_dragon.png',bg:'bg_volcano',reward:'Legendary catch!'},
+  {name:'Rune Golem',hp:90,sprite:'sprites/boss_golem.png',bg:'bg_cave',reward:'Ancient power!'},
+  {name:'Ink Kraken',hp:100,sprite:'sprites/boss_kraken.png',bg:'bg_ocean',reward:'Deep sea victory!'},
+  {name:'Letter Phoenix',hp:110,sprite:'sprites/boss_phoenix.png',bg:'bg_sky',reward:'Reborn in flames!'},
+];
+
+// SECRET WORDMONS (unlocked by typing codes in Pokédex)
+const SECRET_WORDMONS = [
+  {name:'Stinkmon',type:'Poison',baseHp:35,code:'fart',sprite:'sprites/secret_stinkmon.png'},
+  {name:'Mudsworth',type:'Ground',baseHp:40,code:'poop',sprite:'sprites/secret_mudsworth.png'},
+  {name:'Gigglefly',type:'Fairy',baseHp:30,code:'haha',sprite:'sprites/secret_gigglefly.png'},
+];
+
+// ACHIEVEMENTS
+const ACHIEVEMENTS = [
+  {id:'first_win',name:'First Victory',desc:'Win your first battle!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=1},
+  {id:'streak_5',name:'Hot Streak',desc:'Get 5 in a row!',icon:'sprites/badge_streakmaster.png',check:g=>g.maxStreak>=5},
+  {id:'streak_10',name:'Streak Master',desc:'Get 10 in a row!',icon:'sprites/badge_streakmaster.png',check:g=>g.maxStreak>=10},
+  {id:'streak_20',name:'Unstoppable',desc:'Get 20 in a row!',icon:'sprites/badge_streakmaster.png',check:g=>g.maxStreak>=20},
+  {id:'catch_5',name:'Collector',desc:'Catch 5 Wordmons!',icon:'sprites/badge_collector.png',check:g=>g.caughtWordmons.length>=5},
+  {id:'catch_10',name:'Super Collector',desc:'Catch 10 Wordmons!',icon:'sprites/badge_collector.png',check:g=>g.caughtWordmons.length>=10},
+  {id:'catch_all',name:'Gotta Read Em All',desc:'Catch all Wordmons!',icon:'sprites/badge_collector.png',check:g=>g.caughtWordmons.length>=WORDMONS.length},
+  {id:'boss_1',name:'Boss Hunter',desc:'Defeat a boss!',icon:'sprites/badge_bosshunter.png',check:g=>g.bossesDefeated>=1},
+  {id:'boss_all',name:'Champion',desc:'Defeat all bosses!',icon:'sprites/badge_bosshunter.png',check:g=>g.bossesDefeated>=BOSSES.length},
+  {id:'score_100',name:'Century',desc:'Score 100 points!',icon:'sprites/badge_firstblood.png',check:g=>g.score>=100},
+  {id:'score_500',name:'Reading Legend',desc:'Score 500 points!',icon:'sprites/badge_firstblood.png',check:g=>g.score>=500},
+  {id:'words_50',name:'Bookworm',desc:'Answer 50 questions!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=50},
+  {id:'words_200',name:'Word Wizard',desc:'Answer 200 questions!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=200},
+  {id:'secret_1',name:'Code Cracker',desc:'Find a secret Wordmon!',icon:'sprites/badge_collector.png',check:g=>g.secretsCaught>=1},
+];
+
+// SILLY MAD LIBS TEMPLATES
+const MAD_LIBS = [
+  {template:'The _1_ farted on the _2_ and it flew to the moon!',slots:2},
+  {template:'A _1_ ate a _2_ sandwich and burped really loud!',slots:2},
+  {template:'My _1_ is secretly a _2_ superhero!',slots:2},
+  {template:'The teacher found a _1_ _2_ in her lunchbox!',slots:2},
+  {template:'A _1_ and a _2_ had a burping contest!',slots:2},
+  {template:'I dreamed my _1_ turned into a giant _2_!',slots:2},
+  {template:'The _1_ pooped a rainbow on the _2_!',slots:2},
+  {template:'A _1_ danced on a _2_ while singing!',slots:2},
+  {template:'The _1_ put underwear on the _2_!',slots:2},
+  {template:'My _1_ sneezed and a _2_ came out!',slots:2},
+];
+
 // ========================================================
 // SHOP ITEMS — real toy rewards with SVG illustrations
 // ========================================================
@@ -866,6 +927,15 @@ const WORDS = [
   {w:'top',sent:'I climbed to the ___.',joke:'Being on TOP feels great! Especially on a mountain of pillows!'},
   {w:'fast',sent:'The car goes ___.',joke:'FAST and furious? More like FAST and HUNGRY!'},
   {w:'best',sent:'You are the ___!',joke:'You are the BEST reader! The BEST! Number one!'},
+  // ---- K HIGH FREQUENCY PRIORITY WORDS (from teacher) ----
+  {w:'I',sent:'___ am happy today.',joke:'I is the tiniest word but it means the biggest person — YOU!',priority:true},
+  {w:'and',sent:'I like cats ___ dogs.',joke:'AND connects everything! Cake AND cookies AND ice cream!',priority:true},
+  {w:'as',sent:'She is ___ tall ___ me.',joke:'AS fast AS a cheetah! AS silly AS a monkey!',priority:true},
+  {w:'to',sent:'I want ___ go outside.',joke:'TO be or not TO be? TO eat or not TO eat? Always TO eat!',priority:true},
+  {w:'of',sent:'I have a lot ___ toys.',joke:'OF all the words, OF is one OF the sneakiest!',priority:true},
+  {w:'be',sent:'I want to ___ a hero!',joke:'To BE or not to BE? That is the question. BE a reader!',priority:true},
+  {w:'me',sent:'Look at ___!',joke:'ME ME ME! This word is all about you! Wait, I mean ME!',priority:true},
+  {w:'you',sent:'I like ___.',joke:'YOU are awesome! YOU are reading! YOU are the best!',priority:true},
 ];
 
 // ========================================================
@@ -907,6 +977,13 @@ const G = {
   answering:false, enemyIdx:0, modeWins:0, totalCorrect:0,
   usedWords:[], usedStories:[],
   purchased:[],
+  // new features
+  maxStreak:0, bossesDefeated:0, secretsCaught:0,
+  unlockedAchievements:[], isBossBattle:false,
+  currentZone:0,
+  ZONES:['Forest','Ocean','Volcano','Crystal Cave','Sky Kingdom','Snowlands','Castle','Space'],
+  // word stats tracking for parent dashboard
+  wordStats:{}, // {word: {correct:0, wrong:0, lastSeen:timestamp}}
 
   // get evolution stage for a wordmon (0=baby, 1=mid, 2=final)
   getStage(idx){ const xp=this.wordmonXP[idx]||0; return xp>=25?2:xp>=10?1:0; },
@@ -935,7 +1012,10 @@ const G = {
     const d={score:this.score,streak:this.streak,lives:this.lives,xp:this.xp,level:this.level,
       xpNeeded:this.xpNeeded,coins:this.coins,activeWordmon:this.activeWordmon,
       caughtWordmons:this.caughtWordmons,purchased:this.purchased,wordmonXP:this.wordmonXP,
-      mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0};
+      mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0,
+      maxStreak:this.maxStreak||0,bossesDefeated:this.bossesDefeated||0,
+      secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
+      currentZone:this.currentZone||0,wordStats:this.wordStats||{}};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
   },
   loadGame(){
@@ -957,6 +1037,12 @@ const G = {
       if(d.mode && d.mode!=='shop') this.mode=d.mode;
       if(d.modeWins!==undefined) this.modeWins=d.modeWins;
       if(d.totalCorrect!==undefined) this.totalCorrect=d.totalCorrect;
+      if(d.maxStreak!==undefined) this.maxStreak=d.maxStreak;
+      if(d.bossesDefeated!==undefined) this.bossesDefeated=d.bossesDefeated;
+      if(d.secretsCaught!==undefined) this.secretsCaught=d.secretsCaught;
+      if(d.unlockedAchievements) this.unlockedAchievements=d.unlockedAchievements;
+      if(d.currentZone!==undefined) this.currentZone=d.currentZone;
+      if(d.wordStats) this.wordStats=d.wordStats;
     }catch(e){}
   },
 
@@ -1016,7 +1102,8 @@ const G = {
     // enemy
     if(this.currentEnemy){
       document.getElementById('enemyName').textContent = this.currentEnemy.name;
-      document.getElementById('enemySprite').innerHTML = '<img src="'+this.currentEnemy.sprite+'" style="width:110px;height:110px;object-fit:contain;image-rendering:pixelated">';
+      const eSize=this.isBossBattle?140:110;
+      document.getElementById('enemySprite').innerHTML = '<img src="'+this.currentEnemy.sprite+'" style="width:'+eSize+'px;height:'+eSize+'px;object-fit:contain;image-rendering:pixelated">';
       this.updateHpBar('enemy');
     }
     document.getElementById('rosterCount').textContent = this.caughtWordmons.length;
@@ -1035,6 +1122,8 @@ const G = {
 
   // ---- BATTLE ----
   spawnEnemy(){
+    // Don't overwrite boss enemy
+    if(this.isBossBattle) return;
     this.enemyIdx = (this.enemyIdx+1) % ENEMIES.length;
     this.currentEnemy = ENEMIES[this.enemyIdx];
     const bonus = Math.floor(this.level*2);
@@ -1109,6 +1198,12 @@ const G = {
     const b = document.getElementById('battleScene');
     const banner = document.createElement('div');
     banner.className='result-banner victory';
+    if(this.isBossBattle){
+      banner.innerHTML='<span>BOSS DEFEATED! 🏆</span>';
+      b.appendChild(banner);
+      setTimeout(()=>{banner.remove();this.endBossBattle();},2000);
+      return;
+    }
     banner.innerHTML='<span>VICTORY! 🎉</span>';
     b.appendChild(banner);
     this.score+=10; this.addXP(15); this.addCoins(2); this.showMoneyAnimation(2);
@@ -1299,11 +1394,17 @@ const G = {
     // If there's a pending word the player hasn't answered yet, force them to do it
     if(this._pendingWord) return this._pendingWord;
     if(this.usedWords.length>=WORDS.length) this.usedWords=[];
+    // 50% chance to pick a priority (teacher's K list) word
     let idx;
-    do{idx=Math.floor(Math.random()*WORDS.length);}while(this.usedWords.includes(idx));
+    const priorityIndices=WORDS.map((w,i)=>w.priority?i:null).filter(i=>i!==null&&!this.usedWords.includes(i));
+    if(priorityIndices.length>0 && Math.random()<0.5){
+      idx=priorityIndices[Math.floor(Math.random()*priorityIndices.length)];
+    } else {
+      do{idx=Math.floor(Math.random()*WORDS.length);}while(this.usedWords.includes(idx));
+    }
     this.usedWords.push(idx);
     const wd=WORDS[idx];
-    this._pendingWord=wd; // lock this word until answered
+    this._pendingWord=wd;
     return wd;
   },
   clearPendingWord(){
@@ -1740,9 +1841,11 @@ const G = {
   // ---- CORRECT / WRONG ----
   onCorrect(wd){
     this.clearPendingWord();
+    if(wd&&wd.w){if(!this.wordStats[wd.w])this.wordStats[wd.w]={correct:0,wrong:0};this.wordStats[wd.w].correct++;this.wordStats[wd.w].lastSeen=Date.now();}
     SFX.play('correct');
     this.score+=5;
     this.streak++;
+    if(this.streak>this.maxStreak) this.maxStreak=this.streak;
     this.modeWins++;
     this.totalCorrect++;
     this.addXP(10);
@@ -1752,16 +1855,35 @@ const G = {
     this.checkCatch();
     this.addWordmonXP(1);
     this.showJoke(wd);
+    this.checkAchievements();
     const willKill = this.enemyHp <= 0;
+    // update zone based on total correct (every 30 = new zone)
+    const newZone=Math.min(Math.floor(this.totalCorrect/30), this.ZONES.length-1);
+    if(newZone>this.currentZone){this.currentZone=newZone;}
     this.updateModeBar();
-    // check for bonus mini-game every 20 correct
-    if(this.totalCorrect>0 && this.totalCorrect%20===0){
-      // delay then launch bonus game
+    // BOSS BATTLE every 50 correct
+    if(this.totalCorrect>0 && this.totalCorrect%50===0 && !this.isBossBattle){
+      if(this._autoTimer)clearTimeout(this._autoTimer);
+      this._autoTimer=setTimeout(()=>{this._autoTimer=null;this.startBossBattle();},willKill?3000:2000);
+      this.saveGame();
+      return;
+    }
+    // Silly Mad Libs every 10 correct (but not on boss multiples or bonus multiples)
+    if(this.totalCorrect>0 && this.totalCorrect%10===0 && this.totalCorrect%20!==0 && this.totalCorrect%50!==0){
+      if(this._autoTimer)clearTimeout(this._autoTimer);
+      this._autoTimer=setTimeout(()=>{this._autoTimer=null;this.showMadLib();},willKill?3000:2000);
+      this.saveGame();
+      return;
+    }
+    // bonus mini-game every 20 correct (but not on boss multiples)
+    if(this.totalCorrect>0 && this.totalCorrect%20===0 && this.totalCorrect%50!==0){
       if(this._autoTimer)clearTimeout(this._autoTimer);
       this._autoTimer=setTimeout(()=>{this._autoTimer=null;this.loadBonusGame();},willKill?3000:2000);
       this.saveGame();
       return;
     }
+    // Río trainer appears randomly (5% chance) with encouragement
+    if(Math.random()<0.05 && !willKill) this.showRioTrainer();
     // check for streak milestones
     const milestones=[10,20,30,50,100];
     if(milestones.includes(this.streak)){
@@ -1861,6 +1983,7 @@ const G = {
 
   onWrong(wd){
     this.clearPendingWord();
+    if(wd&&wd.w){if(!this.wordStats[wd.w])this.wordStats[wd.w]={correct:0,wrong:0};this.wordStats[wd.w].wrong++;this.wordStats[wd.w].lastSeen=Date.now();}
     SFX.play('wrong');
     this.streak=0;
     this.enemyAttack();
@@ -2462,6 +2585,152 @@ const G = {
     this.thinkFirst(document.getElementById('qCard'),3);
   },
 
+  // ---- BOSS BATTLE ----
+  startBossBattle(){
+    const bossIdx=this.bossesDefeated%BOSSES.length;
+    const boss=BOSSES[bossIdx];
+    this.isBossBattle=true;
+    this.currentEnemy={...boss};
+    this.enemyHp=boss.hp;
+    this.enemyMaxHp=boss.hp;
+    // show boss intro
+    const area=document.getElementById('gameArea');
+    SFX.play('drumroll');
+    area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:#ef4444;margin-bottom:8px;animation:thinkPulse 1s ease-in-out infinite">⚠️ BOSS BATTLE! ⚠️</div>'+
+      '<img src="'+boss.sprite+'" style="width:140px;height:140px;margin:10px auto;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));animation:bounce 1s ease-in-out infinite">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--text);margin:8px 0">'+boss.name+'</div>'+
+      '<div style="font-size:1rem;color:var(--text2);font-weight:600">HP: '+boss.hp+' — This will be tough!</div>'+
+      '<img src="sprites/rio_trainer_pointing.png" style="width:80px;height:80px;margin:8px auto;display:block" onerror="this.style.display=\'none\'">'+
+      '<div style="font-size:.9rem;color:var(--accent);font-weight:700;margin-top:4px">Río: "I can do this!"</div>'+
+      '</div>';
+    // set battle scene
+    // update battle scene for boss
+    const bs=document.getElementById('battleScene');
+    if(bs){
+      bs.style.backgroundImage="url('sprites/"+boss.bg+".png')";
+      bs.style.backgroundSize='cover';
+      bs.style.backgroundPosition='center bottom';
+    }
+    // reset player HP
+    const wm=this.getWordmon(this.activeWordmon);
+    this.playerMaxHp=wm.hp;
+    this.playerHp=wm.hp;
+    this.updateHUD();
+    setTimeout(()=>{
+      SFX.play('fanfare');
+      this.loadMode(this.mode);
+    },3500);
+  },
+
+  endBossBattle(){
+    this.isBossBattle=false;
+    this.bossesDefeated++;
+    SFX.play('fanfare');
+    this.fireConfetti();
+    setTimeout(()=>this.fireConfetti(),500);
+    setTimeout(()=>this.fireConfetti(),1000);
+    const area=document.getElementById('gameArea');
+    const boss=BOSSES[(this.bossesDefeated-1)%BOSSES.length];
+    area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.6rem;color:#22c55e;margin-bottom:8px">🏆 BOSS DEFEATED! 🏆</div>'+
+      '<img src="sprites/rio_trainer_victory.png" style="width:100px;height:100px;margin:10px auto;display:block" onerror="this.style.display=\'none\'">'+
+      '<div style="font-size:1.1rem;color:var(--text);font-weight:700;margin:8px 0">'+boss.reward+'</div>'+
+      '<div style="font-size:1rem;color:var(--accent);font-weight:600">+10 coins!</div>'+
+      '</div>';
+    this.addCoins(10);
+    this.showMoneyAnimation(10);
+    this.checkAchievements();
+    this.saveGame();
+    setTimeout(()=>{
+      this.spawnEnemy();
+      this.loadMode(this.mode);
+    },4000);
+  },
+
+  // ---- ACHIEVEMENT CHECKS ----
+  checkAchievements(){
+    let newOnes=[];
+    ACHIEVEMENTS.forEach(a=>{
+      if(!this.unlockedAchievements.includes(a.id) && a.check(this)){
+        this.unlockedAchievements.push(a.id);
+        newOnes.push(a);
+      }
+    });
+    if(newOnes.length>0){
+      // show first new achievement as toast
+      const a=newOnes[0];
+      const toast=document.createElement('div');
+      toast.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;border:3px solid #fbbf24;border-radius:16px;padding:10px 20px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:300;text-align:center;animation:msgPop .8s ease forwards;max-width:280px';
+      toast.innerHTML='<div style="font-family:Fredoka One,cursive;font-size:.9rem;color:#fbbf24">🏅 Achievement Unlocked!</div>'+
+        '<img src="'+a.icon+'" style="width:40px;height:40px;margin:4px auto;display:block" onerror="this.style.display=\'none\'">'+
+        '<div style="font-family:Fredoka One,cursive;font-size:.85rem;color:var(--text)">'+a.name+'</div>'+
+        '<div style="font-size:.7rem;color:var(--text2)">'+a.desc+'</div>';
+      document.body.appendChild(toast);
+      SFX.play('catch');
+      setTimeout(()=>toast.remove(),3000);
+    }
+  },
+
+  // ---- MAD LIBS ----
+  showMadLib(){
+    const ml=MAD_LIBS[Math.floor(Math.random()*MAD_LIBS.length)];
+    const recentWords=WORDS.sort(()=>Math.random()-.5).slice(0,8).map(w=>w.w);
+    const area=document.getElementById('gameArea');
+    let selectedWords=[];
+    let step=0;
+
+    const render=()=>{
+      let display=ml.template;
+      for(let i=1;i<=ml.slots;i++){
+        if(selectedWords[i-1]) display=display.replace('_'+i+'_','<span style="color:var(--accent);font-weight:800;text-decoration:underline">'+selectedWords[i-1]+'</span>');
+        else display=display.replace('_'+i+'_','<span style="color:var(--accent);font-weight:800">______</span>');
+      }
+      const wordChoices=shuffle(recentWords).slice(0,6);
+      area.innerHTML='<div class="card" style="text-align:center;padding:20px">'+
+        '<img src="sprites/rio_trainer_reading.png" style="width:70px;height:70px;margin:0 auto 8px;display:block" onerror="this.style.display=\'none\'">'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--accent);margin-bottom:8px">😂 Silly Story Time!</div>'+
+        '<div style="font-size:1.3rem;font-weight:700;line-height:1.6;margin-bottom:16px">'+display+'</div>'+
+        (step<ml.slots?
+          '<div style="font-size:.9rem;color:var(--text2);margin-bottom:8px;font-weight:600">Pick word #'+(step+1)+':</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+
+          wordChoices.map(w=>'<button class="choice-btn" style="min-width:auto;padding:8px 16px;font-size:1.1rem" onclick="G._pickMadLib(\''+w+'\')">'+w+'</button>').join('')+'</div>'
+        :
+          '<div style="font-size:1rem;color:#22c55e;font-weight:700;margin:8px 0">😂 Read it out loud!</div>'+
+          '<button onclick="G.loadMode(G.mode)" style="margin:12px auto;display:block;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Back to Reading! →</button>'
+        )+
+        '</div>';
+    };
+
+    this._pickMadLib=(w)=>{
+      selectedWords.push(w);
+      step++;
+      SFX.play('click');
+      if(step>=ml.slots) SFX.play('fanfare');
+      render();
+    };
+    render();
+  },
+
+  // ---- RÍO TRAINER APPEARANCE ----
+  showRioTrainer(){
+    const msgs=[
+      {img:'rio_trainer_victory',text:"You're doing amazing!"},
+      {img:'rio_trainer_idle',text:"Keep going, trainer!"},
+      {img:'rio_trainer_pointing',text:"I choose YOU to read!"},
+      {img:'rio_trainer_surprised',text:"Wow, you're so smart!"},
+      {img:'rio_trainer_thinking',text:"Hmm, what's next..."},
+      {img:'rio_trainer_reading',text:"Reading is my superpower!"},
+    ];
+    const m=msgs[Math.floor(Math.random()*msgs.length)];
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#fff;border:3px solid var(--accent);border-radius:16px;padding:8px 16px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:300;text-align:center;display:flex;align-items:center;gap:8px;animation:msgPop .8s ease forwards';
+    toast.innerHTML='<img src="sprites/'+m.img+'.png" style="width:50px;height:50px;object-fit:contain" onerror="this.style.display=\'none\'">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:.85rem;color:var(--text)">'+m.text+'</div>';
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),2500);
+  },
+
   // ---- VOICE HELP ----
   speakHelp(){
     if(!('speechSynthesis' in window)) return;
@@ -2524,10 +2793,112 @@ if('serviceWorker' in navigator){
 function openPokedex(){
   document.getElementById('pokedexOverlay').classList.add('open');
   G.renderPokedex();
+  renderAchievements();
   try{SFX.play('catch');}catch(e){}
 }
 function closePokedex(){
   document.getElementById('pokedexOverlay').classList.remove('open');
+}
+function trySecretCode(){
+  const input=document.getElementById('secretCodeInput');
+  const code=input.value.trim().toLowerCase();
+  const res=document.getElementById('secretResult');
+  const found=SECRET_WORDMONS.find(s=>s.code===code);
+  if(!found){
+    res.innerHTML='<span style="color:#ef4444">Hmm, not a valid code. Keep trying!</span>';
+    SFX.play('wrong');
+    return;
+  }
+  // Check if already caught
+  if(G._secretsCaughtList && G._secretsCaughtList.includes(code)){
+    res.innerHTML='<span style="color:var(--accent)">You already have '+found.name+'!</span>';
+    return;
+  }
+  if(!G._secretsCaughtList) G._secretsCaughtList=[];
+  G._secretsCaughtList.push(code);
+  G.secretsCaught=(G.secretsCaught||0)+1;
+  res.innerHTML='<span style="color:#22c55e">🎉 You found '+found.name+'! Secret Wordmon unlocked!</span>';
+  SFX.play('fanfare');
+  G.fireConfetti();
+  G.checkAchievements();
+  G.saveGame();
+  input.value='';
+}
+function renderAchievements(){
+  const grid=document.getElementById('achievementGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  ACHIEVEMENTS.forEach(a=>{
+    const unlocked=G.unlockedAchievements.includes(a.id);
+    const div=document.createElement('div');
+    div.style.cssText='text-align:center;padding:6px;border-radius:12px;background:'+(unlocked?'#fff7ed':'#f8fafc')+';border:2px solid '+(unlocked?'#fbbf24':'#e2e8f0')+';'+(unlocked?'':'opacity:.4;filter:grayscale(1)');
+    div.innerHTML='<img src="'+a.icon+'" style="width:36px;height:36px;margin:0 auto;display:block" onerror="this.style.display=\'none\'">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:.55rem;color:var(--text);margin-top:2px">'+a.name+'</div>'+
+      '<div style="font-size:.45rem;color:var(--text2)">'+a.desc+'</div>';
+    grid.appendChild(div);
+  });
+}
+
+// ---- PARENT STATS DASHBOARD (type "stats" to open) ----
+(function(){
+  let buf='';
+  document.addEventListener('keydown',e=>{
+    buf+=e.key.toLowerCase();
+    if(buf.length>10) buf=buf.slice(-10);
+    if(buf.includes('stats')){buf='';openParentDashboard();}
+  });
+})();
+
+function openParentDashboard(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+
+  const stats=G.wordStats||{};
+  const teacherWords=['the','I','and','a','like','is','as','said','to','do','of','see','he','be','we','me','from','look','book','are','was','you','what','have'];
+
+  // Build word stats table
+  let rows='';
+  const allWords=[...new Set([...teacherWords,...Object.keys(stats)])];
+  allWords.sort((a,b)=>{
+    const sa=stats[a]||{correct:0,wrong:0};
+    const sb=stats[b]||{correct:0,wrong:0};
+    const ra=sa.correct+sa.wrong>0?sa.correct/(sa.correct+sa.wrong):0;
+    const rb=sb.correct+sb.wrong>0?sb.correct/(sb.correct+sb.wrong):0;
+    return ra-rb;// worst first
+  });
+
+  allWords.forEach(w=>{
+    const s=stats[w]||{correct:0,wrong:0};
+    const total=s.correct+s.wrong;
+    const pct=total>0?Math.round(s.correct/total*100):0;
+    const isTeacher=teacherWords.includes(w)||teacherWords.includes(w.toLowerCase());
+    const color=pct>=80?'#22c55e':pct>=50?'#f59e0b':'#ef4444';
+    const barW=Math.max(5,pct);
+    rows+='<tr style="border-bottom:1px solid #f1f5f9">'+
+      '<td style="padding:4px 8px;font-weight:700;font-size:.9rem">'+w+(isTeacher?' ⭐':'')+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:.8rem;color:#22c55e">'+s.correct+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:.8rem;color:#ef4444">'+s.wrong+'</td>'+
+      '<td style="padding:4px;width:100px"><div style="background:#f1f5f9;border-radius:4px;height:14px;overflow:hidden"><div style="background:'+color+';height:100%;width:'+barW+'%;border-radius:4px;transition:width .3s"></div></div></td>'+
+      '<td style="padding:4px;text-align:center;font-size:.8rem;font-weight:700;color:'+color+'">'+pct+'%</td>'+
+      '</tr>';
+  });
+
+  const notSeen=teacherWords.filter(w=>!stats[w]&&!stats[w.toLowerCase()]);
+
+  overlay.innerHTML='<div style="background:#fff;border-radius:20px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+
+    '<h2 style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--accent)">📊 Parent Dashboard</h2>'+
+    '<button onclick="this.closest(\'div[style]\').parentElement.remove()" style="background:#ef4444;color:#fff;border:none;width:30px;height:30px;border-radius:50%;font-size:1rem;cursor:pointer">✕</button></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
+    '<div style="background:#f0fdf4;border-radius:12px;padding:10px;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:#22c55e">'+G.totalCorrect+'</div><div style="font-size:.7rem;color:#15803d;font-weight:600">Correct</div></div>'+
+    '<div style="background:#fef2f2;border-radius:12px;padding:10px;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:#ef4444">'+Object.values(stats).reduce((a,s)=>a+s.wrong,0)+'</div><div style="font-size:.7rem;color:#b91c1c;font-weight:600">Wrong</div></div>'+
+    '<div style="background:#fff7ed;border-radius:12px;padding:10px;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--accent)">'+G.maxStreak+'</div><div style="font-size:.7rem;color:#c2410c;font-weight:600">Best Streak</div></div></div>'+
+    (notSeen.length>0?'<div style="background:#fef3c7;border-radius:12px;padding:10px;margin-bottom:12px"><div style="font-weight:700;font-size:.85rem;color:#92400e;margin-bottom:4px">⚠️ Teacher words NOT YET PRACTICED:</div><div style="font-size:.9rem;color:#a16207;font-weight:600">'+notSeen.join(', ')+'</div></div>':'')+
+    '<div style="font-family:Fredoka One,cursive;font-size:.9rem;color:var(--text);margin-bottom:6px">Word-by-Word Stats <span style="font-size:.7rem;color:var(--text2);font-weight:400">(⭐ = teacher list, sorted worst→best)</span></div>'+
+    '<table style="width:100%;border-collapse:collapse;font-family:Nunito,sans-serif"><thead><tr style="background:#f8fafc"><th style="padding:4px 8px;text-align:left;font-size:.75rem">Word</th><th style="padding:4px;font-size:.75rem;color:#22c55e">✓</th><th style="padding:4px;font-size:.75rem;color:#ef4444">✗</th><th style="padding:4px;font-size:.75rem">Accuracy</th><th style="padding:4px;font-size:.75rem">%</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:12px;text-align:center;font-size:.7rem;color:var(--text2)">Type "stats" on keyboard to open this panel anytime</div></div>';
+  document.body.appendChild(overlay);
 }
 
 // GO!
