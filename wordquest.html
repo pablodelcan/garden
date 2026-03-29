@@ -602,6 +602,20 @@ if('speechSynthesis' in window){
 }
 
 // ========================================================
+// TTS HELPER
+// ========================================================
+function speak(text, rate=0.7, pitch=1.0, onEnd){
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=rate; u.pitch=pitch;
+  const good=getBestVoice();
+  if(good) u.voice=good;
+  if(onEnd) u.onend=onEnd;
+  speechSynthesis.speak(u);
+}
+
+// ========================================================
 // WORDMONS — custom creatures (NOT real Pokémon)
 // ========================================================
 const WORDMONS = [
@@ -3062,21 +3076,36 @@ const G = {
   ],
   phonicsRound:0,
 
+  // Pick a phonics word appropriate to difficulty
+  pickPhonicsWord(){
+    const round=this.phonicsRound;
+    const pool=this.PHONICS_WORDS;
+    // First 10 rounds: only 3-letter words
+    // 10-25: mix of 3-4 letter words
+    // 25+: include all words including irregular sight words
+    let filtered;
+    if(round<10) filtered=pool.filter(p=>p.w.length<=3&&p.sounds.length<=3);
+    else if(round<25) filtered=pool.filter(p=>p.w.length<=4);
+    else filtered=pool;
+    if(filtered.length===0) filtered=pool;
+    return filtered[Math.floor(Math.random()*filtered.length)];
+  },
+
   loadPhonics(){
     const area=document.getElementById('gameArea');
-    // Cycle between 3 exercises
-    const exercises=['blend','segment','build'];
-    const ex=exercises[this.phonicsRound%3];
+    const exercises=['blend','segment','build','chain'];
+    const ex=exercises[this.phonicsRound%4];
     this.phonicsRound++;
 
     if(ex==='blend') this.loadPhonicsBlend(area);
     else if(ex==='segment') this.loadPhonicsSegment(area);
+    else if(ex==='chain') this.loadPhonicsChain(area);
     else this.loadPhonicsBuild(area);
   },
 
   // Exercise 1: SOUND BLENDING — hear sounds, pick the word
   loadPhonicsBlend(area){
-    const pw=this.PHONICS_WORDS[Math.floor(Math.random()*this.PHONICS_WORDS.length)];
+    const pw=this.pickPhonicsWord();
     const wrongs=this.PHONICS_WORDS.filter(x=>x.w!==pw.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
     const choices=shuffle([pw.w,...wrongs]);
 
@@ -3140,7 +3169,7 @@ const G = {
 
   // Exercise 2: SOUND SEGMENTING — see a word, tap the right number of sounds
   loadPhonicsSegment(area){
-    const pw=this.PHONICS_WORDS[Math.floor(Math.random()*this.PHONICS_WORDS.length)];
+    const pw=this.pickPhonicsWord();
     const numSounds=pw.sounds.length;
     const choices=shuffle([numSounds, numSounds+1, Math.max(1,numSounds-1), numSounds+2].filter((v,i,a)=>a.indexOf(v)===i).slice(0,4));
 
@@ -3179,7 +3208,7 @@ const G = {
 
   // Exercise 3: WORD BUILDING — hear the word, tap letters in order to build it
   loadPhonicsBuild(area){
-    const pw=this.PHONICS_WORDS.filter(p=>p.w.length<=4)[Math.floor(Math.random()*this.PHONICS_WORDS.filter(p=>p.w.length<=4).length)];
+    const pw=this.pickPhonicsWord();
     const word=pw.w;
     const letters=word.split('');
     const extras=[];
@@ -3240,6 +3269,92 @@ const G = {
 
     render();
     setTimeout(()=>speak(word,0.5,1.0),500);
+  },
+
+  // Exercise 4: WORD CHAINS — change one letter at a time
+  WORD_CHAINS:[
+    ['cat','hat','hit','sit','sat','sad','mad','map'],
+    ['dog','log','lot','hot','hop','mop','mop','top'],
+    ['fun','run','bun','bus','but','bat','bag','big'],
+    ['can','man','men','hen','ten','tin','pin','pig'],
+    ['bed','red','rid','lid','lip','tip','tap','map'],
+    ['cup','pup','pop','hop','hot','got','get','set'],
+    ['bug','rug','run','sun','sit','bit','big','dig'],
+    ['fan','pan','pen','hen','him','hug','mug','mud'],
+  ],
+
+  loadPhonicsChain(area){
+    const chain=this.WORD_CHAINS[Math.floor(Math.random()*this.WORD_CHAINS.length)];
+    // Pick a starting point (not the last 2)
+    const startIdx=Math.floor(Math.random()*Math.max(1,chain.length-3));
+    const currentWord=chain[startIdx];
+    const nextWord=chain[startIdx+1];
+    if(!nextWord){this.loadPhonicsBlend(area);return;}
+
+    // Find which letter changed
+    const letters1=currentWord.split('');
+    const letters2=nextWord.split('');
+    let changeIdx=-1;
+    for(let i=0;i<Math.max(letters1.length,letters2.length);i++){
+      if(letters1[i]!==letters2[i]){changeIdx=i;break;}
+    }
+    if(changeIdx===-1){this.loadPhonicsBlend(area);return;}
+
+    const oldLetter=letters1[changeIdx]||'';
+    const newLetter=letters2[changeIdx];
+    // Generate wrong choices
+    const wrongLetters=[];
+    const alphabet='abcdefghijklmnopqrstuvwxyz';
+    while(wrongLetters.length<3){
+      const l=alphabet[Math.floor(Math.random()*26)];
+      if(l!==newLetter&&l!==oldLetter&&!wrongLetters.includes(l)) wrongLetters.push(l);
+    }
+    const choices=shuffle([newLetter,...wrongLetters]);
+
+    // Build display with highlighted change position
+    const displayLetters=letters1.map((l,i)=>{
+      if(i===changeIdx) return '<span style="display:inline-block;width:44px;height:52px;background:#fef3c7;border:3px dashed #f59e0b;border-radius:10px;font-family:Fredoka One,cursive;font-size:2rem;line-height:52px;text-align:center;color:#f59e0b">?</span>';
+      return '<span style="display:inline-block;width:44px;height:52px;background:#dbeafe;border:2px solid #93c5fd;border-radius:10px;font-family:Fredoka One,cursive;font-size:2rem;line-height:52px;text-align:center;color:#1d4ed8">'+l+'</span>';
+    }).join(' ');
+
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:#2563eb;margin-bottom:4px">📖 Word Chain</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:10px">Change one letter to make a new word!</div>'+
+      '<div style="text-align:center;margin-bottom:6px;font-size:.8rem;color:var(--text2)"><strong>'+currentWord+'</strong> → <strong style="color:var(--accent)">'+nextWord+'</strong></div>'+
+      '<div style="text-align:center;margin-bottom:6px"><button id="phPlay" style="font-size:1.5rem;background:none;border:none;cursor:pointer">🔊 hear it</button></div>'+
+      '<div style="text-align:center;margin:10px 0;display:flex;justify-content:center;gap:6px">'+displayLetters+'</div>'+
+      '<div style="text-align:center;font-size:.9rem;color:var(--text);font-weight:700;margin:8px 0">Which letter goes in the <span style="color:#f59e0b">yellow</span> spot?</div>'+
+      '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'" style="font-size:1.8rem;font-family:Fredoka One,cursive">'+c+'</button>').join('')+'</div>'+
+      '<div id="jokeArea"></div></div>';
+
+    const speakIt=()=>{speak(currentWord+' ... becomes ... '+nextWord,0.65,1.0);};
+    setTimeout(speakIt,500);
+    document.getElementById('phPlay').addEventListener('click',speakIt);
+
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(btn.dataset.val===newLetter){
+          btn.classList.add('correct');
+          // Replace the ? with the correct letter
+          card.querySelector('[style*="dashed"]').textContent=newLetter;
+          card.querySelector('[style*="dashed"]').style.background='#dcfce7';
+          card.querySelector('[style*="dashed"]').style.borderColor='#22c55e';
+          card.querySelector('[style*="dashed"]').style.color='#15803d';
+          card.querySelector('[style*="dashed"]').style.borderStyle='solid';
+          this.onCorrect({w:nextWord,sent:'___ comes from '+currentWord+'.',joke:'Great chain!'});
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===newLetter)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this.onWrong({w:nextWord,sent:'___ comes from '+currentWord+'.',joke:''});
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),2);
   },
 
   // ---- HEALING CENTER ----
@@ -3480,7 +3595,9 @@ function openParentDashboard(){
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
 
   const stats=G.wordStats||{};
-  const teacherWords=['the','I','and','a','like','is','as','said','to','do','of','see','he','be','we','me','from','look','book','are','was','you','what','have'];
+  const kWords=['the','I','and','a','like','is','as','said','to','do','of','see','he','be','we','me','from','look','book','are','was','you','what','have'];
+  const firstGradeWords=['the','a','is','it','in','can','see','my','go','on','up','big','we','he','she','was','for','at','not','with','are','all','like','have','they','said','come','some','get','one','her','but','had','him','his','from','make','very','been','just','your','into','down','out','over','then','them','when','this','stop','help','read','that','play','good','here','yes','did','how','back','much','put','old','too','did','let','its','off'];
+  const teacherWords=[...new Set([...kWords,...firstGradeWords])];
 
   // Build word stats table
   let rows='';
@@ -3497,11 +3614,14 @@ function openParentDashboard(){
     const s=stats[w]||{correct:0,wrong:0};
     const total=s.correct+s.wrong;
     const pct=total>0?Math.round(s.correct/total*100):0;
-    const isTeacher=teacherWords.includes(w)||teacherWords.includes(w.toLowerCase());
+    const isK=kWords.includes(w)||kWords.includes(w.toLowerCase());
+    const is1st=firstGradeWords.includes(w)||firstGradeWords.includes(w.toLowerCase());
+    const gradeTag=isK?'<span style="background:#dbeafe;color:#1d4ed8;font-size:.5rem;padding:1px 4px;border-radius:4px;margin-left:3px">K</span>':
+      is1st?'<span style="background:#fef3c7;color:#92400e;font-size:.5rem;padding:1px 4px;border-radius:4px;margin-left:3px">1st</span>':'';
     const color=pct>=80?'#22c55e':pct>=50?'#f59e0b':'#ef4444';
     const barW=Math.max(5,pct);
     rows+='<tr style="border-bottom:1px solid #f1f5f9">'+
-      '<td style="padding:4px 8px;font-weight:700;font-size:.9rem">'+w+(isTeacher?' ⭐':'')+'</td>'+
+      '<td style="padding:4px 8px;font-weight:700;font-size:.9rem">'+w+gradeTag+'</td>'+
       '<td style="padding:4px;text-align:center;font-size:.8rem;color:#22c55e">'+s.correct+'</td>'+
       '<td style="padding:4px;text-align:center;font-size:.8rem;color:#ef4444">'+s.wrong+'</td>'+
       '<td style="padding:4px;width:100px"><div style="background:#f1f5f9;border-radius:4px;height:14px;overflow:hidden"><div style="background:'+color+';height:100%;width:'+barW+'%;border-radius:4px;transition:width .3s"></div></div></td>'+
