@@ -1028,7 +1028,7 @@ const G = {
   usedWords:[], usedStories:[],
   purchased:[],
   // new features
-  maxStreak:0, bossesDefeated:0, secretsCaught:0,
+  maxStreak:0, bossesDefeated:0, secretsCaught:0, popQuizWins:0,
   unlockedAchievements:[], isBossBattle:false,
   currentZone:0,
   ZONES:['Forest','Ocean','Volcano','Crystal Cave','Sky Kingdom','Snowlands','Castle','Space'],
@@ -1065,7 +1065,7 @@ const G = {
       mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0,
       maxStreak:this.maxStreak||0,bossesDefeated:this.bossesDefeated||0,
       secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
-      currentZone:this.currentZone||0,wordStats:this.wordStats||{}};
+      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
   },
   loadGame(){
@@ -1093,6 +1093,7 @@ const G = {
       if(d.unlockedAchievements) this.unlockedAchievements=d.unlockedAchievements;
       if(d.currentZone!==undefined) this.currentZone=d.currentZone;
       if(d.wordStats) this.wordStats=d.wordStats;
+      if(d.popQuizWins!==undefined) this.popQuizWins=d.popQuizWins;
     }catch(e){}
   },
 
@@ -2423,88 +2424,155 @@ const G = {
     const area=document.getElementById('gameArea');
     const word=wd.w.toLowerCase();
     const letters=word.split('');
-    // add some random distractor letters
-    const extraCount=Math.max(2, Math.min(4, 6-letters.length));
+    const wins=this.popQuizWins||0;
+
+    // DIFFICULTY LEVELS based on total pop quiz wins
+    // Level 0 (0-4 wins): 2 distractors, slow TTS, sentence hint, first letter shown
+    // Level 1 (5-14): 3 distractors, slow TTS, sentence hint
+    // Level 2 (15-29): 4 distractors, medium TTS, sentence hint
+    // Level 3 (30-49): 5 distractors, medium TTS, NO sentence hint
+    // Level 4 (50+): FREE TYPE — no tiles, just type the word, normal TTS speed
+    const diff = wins<5?0 : wins<15?1 : wins<30?2 : wins<50?3 : 4;
+    const diffLabel=['🟢 Easy','🟡 Medium','🟠 Hard','🔴 Expert','💀 Master'][diff];
+    const extraCount=[2,3,4,5,0][diff];
+    const ttsRate=[0.55,0.6,0.7,0.75,0.85][diff];
+    const showSentence=diff<3;
+    const showFirstLetter=diff===0;
+    const freeType=diff>=4;
+
     const alphabet='abcdefghijklmnopqrstuvwxyz';
     const extras=[];
-    while(extras.length<extraCount){
-      const l=alphabet[Math.floor(Math.random()*26)];
-      if(!letters.includes(l)&&!extras.includes(l)) extras.push(l);
+    if(!freeType){
+      while(extras.length<extraCount){
+        const l=alphabet[Math.floor(Math.random()*26)];
+        if(!letters.includes(l)&&!extras.includes(l)) extras.push(l);
+      }
     }
-    const allTiles=shuffle([...letters,...extras]);
+    const allTiles=freeType?[]:shuffle([...letters,...extras]);
     let built=[];
     let submitted=false;
 
+    // Pre-fill first letter at easiest difficulty
+    if(showFirstLetter && letters.length>1) built.push(letters[0]);
+
     const render=()=>{
-      const builtStr=built.join('');
       const slots=letters.map((_,i)=>{
         const filled=built[i]||'';
-        const correct=filled&&filled===letters[i];
         return '<span style="display:inline-block;width:36px;height:44px;border-bottom:3px solid '+(filled?'var(--accent)':'#cbd5e1')+';margin:0 3px;font-family:Fredoka One,cursive;font-size:1.8rem;text-align:center;line-height:44px;color:var(--text)">'+filled+'</span>';
       }).join('');
+
+      let inputArea='';
+      if(freeType){
+        // FREE TYPE mode — no tiles, just a text input
+        inputArea='<input class="decode-input" id="pqInput" maxlength="'+(word.length+3)+'" placeholder="type the word..." autocomplete="off" autocapitalize="none" style="font-size:1.4rem;text-align:center;margin:10px auto;display:block">'+
+          '<button id="pqCheck" style="display:block;margin:8px auto;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Check! ✓</button>';
+      } else {
+        // TILE mode
+        inputArea='<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0" id="pqTiles">'+
+          allTiles.map((l,i)=>{
+            // track used tiles properly
+            let usedCount=0;
+            for(let b=0;b<built.length;b++){
+              if(built[b]===l){
+                // find which tile index this corresponds to
+                let tileCount=0;
+                for(let t=0;t<=i;t++) if(allTiles[t]===l) tileCount++;
+                if(tileCount<=usedCount+1) usedCount++;
+              }
+            }
+            const isUsed=built.filter(x=>x===l).length > allTiles.slice(0,i).filter(x=>x===l).length ? false :
+              built.includes(l) && allTiles.filter((x,j)=>x===l&&j<=i).length <= built.filter(x=>x===l).length;
+            // simpler: check if this specific tile index is used
+            const tileUsed=built.some((b,bi)=>{
+              let count=0;
+              for(let t=0;t<allTiles.length;t++){
+                if(allTiles[t]===b){
+                  if(t===i && count===bi) return true;
+                  count++;
+                }
+              }
+              return false;
+            });
+            return '<button class="choice-btn pq-tile" data-letter="'+l+'" data-idx="'+i+'" style="width:44px;height:52px;font-size:1.5rem;font-family:Fredoka One,cursive;padding:4px;min-height:auto">'+l+'</button>';
+          }).join('')+
+          '</div>'+
+          '<div style="display:flex;gap:8px;justify-content:center;margin-top:8px">'+
+          '<button id="pqUndo" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 16px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;color:var(--text2)">⬅ Undo</button>'+
+          '<button id="pqCheck" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer'+(built.length<letters.length?';opacity:.4;pointer-events:none':'')+'">Check! ✓</button>'+
+          '</div>';
+      }
+
       area.innerHTML='<div class="card" id="qCard">'+
-        '<div class="question-text" style="font-size:1.1rem;margin-bottom:6px">🎧 Listen and spell the word!</div>'+
-        '<div style="text-align:center;margin-bottom:10px"><button id="pqPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
-        '<div style="text-align:center;margin-bottom:4px;font-size:.8rem;color:var(--text2);font-weight:600">'+wd.sent.replace('___','<span style="color:var(--accent);font-weight:800">???</span>')+'</div>'+
-        '<div style="text-align:center;margin:12px 0">'+slots+'</div>'+
-        '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0" id="pqTiles">'+
-        allTiles.map((l,i)=>{
-          const used=built.includes(l)&&allTiles.filter((x,j)=>x===l&&j<i).length<built.filter(x=>x===l).length;
-          // more precise: track which tiles are used
-          return '<button class="choice-btn pq-tile" data-letter="'+l+'" data-idx="'+i+'" style="width:44px;height:52px;font-size:1.5rem;font-family:Fredoka One,cursive;padding:4px;min-height:auto'+(used?';opacity:.3;pointer-events:none':'')+'">'+l+'</button>';
-        }).join('')+
-        '</div>'+
-        '<div style="display:flex;gap:8px;justify-content:center;margin-top:8px">'+
-        '<button id="pqUndo" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 16px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;color:var(--text2)">⬅ Undo</button>'+
-        '<button id="pqCheck" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer'+(built.length<letters.length?';opacity:.4;pointer-events:none':'')+'">Check! ✓</button>'+
-        '</div>'+
+        '<div class="question-text" style="font-size:1.1rem;margin-bottom:4px">🎧 Pop Quiz! <span style="font-size:.7rem;background:'+(diff<2?'#dcfce7':diff<4?'#fef3c7':'#fef2f2')+';padding:2px 8px;border-radius:8px;color:'+(diff<2?'#15803d':diff<4?'#92400e':'#b91c1c')+'">'+diffLabel+'</span></div>'+
+        '<div style="text-align:center;margin-bottom:8px"><button id="pqPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
+        (showSentence?'<div style="text-align:center;margin-bottom:4px;font-size:.8rem;color:var(--text2);font-weight:600">'+wd.sent.replace('___','<span style="color:var(--accent);font-weight:800">???</span>')+'</div>':
+        '<div style="text-align:center;margin-bottom:4px;font-size:.8rem;color:var(--text2);font-weight:600;font-style:italic">No hint! Just listen! 👂</div>')+
+        (showFirstLetter&&letters.length>1?'<div style="text-align:center;font-size:.75rem;color:var(--green);font-weight:700;margin-bottom:4px">💡 First letter given!</div>':'')+
+        '<div style="text-align:center;font-size:.65rem;color:var(--text2);margin-bottom:6px">'+word.length+' letters</div>'+
+        '<div style="text-align:center;margin:8px 0">'+slots+'</div>'+
+        inputArea+
         '<div id="jokeArea"></div></div>';
 
-      // wire up events
+      // Wire events
       document.getElementById('pqPlay').addEventListener('click',speakWord);
-      area.querySelectorAll('.pq-tile').forEach(btn=>{
-        btn.addEventListener('click',()=>{
-          if(submitted||built.length>=letters.length) return;
-          built.push(btn.dataset.letter);
-          SFX.play('click');
-          render();
-        });
-      });
-      document.getElementById('pqUndo').addEventListener('click',()=>{
-        if(submitted||built.length===0) return;
-        built.pop();
-        SFX.play('click');
-        render();
-      });
-      document.getElementById('pqCheck').addEventListener('click',()=>{
-        if(submitted||built.length<letters.length) return;
-        submitted=true;
-        this.answering=true;
-        const correct=built.join('')===word;
-        if(correct){
-          // highlight all green
-          area.querySelectorAll('#qCard span').forEach(s=>{if(s.textContent.trim())s.style.color='var(--green)';});
-          this.onCorrect(wd);
-        } else {
-          // show correct word
-          area.querySelectorAll('#qCard span').forEach((s,i)=>{
-            if(i<letters.length){
-              s.style.color=built[i]===letters[i]?'var(--green)':'var(--red)';
-            }
+
+      if(freeType){
+        const input=document.getElementById('pqInput');
+        setTimeout(()=>input.focus(),100);
+        const doCheck=()=>{
+          if(submitted) return;
+          submitted=true; this.answering=true;
+          const val=input.value.trim().toLowerCase();
+          if(val===word){
+            input.style.borderColor='var(--green)';input.style.background='#dcfce7';
+            this.popQuizWins++;this.onCorrect(wd);
+          }else{
+            input.style.borderColor='var(--red)';input.style.background='#fef2f2';
+            input.value=word;
+            document.getElementById('jokeArea').innerHTML='<div style="text-align:center;margin-top:8px;font-family:Fredoka One,cursive;font-size:1.3rem;color:var(--accent)">The word was: '+word+'</div>';
+            this.onWrong(wd);
+          }
+        };
+        document.getElementById('pqCheck').addEventListener('click',doCheck);
+        input.addEventListener('keydown',e=>{if(e.key==='Enter')doCheck();});
+      } else {
+        area.querySelectorAll('.pq-tile').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(submitted||built.length>=letters.length) return;
+            built.push(btn.dataset.letter);
+            SFX.play('click');
+            render();
           });
-          // show correct answer below
-          const jokeArea=document.getElementById('jokeArea');
-          jokeArea.innerHTML='<div style="text-align:center;margin-top:8px;font-family:Fredoka One,cursive;font-size:1.3rem;color:var(--accent)">The word was: '+word+'</div>';
-          this.onWrong(wd);
-        }
-      });
+        });
+        const undoBtn=document.getElementById('pqUndo');
+        if(undoBtn) undoBtn.addEventListener('click',()=>{
+          if(submitted||built.length===0||(showFirstLetter&&built.length<=1)) return;
+          built.pop(); SFX.play('click'); render();
+        });
+        document.getElementById('pqCheck').addEventListener('click',()=>{
+          if(submitted||built.length<letters.length) return;
+          submitted=true; this.answering=true;
+          const correct=built.join('')===word;
+          if(correct){
+            area.querySelectorAll('#qCard span').forEach(s=>{if(s.textContent.trim()&&s.style.borderBottom)s.style.color='var(--green)';});
+            this.popQuizWins++;this.onCorrect(wd);
+          } else {
+            letters.forEach((l,i)=>{
+              const spans=area.querySelectorAll('#qCard span');
+              if(spans[i]) spans[i].style.color=built[i]===l?'var(--green)':'var(--red)';
+            });
+            document.getElementById('jokeArea').innerHTML='<div style="text-align:center;margin-top:8px;font-family:Fredoka One,cursive;font-size:1.3rem;color:var(--accent)">The word was: '+word+'</div>';
+            this.onWrong(wd);
+          }
+        });
+      }
     };
 
     const speakWord=()=>{
       if(!('speechSynthesis' in window)) return;
       speechSynthesis.cancel();
       const u=new SpeechSynthesisUtterance(word);
-      u.rate=0.6; u.pitch=1.0;
+      u.rate=ttsRate; u.pitch=1.0;
       const good=getBestVoice();
       if(good) u.voice=good;
       speechSynthesis.speak(u);
@@ -2671,18 +2739,18 @@ const G = {
       do{extra=Math.floor(Math.random()*words.length);}while(gapIndices.has(extra)||words[extra].length<2);
       gapIndices.add(extra);
     }
-    // build display
+    // build display — gap words shown as blanks, NOT the actual word
     const displayWords=words.map((w,i)=>{
-      if(gapIndices.has(i)) return '<span class="ra-gap" data-word="'+w.toLowerCase().replace(/[^a-z]/g,'')+'" style="background:var(--accent);color:#fff;padding:4px 12px;border-radius:10px;font-weight:800;cursor:pointer;display:inline-block;margin:2px">'+w+'</span>';
+      if(gapIndices.has(i)) return '<span class="ra-gap" data-word="'+w.toLowerCase().replace(/[^a-z]/g,'')+'" style="background:var(--accent);color:#fff;padding:4px 12px;border-radius:10px;font-weight:800;display:inline-block;margin:2px">???</span>';
       return '<span class="ra-word" style="display:inline-block;margin:2px">'+w+'</span>';
     });
     const wrongs=WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
     const choices=shuffle([wd.w,...wrongs]);
     area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text" style="font-size:1.1rem;margin-bottom:6px">Listen and read along!</div>'+
+      '<div class="question-text" style="font-size:1.1rem;margin-bottom:6px">Listen! What word is missing?</div>'+
       '<div style="text-align:center;margin-bottom:8px"><button id="raPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
       '<div id="raSentence" style="font-size:1.5rem;font-weight:700;text-align:center;line-height:2;margin-bottom:12px">'+displayWords.join(' ')+'</div>'+
-      '<div class="question-text" style="font-size:1rem;margin-bottom:8px">Which orange word did YOU read?</div>'+
+      '<div class="question-text" style="font-size:1rem;margin-bottom:8px">Which word goes in the orange spot?</div>'+
       '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+'</div>'+
       '<div id="jokeArea"></div></div>';
     // TTS: read all words but pause/skip the gap words
