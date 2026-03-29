@@ -556,6 +556,43 @@ const SFX = {
 };
 
 // ========================================================
+// SMART VOICE PICKER — prefer natural/enhanced voices
+// ========================================================
+let _bestVoice=null;
+let _voicesLoaded=false;
+function getBestVoice(){
+  if(_bestVoice&&_voicesLoaded) return _bestVoice;
+  const voices=speechSynthesis.getVoices();
+  if(!voices.length) return null;
+  _voicesLoaded=true;
+  // Priority order: enhanced/premium > natural > local English > any English
+  const prefs=[
+    v=>v.name.includes('Enhanced')&&v.lang.startsWith('en'),
+    v=>v.name.includes('Premium')&&v.lang.startsWith('en'),
+    v=>v.name==='Samantha'&&v.localService,
+    v=>v.name==='Karen'&&v.localService,
+    v=>v.name==='Moira'&&v.localService,
+    v=>v.name==='Tessa'&&v.localService,
+    v=>v.name==='Rishi'&&v.localService,
+    v=>/Natural/.test(v.name)&&v.lang.startsWith('en'),
+    v=>v.name.includes('Google')&&v.lang.startsWith('en'),
+    v=>v.lang.startsWith('en-US')&&v.localService,
+    v=>v.lang.startsWith('en')&&v.localService,
+    v=>v.lang.startsWith('en'),
+  ];
+  for(const test of prefs){
+    const found=voices.find(test);
+    if(found){_bestVoice=found;return found;}
+  }
+  return voices[0]||null;
+}
+// preload voices (some browsers load async)
+if('speechSynthesis' in window){
+  speechSynthesis.getVoices();
+  speechSynthesis.addEventListener('voiceschanged',()=>{_bestVoice=null;_voicesLoaded=false;getBestVoice();});
+}
+
+// ========================================================
 // WORDMONS — custom creatures (NOT real Pokémon)
 // ========================================================
 const WORDMONS = [
@@ -1687,8 +1724,7 @@ const G = {
         speechSynthesis.cancel();
         const u=new SpeechSynthesisUtterance(wd.w);
         u.rate=0.7; u.pitch=1.0;
-        const voices=speechSynthesis.getVoices();
-        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        const good=getBestVoice();
         if(good) u.voice=good;
         speechSynthesis.speak(u);
       }
@@ -1914,8 +1950,7 @@ const G = {
         speechSynthesis.cancel();
         const u=new SpeechSynthesisUtterance(voiceLines[n]||n+' in a row! Amazing!');
         u.rate=0.9; u.pitch=1.2; u.volume=1;
-        const voices=speechSynthesis.getVoices();
-        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        const good=getBestVoice();
         if(good) u.voice=good;
         speechSynthesis.speak(u);
       }
@@ -2531,8 +2566,7 @@ const G = {
       if(before){
         const u1=new SpeechSynthesisUtterance(before);
         u1.rate=0.7;u1.pitch=1.0;
-        const voices=speechSynthesis.getVoices();
-        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        const good=getBestVoice();
         if(good)u1.voice=good;
         u1.onend=()=>{
           // pause then say "your turn!"
@@ -2556,8 +2590,7 @@ const G = {
       } else {
         const uPause=new SpeechSynthesisUtterance('Your turn! ... '+after);
         uPause.rate=0.7;uPause.pitch=1.0;
-        const voices=speechSynthesis.getVoices();
-        const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+        const good=getBestVoice();
         if(good)uPause.voice=good;
         speechSynthesis.speak(uPause);
       }
@@ -2752,9 +2785,7 @@ const G = {
     const u=new SpeechSynthesisUtterance(text);
     u.rate=0.85;
     u.pitch=1.1;
-    // try to pick a good English voice
-    const voices=speechSynthesis.getVoices();
-    const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+    const good=getBestVoice();
     if(good) u.voice=good;
     u.onend=()=>btn.classList.remove('speaking');
     u.onerror=()=>btn.classList.remove('speaking');

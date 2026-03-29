@@ -186,6 +186,40 @@ const SFX={
 };
 
 // ========================================================
+// SMART VOICE PICKER — prefer natural/enhanced voices
+// ========================================================
+let _bestVoice=null;
+let _voicesLoaded=false;
+function getBestVoice(){
+  if(_bestVoice&&_voicesLoaded) return _bestVoice;
+  const voices=speechSynthesis.getVoices();
+  if(!voices.length) return null;
+  _voicesLoaded=true;
+  const prefs=[
+    v=>v.name.includes('Enhanced')&&v.lang.startsWith('en'),
+    v=>v.name.includes('Premium')&&v.lang.startsWith('en'),
+    v=>v.name==='Samantha'&&v.localService,
+    v=>v.name==='Karen'&&v.localService,
+    v=>v.name==='Moira'&&v.localService,
+    v=>v.name==='Tessa'&&v.localService,
+    v=>/Natural/.test(v.name)&&v.lang.startsWith('en'),
+    v=>v.name.includes('Google')&&v.lang.startsWith('en'),
+    v=>v.lang.startsWith('en-US')&&v.localService,
+    v=>v.lang.startsWith('en')&&v.localService,
+    v=>v.lang.startsWith('en'),
+  ];
+  for(const test of prefs){
+    const found=voices.find(test);
+    if(found){_bestVoice=found;return found;}
+  }
+  return voices[0]||null;
+}
+if('speechSynthesis' in window){
+  speechSynthesis.getVoices();
+  speechSynthesis.addEventListener('voiceschanged',()=>{_bestVoice=null;_voicesLoaded=false;getBestVoice();});
+}
+
+// ========================================================
 // TTS HELPER
 // ========================================================
 function speak(text, rate=0.8, pitch=1.1, onEnd){
@@ -193,8 +227,7 @@ function speak(text, rate=0.8, pitch=1.1, onEnd){
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.rate=rate; u.pitch=pitch;
-  const voices=speechSynthesis.getVoices();
-  const good=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en')&&v.localService);
+  const good=getBestVoice();
   if(good) u.voice=good;
   if(onEnd) u.onend=onEnd;
   speechSynthesis.speak(u);
