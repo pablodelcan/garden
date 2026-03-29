@@ -229,13 +229,13 @@ if('speechSynthesis' in window){
 // TTS HELPER
 // ========================================================
 function speak(text, rate=0.8, pitch=1.1, onEnd){
-  if(!('speechSynthesis' in window)) return;
+  if(!('speechSynthesis' in window)){if(onEnd)setTimeout(onEnd,500);return;}
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.rate=rate; u.pitch=pitch;
   const good=getBestVoice();
   if(good) u.voice=good;
-  if(onEnd) u.onend=onEnd;
+  if(onEnd){u.onend=onEnd;u.onerror=()=>onEnd();}
   speechSynthesis.speak(u);
 }
 
@@ -366,29 +366,39 @@ const G={
   // Read question aloud, then read each choice while highlighting it
   speakAndHighlight(question, choices, answerVal){
     const btns=document.querySelectorAll('.big-btn');
+    const unlockAll=()=>{
+      btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';b.style.transform='';b.style.boxShadow='';b.style.transition='all .3s';});
+    };
+    // If TTS not available, just show buttons after a short delay
+    if(!('speechSynthesis' in window) || !speechSynthesis){
+      setTimeout(unlockAll, 1500);
+      return;
+    }
     // Disable all buttons initially
     btns.forEach(b=>{b.style.opacity='.4';b.style.pointerEvents='none';b.style.transition='all .3s';});
+    // Safety timeout — unlock after 8 seconds no matter what
+    const safetyTimer=setTimeout(unlockAll, 8000);
     // Read the question first
     speak(question, 0.75, 1.1, ()=>{
       // Then read each choice with a highlight
       let i=0;
       const readNext=()=>{
         if(i>=btns.length){
-          // All read — enable all buttons
-          btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';b.style.transform='';b.style.boxShadow='';});
+          clearTimeout(safetyTimer);
+          unlockAll();
           speak("Now tap the right answer!", 0.85, 1.15);
           return;
         }
         const btn=btns[i];
-        // Highlight this button
         btn.style.opacity='1';
         btn.style.transform='scale(1.1)';
         btn.style.boxShadow='0 0 20px rgba(244,114,182,.5)';
-        // Read its label
         const label=btn.querySelector('.big-btn-label');
         const text=label?label.textContent:btn.textContent.trim();
+        // Per-choice timeout in case TTS stalls on one word
+        const choiceTimer=setTimeout(()=>{btn.style.transform='';btn.style.boxShadow='';btn.style.opacity='.4';i++;readNext();},3000);
         speak(text, 0.8, 1.1, ()=>{
-          // Un-highlight
+          clearTimeout(choiceTimer);
           btn.style.transform='';
           btn.style.boxShadow='';
           btn.style.opacity='.4';
@@ -398,6 +408,8 @@ const G={
       };
       setTimeout(readNext, 400);
     });
+    // Also handle if the initial speak() never fires onEnd
+    setTimeout(()=>{if(btns[0]&&btns[0].style.pointerEvents==='none')unlockAll();},10000);
   },
 
   thinkFirst(container, seconds=2){
