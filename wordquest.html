@@ -1088,8 +1088,8 @@ const G = {
   },
 
   MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',shop:'Shop'},
-  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong'],
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',popquiz:'Pop Quiz',shop:'Shop'},
+  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong','popquiz'],
 
   updateModeBar(){
     const mi=document.getElementById('modeIndicator');
@@ -1479,6 +1479,7 @@ const G = {
       case'decode':this.loadDecode();break;
       case'story':this.loadStory();break;
       case'readalong':this.loadReadAlong();break;
+      case'popquiz':this.loadPopQuiz();break;
     }
   },
 
@@ -1486,6 +1487,7 @@ const G = {
   loadShopView(){
     const area=document.getElementById('gameArea');
     let html='<button onclick="G.backToGame()" style="display:block;margin:0 auto 12px;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">← Back to Game</button>'+
+      '<button onclick="openParentDashboard()" style="display:block;margin:0 auto 12px;font-family:Fredoka One,cursive;font-size:.85rem;padding:8px 18px;border-radius:12px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">📊 Parent Dashboard</button>'+
       '<div class="shop-banner">'+
       '<h2>🎁 Earn REAL Toys!</h2>'+
       '<p>Every correct answer earns you coins.<br>Save up your coins to unlock real Pokémon toys!</p>'+
@@ -2391,6 +2393,103 @@ const G = {
     render();
   },
 
+  // ---- POP QUIZ (hear word, spell it with letter tiles) ----
+  loadPopQuiz(){
+    const wd=this.pickWord();
+    const area=document.getElementById('gameArea');
+    const word=wd.w.toLowerCase();
+    const letters=word.split('');
+    // add some random distractor letters
+    const extraCount=Math.max(2, Math.min(4, 6-letters.length));
+    const alphabet='abcdefghijklmnopqrstuvwxyz';
+    const extras=[];
+    while(extras.length<extraCount){
+      const l=alphabet[Math.floor(Math.random()*26)];
+      if(!letters.includes(l)&&!extras.includes(l)) extras.push(l);
+    }
+    const allTiles=shuffle([...letters,...extras]);
+    let built=[];
+    let submitted=false;
+
+    const render=()=>{
+      const builtStr=built.join('');
+      const slots=letters.map((_,i)=>{
+        const filled=built[i]||'';
+        const correct=filled&&filled===letters[i];
+        return '<span style="display:inline-block;width:36px;height:44px;border-bottom:3px solid '+(filled?'var(--accent)':'#cbd5e1')+';margin:0 3px;font-family:Fredoka One,cursive;font-size:1.8rem;text-align:center;line-height:44px;color:var(--text)">'+filled+'</span>';
+      }).join('');
+      area.innerHTML='<div class="card" id="qCard">'+
+        '<div class="question-text" style="font-size:1.1rem;margin-bottom:6px">🎧 Listen and spell the word!</div>'+
+        '<div style="text-align:center;margin-bottom:10px"><button id="pqPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
+        '<div style="text-align:center;margin-bottom:4px;font-size:.8rem;color:var(--text2);font-weight:600">'+wd.sent.replace('___','<span style="color:var(--accent);font-weight:800">???</span>')+'</div>'+
+        '<div style="text-align:center;margin:12px 0">'+slots+'</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0" id="pqTiles">'+
+        allTiles.map((l,i)=>{
+          const used=built.includes(l)&&allTiles.filter((x,j)=>x===l&&j<i).length<built.filter(x=>x===l).length;
+          // more precise: track which tiles are used
+          return '<button class="choice-btn pq-tile" data-letter="'+l+'" data-idx="'+i+'" style="width:44px;height:52px;font-size:1.5rem;font-family:Fredoka One,cursive;padding:4px;min-height:auto'+(used?';opacity:.3;pointer-events:none':'')+'">'+l+'</button>';
+        }).join('')+
+        '</div>'+
+        '<div style="display:flex;gap:8px;justify-content:center;margin-top:8px">'+
+        '<button id="pqUndo" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 16px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;color:var(--text2)">⬅ Undo</button>'+
+        '<button id="pqCheck" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer'+(built.length<letters.length?';opacity:.4;pointer-events:none':'')+'">Check! ✓</button>'+
+        '</div>'+
+        '<div id="jokeArea"></div></div>';
+
+      // wire up events
+      document.getElementById('pqPlay').addEventListener('click',speakWord);
+      area.querySelectorAll('.pq-tile').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          if(submitted||built.length>=letters.length) return;
+          built.push(btn.dataset.letter);
+          SFX.play('click');
+          render();
+        });
+      });
+      document.getElementById('pqUndo').addEventListener('click',()=>{
+        if(submitted||built.length===0) return;
+        built.pop();
+        SFX.play('click');
+        render();
+      });
+      document.getElementById('pqCheck').addEventListener('click',()=>{
+        if(submitted||built.length<letters.length) return;
+        submitted=true;
+        this.answering=true;
+        const correct=built.join('')===word;
+        if(correct){
+          // highlight all green
+          area.querySelectorAll('#qCard span').forEach(s=>{if(s.textContent.trim())s.style.color='var(--green)';});
+          this.onCorrect(wd);
+        } else {
+          // show correct word
+          area.querySelectorAll('#qCard span').forEach((s,i)=>{
+            if(i<letters.length){
+              s.style.color=built[i]===letters[i]?'var(--green)':'var(--red)';
+            }
+          });
+          // show correct answer below
+          const jokeArea=document.getElementById('jokeArea');
+          jokeArea.innerHTML='<div style="text-align:center;margin-top:8px;font-family:Fredoka One,cursive;font-size:1.3rem;color:var(--accent)">The word was: '+word+'</div>';
+          this.onWrong(wd);
+        }
+      });
+    };
+
+    const speakWord=()=>{
+      if(!('speechSynthesis' in window)) return;
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(word);
+      u.rate=0.6; u.pitch=1.0;
+      const good=getBestVoice();
+      if(good) u.voice=good;
+      speechSynthesis.speak(u);
+    };
+
+    render();
+    setTimeout(speakWord, 500);
+  },
+
   // ---- TYPE MATCHUP (Pokémon type quiz) ----
   loadTypeMatch(){
     const mg=document.getElementById('miniGameArea');
@@ -2785,6 +2884,7 @@ const G = {
       decode:"Mystery word! Use the clues to figure out the secret word. Look at the first letter, how many letters it has, and the sentence. Then type the word!",
       story:"Story time! Read the short story, then answer the question about it. Tap the right answer!",
       readalong:"Read along! I will read the sentence out loud, but I will stop at some words. You need to read those words! Then tap the word you read.",
+      popquiz:"Pop quiz! I will say a word out loud. You need to spell it by tapping the letters in the right order. Listen carefully!",
       shop:"This is the shop! You earn coins by playing the game. Save up your coins to buy real Pokémon toys!"
     };
     const text=instructions[this.mode]||"Pick a game from the tabs at the top! Each one helps you practice reading. You earn coins when you beat monsters!";
