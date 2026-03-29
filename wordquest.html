@@ -81,6 +81,8 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .mode-progress{font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;color:var(--text2);background:#f1f5f9;padding:6px 12px;border-radius:10px;white-space:nowrap}
 .tab.quiz-tab{background:#ede9fe;color:#6d28d9;border:2px solid #a78bfa}
 .tab.quiz-tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.tab.phonics-tab{background:#dbeafe;color:#1d4ed8;border:2px solid #93c5fd}
+.tab.phonics-tab.active{background:#2563eb;color:#fff;border-color:#2563eb}
 .tab.heal-tab{background:#fce7f3;color:#be185d;border:2px solid #f9a8d4}
 .tab.heal-tab.active{background:#ec4899;color:#fff;border-color:#ec4899}
 .tab.shop-tab{background:#fef3c7;color:#92400e;border:2px solid #fbbf24}
@@ -353,6 +355,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
   <div class="mode-indicator" id="modeIndicator"><img src="sprites/mode_fillin.png" class="mode-icon"> Fill In</div>
   <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 15</div>
   <button class="tab quiz-tab" data-mode="popquiz">🎧 Pop Quiz</button>
+  <button class="tab phonics-tab" data-mode="phonics">📖 Phonics</button>
   <button class="tab heal-tab" data-mode="heal">🏥 Heal</button>
   <button class="tab shop-tab" data-mode="shop"><img src="sprites/mode_shop.png" class="mode-icon"> Shop</button>
 </div>
@@ -1137,6 +1140,16 @@ const G = {
         this.mode='popquiz';
         this.updateModeBar();
         this.loadMode('popquiz');
+      });
+    });
+    // Phonics button
+    document.querySelectorAll('.tab[data-mode="phonics"]').forEach(t=>{
+      t.addEventListener('click',()=>{
+        if(this.answering) return;
+        if(this.mode!=='popquiz'&&this.mode!=='shop'&&this.mode!=='heal'&&this.mode!=='phonics') this._modeBeforeShop=this.mode;
+        this.clearPendingWord();
+        this.mode='phonics';
+        this.loadPhonics();
       });
     });
     // Healing Center button
@@ -3020,6 +3033,213 @@ const G = {
       '<div style="font-family:Fredoka One,cursive;font-size:.85rem;color:var(--text)">'+m.text+'</div>';
     document.body.appendChild(toast);
     setTimeout(()=>toast.remove(),2500);
+  },
+
+  // ---- PHONICS (research-based reading trainer) ----
+  PHONICS_WORDS:[
+    // CVC words grouped by vowel sound
+    {w:'cat',sounds:['c','a','t']},{w:'hat',sounds:['h','a','t']},{w:'bat',sounds:['b','a','t']},
+    {w:'sat',sounds:['s','a','t']},{w:'map',sounds:['m','a','p']},{w:'tap',sounds:['t','a','p']},
+    {w:'can',sounds:['c','a','n']},{w:'man',sounds:['m','a','n']},{w:'fan',sounds:['f','a','n']},
+    {w:'bed',sounds:['b','e','d']},{w:'red',sounds:['r','e','d']},{w:'hen',sounds:['h','e','n']},
+    {w:'ten',sounds:['t','e','n']},{w:'get',sounds:['g','e','t']},{w:'set',sounds:['s','e','t']},
+    {w:'big',sounds:['b','i','g']},{w:'dig',sounds:['d','i','g']},{w:'pig',sounds:['p','i','g']},
+    {w:'sit',sounds:['s','i','t']},{w:'hit',sounds:['h','i','t']},{w:'bit',sounds:['b','i','t']},
+    {w:'hot',sounds:['h','o','t']},{w:'dog',sounds:['d','o','g']},{w:'log',sounds:['l','o','g']},
+    {w:'mop',sounds:['m','o','p']},{w:'top',sounds:['t','o','p']},{w:'pot',sounds:['p','o','t']},
+    {w:'bus',sounds:['b','u','s']},{w:'cup',sounds:['c','u','p']},{w:'fun',sounds:['f','u','n']},
+    {w:'run',sounds:['r','u','n']},{w:'sun',sounds:['s','u','n']},{w:'hug',sounds:['h','u','g']},
+    // CCVC and CVCC
+    {w:'stop',sounds:['s','t','o','p']},{w:'frog',sounds:['f','r','o','g']},
+    {w:'clap',sounds:['c','l','a','p']},{w:'snap',sounds:['s','n','a','p']},
+    {w:'jump',sounds:['j','u','m','p']},{w:'help',sounds:['h','e','l','p']},
+    {w:'best',sounds:['b','e','s','t']},{w:'fast',sounds:['f','a','s','t']},
+    // Sight word sounds (irregular)
+    {w:'the',sounds:['th','e']},{w:'said',sounds:['s','e','d']},
+    {w:'was',sounds:['w','o','z']},{w:'have',sounds:['h','a','v']},
+    {w:'come',sounds:['c','u','m']},{w:'some',sounds:['s','u','m']},
+    {w:'look',sounds:['l','oo','k']},{w:'book',sounds:['b','oo','k']},
+  ],
+  phonicsRound:0,
+
+  loadPhonics(){
+    const area=document.getElementById('gameArea');
+    // Cycle between 3 exercises
+    const exercises=['blend','segment','build'];
+    const ex=exercises[this.phonicsRound%3];
+    this.phonicsRound++;
+
+    if(ex==='blend') this.loadPhonicsBlend(area);
+    else if(ex==='segment') this.loadPhonicsSegment(area);
+    else this.loadPhonicsBuild(area);
+  },
+
+  // Exercise 1: SOUND BLENDING — hear sounds, pick the word
+  loadPhonicsBlend(area){
+    const pw=this.PHONICS_WORDS[Math.floor(Math.random()*this.PHONICS_WORDS.length)];
+    const wrongs=this.PHONICS_WORDS.filter(x=>x.w!==pw.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+    const choices=shuffle([pw.w,...wrongs]);
+
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:#2563eb;margin-bottom:4px">📖 Sound Blending</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:8px">Listen to the sounds. What word do they make?</div>'+
+      '<div style="text-align:center;margin-bottom:8px"><button id="phPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
+      '<div id="soundBoxes" style="display:flex;justify-content:center;gap:8px;margin-bottom:12px">'+
+      pw.sounds.map(s=>'<div class="sound-box" style="background:#dbeafe;border:2px solid #93c5fd;border-radius:12px;padding:10px 14px;font-family:Fredoka One,cursive;font-size:1.4rem;color:#1d4ed8;min-width:44px;text-align:center;opacity:.3;transition:all .3s">'+s+'</div>').join('')+
+      '</div>'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1.2rem;margin-bottom:8px;color:var(--text)">→ What word? ←</div>'+
+      '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+'</div>'+
+      '<div id="jokeArea"></div></div>';
+
+    // Speak each sound with a pause, highlighting the box
+    const speakSounds=()=>{
+      const boxes=document.querySelectorAll('.sound-box');
+      let i=0;
+      const sayNext=()=>{
+        if(i>=pw.sounds.length){
+          // After all sounds, say "blend it!"
+          setTimeout(()=>{
+            speak('What word?',0.8,1.1);
+            boxes.forEach(b=>b.style.opacity='1');
+          },400);
+          return;
+        }
+        boxes.forEach((b,j)=>b.style.opacity=j===i?'1':'0.3');
+        boxes[i].style.transform='scale(1.15)';
+        speak(pw.sounds[i],0.6,1.0,()=>{
+          boxes[i].style.transform='';
+          i++;
+          setTimeout(sayNext,300);
+        });
+      };
+      sayNext();
+    };
+
+    setTimeout(speakSounds,600);
+    document.getElementById('phPlay').addEventListener('click',speakSounds);
+
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(btn.dataset.val===pw.w){
+          btn.classList.add('correct');
+          this.onCorrect({w:pw.w,sent:'___ is a word.',joke:'Great blending!'});
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===pw.w)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this.onWrong({w:pw.w,sent:'___ is a word.',joke:''});
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),3);
+  },
+
+  // Exercise 2: SOUND SEGMENTING — see a word, tap the right number of sounds
+  loadPhonicsSegment(area){
+    const pw=this.PHONICS_WORDS[Math.floor(Math.random()*this.PHONICS_WORDS.length)];
+    const numSounds=pw.sounds.length;
+    const choices=shuffle([numSounds, numSounds+1, Math.max(1,numSounds-1), numSounds+2].filter((v,i,a)=>a.indexOf(v)===i).slice(0,4));
+
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:#2563eb;margin-bottom:4px">📖 Sound Counting</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:8px">How many sounds in this word?</div>'+
+      '<div style="text-align:center;margin-bottom:6px"><button id="phPlay" style="font-size:2rem;background:none;border:none;cursor:pointer">🔊</button></div>'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:2.5rem;color:var(--text);margin:8px 0;letter-spacing:6px">'+pw.w+'</div>'+
+      '<div style="text-align:center;font-size:.8rem;color:var(--text2);margin-bottom:12px">Tap each sound: <strong>'+pw.sounds.join(' - ')+'</strong> → how many?</div>'+
+      '<div class="choices">'+choices.map(n=>'<button class="choice-btn" data-val="'+n+'" style="font-size:2rem">'+n+'</button>').join('')+'</div>'+
+      '<div id="jokeArea"></div></div>';
+
+    const speakWord=()=>speak(pw.w,0.5,1.0);
+    setTimeout(speakWord,500);
+    document.getElementById('phPlay').addEventListener('click',speakWord);
+
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(parseInt(btn.dataset.val)===numSounds){
+          btn.classList.add('correct');
+          this.onCorrect({w:pw.w,sent:'___ has '+numSounds+' sounds.',joke:'Great counting!'});
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.val)===numSounds)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this.onWrong({w:pw.w,sent:'___ has '+numSounds+' sounds.',joke:''});
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),2);
+  },
+
+  // Exercise 3: WORD BUILDING — hear the word, tap letters in order to build it
+  loadPhonicsBuild(area){
+    const pw=this.PHONICS_WORDS.filter(p=>p.w.length<=4)[Math.floor(Math.random()*this.PHONICS_WORDS.filter(p=>p.w.length<=4).length)];
+    const word=pw.w;
+    const letters=word.split('');
+    const extras=[];
+    const alphabet='abcdefghijklmnopqrstuvwxyz';
+    while(extras.length<3){
+      const l=alphabet[Math.floor(Math.random()*26)];
+      if(!letters.includes(l)&&!extras.includes(l)) extras.push(l);
+    }
+    const allTiles=shuffle([...letters,...extras]);
+    let built=[];
+    let submitted=false;
+
+    const render=()=>{
+      const slots=letters.map((_,i)=>{
+        const filled=built[i]||'';
+        return '<span style="display:inline-block;width:40px;height:50px;border-bottom:3px solid '+(filled?'#2563eb':'#cbd5e1')+';margin:0 4px;font-family:Fredoka One,cursive;font-size:2rem;text-align:center;line-height:50px;color:var(--text)">'+filled+'</span>';
+      }).join('');
+
+      area.innerHTML='<div class="card" id="qCard">'+
+        '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:#2563eb;margin-bottom:4px">📖 Word Building</div>'+
+        '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:6px">Listen to the word and build it!</div>'+
+        '<div style="text-align:center;margin-bottom:6px"><button id="phPlay" style="font-size:2rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
+        '<div style="text-align:center;margin:10px 0">'+slots+'</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0">'+
+        allTiles.map(l=>'<button class="choice-btn pq-tile" data-letter="'+l+'" style="width:48px;height:56px;font-size:1.6rem;font-family:Fredoka One,cursive;padding:4px;min-height:auto">'+l+'</button>').join('')+
+        '</div>'+
+        '<div style="display:flex;gap:8px;justify-content:center;margin-top:6px">'+
+        '<button id="phUndo" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 14px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;color:var(--text2)">⬅ Undo</button>'+
+        '<button id="phCheck" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 14px;border-radius:10px;border:none;background:#2563eb;color:#fff;cursor:pointer'+(built.length<letters.length?';opacity:.4;pointer-events:none':'')+'">Check! ✓</button>'+
+        '</div><div id="jokeArea"></div></div>';
+
+      document.getElementById('phPlay').addEventListener('click',()=>speak(word,0.5,1.0));
+      area.querySelectorAll('.pq-tile').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          if(submitted||built.length>=letters.length) return;
+          built.push(btn.dataset.letter);
+          SFX.play('click');
+          render();
+        });
+      });
+      document.getElementById('phUndo').addEventListener('click',()=>{
+        if(submitted||built.length===0) return;
+        built.pop(); SFX.play('click'); render();
+      });
+      document.getElementById('phCheck').addEventListener('click',()=>{
+        if(submitted||built.length<letters.length) return;
+        submitted=true; this.answering=true;
+        if(built.join('')===word){
+          SFX.play('correct');
+          this.onCorrect({w:word,sent:'___ is spelled!',joke:'You built it!'});
+        }else{
+          SFX.play('wrong');
+          document.getElementById('jokeArea').innerHTML='<div style="text-align:center;margin-top:8px;font-family:Fredoka One,cursive;font-size:1.3rem;color:#2563eb">The word was: '+word+'</div>';
+          this.onWrong({w:word,sent:'___ is spelled!',joke:''});
+        }
+      });
+    };
+
+    render();
+    setTimeout(()=>speak(word,0.5,1.0),500);
   },
 
   // ---- HEALING CENTER ----
