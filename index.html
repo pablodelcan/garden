@@ -661,13 +661,14 @@ function go(name, btn){
   btn.classList.add('on');
 }
 
-// ─── HIDDEN GAME (type "rio" to access) ──────────────────────────
+// ─── HIDDEN GAMES (type name to access) ──────────────────────────
 (function(){
   let buf='';
   document.addEventListener('keydown',e=>{
     buf+=e.key.toLowerCase();
     if(buf.length>10) buf=buf.slice(-10);
     if(buf.includes('rio')) window.location.href='/wordquest.html';
+    if(buf.includes('rosa')) window.location.href='/rosalearns.html';
   });
 })();
 </script>
