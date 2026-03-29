@@ -713,12 +713,12 @@ const G={
     this._modeBeforeShop=this.mode;
     const area=document.getElementById('gameArea');
     const SHOP=[
-      {id:'bluey_plush',name:'Bluey Plush',price:30,desc:'A soft cuddly Bluey!',realPrice:'~$15',url:'https://www.amazon.com/s?k=bluey+plush+toy',img:null},
-      {id:'playdoh',name:'Play-Doh Set',price:50,desc:'Colorful squishy fun!',realPrice:'~$10',url:'https://www.amazon.com/s?k=play+doh+toddler+set',img:null},
-      {id:'crayons',name:'Crayola Kit',price:40,desc:'Coloring is fun!',realPrice:'~$12',url:'https://www.amazon.com/s?k=crayola+toddler+coloring+kit',img:null},
-      {id:'puzzle',name:'Wooden Puzzles',price:60,desc:'Puzzle time!',realPrice:'~$15',url:'https://www.amazon.com/s?k=melissa+doug+toddler+puzzle',img:null},
-      {id:'sticker_book',name:'Sticker Book',price:20,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null},
-      {id:'bluey_figures',name:'Bluey Family Set',price:80,desc:'Bluey, Bingo, Mum & Dad!',realPrice:'~$20',url:'https://www.amazon.com/s?k=bluey+family+figurine+set',img:null},
+      {id:'sticker_book',name:'Sticker Book',price:20,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null,emoji:'⭐'},
+      {id:'puzzle',name:'Safari Puzzles',price:40,desc:'Wooden animal puzzles!',realPrice:'~$10',url:'https://www.amazon.com/Melissa-Doug-Preschool-Full-Color-Pictures/dp/B000B9RHYC',img:'https://m.media-amazon.com/images/I/51sIjUFePwL._AC_SL500_.jpg',emoji:'🧩'},
+      {id:'playdoh',name:'Play-Doh Fun Tub',price:50,desc:'Colorful squishy fun!',realPrice:'~$18',url:'https://www.amazon.com/Playset-Starter-Non-Toxic-Preschool-Exclusive/dp/B00TPMDLOG',img:'https://m.media-amazon.com/images/I/51F+AV8iPYL._AC_SL500_.jpg',emoji:'🎨'},
+      {id:'crayons',name:'Crayola Wonder Kit',price:60,desc:'Mess-free coloring!',realPrice:'~$25',url:'https://www.amazon.com/Crayola-Wonder-Coloring-Amazon-Exclusive/dp/B071G4G3LT',img:'https://m.media-amazon.com/images/I/51sv3H7Zi1L._AC_SL500_.jpg',emoji:'🖍️'},
+      {id:'bluey_figures',name:'Bluey Family Set',price:50,desc:'Bluey, Bingo, Mum & Dad!',realPrice:'~$15',url:'https://www.amazon.com/Bluey-Figure-Pack-Family-Multicolor/dp/B083XNCRS3',img:'https://m.media-amazon.com/images/I/51lVkTgFO-L._AC_SL500_.jpg',emoji:'👨‍👩‍👧‍👦'},
+      {id:'bluey_plush',name:'Bluey Plush (11")',price:80,desc:'A soft cuddly Bluey!',realPrice:'~$30',url:'https://www.amazon.com/Bluey-Plush-Cuddle-Care-Baby/dp/B0DQ6ND4Q2',img:'https://m.media-amazon.com/images/I/410mK1OeyML._AC_SL500_.jpg',emoji:'🐕'},
     ];
     let html='<div style="text-align:center;padding:12px">'+
       '<button onclick="G.backToGame()" style="display:block;margin:0 auto 10px;font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 20px;border-radius:12px;border:none;background:var(--pink);color:#fff;cursor:pointer">← Back to Game</button>'+
@@ -730,9 +730,9 @@ const G={
       const bought=this.purchased.includes(item.id);
       const canBuy=this.gems>=item.price&&!bought;
       const locked=!canBuy&&!bought;
-      const emoji=['🐕','🎨','🖍️','🧩','⭐','👨‍👩‍👧‍👦'][SHOP.indexOf(item)];
+      const imgHtml=item.img?'<img src="'+item.img+'" alt="'+item.name+'" style="width:80px;height:80px;object-fit:contain;border-radius:8px;margin-bottom:4px" onerror="this.outerHTML=\'<div style=font-size:3rem>'+item.emoji+'</div>\'">':'<div style="font-size:3rem;margin-bottom:4px">'+item.emoji+'</div>';
       html+='<div class="shop-item" style="'+(locked?'opacity:.5;filter:grayscale(.5)':'')+'">'+
-        '<div style="font-size:3rem;margin-bottom:4px">'+emoji+'</div>'+
+        imgHtml+
         '<div class="item-name">'+item.name+'</div>'+
         '<div style="font-size:.65rem;color:var(--text2)">'+item.desc+'</div>'+
         (item.realPrice?'<div style="font-size:.55rem;color:#22c55e;font-weight:700">Real: '+item.realPrice+'</div>':'')+
