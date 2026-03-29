@@ -42,6 +42,10 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 .mode-pill img{width:18px;height:18px}
 
 /* GAME AREA */
+.rosa-shop-btn,.rosa-awards-btn{font-family:'Fredoka One',cursive;font-size:.75rem;padding:6px 12px;border-radius:10px;border:none;cursor:pointer;transition:all .2s}
+.rosa-shop-btn{background:#fce7f3;color:#be185d}
+.rosa-awards-btn{background:#fef3c7;color:#92400e}
+.rosa-shop-btn:hover,.rosa-awards-btn:hover{transform:translateY(-1px)}
 .game-area{padding:8px 12px 20px}
 .card{background:#fff;border-radius:20px;padding:20px;box-shadow:0 4px 24px rgba(0,0,0,.06);position:relative}
 .question-text{font-family:'Fredoka One',cursive;font-size:1.3rem;text-align:center;color:var(--text);margin-bottom:16px;line-height:1.4}
@@ -149,6 +153,8 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 <div class="mode-bar" id="modeBar">
   <div class="mode-pill active" id="modeIndicator">🔤 Letters</div>
   <div style="font-weight:700;font-size:.8rem;color:var(--text2)" id="progressLabel">1 / 10</div>
+  <button class="rosa-shop-btn" onclick="G.loadShop()">🎁 Toys</button>
+  <button class="rosa-awards-btn" onclick="G.loadAwards()">🏆</button>
 </div>
 
 <!-- GAME AREA -->
@@ -300,7 +306,8 @@ const G={
   saveGame(){
     try{localStorage.setItem('rosa_save',JSON.stringify({
       score:this.score,streak:this.streak,gems:this.gems,level:this.level,xp:this.xp,
-      totalCorrect:this.totalCorrect,stickers:this.stickers
+      totalCorrect:this.totalCorrect,stickers:this.stickers,
+      maxStreak:this.maxStreak||0,purchased:this.purchased||[]
     }));}catch(e){}
   },
   loadGame(){
@@ -545,6 +552,7 @@ const G={
     SFX.play('star');
     this.changeBuddyMood('happy');
     this.score+=5;this.streak++;this.totalCorrect++;this.modeWins++;
+    if(this.streak>(this.maxStreak||0)) this.maxStreak=this.streak;
     this.xp+=2;this.gems++;
     this.checkLevelUp();
     this.checkSticker();
@@ -583,6 +591,7 @@ const G={
     SFX.play('correct');
     this.changeBuddyMood('happy');
     this.score+=5;this.streak++;this.totalCorrect++;this.modeWins++;
+    if(this.streak>(this.maxStreak||0)) this.maxStreak=this.streak;
     this.xp+=2;this.gems++;
     this.checkLevelUp();
     this.checkSticker();
@@ -696,6 +705,99 @@ const G={
       style.textContent='@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}';
       document.head.appendChild(style);
     }
+  },
+
+  // ---- SHOP ----
+  purchased:[],
+  loadShop(){
+    this._modeBeforeShop=this.mode;
+    const area=document.getElementById('gameArea');
+    const SHOP=[
+      {id:'bluey_plush',name:'Bluey Plush',price:30,desc:'A soft cuddly Bluey!',realPrice:'~$15',url:'https://www.amazon.com/s?k=bluey+plush+toy',img:null},
+      {id:'playdoh',name:'Play-Doh Set',price:50,desc:'Colorful squishy fun!',realPrice:'~$10',url:'https://www.amazon.com/s?k=play+doh+toddler+set',img:null},
+      {id:'crayons',name:'Crayola Kit',price:40,desc:'Coloring is fun!',realPrice:'~$12',url:'https://www.amazon.com/s?k=crayola+toddler+coloring+kit',img:null},
+      {id:'puzzle',name:'Wooden Puzzles',price:60,desc:'Puzzle time!',realPrice:'~$15',url:'https://www.amazon.com/s?k=melissa+doug+toddler+puzzle',img:null},
+      {id:'sticker_book',name:'Sticker Book',price:20,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null},
+      {id:'bluey_figures',name:'Bluey Family Set',price:80,desc:'Bluey, Bingo, Mum & Dad!',realPrice:'~$20',url:'https://www.amazon.com/s?k=bluey+family+figurine+set',img:null},
+    ];
+    let html='<div style="text-align:center;padding:12px">'+
+      '<button onclick="G.backToGame()" style="display:block;margin:0 auto 10px;font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 20px;border-radius:12px;border:none;background:var(--pink);color:#fff;cursor:pointer">← Back to Game</button>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--pink);margin-bottom:4px">🎁 Rosa\'s Toy Shop!</div>'+
+      '<div style="font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:8px">Earn gems to unlock real toys!</div>'+
+      '<div style="background:#fce7f3;border-radius:12px;padding:8px;margin-bottom:12px;font-family:Fredoka One,cursive;font-size:1rem;color:#be185d">💎 Your gems: '+this.gems+'</div>'+
+      '<div class="shop-grid">';
+    SHOP.forEach(item=>{
+      const bought=this.purchased.includes(item.id);
+      const canBuy=this.gems>=item.price&&!bought;
+      const locked=!canBuy&&!bought;
+      const emoji=['🐕','🎨','🖍️','🧩','⭐','👨‍👩‍👧‍👦'][SHOP.indexOf(item)];
+      html+='<div class="shop-item" style="'+(locked?'opacity:.5;filter:grayscale(.5)':'')+'">'+
+        '<div style="font-size:3rem;margin-bottom:4px">'+emoji+'</div>'+
+        '<div class="item-name">'+item.name+'</div>'+
+        '<div style="font-size:.65rem;color:var(--text2)">'+item.desc+'</div>'+
+        (item.realPrice?'<div style="font-size:.55rem;color:#22c55e;font-weight:700">Real: '+item.realPrice+'</div>':'')+
+        '<div class="item-price">💎 '+item.price+' gems</div>'+
+        (bought?'<div style="font-size:.7rem;color:#22c55e;font-weight:800">Earned! ✅</div>'+
+          '<a href="'+item.url+'" target="_blank" style="font-size:.6rem;color:var(--pink)">View on Amazon</a>'
+        :canBuy?'<button onclick="G.buyRosaItem(\''+item.id+'\','+item.price+')" style="font-family:Fredoka One,cursive;font-size:.75rem;padding:6px 12px;border-radius:8px;border:none;background:var(--pink);color:#fff;cursor:pointer;margin-top:4px">Buy! 🎉</button>'
+        :'<div style="font-size:.6rem;color:var(--text2);font-weight:600;margin-top:4px">Need '+(item.price-this.gems)+' more 💎</div>')+
+        '</div>';
+    });
+    html+='</div></div>';
+    area.innerHTML=html;
+  },
+
+  buyRosaItem(id,price){
+    if(this.gems<price||this.purchased.includes(id)) return;
+    this.gems-=price;
+    this.purchased.push(id);
+    SFX.play('fanfare');
+    this.fireConfetti();
+    this.updateHUD();
+    this.saveGame();
+    this.loadShop();
+  },
+
+  backToGame(){
+    this.mode=this._modeBeforeShop||this.GAME_MODES[0];
+    this.updateModeBar();
+    this.loadMode(this.mode);
+  },
+
+  // ---- AWARDS ----
+  ACHIEVEMENTS:[
+    {id:'first_star',name:'First Star!',desc:'Get your first answer right',icon:'⭐',check:g=>g.totalCorrect>=1},
+    {id:'ten_correct',name:'Super Learner',desc:'Get 10 answers right',icon:'🌟',check:g=>g.totalCorrect>=10},
+    {id:'fifty_correct',name:'Brain Power!',desc:'Get 50 answers right',icon:'🧠',check:g=>g.totalCorrect>=50},
+    {id:'hundred_correct',name:'Reading Rockstar',desc:'Get 100 answers right',icon:'🎸',check:g=>g.totalCorrect>=100},
+    {id:'streak_3',name:'Three in a Row!',desc:'Get 3 correct in a row',icon:'🔥',check:g=>g.maxStreak>=3},
+    {id:'streak_5',name:'High Five!',desc:'Get 5 correct in a row',icon:'🖐️',check:g=>g.maxStreak>=5},
+    {id:'streak_10',name:'Unstoppable!',desc:'Get 10 correct in a row',icon:'💪',check:g=>g.maxStreak>=10},
+    {id:'level_3',name:'Level 3!',desc:'Reach level 3',icon:'🏅',check:g=>g.level>=3},
+    {id:'level_5',name:'Level 5!',desc:'Reach level 5',icon:'🏆',check:g=>g.level>=5},
+    {id:'sticker_5',name:'Sticker Fan',desc:'Earn 5 stickers',icon:'🌈',check:g=>g.stickers.length>=5},
+    {id:'sticker_15',name:'Sticker Star',desc:'Earn 15 stickers',icon:'✨',check:g=>g.stickers.length>=15},
+    {id:'gems_50',name:'Gem Collector',desc:'Earn 50 gems total',icon:'💎',check:g=>g.gems>=50},
+  ],
+  maxStreak:0,
+
+  loadAwards(){
+    this._modeBeforeShop=this.mode;
+    const area=document.getElementById('gameArea');
+    let html='<div style="text-align:center;padding:12px">'+
+      '<button onclick="G.backToGame()" style="display:block;margin:0 auto 10px;font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 20px;border-radius:12px;border:none;background:#f59e0b;color:#fff;cursor:pointer">← Back to Game</button>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#f59e0b;margin-bottom:12px">🏆 Rosa\'s Awards!</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+    this.ACHIEVEMENTS.forEach(a=>{
+      const earned=a.check(this);
+      html+='<div style="background:'+(earned?'#fef3c7':'#f8fafc')+';border-radius:14px;padding:10px;text-align:center;border:2px solid '+(earned?'#fbbf24':'#e2e8f0')+'">'+
+        '<div style="font-size:2rem;'+(earned?'':'filter:grayscale(1);opacity:.3')+'">'+a.icon+'</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:.6rem;color:'+(earned?'var(--text)':'#cbd5e1')+';margin-top:2px">'+a.name+'</div>'+
+        '<div style="font-size:.5rem;color:'+(earned?'var(--text2)':'#e2e8f0')+'">'+a.desc+'</div>'+
+        '</div>';
+    });
+    html+='</div></div>';
+    area.innerHTML=html;
   },
 
   speakCurrent(){
