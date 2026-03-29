@@ -891,6 +891,12 @@ const SHOP_ITEMS = [
   {id:'poke_lunchbox',name:'Pokémon Lunch Box',price:250,desc:'Insulated lunch box!',realPrice:'~$15',url:'https://www.amazon.com/THERMOS-Pokemon-Faves-Insulated-Lunch/dp/B0C927C1H8',img:'https://m.media-amazon.com/images/I/41+MEinLenL._AC_SL500_.jpg',svg:PH},
   {id:'poke_pajamas',name:'Pokémon Pajamas',price:300,desc:'PJs with Pikachu!',realPrice:'~$17',url:'https://www.amazon.com/Pokemon-Pajamas-Piece-Sleepwear-Black/dp/B0D7F4GXZR',img:'https://m.media-amazon.com/images/I/418GwSTocLL._AC_SL500_.jpg',svg:PH},
   {id:'poke_mega_build',name:'MEGA Pokémon Building Set',price:1000,desc:'450 pieces! Build Pikachu & Eevee!',realPrice:'~$70',url:'https://www.amazon.com/Mega-Brands-POK-LET-Building/dp/B07XB3J7DX',img:'https://m.media-amazon.com/images/I/61EB8ZNZqiL._AC_SL500_.jpg',svg:PH},
+  // --- SPRIGATITO & MEOWSCARADA (Río's favorites — high rewards!) ---
+  {id:'sprig_cards',name:'Sprigatito Evolution Cards',price:100,desc:'Sprigatito → Floragato → Meowscarada!',realPrice:'~$5',url:'https://www.amazon.com/Meowscarada-015-198-Evolution-Sprigatito/dp/B0BZN74MML',img:'https://m.media-amazon.com/images/I/41jfQv7IEDL._AC_SL500_.jpg',svg:PH},
+  {id:'sprig_plush',name:'Sprigatito Plush (8")',price:500,desc:'A soft cuddly Sprigatito!',realPrice:'~$30',url:'https://www.amazon.com/Pokemon-Pok%C3%A9mon-Sprigatito-Plush-Authentic/dp/B0BTB3BS4T',img:'https://m.media-amazon.com/images/I/319XOexrBGL._AC_SL500_.jpg',svg:PH},
+  {id:'sprig_costume',name:'Sprigatito Costume',price:1000,desc:'Become Sprigatito for Halloween!',realPrice:'~$33',url:'https://www.amazon.com/Disguise-Sprigatito-Costume-Official-Jumpsuit/dp/B0DCXGC5BF',img:'https://m.media-amazon.com/images/I/31H5fvGd-hL._AC_SL500_.jpg',svg:PH},
+  {id:'meow_premium',name:'Meowscarada ex Premium Box',price:1500,desc:'Cards + figure + playmat!',realPrice:'~$48',url:'https://www.amazon.com/Pokemon-Scarlet-Paldean-Collection-Meowscarada/dp/B0CQDG6YMS',img:'https://m.media-amazon.com/images/I/51QQZsmM4sL._AC_SL500_.jpg',svg:PH},
+  {id:'meow_plush',name:'Meowscarada Plush (16")',price:2000,desc:'The ULTIMATE plush! Huge and amazing!',realPrice:'~$80',url:'https://www.amazon.com/Pok%C3%A9mon-Center-Meowscarada-Pok%C3%A9-Plush/dp/B0CHZY9KPP',img:'https://m.media-amazon.com/images/I/41w6qzBfFiL._AC_SL500_.jpg',svg:PH},
 ];
 
 // ========================================================
@@ -3106,16 +3112,21 @@ const G = {
   // Exercise 1: SOUND BLENDING — hear sounds, pick the word
   loadPhonicsBlend(area){
     const pw=this.pickPhonicsWord();
-    const wrongs=this.PHONICS_WORDS.filter(x=>x.w!==pw.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+    // Pick SIMILAR wrong choices (same length, share some letters)
+    const sameLen=this.PHONICS_WORDS.filter(x=>x.w!==pw.w&&x.w.length===pw.w.length);
+    const similar=sameLen.length>=3?sameLen:this.PHONICS_WORDS.filter(x=>x.w!==pw.w);
+    const wrongs=similar.sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
     const choices=shuffle([pw.w,...wrongs]);
+    const numSounds=pw.sounds.length;
 
     area.innerHTML='<div class="card" id="qCard">'+
       '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:#2563eb;margin-bottom:4px">📖 Sound Blending</div>'+
-      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:8px">Listen to the sounds. What word do they make?</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:8px">Listen carefully! What word do the sounds make?</div>'+
       '<div style="text-align:center;margin-bottom:8px"><button id="phPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
       '<div id="soundBoxes" style="display:flex;justify-content:center;gap:8px;margin-bottom:12px">'+
-      pw.sounds.map(s=>'<div class="sound-box" style="background:#dbeafe;border:2px solid #93c5fd;border-radius:12px;padding:10px 14px;font-family:Fredoka One,cursive;font-size:1.4rem;color:#1d4ed8;min-width:44px;text-align:center;opacity:.3;transition:all .3s">'+s+'</div>').join('')+
+      pw.sounds.map((_,i)=>'<div class="sound-box" style="background:#dbeafe;border:2px solid #93c5fd;border-radius:12px;padding:14px 16px;font-size:1.8rem;min-width:48px;text-align:center;opacity:.3;transition:all .3s">🔉</div>').join('')+
       '</div>'+
+      '<div style="text-align:center;font-size:.75rem;color:var(--text2);margin-bottom:6px">'+numSounds+' sounds — tap 🔊 to listen again</div>'+
       '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1.2rem;margin-bottom:8px;color:var(--text)">→ What word? ←</div>'+
       '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+'</div>'+
       '<div id="jokeArea"></div></div>';
@@ -3126,19 +3137,19 @@ const G = {
       let i=0;
       const sayNext=()=>{
         if(i>=pw.sounds.length){
-          // After all sounds, say "blend it!"
           setTimeout(()=>{
             speak('What word?',0.8,1.1);
-            boxes.forEach(b=>b.style.opacity='1');
+            boxes.forEach(b=>{b.style.opacity='1';b.textContent='🔊';});
           },400);
           return;
         }
-        boxes.forEach((b,j)=>b.style.opacity=j===i?'1':'0.3');
+        boxes.forEach((b,j)=>{b.style.opacity=j===i?'1':'0.3';b.textContent='🔉';});
+        boxes[i].textContent='🔊';
         boxes[i].style.transform='scale(1.15)';
-        speak(pw.sounds[i],0.6,1.0,()=>{
+        speak(pw.sounds[i],0.55,1.0,()=>{
           boxes[i].style.transform='';
           i++;
-          setTimeout(sayNext,300);
+          setTimeout(sayNext,400);
         });
       };
       sayNext();
