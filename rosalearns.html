@@ -356,6 +356,43 @@ const G={
     }
   },
 
+  // Read question aloud, then read each choice while highlighting it
+  speakAndHighlight(question, choices, answerVal){
+    const btns=document.querySelectorAll('.big-btn');
+    // Disable all buttons initially
+    btns.forEach(b=>{b.style.opacity='.4';b.style.pointerEvents='none';b.style.transition='all .3s';});
+    // Read the question first
+    speak(question, 0.75, 1.1, ()=>{
+      // Then read each choice with a highlight
+      let i=0;
+      const readNext=()=>{
+        if(i>=btns.length){
+          // All read — enable all buttons
+          btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';b.style.transform='';b.style.boxShadow='';});
+          speak("Now tap the right answer!", 0.85, 1.15);
+          return;
+        }
+        const btn=btns[i];
+        // Highlight this button
+        btn.style.opacity='1';
+        btn.style.transform='scale(1.1)';
+        btn.style.boxShadow='0 0 20px rgba(244,114,182,.5)';
+        // Read its label
+        const label=btn.querySelector('.big-btn-label');
+        const text=label?label.textContent:btn.textContent.trim();
+        speak(text, 0.8, 1.1, ()=>{
+          // Un-highlight
+          btn.style.transform='';
+          btn.style.boxShadow='';
+          btn.style.opacity='.4';
+          i++;
+          setTimeout(readNext, 300);
+        });
+      };
+      setTimeout(readNext, 400);
+    });
+  },
+
   thinkFirst(container, seconds=2){
     const choices=container.querySelector('.big-choices');
     if(!choices) return;
@@ -389,9 +426,8 @@ const G={
       choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span style="font-size:3rem">'+c+'</span></button>').join('')+
       '</div></div>';
 
-    speak("What letter is this? "+target+"!",0.75,1.1);
     this.setupChoices(target);
-    this.thinkFirst(document.getElementById('qCard'),2);
+    this.speakAndHighlight("What letter is this? "+target+"! "+target+" is for "+word, choices, target);
   },
 
   // =============== NUMBER MODE ===============
@@ -411,9 +447,8 @@ const G={
       choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span class="big-number" style="font-size:3rem;margin:0">'+c+'</span></button>').join('')+
       '</div></div>';
 
-    speak("How many dots? Count them!",0.75,1.1);
     this.setupChoices(String(target));
-    this.thinkFirst(document.getElementById('qCard'),2);
+    this.speakAndHighlight("How many dots? Count them! There are "+target+" dots!", choices, String(target));
   },
 
   // =============== COLOR MODE ===============
@@ -431,9 +466,8 @@ const G={
       choices.map(c=>'<button class="big-btn" data-val="'+c.name+'"><span style="font-size:2rem">'+c.emoji+'</span><span class="big-btn-label">'+c.name+'</span></button>').join('')+
       '</div></div>';
 
-    speak("What color is this?",0.75,1.1);
     this.setupChoices(target.name);
-    this.thinkFirst(document.getElementById('qCard'),2);
+    this.speakAndHighlight("What color is this?", choices.map(c=>c.name), target.name);
   },
 
   // =============== SHAPE MODE ===============
@@ -453,9 +487,8 @@ const G={
       choices.map(c=>'<button class="big-btn" data-val="'+c.name+'"><span style="font-size:2rem">'+c.emoji+'</span><span class="big-btn-label">'+c.name+'</span></button>').join('')+
       '</div></div>';
 
-    speak("What shape is this?",0.75,1.1);
     this.setupChoices(target.name);
-    this.thinkFirst(document.getElementById('qCard'),2);
+    this.speakAndHighlight("What shape is this?", choices.map(c=>c.name), target.name);
   },
 
   // =============== MATCHING MODE ===============
