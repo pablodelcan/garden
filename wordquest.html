@@ -79,6 +79,8 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .tab:hover:not(.active){background:#fff7ed}
 .mode-indicator{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--accent);background:#fff7ed;padding:7px 14px;border-radius:12px;border:2px solid var(--accent);white-space:nowrap}
 .mode-progress{font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;color:var(--text2);background:#f1f5f9;padding:6px 12px;border-radius:10px;white-space:nowrap}
+.tab.quiz-tab{background:#ede9fe;color:#6d28d9;border:2px solid #a78bfa}
+.tab.quiz-tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
 .tab.shop-tab{background:#fef3c7;color:#92400e;border:2px solid #fbbf24}
 .tab.shop-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mode-icon{width:20px;height:20px;vertical-align:middle;margin-right:2px}
@@ -348,6 +350,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 <div class="tabs" id="tabs">
   <div class="mode-indicator" id="modeIndicator"><img src="sprites/mode_fillin.png" class="mode-icon"> Fill In</div>
   <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 15</div>
+  <button class="tab quiz-tab" data-mode="popquiz">🎧 Pop Quiz</button>
   <button class="tab shop-tab" data-mode="shop"><img src="sprites/mode_shop.png" class="mode-icon"> Shop</button>
 </div>
 
@@ -809,18 +812,28 @@ const ACHIEVEMENTS = [
   {id:'secret_1',name:'Code Cracker',desc:'Find a secret Wordmon!',icon:'sprites/badge_collector.png',check:g=>g.secretsCaught>=1},
 ];
 
-// SILLY MAD LIBS TEMPLATES
+// SILLY MAD LIBS TEMPLATES — each slot has a CATEGORY for funny word picks
+const ML_WORDS = {
+  animal:['dragon','unicorn','frog','dinosaur','chicken','pig','zombie','creeper','slime','Pikachu','skeleton','spider','goat','octopus'],
+  bodypart:['butt','nose','armpit','belly button','elbow','toenail','eyeball','tongue','ear','knee'],
+  food:['burrito','pizza','booger pie','taco','spaghetti','stinky cheese','hot dog','jelly beans','rotten egg','pickle'],
+  adj:['stinky','slimy','sparkly','giant','tiny','hairy','invisible','glowing','upside-down','exploding','farty','wiggly','screaming'],
+  action:['farted','burped','sneezed','danced','exploded','melted','flew away','turned green','started singing','fell asleep','did a backflip'],
+  place:['toilet','school','moon','bathtub','volcano','Minecraft','gym','spaceship','swimming pool','jungle'],
+};
 const MAD_LIBS = [
-  {template:'The _1_ farted on the _2_ and it flew to the moon!',slots:2},
-  {template:'A _1_ ate a _2_ sandwich and burped really loud!',slots:2},
-  {template:'My _1_ is secretly a _2_ superhero!',slots:2},
-  {template:'The teacher found a _1_ _2_ in her lunchbox!',slots:2},
-  {template:'A _1_ and a _2_ had a burping contest!',slots:2},
-  {template:'I dreamed my _1_ turned into a giant _2_!',slots:2},
-  {template:'The _1_ pooped a rainbow on the _2_!',slots:2},
-  {template:'A _1_ danced on a _2_ while singing!',slots:2},
-  {template:'The _1_ put underwear on the _2_!',slots:2},
-  {template:'My _1_ sneezed and a _2_ came out!',slots:2},
+  {template:'The _adj_ _animal_ _action_ on the _place_!', cats:['adj','animal','action','place']},
+  {template:'A _animal_ ate a _food_ and _action_!', cats:['animal','food','action']},
+  {template:'My _bodypart_ is secretly a _adj_ _animal_!', cats:['bodypart','adj','animal']},
+  {template:'The teacher found a _adj_ _food_ in her _bodypart_!', cats:['adj','food','bodypart']},
+  {template:'A _animal_ and a _animal_ had a _adj_ burping contest in the _place_!', cats:['animal','animal','adj','place']},
+  {template:'I dreamed my _bodypart_ turned into a _adj_ _animal_!', cats:['bodypart','adj','animal']},
+  {template:'The _animal_ pooped a _adj_ rainbow on the _place_!', cats:['animal','adj','place']},
+  {template:'A _adj_ _animal_ put underwear on a _animal_!', cats:['adj','animal','animal']},
+  {template:'My _animal_ sneezed and a _food_ came out of its _bodypart_!', cats:['animal','food','bodypart']},
+  {template:'Steve found a _adj_ _food_ inside a _animal_ at the _place_!', cats:['adj','food','animal','place']},
+  {template:'The _animal_ sat on my _bodypart_ and _action_!', cats:['animal','bodypart','action']},
+  {template:'A _adj_ _animal_ rode a _animal_ to the _place_ while eating _food_!', cats:['adj','animal','animal','place','food']},
 ];
 
 // ========================================================
@@ -1089,7 +1102,7 @@ const G = {
 
   MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop'},
   MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',popquiz:'Pop Quiz',shop:'Shop'},
-  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong','popquiz'],
+  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong'],
 
   updateModeBar(){
     const mi=document.getElementById('modeIndicator');
@@ -1100,13 +1113,24 @@ const G = {
   },
 
   setupTabs(){
-    // only the shop button is clickable now
+    // Shop button
     document.querySelectorAll('.tab[data-mode="shop"]').forEach(t=>{
       t.addEventListener('click',()=>{
         if(this.answering) return;
         if(this.mode!=='shop') this._modeBeforeShop=this.mode;
         this.mode='shop';
         this.loadMode('shop');
+      });
+    });
+    // Pop Quiz button — always available, doesn't affect mode rotation
+    document.querySelectorAll('.tab[data-mode="popquiz"]').forEach(t=>{
+      t.addEventListener('click',()=>{
+        if(this.answering) return;
+        if(this.mode!=='popquiz'&&this.mode!=='shop') this._modeBeforeShop=this.mode;
+        this.clearPendingWord();
+        this.mode='popquiz';
+        this.updateModeBar();
+        this.loadMode('popquiz');
       });
     });
   },
@@ -2813,38 +2837,52 @@ const G = {
   // ---- MAD LIBS ----
   showMadLib(){
     const ml=MAD_LIBS[Math.floor(Math.random()*MAD_LIBS.length)];
-    const recentWords=WORDS.sort(()=>Math.random()-.5).slice(0,8).map(w=>w.w);
     const area=document.getElementById('gameArea');
     let selectedWords=[];
     let step=0;
+    const totalSlots=ml.cats.length;
 
     const render=()=>{
+      // Replace category placeholders in order
       let display=ml.template;
-      for(let i=1;i<=ml.slots;i++){
-        if(selectedWords[i-1]) display=display.replace('_'+i+'_','<span style="color:var(--accent);font-weight:800;text-decoration:underline">'+selectedWords[i-1]+'</span>');
-        else display=display.replace('_'+i+'_','<span style="color:var(--accent);font-weight:800">______</span>');
+      let slotIdx=0;
+      display=display.replace(/_(animal|bodypart|food|adj|action|place)_/g, (match)=>{
+        if(selectedWords[slotIdx]!==undefined){
+          const w=selectedWords[slotIdx];
+          slotIdx++;
+          return '<span style="color:var(--accent);font-weight:800;text-decoration:underline">'+w+'</span>';
+        }
+        slotIdx++;
+        return '<span style="color:var(--accent);font-weight:800">______</span>';
+      });
+
+      // Get category-appropriate choices for current step
+      let choiceHtml='';
+      if(step<totalSlots){
+        const cat=ml.cats[step];
+        const catLabel={animal:'🐾 Pick an animal:',bodypart:'🦶 Pick a body part:',food:'🍕 Pick a food:',adj:'✨ Pick a describing word:',action:'💥 Pick what happened:',place:'📍 Pick a place:'}[cat]||'Pick a word:';
+        const pool=ML_WORDS[cat]||[];
+        const picks=shuffle(pool).slice(0,6);
+        choiceHtml='<div style="font-size:.9rem;color:var(--text2);margin-bottom:8px;font-weight:600">'+catLabel+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+
+          picks.map(w=>'<button class="choice-btn" style="min-width:auto;padding:8px 16px;font-size:1.1rem" onclick="G._pickMadLib(\''+w.replace(/'/g,"\\'")+'\')">'+w+'</button>').join('')+'</div>';
+      } else {
+        choiceHtml='<div style="font-size:1rem;color:#22c55e;font-weight:700;margin:8px 0">😂 Read it out loud! So silly!</div>'+
+          '<button onclick="G.loadMode(G.mode)" style="margin:12px auto;display:block;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Back to Reading! →</button>';
       }
-      const wordChoices=shuffle(recentWords).slice(0,6);
+
       area.innerHTML='<div class="card" style="text-align:center;padding:20px">'+
         '<img src="sprites/rio_trainer_reading.png" style="width:70px;height:70px;margin:0 auto 8px;display:block" onerror="this.style.display=\'none\'">'+
         '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--accent);margin-bottom:8px">😂 Silly Story Time!</div>'+
         '<div style="font-size:1.3rem;font-weight:700;line-height:1.6;margin-bottom:16px">'+display+'</div>'+
-        (step<ml.slots?
-          '<div style="font-size:.9rem;color:var(--text2);margin-bottom:8px;font-weight:600">Pick word #'+(step+1)+':</div>'+
-          '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+
-          wordChoices.map(w=>'<button class="choice-btn" style="min-width:auto;padding:8px 16px;font-size:1.1rem" onclick="G._pickMadLib(\''+w+'\')">'+w+'</button>').join('')+'</div>'
-        :
-          '<div style="font-size:1rem;color:#22c55e;font-weight:700;margin:8px 0">😂 Read it out loud!</div>'+
-          '<button onclick="G.loadMode(G.mode)" style="margin:12px auto;display:block;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Back to Reading! →</button>'
-        )+
-        '</div>';
+        choiceHtml+'</div>';
     };
 
     this._pickMadLib=(w)=>{
       selectedWords.push(w);
       step++;
       SFX.play('click');
-      if(step>=ml.slots) SFX.play('fanfare');
+      if(step>=totalSlots){SFX.play('fanfare');this.fireConfetti();}
       render();
     };
     render();
