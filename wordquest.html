@@ -81,6 +81,8 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .mode-progress{font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;color:var(--text2);background:#f1f5f9;padding:6px 12px;border-radius:10px;white-space:nowrap}
 .tab.quiz-tab{background:#ede9fe;color:#6d28d9;border:2px solid #a78bfa}
 .tab.quiz-tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.tab.heal-tab{background:#fce7f3;color:#be185d;border:2px solid #f9a8d4}
+.tab.heal-tab.active{background:#ec4899;color:#fff;border-color:#ec4899}
 .tab.shop-tab{background:#fef3c7;color:#92400e;border:2px solid #fbbf24}
 .tab.shop-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mode-icon{width:20px;height:20px;vertical-align:middle;margin-right:2px}
@@ -351,6 +353,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
   <div class="mode-indicator" id="modeIndicator"><img src="sprites/mode_fillin.png" class="mode-icon"> Fill In</div>
   <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 15</div>
   <button class="tab quiz-tab" data-mode="popquiz">🎧 Pop Quiz</button>
+  <button class="tab heal-tab" data-mode="heal">🏥 Heal</button>
   <button class="tab shop-tab" data-mode="shop"><img src="sprites/mode_shop.png" class="mode-icon"> Shop</button>
 </div>
 
@@ -1029,6 +1032,7 @@ const G = {
   purchased:[],
   // new features
   maxStreak:0, bossesDefeated:0, secretsCaught:0, popQuizWins:0,
+  wordmonHpMap:{}, // persistent HP tracking: {wordmonIdx: currentHp}
   unlockedAchievements:[], isBossBattle:false,
   currentZone:0,
   ZONES:['Forest','Ocean','Volcano','Crystal Cave','Sky Kingdom','Snowlands','Castle','Space'],
@@ -1065,7 +1069,7 @@ const G = {
       mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0,
       maxStreak:this.maxStreak||0,bossesDefeated:this.bossesDefeated||0,
       secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
-      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0};
+      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{}};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
   },
   loadGame(){
@@ -1094,6 +1098,7 @@ const G = {
       if(d.currentZone!==undefined) this.currentZone=d.currentZone;
       if(d.wordStats) this.wordStats=d.wordStats;
       if(d.popQuizWins!==undefined) this.popQuizWins=d.popQuizWins;
+      if(d.wordmonHpMap) this.wordmonHpMap=d.wordmonHpMap;
     }catch(e){}
   },
 
@@ -1123,15 +1128,24 @@ const G = {
         this.loadMode('shop');
       });
     });
-    // Pop Quiz button — always available, doesn't affect mode rotation
+    // Pop Quiz button
     document.querySelectorAll('.tab[data-mode="popquiz"]').forEach(t=>{
       t.addEventListener('click',()=>{
         if(this.answering) return;
-        if(this.mode!=='popquiz'&&this.mode!=='shop') this._modeBeforeShop=this.mode;
+        if(this.mode!=='popquiz'&&this.mode!=='shop'&&this.mode!=='heal') this._modeBeforeShop=this.mode;
         this.clearPendingWord();
         this.mode='popquiz';
         this.updateModeBar();
         this.loadMode('popquiz');
+      });
+    });
+    // Healing Center button
+    document.querySelectorAll('.tab[data-mode="heal"]').forEach(t=>{
+      t.addEventListener('click',()=>{
+        if(this.answering) return;
+        if(this.mode!=='popquiz'&&this.mode!=='shop'&&this.mode!=='heal') this._modeBeforeShop=this.mode;
+        this.mode='heal';
+        this.loadHealingCenter();
       });
     });
   },
@@ -1193,7 +1207,7 @@ const G = {
     this.enemyHp = this.enemyMaxHp;
     const wm = this.getWordmon(this.activeWordmon);
     this.playerMaxHp = wm.hp;
-    this.playerHp = wm.hp;
+    this.playerHp = this.getWordmonHp(this.activeWordmon);
     // Set battle background
     const bg = this.currentEnemy.bg || BATTLE_BGS[this.enemyIdx % BATTLE_BGS.length];
     const scene = document.getElementById('battleScene');
@@ -1281,7 +1295,40 @@ const G = {
     this.lives--;
     if(this.lives<=0) this.lives=3;
     this.streak=0;
+    // Save damage to active Wordmon — they stay hurt until healed!
+    const wm=this.getWordmon(this.activeWordmon);
+    const hurtHp=Math.max(1, Math.floor(wm.hp * 0.6)); // keep 60% HP
+    this.wordmonHpMap[this.activeWordmon]=hurtHp;
     setTimeout(()=>{banner.remove();this.spawnEnemy();this.updateHUD();},1500);
+  },
+
+  // Get a Wordmon's current HP (from persistent map or max)
+  getWordmonHp(idx){
+    const wm=this.getWordmon(idx);
+    if(this.wordmonHpMap[idx]!==undefined) return this.wordmonHpMap[idx];
+    return wm.hp;
+  },
+
+  // Get words Río has failed (for healing center)
+  getFailedWords(){
+    const failed=[];
+    for(const[w,s] of Object.entries(this.wordStats||{})){
+      if(s.wrong>0) failed.push(w);
+    }
+    // if no failed words yet, use random words
+    if(failed.length<4) return WORDS.sort(()=>Math.random()-.5).slice(0,6).map(w=>w.w);
+    return shuffle(failed);
+  },
+
+  // Get hurt Wordmons
+  getHurtWordmons(){
+    const hurt=[];
+    this.caughtWordmons.forEach(idx=>{
+      const wm=this.getWordmon(idx);
+      const hp=this.getWordmonHp(idx);
+      if(hp<wm.hp) hurt.push({idx,wm,hp,maxHp:wm.hp});
+    });
+    return hurt;
   },
 
   // ---- XP / LEVEL ----
@@ -2973,6 +3020,121 @@ const G = {
       '<div style="font-family:Fredoka One,cursive;font-size:.85rem;color:var(--text)">'+m.text+'</div>';
     document.body.appendChild(toast);
     setTimeout(()=>toast.remove(),2500);
+  },
+
+  // ---- HEALING CENTER ----
+  loadHealingCenter(){
+    const area=document.getElementById('gameArea');
+    const hurt=this.getHurtWordmons();
+
+    if(hurt.length===0){
+      area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+        '<div style="font-size:3rem;margin-bottom:8px">🏥</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.3rem;color:#ec4899;margin-bottom:8px">Healing Center</div>'+
+        '<div style="font-size:1rem;color:var(--text2);font-weight:600;margin-bottom:16px">All your Wordmons are healthy! 💚<br>No one needs healing right now.</div>'+
+        '<button onclick="G.backToGame()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">← Back to Game</button></div>';
+      return;
+    }
+
+    // Show hurt Wordmons and let player pick one to heal
+    let html='<div class="card" style="padding:16px">'+
+      '<div style="text-align:center;font-size:2.5rem;margin-bottom:4px">🏥</div>'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1.2rem;color:#ec4899;margin-bottom:4px">Healing Center</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:12px">Your Wordmons are hurt! Answer correctly to heal them.</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px">';
+    hurt.forEach(h=>{
+      const pct=Math.round(h.hp/h.maxHp*100);
+      const barColor=pct>50?'#22c55e':pct>25?'#eab308':'#ef4444';
+      html+='<div class="heal-card" onclick="G.startHealing('+h.idx+')" style="background:#fff;border-radius:14px;padding:10px;width:110px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;border:2px solid #fce7f3;transition:all .2s">'+
+        this.spriteHtml(h.wm,60)+
+        '<div style="font-family:Fredoka One,cursive;font-size:.7rem;margin-top:4px">'+h.wm.name+'</div>'+
+        '<div style="background:#f1f5f9;border-radius:4px;height:8px;overflow:hidden;margin-top:4px"><div style="background:'+barColor+';height:100%;width:'+pct+'%;border-radius:4px"></div></div>'+
+        '<div style="font-size:.6rem;color:var(--text2);font-weight:700">'+h.hp+'/'+h.maxHp+' HP</div>'+
+        '</div>';
+    });
+    html+='</div>'+
+      '<div style="text-align:center"><button onclick="G.backToGame()" style="font-family:Fredoka One,cursive;font-size:.85rem;padding:8px 18px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">← Back to Game</button></div></div>';
+    area.innerHTML=html;
+  },
+
+  startHealing(idx){
+    const wm=this.getWordmon(idx);
+    const maxHp=wm.hp;
+    const currentHp=this.getWordmonHp(idx);
+    const failedWords=this.getFailedWords();
+    const area=document.getElementById('gameArea');
+    let healed=currentHp;
+    let round=0;
+    const totalRounds=Math.min(5, Math.ceil((maxHp-currentHp)/3));
+
+    const loadHealQuestion=()=>{
+      if(round>=totalRounds || healed>=maxHp){
+        // Healing complete!
+        this.wordmonHpMap[idx]=Math.min(healed,maxHp);
+        if(healed>=maxHp) delete this.wordmonHpMap[idx]; // fully healed = remove from map
+        this.saveGame();
+        SFX.play('victory');
+        if(healed>=maxHp) this.fireConfetti();
+        area.innerHTML='<div class="card" style="text-align:center;padding:20px">'+
+          '<div style="font-size:2rem;margin-bottom:8px">'+(healed>=maxHp?'💚':'💛')+'</div>'+
+          this.spriteHtml(wm,90)+
+          '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:'+(healed>=maxHp?'#22c55e':'#eab308')+';margin:8px 0">'+(healed>=maxHp?wm.name+' is fully healed!':wm.name+' feels better! ('+healed+'/'+maxHp+' HP)')+'</div>'+
+          '<div style="font-size:.9rem;color:var(--text2);margin-bottom:12px">'+(healed>=maxHp?'"Thank you for healing me!"':'"I need a bit more rest..."')+'</div>'+
+          '<button onclick="G.loadHealingCenter()" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:10px 20px;border-radius:12px;border:none;background:#ec4899;color:#fff;cursor:pointer">Back to Healing Center</button></div>';
+        return;
+      }
+
+      // Pick a failed word or random word
+      const wordStr=failedWords[round%failedWords.length]||'the';
+      const wd=WORDS.find(w=>w.w===wordStr)||WORDS[Math.floor(Math.random()*WORDS.length)];
+      const sent=wd.sent.replace('___','<span class="blank">_____</span>');
+      const wrongs=WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+      const choices=shuffle([wd.w,...wrongs]);
+      const hpPct=Math.round(healed/maxHp*100);
+
+      area.innerHTML='<div class="card" id="qCard">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;justify-content:center">'+
+        '<span style="font-size:1.5rem">🏥</span>'+
+        '<span style="font-family:Fredoka One,cursive;font-size:1rem;color:#ec4899">Healing '+wm.name+'</span>'+
+        '<span style="font-size:.75rem;color:var(--text2);font-weight:700">('+Math.round(round+1)+'/'+totalRounds+')</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:10px">'+
+        this.spriteHtml(wm,50)+
+        '<div style="width:120px">'+
+        '<div style="background:#f1f5f9;border-radius:6px;height:12px;overflow:hidden;border:2px solid #e2e8f0"><div style="background:'+(hpPct>50?'#22c55e':hpPct>25?'#eab308':'#ef4444')+';height:100%;width:'+hpPct+'%;border-radius:4px;transition:width .5s"></div></div>'+
+        '<div style="font-size:.65rem;font-weight:700;color:var(--text2);text-align:center;margin-top:2px">'+healed+'/'+maxHp+' HP</div>'+
+        '</div></div>'+
+        '<div class="question-text">'+sent+'</div>'+
+        '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+'</div></div>';
+
+      area.querySelectorAll('.choice-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const card=document.getElementById('qCard');
+          card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+          if(btn.dataset.val===wd.w){
+            btn.classList.add('correct');
+            card.querySelector('.blank').textContent=wd.w;
+            SFX.play('correct');
+            healed=Math.min(maxHp, healed+Math.ceil(maxHp/totalRounds));
+            // track stats
+            if(!this.wordStats[wd.w])this.wordStats[wd.w]={correct:0,wrong:0};
+            this.wordStats[wd.w].correct++;
+          }else{
+            btn.classList.add('wrong-pick');
+            card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===wd.w)b.classList.add('correct');});
+            card.classList.add('wrong-shake');
+            SFX.play('wrong');
+            if(!this.wordStats[wd.w])this.wordStats[wd.w]={correct:0,wrong:0};
+            this.wordStats[wd.w].wrong++;
+          }
+          round++;
+          setTimeout(loadHealQuestion, 1500);
+        });
+      });
+      this.thinkFirst(document.getElementById('qCard'));
+    };
+
+    loadHealQuestion();
   },
 
   // ---- VOICE HELP ----
