@@ -1289,6 +1289,8 @@ const G = {
   enemyAttack(){
     const dmg = 3+Math.floor(Math.random()*3);
     this.playerHp = Math.max(0, this.playerHp-dmg);
+    // Persist damage to the active Wordmon
+    this.wordmonHpMap[this.activeWordmon]=this.playerHp;
     const ef = document.getElementById('enemyFighter');
     const pf = document.getElementById('playerFighter');
     ef.classList.add('atk-left');
@@ -1329,16 +1331,49 @@ const G = {
     const b = document.getElementById('battleScene');
     const banner = document.createElement('div');
     banner.className='result-banner defeat';
-    banner.innerHTML='<span>Try Again! 💪</span>';
-    b.appendChild(banner);
-    this.lives--;
-    if(this.lives<=0) this.lives=3;
     this.streak=0;
-    // Save damage to active Wordmon — they stay hurt until healed!
-    const wm=this.getWordmon(this.activeWordmon);
-    const hurtHp=Math.max(1, Math.floor(wm.hp * 0.6)); // keep 60% HP
-    this.wordmonHpMap[this.activeWordmon]=hurtHp;
-    setTimeout(()=>{banner.remove();this.spawnEnemy();this.updateHUD();},1500);
+    // Wordmon faints! HP goes to 0
+    this.wordmonHpMap[this.activeWordmon]=0;
+    this.saveGame();
+    // check if any other Wordmon is alive
+    const alive=this.caughtWordmons.filter(idx=>this.getWordmonHp(idx)>0);
+    if(alive.length>0){
+      // Switch to next alive Wordmon
+      banner.innerHTML='<span>'+this.getWordmon(this.activeWordmon).name+' fainted! 😵</span>';
+      b.appendChild(banner);
+      setTimeout(()=>{
+        banner.remove();
+        this.activeWordmon=alive[0];
+        const wm=this.getWordmon(alive[0]);
+        this.playerMaxHp=wm.hp;
+        this.playerHp=this.getWordmonHp(alive[0]);
+        this.spawnEnemy();
+        this.renderRoster();
+        this.updateHUD();
+        // toast telling them what happened
+        this.showToast(wm.name+' steps in! Heal '+this.getWordmon(this.caughtWordmons.find(i=>this.getWordmonHp(i)===0)).name+' at the Healing Center!');
+      },2000);
+    } else {
+      // ALL Wordmons fainted! Must heal
+      banner.innerHTML='<span>All Wordmons fainted! 😵 Go heal them!</span>';
+      b.appendChild(banner);
+      SFX.play('hurt');
+      setTimeout(()=>{
+        banner.remove();
+        this.forceHealingCenter();
+      },2500);
+    }
+  },
+
+  forceHealingCenter(){
+    // Force open the healing center — can't play until at least one Wordmon is healed
+    const area=document.getElementById('gameArea');
+    area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+      '<div style="font-size:3rem;margin-bottom:8px">🏥</div>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--red);margin-bottom:8px">All Wordmons Fainted!</div>'+
+      '<div style="font-size:1rem;color:var(--text2);font-weight:600;margin-bottom:16px">Practice the words you missed to heal your friends!</div>'+
+      '<button onclick="G.loadHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1.1rem;padding:12px 28px;border-radius:14px;border:3px solid var(--navy);background:linear-gradient(135deg,#fce7f3,#fbcfe8);color:#be185d;cursor:pointer">🏥 Start Healing!</button>'+
+      '</div>';
   },
 
   // Get a Wordmon's current HP (from persistent map or max)
@@ -1486,22 +1521,32 @@ const G = {
       const nextEvo=wm.stage===0?10:wm.stage===1?25:null;
       const TYPE_COLORS={Electric:'#fef9c3',Fire:'#fef2f2',Water:'#dbeafe',Grass:'#dcfce7',Ghost:'#f3e8ff',Rock:'#f1f5f9',Dark:'#1e293b',Ice:'#e0f2fe',Fairy:'#fce7f3',Steel:'#e2e8f0',Bug:'#ecfccb',Psychic:'#fae8ff',Dragon:'#ede9fe',Flying:'#f0f9ff',Poison:'#fae8ff',Fighting:'#fef2f2',Normal:'#f8fafc',Ground:'#fef3c7'};
       const TYPE_TEXT={Dark:'#fff'};
+      const currentHp=caught?this.getWordmonHp(i):0;
+      const isFainted=caught&&currentHp<=0;
+      const isHurt=caught&&!isFainted&&currentHp<wm.hp;
       const card=document.createElement('div');
-      card.className='roster-card'+(active?' active':'')+(caught?'':' locked');
-      if(caught){card.style.background=TYPE_COLORS[wm.type]||'#fff';if(TYPE_TEXT[wm.type])card.style.color=TYPE_TEXT[wm.type];}
-      card.innerHTML=(caught?this.spriteHtml(wm,64):'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#cbd5e1"/><text x="50" y="56" text-anchor="middle" fill="#94a3b8" font-size="20">?</text></svg>')+
+      card.className='roster-card'+(active?' active':'')+(caught?'':' locked')+(isFainted?' fainted':'');
+      if(caught&&!isFainted){card.style.background=TYPE_COLORS[wm.type]||'#fff';if(TYPE_TEXT[wm.type])card.style.color=TYPE_TEXT[wm.type];}
+      if(isFainted){card.style.background='#f1f5f9';card.style.opacity='.5';card.style.filter='grayscale(.8)';}
+      card.innerHTML=(caught?'<div style="position:relative">'+this.spriteHtml(wm,64)+(isFainted?'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.8rem">😵</div>':'')+'</div>':'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#cbd5e1"/><text x="50" y="56" text-anchor="middle" fill="#94a3b8" font-size="20">?</text></svg>')+
         '<div class="rc-name">'+(caught?wm.name:'???')+'</div>'+
         '<div class="rc-type">'+(caught?wm.type:'Unknown')+'</div>'+
-        (caught&&nextEvo?'<div style="font-size:.5rem;color:var(--accent);font-weight:700;margin-top:1px">'+wxp+'/'+nextEvo+' XP</div>':'')+
-        (caught&&!nextEvo?'<div style="font-size:.5rem;color:#22c55e;font-weight:700;margin-top:1px">MAX ⭐</div>':'');
-      if(caught){
+        (isFainted?'<div style="font-size:.5rem;color:var(--red);font-weight:700;margin-top:1px">FAINTED 💔</div>':'')+
+        (isHurt?'<div style="font-size:.5rem;color:var(--accent);font-weight:700;margin-top:1px">HP: '+currentHp+'/'+wm.hp+'</div>':'')+
+        (caught&&!isFainted&&!isHurt&&nextEvo?'<div style="font-size:.5rem;color:var(--accent);font-weight:700;margin-top:1px">'+wxp+'/'+nextEvo+' XP</div>':'')+
+        (caught&&!isFainted&&!isHurt&&!nextEvo?'<div style="font-size:.5rem;color:#22c55e;font-weight:700;margin-top:1px">MAX ⭐</div>':'');
+      if(caught&&!isFainted){
         card.addEventListener('click',()=>{
           this.activeWordmon=i;
           const w2=this.getWordmon(i);
           this.playerMaxHp=w2.hp;
-          this.playerHp=w2.hp;
+          this.playerHp=this.getWordmonHp(i);
           this.renderRoster();
           this.updateHUD();
+        });
+      } else if(isFainted){
+        card.addEventListener('click',()=>{
+          this.showToast(wm.name+' fainted! Go to the Healing Center to revive!');
         });
       }
       grid.appendChild(card);
