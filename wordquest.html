@@ -1755,12 +1755,36 @@ const G = {
     // If there's a pending word the player hasn't answered yet, force them to do it
     if(this._pendingWord) return this._pendingWord;
     if(this.usedWords.length>=WORDS.length) this.usedWords=[];
-    // 50% chance to pick a priority (teacher's K list) word
+    // ADAPTIVE WORD FREQUENCY — weight words by how much the player needs them
+    // Words they get wrong a lot appear 4x more often; unseen words 3x; teacher priority 2x
     let idx;
-    const priorityIndices=WORDS.map((w,i)=>w.priority?i:null).filter(i=>i!==null&&!this.usedWords.includes(i));
-    if(priorityIndices.length>0 && Math.random()<0.5){
-      idx=priorityIndices[Math.floor(Math.random()*priorityIndices.length)];
-    } else {
+    const weights=WORDS.map((w,i)=>{
+      if(this.usedWords.includes(i)) return 0; // already used this round
+      const stats=this.wordStats[w.w];
+      let weight=1;
+      if(w.priority) weight*=2; // teacher's K word list
+      if(!stats||(!stats.correct&&!stats.wrong)) weight*=3; // never seen — high priority
+      else{
+        const total=stats.correct+stats.wrong;
+        const accuracy=total>0?stats.correct/total:0;
+        if(accuracy<0.33) weight*=4; // struggling hard
+        else if(accuracy<0.5) weight*=3; // needs work
+        else if(accuracy<0.75) weight*=2; // getting better
+        // >75% accuracy = normal weight (1)
+        // Also boost words not seen recently
+        if(stats.lastSeen&&Date.now()-stats.lastSeen>300000) weight*=1.5; // 5+ min since last seen
+      }
+      return weight;
+    });
+    const totalWeight=weights.reduce((a,b)=>a+b,0);
+    if(totalWeight>0){
+      let r=Math.random()*totalWeight;
+      for(let i=0;i<weights.length;i++){
+        r-=weights[i];
+        if(r<=0){idx=i;break;}
+      }
+    }
+    if(idx===undefined||idx===null){
       do{idx=Math.floor(Math.random()*WORDS.length);}while(this.usedWords.includes(idx));
     }
     this.usedWords.push(idx);
@@ -4403,18 +4427,80 @@ const ADV={
     const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!G.caughtWordmons.includes(i));
     const pickIdx=uncaught.length>0?uncaught[Math.floor(Math.random()*uncaught.length)]:Math.floor(Math.random()*WORDMONS.length);
     const wild=G.getWordmon(pickIdx);
-    SFX.play('fanfare');
-    // Show encounter screen
-    this.showDialog('A wild '+wild.name+' appeared! Go back to the game to battle and catch it!');
-    // Set up a catch challenge: if they answer the next 3 questions right, they catch it
+    this.dialogOpen=true; // prevent movement during transition
+
+    // EPIC BATTLE TRANSITION
+    const overlay=document.getElementById('adventureOverlay');
+
+    // 1. Screen flash white
+    const flash=document.createElement('div');
+    flash.style.cssText='position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:50;transition:opacity .15s';
+    overlay.appendChild(flash);
+    setTimeout(()=>flash.style.opacity='1',10);
+
+    // 2. Diagonal swipe transition (black bars closing in)
+    setTimeout(()=>{
+      flash.style.background='#000';
+      // Add diagonal swipe bars
+      const bar1=document.createElement('div');
+      bar1.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:51;transform:translateX(-100%);transition:transform .4s ease-in';
+      const bar2=document.createElement('div');
+      bar2.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:51;transform:translateX(100%);transition:transform .4s ease-in';
+      overlay.appendChild(bar1);overlay.appendChild(bar2);
+      setTimeout(()=>{bar1.style.transform='translateX(-30%)';bar2.style.transform='translateX(30%)';},10);
+
+      // 3. Show encounter splash
+      setTimeout(()=>{
+        flash.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:55">'+
+          '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:#fff;text-shadow:0 0 20px rgba(249,115,22,.8);margin-bottom:16px;animation:encounterPulse 1s ease-in-out infinite">⚡ Wild Encounter! ⚡</div>'+
+          '<div style="animation:encounterBounce 0.6s ease">'+
+            (wild.spriteImg?'<img src="'+wild.spriteImg+'" style="width:150px;height:150px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 20px rgba(255,255,255,.5))" onerror="this.style.display=\'none\'">':'')+
+          '</div>'+
+          '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:var(--gold);text-shadow:2px 2px 0 rgba(0,0,0,.5);margin-top:12px;animation:encounterSlide .5s ease .2s both">'+wild.name+'</div>'+
+          '<div style="font-family:Nunito,sans-serif;font-size:1rem;color:rgba(255,255,255,.8);font-weight:700;margin-top:4px">'+wild.type+' Type</div>'+
+          '<div style="font-family:Fredoka One,cursive;font-size:.9rem;color:rgba(255,255,255,.6);margin-top:16px;animation:encounterPulse 1.5s ease-in-out infinite">Answer 3 questions to catch it!</div>'+
+          '<button id="wildBattleBtn" style="margin-top:20px;font-family:Fredoka One,cursive;font-size:1.1rem;padding:12px 28px;border-radius:14px;border:3px solid var(--gold);background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);animation:encounterBounce 0.5s ease .5s both">⚔️ BATTLE!</button>'+
+        '</div>';
+        flash.style.opacity='1';
+        SFX.play('fanfare');
+        // Add CSS animation keyframes
+        if(!document.getElementById('encounterStyles')){
+          const style=document.createElement('style');
+          style.id='encounterStyles';
+          style.textContent='@keyframes encounterPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}'+
+            '@keyframes encounterBounce{0%{transform:scale(0) rotate(-10deg);opacity:0}60%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0)}}'+
+            '@keyframes encounterSlide{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}';
+          document.head.appendChild(style);
+        }
+        // Wire up battle button with event listener (more reliable than onclick string)
+        setTimeout(()=>{
+          const btn=document.getElementById('wildBattleBtn');
+          if(btn) btn.addEventListener('click',()=>ADV._startWildBattle(pickIdx));
+        },100);
+      },500);
+    },200);
+
+    // Set up catch challenge
     G._pendingWildCatch=pickIdx;
     G._wildCatchCount=0;
     G._wildCatchNeeded=3;
-    // Flash effect
-    const flash=document.createElement('div');
-    flash.style.cssText='position:absolute;inset:0;background:#fff;opacity:1;pointer-events:none;transition:opacity .5s;z-index:10';
-    document.getElementById('adventureOverlay').appendChild(flash);
-    setTimeout(()=>{flash.style.opacity='0';setTimeout(()=>flash.remove(),500);},100);
+  },
+
+  _startWildBattle(pickIdx){
+    // Close adventure, go to main game battle
+    document.getElementById('adventureOverlay').style.display='none';
+    // Clean up transition elements
+    document.querySelectorAll('#adventureOverlay > div:not(#adventureCanvas):not(#adventureHUD):not(#dpad):not(#advDialog)').forEach(el=>el.remove());
+    this.dialogOpen=false;
+    // Set the enemy to this wild Wordmon's data
+    const wild=G.getWordmon(pickIdx);
+    G.currentEnemy={name:wild.name,hp:wild.hp,maxHp:wild.hp,sprite:wild.spriteImg};
+    G.enemyHp=wild.hp;
+    G.enemyMaxHp=wild.hp;
+    G.updateHUD();
+    // Show a battle message
+    G.showBattleMsg('Wild '+wild.name+'!');
+    SFX.play('attack');
   },
 
   render(){
