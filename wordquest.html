@@ -36,8 +36,9 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 /* STREAK DOTS */
 .streak-wrap{display:flex;gap:6px;align-items:center;padding:8px 16px}
-.streak-dot{width:20px;height:20px;border-radius:50%;border:3px solid rgba(249,115,22,.25);background:transparent;transition:all .3s ease}
-.streak-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.15);box-shadow:0 0 8px rgba(249,115,22,.4)}
+.streak-dot{width:22px;height:22px;border-radius:50%;border:3px solid var(--navy);background:rgba(26,39,68,.1);transition:all .3s ease}
+.streak-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.2);box-shadow:0 0 12px rgba(249,115,22,.5);animation:dotPop .4s ease}
+@keyframes dotPop{0%{transform:scale(0.5)}50%{transform:scale(1.4)}100%{transform:scale(1.2)}}
 .streak-label{font-size:.75rem;font-weight:700;color:var(--text2)}
 
 /* BATTLE SCENE */
@@ -46,16 +47,17 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .fighter{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:2}
 .sprite-box{transition:transform .5s ease}
 .sprite-box svg,.sprite-box img{width:110px;height:110px;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.25))}
-.fighter.player .sprite-box{animation:bounce 1.5s ease-in-out infinite}
-.fighter.enemy .sprite-box{animation:bounce 1.5s ease-in-out infinite .3s}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.fighter.player .sprite-box{animation:bouncePl 2s ease-in-out infinite}
+.fighter.enemy .sprite-box{animation:bounceEn 2s ease-in-out infinite .4s}
+@keyframes bouncePl{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+@keyframes bounceEn{0%,100%{transform:translateY(0) rotate(1deg)}50%{transform:translateY(-10px) rotate(-1deg)}}
 .hp-bar-wrap{width:130px;text-align:center}
 .hp-name{font-family:'Fredoka One',cursive;font-size:.8rem;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,.7);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hp-bar{background:rgba(0,0,0,.3);border-radius:6px;height:10px;overflow:hidden;border:2px solid rgba(255,255,255,.3)}
 .hp-fill{height:100%;border-radius:4px;transition:width .4s ease}
-.hp-fill.green{background:linear-gradient(90deg,#22c55e,#4ade80)}
-.hp-fill.yellow{background:linear-gradient(90deg,#eab308,#facc15)}
-.hp-fill.red{background:linear-gradient(90deg,#ef4444,#f87171)}
+.hp-fill.green{background:repeating-linear-gradient(90deg,#22c55e 0px,#4ade80 8px,#16a34a 8px,#22c55e 10px)}
+.hp-fill.yellow{background:repeating-linear-gradient(90deg,#eab308 0px,#facc15 8px,#ca8a04 8px,#eab308 10px)}
+.hp-fill.red{background:repeating-linear-gradient(90deg,#ef4444 0px,#f87171 8px,#dc2626 8px,#ef4444 10px)}
 .hp-text{font-size:.6rem;font-weight:700;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.6)}
 .battle-msg{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:1.3rem;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.3);opacity:0;pointer-events:none;z-index:10;white-space:nowrap}
 .battle-msg.show{animation:msgPop .8s ease forwards}
@@ -99,8 +101,12 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .choice-btn{font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:700;padding:16px 12px;border-radius:14px;border:3px solid var(--navy);background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:60px;display:flex;align-items:center;justify-content:center}
 .choice-btn:hover{border-color:var(--accent);background:#fff7ed;transform:translateY(-2px)}
+.choice-btn:active{transform:scale(.95);transition:transform .05s}
 .choice-btn:active{transform:translateY(0)}
-.choice-btn.correct{background:#dcfce7;border-color:var(--green);color:#15803d}
+.choice-btn.correct{background:#dcfce7;border-color:var(--green);color:#15803d;animation:correctPulse .5s ease}
+@keyframes correctPulse{0%{transform:scale(1)}30%{transform:scale(1.05)}60%{transform:scale(.98)}100%{transform:scale(1)}}
+.choice-btn.wrong-pick{animation:wrongShake .4s ease}
+@keyframes wrongShake{0%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
 .choice-btn.wrong-pick{background:#fef2f2;border-color:var(--red);color:#b91c1c}
 .choice-btn.disabled{pointer-events:none;opacity:.7}
 .choices.think-first{position:relative;pointer-events:none}
@@ -1425,6 +1431,31 @@ const G = {
   },
 
   // ---- CONFETTI ----
+  fireSparkles(el){
+    // Small sparkle burst around an element (correct answer button)
+    if(!el) return;
+    const rect=el.getBoundingClientRect();
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    const sparkles=['✨','⭐','💫','🌟'];
+    for(let i=0;i<8;i++){
+      const s=document.createElement('div');
+      s.textContent=sparkles[Math.floor(Math.random()*sparkles.length)];
+      s.style.cssText='position:fixed;z-index:999;font-size:'+(14+Math.random()*12)+'px;pointer-events:none;transition:all .8s ease-out;';
+      s.style.left=cx+'px';s.style.top=cy+'px';
+      document.body.appendChild(s);
+      const angle=Math.random()*Math.PI*2;
+      const dist=40+Math.random()*60;
+      requestAnimationFrame(()=>{
+        s.style.left=(cx+Math.cos(angle)*dist)+'px';
+        s.style.top=(cy+Math.sin(angle)*dist-30)+'px';
+        s.style.opacity='0';
+        s.style.transform='scale(0.3)';
+      });
+      setTimeout(()=>s.remove(),900);
+    }
+  },
+
   fireConfetti(){
     const box=document.getElementById('confettiBox');
     const colors=['#f97316','#fbbf24','#22c55e','#3b82f6','#a855f7','#ef4444','#ec4899'];
@@ -1995,6 +2026,9 @@ const G = {
     this.clearPendingWord();
     if(wd&&wd.w){if(!this.wordStats[wd.w])this.wordStats[wd.w]={correct:0,wrong:0};this.wordStats[wd.w].correct++;this.wordStats[wd.w].lastSeen=Date.now();}
     SFX.play('correct');
+    // sparkle burst on the correct button
+    const correctBtn=document.querySelector('.choice-btn.correct');
+    if(correctBtn) this.fireSparkles(correctBtn);
     this.score+=5;
     this.streak++;
     if(this.streak>this.maxStreak) this.maxStreak=this.streak;
