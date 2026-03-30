@@ -428,6 +428,35 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
   <div class="backpack-badge" id="bpBadge">0</div>
 </div>
 
+<!-- EXPLORE BUTTON -->
+<button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!">🗺️</button>
+
+<!-- ADVENTURE MODE OVERLAY -->
+<div id="adventureOverlay" style="display:none;position:fixed;inset:0;background:#000;z-index:200">
+  <canvas id="adventureCanvas" style="display:block;margin:0 auto;image-rendering:pixelated;image-rendering:crisp-edges"></canvas>
+  <div id="adventureHUD" style="position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:center;pointer-events:none">
+    <div style="background:rgba(0,0,0,.6);color:#fff;padding:4px 10px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.7rem;pointer-events:auto" id="advZoneName">Wordmon Town</div>
+    <button onclick="G.closeAdventure()" style="background:rgba(0,0,0,.6);color:#fff;border:none;padding:4px 10px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.7rem;cursor:pointer;pointer-events:auto">✕ Back</button>
+  </div>
+  <!-- D-Pad for mobile -->
+  <div id="dpad" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:grid;grid-template:auto auto auto/auto auto auto;gap:4px;pointer-events:auto">
+    <div></div>
+    <button class="dpad-btn" data-dir="up" style="width:56px;height:56px;border-radius:12px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px)">▲</button>
+    <div></div>
+    <button class="dpad-btn" data-dir="left" style="width:56px;height:56px;border-radius:12px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px)">◀</button>
+    <button class="dpad-btn" data-dir="action" style="width:56px;height:56px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(249,115,22,.5);color:#fff;font-size:.8rem;font-family:Fredoka One,cursive;cursor:pointer;backdrop-filter:blur(4px)">A</button>
+    <button class="dpad-btn" data-dir="right" style="width:56px;height:56px;border-radius:12px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px)">▶</button>
+    <div></div>
+    <button class="dpad-btn" data-dir="down" style="width:56px;height:56px;border-radius:12px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(4px)">▼</button>
+    <div></div>
+  </div>
+  <!-- Dialog box -->
+  <div id="advDialog" style="display:none;position:absolute;bottom:100px;left:16px;right:16px;background:rgba(255,255,255,.95);border:3px solid var(--navy);border-radius:16px;padding:14px;font-size:1.1rem;font-weight:600;color:var(--text);line-height:1.6;max-width:500px;margin:0 auto;backdrop-filter:blur(8px)">
+    <div id="advDialogText"></div>
+    <button id="advDialogOK" onclick="G.adventure.closeDialog()" style="display:block;margin:8px auto 0;font-family:Fredoka One,cursive;font-size:.85rem;padding:6px 16px;border-radius:10px;border:2px solid var(--navy);background:var(--gold);color:var(--navy);cursor:pointer">OK</button>
+  </div>
+</div>
+
 <!-- CONFETTI CONTAINER -->
 <div class="confetti-container" id="confettiBox"></div>
 
@@ -4096,8 +4125,413 @@ function openParentDashboard(){
   document.body.appendChild(overlay);
 }
 
+// ================================================================
+// ADVENTURE MODE — Top-down Pokemon-style exploration
+// ================================================================
+const ADV={
+  TILE:32, // pixel size of each tile on screen
+  // Tile types: 0=grass, 1=path, 2=tallgrass, 3=water, 4=tree, 5=house, 6=pokecenter, 7=shop, 8=sign, 9=fence
+  // Maps: 2D arrays of tile IDs. Each map is 20 wide x 15 tall (fits nicely on screen)
+  SOLID:[3,4,5,6,7,9], // tiles you can't walk on
+  MAPS:{
+    town:{
+      name:'Wordmon Town',
+      w:20,h:15,
+      data:[
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        4,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,4,
+        4,0,5,5,0,1,0,0,0,0,0,0,0,0,1,0,6,6,0,4,
+        4,0,5,5,0,1,0,0,8,0,0,8,0,0,1,0,6,6,0,4,
+        4,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,4,
+        4,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,4,
+        4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,
+        4,0,7,7,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,
+        4,0,7,7,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,
+        4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,9,9,9,4,
+        4,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,4,
+        4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[{x:9,y:14,to:'route1',spawnX:9,spawnY:0}],
+      npcs:[
+        {x:10,y:3,sprite:'npc_prof',name:'Professor Oak',msg:'Welcome to Wordmon Town! Go south to Route 1 to find wild Wordmons!'},
+        {x:5,y:7,sprite:'npc_kid',name:'Kid Timmy',msg:'I like to read books. Do you like books too?'},
+      ],
+      signs:[
+        {x:8,y:3,msg:'Wordmon Town — Where Reading Adventures Begin!'},
+        {x:11,y:3,msg:'Pokémon Center → Heal your Wordmons here!'},
+      ],
+      playerStart:{x:9,y:5},
+    },
+    route1:{
+      name:'Route 1 — Wild Area',
+      w:20,h:20,
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,0,2,2,0,0,2,2,0,1,0,2,2,0,0,2,2,0,0,4,
+        4,2,2,2,2,0,2,2,0,1,0,2,2,0,2,2,2,2,0,4,
+        4,2,2,0,0,0,0,2,0,1,0,2,0,0,0,0,2,2,0,4,
+        4,0,0,0,0,2,0,0,0,1,0,0,0,2,0,0,0,0,0,4,
+        4,0,2,0,1,1,1,1,1,1,1,1,1,1,1,0,2,0,0,4,
+        4,2,2,0,1,0,0,0,2,2,2,0,0,0,1,0,2,2,0,4,
+        4,0,0,0,1,0,2,2,2,2,2,2,2,0,1,0,0,0,0,4,
+        4,0,2,0,1,0,2,2,2,2,2,2,2,0,1,0,2,0,0,4,
+        4,2,2,0,1,0,0,2,2,2,2,2,0,0,1,0,2,2,0,4,
+        4,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,4,
+        4,0,2,2,0,0,0,2,0,1,0,2,0,0,0,2,2,0,0,4,
+        4,2,2,2,0,2,0,0,0,1,0,0,0,2,0,2,2,2,0,4,
+        4,0,2,0,0,2,2,0,0,1,0,0,2,2,0,0,2,0,0,4,
+        4,0,0,0,0,0,2,2,0,1,0,2,2,0,0,0,0,0,0,4,
+        4,0,2,2,0,0,0,0,0,1,0,0,0,0,0,2,2,0,0,4,
+        4,2,2,2,2,0,2,2,0,1,0,2,2,0,2,2,2,2,0,4,
+        4,0,2,0,0,0,0,2,0,1,0,2,0,0,0,0,2,0,0,4,
+        4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[
+        {x:9,y:0,to:'town',spawnX:9,spawnY:13},
+        {x:9,y:19,to:'forest',spawnX:9,spawnY:0},
+      ],
+      npcs:[],
+      signs:[{x:9,y:1,msg:'Route 1 — Wild Wordmons live in the tall grass!'}],
+      playerStart:{x:9,y:1},
+      encounterRate:0.15, // 15% chance per tall grass step
+    },
+    forest:{
+      name:'Whispering Forest',
+      w:20,h:15,
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,2,2,4,0,0,2,0,1,0,2,0,0,4,2,2,4,4,4,
+        4,2,2,2,0,0,2,2,0,1,0,2,2,0,0,2,2,2,4,4,
+        4,2,4,0,0,2,2,2,0,1,0,2,2,2,0,0,4,2,0,4,
+        4,0,0,0,2,2,4,2,0,1,0,2,4,2,2,0,0,0,0,4,
+        4,0,2,2,2,4,4,0,1,1,1,0,4,4,2,2,2,0,0,4,
+        4,2,2,4,2,2,0,0,1,0,0,0,0,2,2,4,2,2,0,4,
+        4,0,2,2,2,0,0,2,1,0,8,0,2,0,0,2,2,0,0,4,
+        4,0,0,2,0,0,2,2,1,0,0,0,2,2,0,0,2,0,0,4,
+        4,2,0,0,0,2,2,4,1,1,1,4,2,2,0,0,0,2,0,4,
+        4,2,2,0,2,2,4,4,0,1,0,4,4,2,2,0,2,2,0,4,
+        4,0,2,2,2,0,0,0,0,1,0,0,0,0,2,2,2,0,0,4,
+        4,0,0,2,0,0,0,0,0,1,0,0,0,0,0,2,0,0,0,4,
+        4,4,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,4,4,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[{x:9,y:0,to:'route1',spawnX:9,spawnY:18}],
+      npcs:[],
+      signs:[{x:10,y:7,msg:'Whispering Forest — Rare Wordmons hide here!'}],
+      playerStart:{x:9,y:12},
+      encounterRate:0.20,
+    },
+  },
+  // Tile colors (fallback when sprites not loaded)
+  TILE_COLORS:['#4ade80','#d4a574','#166534','#3b82f6','#15803d','#ef4444','#ec4899','#3b82f6','#a16207','#92400e'],
+  // State
+  currentMap:'town',
+  px:9,py:5, // player position
+  facing:'down',
+  moving:false,
+  dialogOpen:false,
+  canvas:null,ctx:null,
+  tileImgs:{},
+  playerImgs:{},
+  animFrame:0,
+  stepCount:0,
+
+  init(){
+    this.canvas=document.getElementById('adventureCanvas');
+    this.ctx=this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize',()=>this.resize());
+    // Load tile images
+    ['grass','path','tallgrass','water','tree','house','pokecenter','shop','sign','fence'].forEach((name,i)=>{
+      const img=new Image();
+      img.src='sprites/tile_'+name+'.png';
+      img.onload=()=>{this.tileImgs[i]=img;};
+    });
+    // Load player sprites
+    ['down','up','left','right'].forEach(dir=>{
+      const img=new Image();
+      img.src='sprites/rio_'+dir+'.png';
+      img.onload=()=>{this.playerImgs[dir]=img;};
+    });
+    // D-pad controls
+    document.querySelectorAll('.dpad-btn').forEach(btn=>{
+      const dir=btn.dataset.dir;
+      let interval=null;
+      const doMove=()=>{
+        if(dir==='action') this.interact();
+        else this.tryMove(dir);
+      };
+      btn.addEventListener('touchstart',e=>{e.preventDefault();doMove();interval=setInterval(doMove,200);});
+      btn.addEventListener('touchend',()=>clearInterval(interval));
+      btn.addEventListener('mousedown',()=>{doMove();interval=setInterval(doMove,200);});
+      btn.addEventListener('mouseup',()=>clearInterval(interval));
+      btn.addEventListener('mouseleave',()=>clearInterval(interval));
+    });
+    // Keyboard controls
+    document.addEventListener('keydown',e=>{
+      if(!document.getElementById('adventureOverlay').style.display||document.getElementById('adventureOverlay').style.display==='none') return;
+      if(this.dialogOpen){if(e.key==='Enter'||e.key===' ')this.closeDialog();return;}
+      const keyMap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
+      if(keyMap[e.key]) this.tryMove(keyMap[e.key]);
+      if(e.key==='Enter'||e.key===' '||e.key==='z') this.interact();
+    });
+    // Start render loop
+    this.render();
+  },
+
+  resize(){
+    const map=this.MAPS[this.currentMap];
+    const maxW=Math.min(window.innerWidth,600);
+    const maxH=window.innerHeight;
+    const tileW=Math.floor(maxW/map.w);
+    const tileH=Math.floor(maxH/map.h);
+    this.TILE=Math.min(tileW,tileH,40);
+    this.canvas.width=map.w*this.TILE;
+    this.canvas.height=map.h*this.TILE;
+    this.canvas.style.width=this.canvas.width+'px';
+    this.canvas.style.height=this.canvas.height+'px';
+    this.canvas.style.marginTop=Math.max(0,(maxH-this.canvas.height)/2)+'px';
+  },
+
+  getMap(){return this.MAPS[this.currentMap];},
+
+  getTile(x,y){
+    const map=this.getMap();
+    if(x<0||y<0||x>=map.w||y>=map.h) return 4; // out of bounds = tree (solid)
+    return map.data[y*map.w+x];
+  },
+
+  tryMove(dir){
+    if(this.moving||this.dialogOpen) return;
+    this.facing=dir;
+    const dx={left:-1,right:1,up:0,down:0}[dir];
+    const dy={left:0,right:0,up:-1,down:1}[dir];
+    const nx=this.px+dx,ny=this.py+dy;
+    const tile=this.getTile(nx,ny);
+    // Check for exits
+    const map=this.getMap();
+    const exit=(map.exits||[]).find(e=>e.x===nx&&e.y===ny);
+    if(exit){
+      this.currentMap=exit.to;
+      this.px=exit.spawnX;
+      this.py=exit.spawnY;
+      this.resize();
+      document.getElementById('advZoneName').textContent=this.getMap().name;
+      SFX.play('whoosh');
+      return;
+    }
+    if(this.SOLID.includes(tile)) return; // can't walk on solid tiles
+    // Move!
+    this.moving=true;
+    this.px=nx;this.py=ny;
+    this.stepCount++;
+    SFX.play('click');
+    setTimeout(()=>{this.moving=false;},120);
+    // Check for tall grass encounter
+    if(tile===2 && map.encounterRate){
+      if(Math.random()<map.encounterRate){
+        setTimeout(()=>this.wildEncounter(),200);
+      }
+    }
+  },
+
+  interact(){
+    if(this.dialogOpen){this.closeDialog();return;}
+    const map=this.getMap();
+    const dx={left:-1,right:1,up:0,down:0}[this.facing];
+    const dy={left:0,right:0,up:-1,down:1}[this.facing];
+    const fx=this.px+dx,fy=this.py+dy;
+    // Check NPCs
+    const npc=(map.npcs||[]).find(n=>n.x===fx&&n.y===fy);
+    if(npc){this.showDialog(npc.name+': '+npc.msg);return;}
+    // Check signs
+    const sign=(map.signs||[]).find(s=>s.x===fx&&s.y===fy);
+    if(sign){this.showDialog(sign.msg);return;}
+    // Check special buildings
+    const tile=this.getTile(fx,fy);
+    if(tile===6){this.showDialog('Welcome to the Pokémon Center! Your Wordmons will be healed!');return;}
+    if(tile===7){this.showDialog('Welcome to the Mart! Check the Shop tab to buy toys!');return;}
+    if(tile===5){this.showDialog('Home sweet home! Río lives here.');return;}
+  },
+
+  showDialog(text){
+    this.dialogOpen=true;
+    document.getElementById('advDialog').style.display='block';
+    // Make words tappable
+    const tappable=text.split(/(\s+)/).map(w=>{
+      const clean=w.trim();
+      if(!clean) return w;
+      return '<span class="tap-word" data-say="'+clean.replace(/"/g,'&quot;')+'" style="cursor:pointer;padding:1px 2px;border-radius:4px;transition:all .2s">'+w+'</span>';
+    }).join('');
+    document.getElementById('advDialogText').innerHTML=tappable;
+    // Wire up tappable words
+    document.querySelectorAll('#advDialogText .tap-word').forEach(el=>{
+      el.addEventListener('click',function(e){
+        e.stopPropagation();
+        if(!window.speechSynthesis) return;
+        speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(this.dataset.say);
+        u.rate=0.7;u.pitch=1.1;
+        const v=getBestVoice();if(v)u.voice=v;
+        speechSynthesis.speak(u);
+        this.style.background='#fbbf24';this.style.color='var(--navy)';
+        setTimeout(()=>{this.style.background='';this.style.color='';},800);
+      });
+    });
+    // Also read the whole thing aloud
+    if(window.speechSynthesis){
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.rate=0.7;u.pitch=1.1;
+      const v=getBestVoice();if(v)u.voice=v;
+      speechSynthesis.speak(u);
+    }
+  },
+
+  closeDialog(){
+    this.dialogOpen=false;
+    document.getElementById('advDialog').style.display='none';
+    speechSynthesis.cancel();
+  },
+
+  wildEncounter(){
+    // Pick a random uncaught Wordmon, or a random one if all caught
+    const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!G.caughtWordmons.includes(i));
+    const pickIdx=uncaught.length>0?uncaught[Math.floor(Math.random()*uncaught.length)]:Math.floor(Math.random()*WORDMONS.length);
+    const wild=G.getWordmon(pickIdx);
+    SFX.play('fanfare');
+    // Show encounter screen
+    this.showDialog('A wild '+wild.name+' appeared! Go back to the game to battle and catch it!');
+    // Set up a catch challenge: if they answer the next 3 questions right, they catch it
+    G._pendingWildCatch=pickIdx;
+    G._wildCatchCount=0;
+    G._wildCatchNeeded=3;
+    // Flash effect
+    const flash=document.createElement('div');
+    flash.style.cssText='position:absolute;inset:0;background:#fff;opacity:1;pointer-events:none;transition:opacity .5s;z-index:10';
+    document.getElementById('adventureOverlay').appendChild(flash);
+    setTimeout(()=>{flash.style.opacity='0';setTimeout(()=>flash.remove(),500);},100);
+  },
+
+  render(){
+    const c=this.ctx;
+    const T=this.TILE;
+    const map=this.getMap();
+    this.animFrame++;
+    // Clear
+    c.fillStyle='#1a2744';
+    c.fillRect(0,0,this.canvas.width,this.canvas.height);
+    // Draw tiles
+    for(let y=0;y<map.h;y++){
+      for(let x=0;x<map.w;x++){
+        const tile=map.data[y*map.w+x];
+        const px=x*T,py=y*T;
+        // Use image if loaded, otherwise colored square
+        if(this.tileImgs[tile]){
+          c.drawImage(this.tileImgs[tile],px,py,T,T);
+        } else {
+          c.fillStyle=this.TILE_COLORS[tile]||'#888';
+          c.fillRect(px,py,T,T);
+          // Add detail for some tiles
+          if(tile===2){// tall grass dots
+            c.fillStyle='#0f5132';
+            for(let i=0;i<3;i++){
+              c.fillRect(px+4+i*8,py+2,2,T-4);
+            }
+          }
+          if(tile===4){// tree
+            c.fillStyle='#0a4f28';
+            c.beginPath();c.arc(px+T/2,py+T/2,T/2-2,0,Math.PI*2);c.fill();
+          }
+          if(tile===5||tile===6||tile===7){// buildings
+            c.fillStyle=tile===5?'#dc2626':tile===6?'#ec4899':'#3b82f6';
+            c.fillRect(px+2,py+2,T-4,T-4);
+            c.fillStyle='#fff';
+            c.fillRect(px+T/2-3,py+T-8,6,6);
+          }
+          if(tile===1){// path
+            c.fillStyle='#c4a882';
+            c.fillRect(px+1,py+1,T-2,T-2);
+          }
+          if(tile===8){// sign
+            c.fillStyle='#92400e';
+            c.fillRect(px+T/2-1,py+4,2,T-4);
+            c.fillRect(px+4,py+2,T-8,8);
+          }
+          if(tile===9){// fence
+            c.fillStyle='#a16207';
+            c.fillRect(px,py+T/2-2,T,4);
+            c.fillRect(px+4,py+2,3,T-4);
+            c.fillRect(px+T-7,py+2,3,T-4);
+          }
+        }
+      }
+    }
+    // Draw NPCs
+    (map.npcs||[]).forEach(npc=>{
+      c.fillStyle='#7c3aed';
+      c.beginPath();c.arc(npc.x*T+T/2,npc.y*T+T/2,T/3,0,Math.PI*2);c.fill();
+      c.fillStyle='#fbbf24';
+      c.beginPath();c.arc(npc.x*T+T/2,npc.y*T+T/4,T/5,0,Math.PI*2);c.fill();
+      // Name label
+      c.fillStyle='#fff';
+      c.font='bold '+(T/3)+'px Nunito';
+      c.textAlign='center';
+      c.fillText(npc.name.split(' ')[1]||npc.name,npc.x*T+T/2,npc.y*T-2);
+    });
+    // Draw player
+    const playerBob=Math.sin(this.animFrame/10)*2;
+    if(this.playerImgs[this.facing]){
+      c.drawImage(this.playerImgs[this.facing],this.px*T,this.py*T+playerBob,T,T);
+    } else {
+      // Fallback colored square for player
+      c.fillStyle='#22c55e';
+      c.fillRect(this.px*T+4,this.py*T+4+playerBob,T-8,T-8);
+      c.fillStyle='#92400e';
+      c.beginPath();c.arc(this.px*T+T/2,this.py*T+T/3+playerBob,T/5,0,Math.PI*2);c.fill();
+      // Direction arrow
+      c.fillStyle='#fff';
+      c.font='bold '+(T/2)+'px sans-serif';
+      c.textAlign='center';
+      const arrows={down:'▼',up:'▲',left:'◀',right:'▶'};
+      c.fillText(arrows[this.facing],this.px*T+T/2,this.py*T+T*0.8+playerBob);
+    }
+    // Draw active Wordmon following behind player
+    const wm=G.getWordmon(G.activeWordmon);
+    const followBob=Math.sin(this.animFrame/10+1)*2;
+    const followOffsets={down:{x:0,y:-1},up:{x:0,y:1},left:{x:1,y:0},right:{x:-1,y:0}};
+    const fo=followOffsets[this.facing];
+    const wmX=(this.px+fo.x)*T,wmY=(this.py+fo.y)*T+followBob;
+    // Draw a small colored circle for the Wordmon
+    c.fillStyle=wm.color||'#fbbf24';
+    c.beginPath();c.arc(wmX+T/2,wmY+T/2,T/3,0,Math.PI*2);c.fill();
+    c.fillStyle='#1e293b';
+    c.beginPath();c.arc(wmX+T/2-3,wmY+T/2-2,2,0,Math.PI*2);c.fill();
+    c.beginPath();c.arc(wmX+T/2+3,wmY+T/2-2,2,0,Math.PI*2);c.fill();
+
+    requestAnimationFrame(()=>this.render());
+  },
+};
+
+// Wire up adventure mode to game object
+G.adventure=ADV;
+G.openAdventure=function(){
+  document.getElementById('adventureOverlay').style.display='block';
+  if(!ADV.canvas) ADV.init();
+  else ADV.resize();
+  document.getElementById('advZoneName').textContent=ADV.getMap().name;
+};
+G.closeAdventure=function(){
+  document.getElementById('adventureOverlay').style.display='none';
+};
+
 // GO!
 G.init();
+ADV.init();
 </script>
 </body>
 </html>
