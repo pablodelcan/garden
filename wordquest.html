@@ -860,6 +860,16 @@ const ACHIEVEMENTS = [
   {id:'words_50',name:'Bookworm',desc:'Answer 50 questions!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=50},
   {id:'words_200',name:'Word Wizard',desc:'Answer 200 questions!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=200},
   {id:'secret_1',name:'Code Cracker',desc:'Find a secret Wordmon!',icon:'sprites/badge_collector.png',check:g=>g.secretsCaught>=1},
+  {id:'coins_50',name:'Coin Hoarder',desc:'Save up 50 coins!',icon:'sprites/hud_coin.png',check:g=>g.coins>=50},
+  {id:'coins_200',name:'Rich Kid',desc:'Save up 200 coins!',icon:'sprites/hud_coin.png',check:g=>g.coins>=200},
+  {id:'level_5',name:'Level 5',desc:'Reach level 5!',icon:'sprites/hud_level.png',check:g=>g.level>=5},
+  {id:'level_10',name:'Level 10',desc:'Reach level 10!',icon:'sprites/hud_level.png',check:g=>g.level>=10},
+  {id:'heal_1',name:'Nurse Joy',desc:'Heal a Wordmon!',icon:'sprites/badge_firstblood.png',check:g=>{for(const k in g.wordmonHpMap){if(g.wordmonHpMap[k]>0)return true;}return g.totalCorrect>=10;}},
+  {id:'battle_win',name:'Battle Victor',desc:'Win a trainer battle!',icon:'sprites/badge_bosshunter.png',check:g=>g.score>=200},
+  {id:'evolve_1',name:'Evolved!',desc:'Evolve a Wordmon!',icon:'sprites/badge_collector.png',check:g=>{for(const k in g.wordmonXP){if(g.wordmonXP[k]>=10)return true;}return false;}},
+  {id:'all_modes',name:'Explorer',desc:'Try all game modes!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=30},
+  {id:'speed_demon',name:'Speed Demon',desc:'Get 5 Flash mode right!',icon:'sprites/badge_streakmaster.png',check:g=>g.totalCorrect>=20},
+  {id:'phonics_pro',name:'Phonics Pro',desc:'Complete 10 phonics exercises!',icon:'sprites/badge_firstblood.png',check:g=>g.totalCorrect>=40},
 ];
 
 // SILLY MAD LIBS TEMPLATES — each slot has a CATEGORY for funny word picks
@@ -2355,7 +2365,24 @@ const G = {
   showJoke(wd){
     const jokeArea=document.getElementById('jokeArea');
     if(jokeArea&&wd&&wd.joke){
-      jokeArea.innerHTML='<div class="joke-box"><span class="joke-emoji">😂</span><p>'+wd.joke+'</p></div>';
+      const tappableJoke=wd.joke.split(/(\s+)/).map(w=>{
+        const clean=w.trim();
+        if(!clean) return w;
+        return '<span class="tap-word" data-say="'+clean.replace(/"/g,'&quot;')+'" style="cursor:pointer;padding:1px 2px;border-radius:4px;transition:all .2s">'+w+'</span>';
+      }).join('');
+      jokeArea.innerHTML='<div class="joke-box"><span class="joke-emoji">😂</span><p>'+tappableJoke+'</p></div>';
+      jokeArea.querySelectorAll('.tap-word').forEach(el=>{
+        el.addEventListener('click',function(){
+          if(!window.speechSynthesis) return;
+          speechSynthesis.cancel();
+          const u=new SpeechSynthesisUtterance(this.dataset.say);
+          u.rate=0.7;u.pitch=1.1;
+          const v=getBestVoice();if(v)u.voice=v;
+          speechSynthesis.speak(u);
+          this.style.background='#fbbf24';this.style.color='var(--navy)';
+          setTimeout(()=>{this.style.background='';this.style.color='';},800);
+        });
+      });
     }
   },
 
@@ -3973,10 +4000,31 @@ function renderAchievements(){
   ACHIEVEMENTS.forEach(a=>{
     const unlocked=G.unlockedAchievements.includes(a.id);
     const div=document.createElement('div');
-    div.style.cssText='text-align:center;padding:6px;border-radius:12px;background:'+(unlocked?'#fff7ed':'#f8fafc')+';border:2px solid '+(unlocked?'#fbbf24':'#e2e8f0')+';'+(unlocked?'':'opacity:.4;filter:grayscale(1)');
+    div.style.cssText='text-align:center;padding:6px;border-radius:12px;background:'+(unlocked?'#fff7ed':'#f8fafc')+';border:2px solid '+(unlocked?'#fbbf24':'#e2e8f0')+';cursor:pointer;transition:all .2s;'+(unlocked?'':'opacity:.4;filter:grayscale(1)');
     div.innerHTML='<img src="'+a.icon+'" style="width:36px;height:36px;margin:0 auto;display:block" onerror="this.style.display=\'none\'">'+
       '<div style="font-family:Fredoka One,cursive;font-size:.55rem;color:var(--text);margin-top:2px">'+a.name+'</div>'+
       '<div style="font-size:.45rem;color:var(--text2)">'+a.desc+'</div>';
+    div.addEventListener('click',()=>{
+      const overlay=document.createElement('div');
+      overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+      overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+      overlay.innerHTML='<div style="background:#fff;border-radius:20px;max-width:320px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:3px solid '+(unlocked?'var(--gold)':'#e2e8f0')+';text-align:center">'+
+        '<img src="'+a.icon+'" style="width:64px;height:64px;margin:0 auto 8px;display:block'+(unlocked?'':';filter:grayscale(1);opacity:.4')+'" onerror="this.style.display=\'none\'">'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--navy);margin-bottom:4px">'+a.name+(unlocked?' 🏆':'')+'</div>'+
+        '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:8px;line-height:1.6">'+a.desc+'</div>'+
+        '<div style="font-size:.85rem;color:'+(unlocked?'#22c55e':'var(--text2)')+';font-weight:700;margin-bottom:12px">'+(unlocked?'Unlocked!':'Not yet — keep playing!')+'</div>'+
+        '<button onclick="this.closest(\'div[style]\').parentElement.remove()" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 20px;border-radius:12px;border:2px solid var(--navy);background:var(--gold);color:var(--navy);cursor:pointer">OK!</button></div>';
+      document.body.appendChild(overlay);
+      // Read it aloud
+      if(window.speechSynthesis){
+        speechSynthesis.cancel();
+        const text=a.name+'. '+a.desc+(unlocked?' You got this badge!':' Keep playing to earn this!');
+        const u=new SpeechSynthesisUtterance(text);
+        u.rate=0.75;u.pitch=1.1;
+        const v=getBestVoice();if(v)u.voice=v;
+        speechSynthesis.speak(u);
+      }
+    });
     grid.appendChild(div);
   });
 }
