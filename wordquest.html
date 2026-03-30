@@ -87,6 +87,9 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .tab.phonics-tab.active{background:var(--gold);color:var(--navy);border-color:#92400e}
 .tab.heal-tab{background:#fef9c3;color:var(--navy);border:2px solid var(--navy)}
 .tab.heal-tab.active{background:var(--gold);color:var(--navy);border-color:#92400e}
+.tab.battle-tab{background:#fef2f2;color:#dc2626;border:2px solid #dc2626;animation:battlePulse 2s ease-in-out infinite}
+.tab.battle-tab.active{background:#ef4444;color:#fff;border-color:#b91c1c}
+@keyframes battlePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 12px 4px rgba(239,68,68,.3)}}
 .tab.shop-tab{background:#fef3c7;color:#92400e;border:2px solid #fbbf24}
 .tab.shop-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mode-icon{width:20px;height:20px;vertical-align:middle;margin-right:2px}
@@ -365,6 +368,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
   <button class="tab quiz-tab" data-mode="popquiz">🎧 Pop Quiz</button>
   <button class="tab phonics-tab" data-mode="phonics">📖 Phonics</button>
   <button class="tab heal-tab" data-mode="heal">🏥 Heal</button>
+  <button class="tab battle-tab" data-mode="hardbattle">⚔️ Battle!</button>
   <button class="tab shop-tab" data-mode="shop"><img src="sprites/mode_shop.png" class="mode-icon"> Shop</button>
 </div>
 
@@ -1207,6 +1211,14 @@ const G = {
         this.loadHealingCenter();
       });
     });
+    document.querySelectorAll('.tab[data-mode="hardbattle"]').forEach(t=>{
+      t.addEventListener('click',()=>{
+        if(this.answering) return;
+        if(this.mode!=='shop'&&this.mode!=='heal') this._modeBeforeShop=this.mode;
+        this.mode='hardbattle';
+        this.loadHardBattle();
+      });
+    });
   },
 
   // ---- HUD ----
@@ -1737,6 +1749,7 @@ const G = {
     if(this._blockKeys){document.removeEventListener('keydown',this._blockKeys);this._blockKeys=null;}
     if(this._dodgeTimer){clearInterval(this._dodgeTimer);this._dodgeTimer=null;}
     if(this._dodgeKeys){document.removeEventListener('keydown',this._dodgeKeys);this._dodgeKeys=null;}
+    this.stopBattleMusic();
     const area=document.getElementById('gameArea');
     area.innerHTML='';
     if(mode==='shop'){
@@ -2973,6 +2986,213 @@ const G = {
       if(e.key==='ArrowRight'&&playerX<W-1){playerX++;render();}
     };
     document.addEventListener('keydown',this._dodgeKeys);
+  },
+
+  // ---- HARD BATTLE (trainer battle with battle music) ----
+  _battleMusic:null,
+  _battleMusicNodes:[],
+  startBattleMusic(){
+    if(this._battleMusic) return;
+    SFX.init();
+    const c=SFX.ctx;
+    if(!c) return;
+    const now=c.currentTime;
+    this._battleMusic=true;
+    // Create an intense battle loop
+    const playLoop=()=>{
+      if(!this._battleMusic) return;
+      const n=c.currentTime;
+      const bassNotes=[110,110,138,110,110,138,165,138];
+      const melNotes=[330,392,440,392,330,294,330,262];
+      bassNotes.forEach((f,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='square';o.frequency.setValueAtTime(f,n+i*.25);
+        g.gain.setValueAtTime(.08,n+i*.25);g.gain.setValueAtTime(.01,n+i*.25+.2);
+        o.start(n+i*.25);o.stop(n+i*.25+.24);
+        this._battleMusicNodes.push(o);
+      });
+      melNotes.forEach((f,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.setValueAtTime(f,n+i*.25);
+        g.gain.setValueAtTime(.06,n+i*.25);g.gain.setValueAtTime(.01,n+i*.25+.2);
+        o.start(n+i*.25);o.stop(n+i*.25+.24);
+        this._battleMusicNodes.push(o);
+      });
+      this._battleMusicTimer=setTimeout(playLoop,2000);
+    };
+    playLoop();
+  },
+  stopBattleMusic(){
+    this._battleMusic=null;
+    if(this._battleMusicTimer) clearTimeout(this._battleMusicTimer);
+    this._battleMusicNodes.forEach(o=>{try{o.stop();}catch(e){}});
+    this._battleMusicNodes=[];
+  },
+
+  loadHardBattle(){
+    this.stopBattleMusic();
+    // Check if active Wordmon is alive
+    const myHp=this.getWordmonHp(this.activeWordmon);
+    if(myHp<=0){
+      this.showToast('Your Wordmon fainted! Heal it first!');
+      this.forceHealingCenter();
+      return;
+    }
+    const area=document.getElementById('gameArea');
+    const wm=this.getWordmon(this.activeWordmon);
+    // Trainer names and their Wordmons
+    const TRAINERS=[
+      {name:'Trainer Ace',wordmon:'Shadowfang',type:'Dark',hp:80,sprite:'sprites/enemy_shadow_1.png'},
+      {name:'Trainer Luna',wordmon:'Frostqueen',type:'Ice',hp:75,sprite:'sprites/enemy_crystal_1.png'},
+      {name:'Trainer Blaze',wordmon:'Infernodrake',type:'Fire',hp:85,sprite:'sprites/enemy_fire_1.png'},
+      {name:'Trainer Storm',wordmon:'Thunderlord',type:'Electric',hp:70,sprite:'sprites/enemy_electric_1.png'},
+      {name:'Trainer Ivy',wordmon:'Thorntitan',type:'Grass',hp:90,sprite:'sprites/enemy_grass_1.png'},
+    ];
+    const trainer=TRAINERS[Math.floor(Math.random()*TRAINERS.length)];
+    // Hard words - longer, less common
+    const HARD_WORDS=[
+      {w:'because',sent:'I like it ___ it is fun.'},
+      {w:'before',sent:'We go home ___ dark.'},
+      {w:'would',sent:'I ___ like some cake.'},
+      {w:'could',sent:'She ___ run very fast.'},
+      {w:'should',sent:'You ___ be nice to him.'},
+      {w:'about',sent:'The book is ___ a dog.'},
+      {w:'their',sent:'That is ___ house.'},
+      {w:'there',sent:'The cat is over ___.'},
+      {w:'every',sent:'She reads ___ day.'},
+      {w:'people',sent:'Many ___ came to see.'},
+      {w:'other',sent:'The ___ kids are here.'},
+      {w:'after',sent:'We play ___ lunch.'},
+      {w:'where',sent:'Do you know ___ it is?'},
+      {w:'first',sent:'I was ___ in line!'},
+      {w:'which',sent:'Tell me ___ one you like.'},
+      {w:'little',sent:'The ___ cat sat on me.'},
+      {w:'water',sent:'Can I have some ___?'},
+      {w:'again',sent:'Let us play ___ please!'},
+      {w:'never',sent:'I will ___ give up!'},
+      {w:'found',sent:'She ___ a big shell.'},
+      {w:'house',sent:'We live in a big ___.'},
+      {w:'those',sent:'I want ___ red ones.'},
+      {w:'think',sent:'I ___ it is cool!'},
+      {w:'right',sent:'You got the ___ one!'},
+      {w:'might',sent:'It ___ rain today.'},
+      {w:'under',sent:'The cat hid ___ the bed.'},
+      {w:'still',sent:'He is ___ sleeping!'},
+      {w:'while',sent:'Read a book ___ you wait.'},
+    ];
+    let battleHp=trainer.hp;
+    let pendingCoins=0;
+    let questionNum=0;
+    let battleOver=false;
+
+    // Start music!
+    this.startBattleMusic();
+
+    const showQuestion=()=>{
+      if(battleOver) return;
+      questionNum++;
+      const wd=HARD_WORDS[Math.floor(Math.random()*HARD_WORDS.length)];
+      const sent=wd.sent.replace('___','<span class="blank">_____</span>');
+      const wrongs=HARD_WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+      const choices=shuffle([wd.w,...wrongs]);
+      area.innerHTML='<div class="card" style="border-color:#dc2626;position:relative" id="qCard">'+
+        '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:3px 12px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.75rem">⚔️ TRAINER BATTLE vs '+trainer.name+'</div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px">'+
+        '<div style="text-align:center;font-size:.7rem;font-weight:700;color:var(--navy)">'+wm.name+'<br>HP: '+this.playerHp+'/'+this.playerMaxHp+'</div>'+
+        '<div style="text-align:center;font-size:.7rem;font-weight:700;color:#dc2626">'+trainer.wordmon+'<br>HP: '+battleHp+'/'+trainer.hp+'</div></div>'+
+        '<div style="display:flex;gap:4px;margin-bottom:10px">'+
+        '<div style="flex:1;background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden"><div style="background:var(--green);height:100%;width:'+Math.round(this.playerHp/this.playerMaxHp*100)+'%;border-radius:4px"></div></div>'+
+        '<div style="flex:1;background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden"><div style="background:#dc2626;height:100%;width:'+Math.round(battleHp/trainer.hp*100)+'%;border-radius:4px"></div></div></div>'+
+        '<div style="font-size:.7rem;color:var(--gold);font-weight:700;text-align:center;margin-bottom:6px">💰 Coins at stake: '+pendingCoins+' (keep if you win!)</div>'+
+        '<div class="question-text">'+sent+'</div>'+
+        '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'" style="border-color:#dc2626">'+c+'</button>').join('')+'</div></div>';
+      area.querySelectorAll('.choice-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          if(this.answering||battleOver) return;
+          this.answering=true;
+          const card=document.getElementById('qCard');
+          card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+          if(btn.dataset.val===wd.w){
+            btn.classList.add('correct');
+            SFX.play('correct');
+            this.fireSparkles(btn);
+            card.querySelector('.blank').textContent=wd.w;
+            pendingCoins+=2;
+            // Damage enemy trainer
+            const dmg=8+Math.floor(Math.random()*5);
+            battleHp=Math.max(0,battleHp-dmg);
+            if(battleHp<=0){
+              // WIN!
+              battleOver=true;
+              this.stopBattleMusic();
+              SFX.play('fanfare');
+              this.addCoins(pendingCoins);
+              this.showMoneyAnimation(pendingCoins);
+              this.fireConfetti();
+              this.score+=pendingCoins*5;
+              setTimeout(()=>{
+                area.innerHTML='<div class="card" style="text-align:center;padding:24px;border-color:#22c55e">'+
+                  '<div style="font-size:2rem;margin-bottom:8px">🏆</div>'+
+                  '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#22c55e;margin-bottom:6px">YOU WIN!</div>'+
+                  '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:4px">You beat '+trainer.name+'!</div>'+
+                  '<div style="font-size:1.2rem;color:var(--gold);font-weight:800;margin-bottom:12px">💰 +'+pendingCoins+' coins earned!</div>'+
+                  '<button onclick="G.mode=G._modeBeforeShop||G.GAME_MODES[0];G.updateModeBar();G.loadMode(G.mode)" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:2px solid var(--navy);background:var(--gold);color:var(--navy);cursor:pointer">Back to Reading!</button></div>';
+              },1500);
+            } else {
+              this.answering=false;
+              setTimeout(showQuestion,1200);
+            }
+          } else {
+            btn.classList.add('wrong-pick');
+            card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===wd.w)b.classList.add('correct');});
+            card.querySelector('.blank').textContent=wd.w;
+            SFX.play('wrong');
+            // Heavy damage to player!
+            const dmg=8+Math.floor(Math.random()*6);
+            this.playerHp=Math.max(0,this.playerHp-dmg);
+            this.wordmonHpMap[this.activeWordmon]=this.playerHp;
+            this.updateHUD();
+            if(this.playerHp<=0){
+              // LOSE — coins lost, Wordmon faints
+              battleOver=true;
+              this.stopBattleMusic();
+              SFX.play('faint');
+              this.wordmonHpMap[this.activeWordmon]=0;
+              setTimeout(()=>{
+                area.innerHTML='<div class="card" style="text-align:center;padding:24px;border-color:#dc2626">'+
+                  '<div style="font-size:2rem;margin-bottom:8px">😵</div>'+
+                  '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:6px">DEFEATED!</div>'+
+                  '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:4px">'+trainer.name+' wins this time...</div>'+
+                  '<div style="font-size:1rem;color:#dc2626;font-weight:700;margin-bottom:4px">'+wm.name+' fainted! 💔</div>'+
+                  '<div style="font-size:.9rem;color:var(--text2);margin-bottom:12px">You lost '+pendingCoins+' coins. Heal your Wordmon!</div>'+
+                  '<button onclick="G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:2px solid #dc2626;background:#fef2f2;color:#dc2626;cursor:pointer">🏥 Go to Healing Center</button></div>';
+                this.renderRoster();
+                this.saveGame();
+              },1500);
+            } else {
+              if(this.playerHp<=Math.floor(this.playerMaxHp*0.3)) SFX.play('lowHp');
+              this.answering=false;
+              setTimeout(showQuestion,1500);
+            }
+          }
+        });
+      });
+      this.thinkFirst(document.getElementById('qCard'),2);
+    };
+
+    // Show intro screen first
+    area.innerHTML='<div class="card" style="text-align:center;padding:24px;border-color:#dc2626">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:8px">⚔️ TRAINER BATTLE!</div>'+
+      '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:4px">'+trainer.name+' wants to battle!</div>'+
+      '<div style="font-size:.9rem;color:var(--text2);margin-bottom:8px">They have <strong>'+trainer.wordmon+'</strong> ('+trainer.type+' type, '+trainer.hp+' HP)</div>'+
+      '<div style="background:#fef3c7;border:2px solid var(--gold);border-radius:12px;padding:10px;margin:8px 0;font-size:.85rem;font-weight:600;color:#92400e">⚠️ Harder words! 2 coins per answer — but you LOSE them all if you faint!</div>'+
+      '<button id="startBattle" style="font-family:Fredoka One,cursive;font-size:1.1rem;padding:12px 28px;border-radius:14px;border:3px solid #dc2626;background:#dc2626;color:#fff;cursor:pointer;margin-top:8px">⚔️ FIGHT!</button></div>';
+    document.getElementById('startBattle').addEventListener('click',()=>{
+      this.answering=false;
+      showQuestion();
+    });
   },
 
   // ---- READ ALONG (TTS reads sentence but pauses for target word) ----
