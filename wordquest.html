@@ -1622,9 +1622,15 @@ const G = {
       '<div style="background:var(--accent);color:#fff;padding:3px 10px;border-radius:10px;font-size:.75rem;font-weight:700">Stage '+(wm.stage+1)+'/3</div></div>'+
       (isFainted?'<div style="background:#fef2f2;border:2px solid var(--red);border-radius:12px;padding:8px;margin:8px 0;font-weight:700;color:var(--red);font-size:.85rem">😵 FAINTED — Heal me!</div>':'')+
       '<div style="background:#f8fafc;border-radius:14px;padding:14px;margin:12px 0;text-align:left;border:2px solid #e2e8f0">'+
-      '<div style="font-family:Fredoka One,cursive;font-size:.8rem;color:var(--accent);margin-bottom:6px">📖 Story</div>'+
-      '<div style="font-size:1.1rem;line-height:1.8;font-weight:600;color:var(--text)">'+bio+'</div>'+
-      '<button onclick="if(window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(\''+bio.replace(/'/g,"\\'")+'\');u.rate=0.7;u.pitch=1.1;const v=getBestVoice();if(v)u.voice=v;speechSynthesis.speak(u)}" style="margin-top:8px;background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.8rem;cursor:pointer">🔊 Read to me!</button></div>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:.8rem;color:var(--accent);margin-bottom:6px">📖 Story <span style="font-size:.65rem;color:var(--text2);font-family:Nunito,sans-serif">(tap any word to hear it!)</span></div>'+
+      '<div class="bio-text" style="font-size:1.2rem;line-height:2;font-weight:600;color:var(--text)">'+
+      bio.split(/(\s+)/).map(w=>{
+        const clean=w.trim();
+        if(!clean) return w;
+        return '<span class="tap-word" onclick="(function(){if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(\''+clean.replace(/'/g,"\\'")+'\');u.rate=0.7;u.pitch=1.1;const v=getBestVoice();if(v)u.voice=v;speechSynthesis.speak(u);this.style.background=\'#fbbf24\';this.style.color=\'var(--navy)\';setTimeout(()=>{this.style.background=\'\';this.style.color=\'\'},800)}).call(this)" style="cursor:pointer;padding:1px 3px;border-radius:6px;transition:all .2s;display:inline-block">'+w+'</span>';
+      }).join('')+'</div>'+
+      '<div style="margin-top:8px;display:flex;gap:8px">'+
+      '<button onclick="if(window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(\''+bio.replace(/'/g,"\\'")+'\');u.rate=0.65;u.pitch=1.1;const v=getBestVoice();if(v)u.voice=v;speechSynthesis.speak(u)}" style="background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.8rem;cursor:pointer">🔊 Read All</button></div></div>'+
       '<div style="display:flex;gap:8px;margin-top:12px">'+
       '<button onclick="G.activeWordmon='+idx+';G.playerMaxHp='+wm.hp+';G.playerHp=G.getWordmonHp('+idx+');G.renderRoster();G.renderPokedex();G.updateHUD();this.closest(\'div[style]\').parentElement.remove()" style="flex:1;font-family:Fredoka One,cursive;font-size:.85rem;padding:10px;border-radius:12px;border:2px solid var(--navy);background:var(--gold);color:var(--navy);cursor:pointer'+(isFainted?';opacity:.4;pointer-events:none':'')+'">⚔️ Choose Fighter</button>'+
       '<button onclick="this.closest(\'div[style]\').parentElement.remove()" style="flex:1;font-family:Fredoka One,cursive;font-size:.85rem;padding:10px;border-radius:12px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">Close</button></div></div>';
