@@ -4423,84 +4423,71 @@ const ADV={
   },
 
   wildEncounter(){
-    // Pick a random uncaught Wordmon, or a random one if all caught
     const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!G.caughtWordmons.includes(i));
     const pickIdx=uncaught.length>0?uncaught[Math.floor(Math.random()*uncaught.length)]:Math.floor(Math.random()*WORDMONS.length);
     const wild=G.getWordmon(pickIdx);
-    this.dialogOpen=true; // prevent movement during transition
+    this.dialogOpen=true;
 
-    // EPIC BATTLE TRANSITION
+    // Add encounter animation styles once
+    if(!document.getElementById('encounterStyles')){
+      const s=document.createElement('style');s.id='encounterStyles';
+      s.textContent=`
+        @keyframes encFlash{0%{opacity:0}10%{opacity:1}30%{opacity:0}50%{opacity:1}70%{opacity:0}100%{opacity:0}}
+        @keyframes encBounceIn{0%{transform:scale(0) rotate(-10deg);opacity:0}60%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+        @keyframes encSlideUp{0%{transform:translateY(30px);opacity:0}100%{transform:translateY(0);opacity:1}}
+        @keyframes encPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+        .enc-screen{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000}
+        .enc-flash{position:absolute;inset:0;background:#fff;z-index:61;animation:encFlash .6s ease-out forwards;pointer-events:none}
+      `;
+      document.head.appendChild(s);
+    }
+
     const overlay=document.getElementById('adventureOverlay');
 
-    // 1. Screen flash white
-    const flash=document.createElement('div');
-    flash.style.cssText='position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:50;transition:opacity .15s';
-    overlay.appendChild(flash);
-    setTimeout(()=>flash.style.opacity='1',10);
+    // White flash effect
+    const flashEl=document.createElement('div');
+    flashEl.className='enc-flash';
+    overlay.appendChild(flashEl);
+    setTimeout(()=>flashEl.remove(),700);
 
-    // 2. Diagonal swipe transition (black bars closing in)
+    // After flash, show encounter screen
     setTimeout(()=>{
-      flash.style.background='#000';
-      // Add diagonal swipe bars
-      const bar1=document.createElement('div');
-      bar1.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:51;transform:translateX(-100%);transition:transform .4s ease-in';
-      const bar2=document.createElement('div');
-      bar2.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:51;transform:translateX(100%);transition:transform .4s ease-in';
-      overlay.appendChild(bar1);overlay.appendChild(bar2);
-      setTimeout(()=>{bar1.style.transform='translateX(-30%)';bar2.style.transform='translateX(30%)';},10);
+      const screen=document.createElement('div');
+      screen.className='enc-screen';
+      screen.id='encounterScreen';
+      screen.innerHTML=
+        '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:#fff;text-shadow:0 0 20px rgba(249,115,22,.8);margin-bottom:20px;animation:encPulse 1s ease-in-out infinite">⚡ Wild Encounter! ⚡</div>'+
+        '<div style="animation:encBounceIn 0.6s ease both">'+
+          (wild.spriteImg?'<img src="'+wild.spriteImg+'" style="width:160px;height:160px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 30px rgba(255,200,50,.6))" onerror="this.style.display=\'none\'">':
+          '<div style="width:120px;height:120px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3rem">?</div>')+
+        '</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:2rem;color:#fbbf24;text-shadow:2px 2px 0 rgba(0,0,0,.5);margin-top:16px;animation:encSlideUp .5s ease .3s both">'+wild.name+'</div>'+
+        '<div style="font-size:1rem;color:rgba(255,255,255,.7);font-weight:700;margin-top:4px;animation:encSlideUp .5s ease .4s both">'+wild.type+' Type • HP '+wild.hp+'</div>'+
+        '<div style="font-size:.9rem;color:rgba(255,255,255,.5);margin-top:20px;animation:encPulse 1.5s ease-in-out infinite .5s both">Answer 3 questions to catch it!</div>'+
+        '<button id="wildBattleBtn" style="margin-top:24px;font-family:Fredoka One,cursive;font-size:1.2rem;padding:14px 32px;border-radius:16px;border:3px solid #fbbf24;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(249,115,22,.5);animation:encBounceIn .5s ease .6s both;pointer-events:auto">⚔️ BATTLE!</button>';
+      overlay.appendChild(screen);
+      SFX.play('fanfare');
 
-      // 3. Show encounter splash
-      setTimeout(()=>{
-        flash.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:55">'+
-          '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:#fff;text-shadow:0 0 20px rgba(249,115,22,.8);margin-bottom:16px;animation:encounterPulse 1s ease-in-out infinite">⚡ Wild Encounter! ⚡</div>'+
-          '<div style="animation:encounterBounce 0.6s ease">'+
-            (wild.spriteImg?'<img src="'+wild.spriteImg+'" style="width:150px;height:150px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 20px rgba(255,255,255,.5))" onerror="this.style.display=\'none\'">':'')+
-          '</div>'+
-          '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:var(--gold);text-shadow:2px 2px 0 rgba(0,0,0,.5);margin-top:12px;animation:encounterSlide .5s ease .2s both">'+wild.name+'</div>'+
-          '<div style="font-family:Nunito,sans-serif;font-size:1rem;color:rgba(255,255,255,.8);font-weight:700;margin-top:4px">'+wild.type+' Type</div>'+
-          '<div style="font-family:Fredoka One,cursive;font-size:.9rem;color:rgba(255,255,255,.6);margin-top:16px;animation:encounterPulse 1.5s ease-in-out infinite">Answer 3 questions to catch it!</div>'+
-          '<button id="wildBattleBtn" style="margin-top:20px;font-family:Fredoka One,cursive;font-size:1.1rem;padding:12px 28px;border-radius:14px;border:3px solid var(--gold);background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);animation:encounterBounce 0.5s ease .5s both">⚔️ BATTLE!</button>'+
-        '</div>';
-        flash.style.opacity='1';
-        SFX.play('fanfare');
-        // Add CSS animation keyframes
-        if(!document.getElementById('encounterStyles')){
-          const style=document.createElement('style');
-          style.id='encounterStyles';
-          style.textContent='@keyframes encounterPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}'+
-            '@keyframes encounterBounce{0%{transform:scale(0) rotate(-10deg);opacity:0}60%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0)}}'+
-            '@keyframes encounterSlide{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}';
-          document.head.appendChild(style);
-        }
-        // Wire up battle button with event listener (more reliable than onclick string)
-        setTimeout(()=>{
-          const btn=document.getElementById('wildBattleBtn');
-          if(btn) btn.addEventListener('click',()=>ADV._startWildBattle(pickIdx));
-        },100);
-      },500);
-    },200);
+      // Wire up battle button
+      document.getElementById('wildBattleBtn').addEventListener('click',()=>{
+        // Remove encounter screen
+        screen.remove();
+        // Close adventure overlay
+        document.getElementById('adventureOverlay').style.display='none';
+        ADV.dialogOpen=false;
+        // Set wild Wordmon as enemy
+        G.currentEnemy={name:wild.name,hp:wild.hp,maxHp:wild.hp,sprite:wild.spriteImg};
+        G.enemyHp=wild.hp;
+        G.enemyMaxHp=wild.hp;
+        G.updateHUD();
+        G.showBattleMsg('Wild '+wild.name+'!');
+        SFX.play('attack');
+      });
+    },600);
 
-    // Set up catch challenge
     G._pendingWildCatch=pickIdx;
     G._wildCatchCount=0;
     G._wildCatchNeeded=3;
-  },
-
-  _startWildBattle(pickIdx){
-    // Close adventure, go to main game battle
-    document.getElementById('adventureOverlay').style.display='none';
-    // Clean up transition elements
-    document.querySelectorAll('#adventureOverlay > div:not(#adventureCanvas):not(#adventureHUD):not(#dpad):not(#advDialog)').forEach(el=>el.remove());
-    this.dialogOpen=false;
-    // Set the enemy to this wild Wordmon's data
-    const wild=G.getWordmon(pickIdx);
-    G.currentEnemy={name:wild.name,hp:wild.hp,maxHp:wild.hp,sprite:wild.spriteImg};
-    G.enemyHp=wild.hp;
-    G.enemyMaxHp=wild.hp;
-    G.updateHUD();
-    // Show a battle message
-    G.showBattleMsg('Wild '+wild.name+'!');
-    SFX.play('attack');
   },
 
   render(){
