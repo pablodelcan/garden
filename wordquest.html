@@ -1563,13 +1563,80 @@ const G = {
       const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!this.caughtWordmons.includes(i));
       if(uncaught.length>0){
         const pick=uncaught[Math.floor(Math.random()*uncaught.length)];
-        this.caughtWordmons.push(pick);
-        SFX.play('catch');
-        this.showCatchModal(this.getWordmon(pick));
-        this.fireConfetti();
+        // Show a catch challenge — must read a story to complete the catch!
+        this._pendingCatchIdx=pick;
+        SFX.play('fanfare');
+        // Delay then show catch story challenge
+        if(this._autoTimer) clearTimeout(this._autoTimer);
+        this._autoTimer=setTimeout(()=>{
+          this._autoTimer=null;
+          this.loadCatchStory(pick);
+        },2000);
+        setTimeout(()=>this.updateHUD(),100);
+        return;
       }
     }
     setTimeout(()=>this.updateHUD(),100);
+  },
+
+  // Show a story question that must be answered to complete a catch
+  loadCatchStory(wmIdx){
+    const wm=this.getWordmon(wmIdx);
+    const area=document.getElementById('gameArea');
+    const st=this.pickStory();
+    const words=st.text.split(/(\s+)/);
+    const storyHtml=words.map(w=>{
+      const clean=w.replace(/[^a-zA-Z]/g,'');
+      if(!clean) return w;
+      return '<span class="story-word">'+w+'</span>';
+    }).join('');
+    area.innerHTML='<div class="card" id="qCard" style="border-color:var(--gold)">'+
+      '<div style="text-align:center;margin-bottom:8px">'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--accent)">🎯 Catch Challenge!</div>'+
+        '<div style="font-size:.85rem;color:var(--text2);font-weight:600">Read the story to catch <strong>'+wm.name+'</strong>!</div>'+
+        this.spriteHtml(wm,60)+
+      '</div>'+
+      '<div class="question-text" style="font-size:1rem">Read the story!</div>'+
+      '<div class="story-box">'+storyHtml+'</div>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1rem;color:var(--text);margin-top:10px">'+st.question+'</div>'+
+      '<div class="choices">'+
+      shuffle(st.choices).map(c=>'<button class="choice-btn" data-val="'+c+'">'+c+'</button>').join('')+
+      '</div></div>';
+    // Wire up answer buttons
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering) return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(parseInt(btn.dataset.val)===st.answer||btn.dataset.val===String(st.answer)){
+          btn.classList.add('correct');
+          // CATCH SUCCESS!
+          this.caughtWordmons.push(wmIdx);
+          this._pendingCatchIdx=null;
+          SFX.play('catch');
+          this.showCatchModal(wm);
+          this.fireConfetti();
+          this.saveGame();
+        } else {
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.val)===st.answer||b.dataset.val===String(st.answer))b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          // Catch failed — they'll need another streak
+          this._pendingCatchIdx=null;
+          this.showBattleMsg('It escaped!');
+          SFX.play('wrong');
+          setTimeout(()=>{
+            const btn2=document.createElement('button');
+            btn2.textContent='Keep playing →';
+            btn2.style.cssText='display:block;margin:12px auto;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer';
+            btn2.onclick=()=>this.loadMode(this.mode);
+            card.appendChild(btn2);
+          },1500);
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),3);
   },
 
   showCatchModal(wm){
