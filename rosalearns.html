@@ -31,7 +31,8 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 .scene{border-radius:20px;margin:8px 12px;padding:16px;min-height:160px;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);background-size:cover;background-position:center;transition:background-image .5s}
 .buddies{display:flex;justify-content:space-around;align-items:flex-end;min-height:120px}
 .buddy{text-align:center}
-.buddy img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(2px 4px 4px rgba(0,0,0,.15));animation:buddyBounce 2s ease-in-out infinite}
+.buddy img{width:110px;height:110px;object-fit:contain;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.2));animation:buddyBounce 2s ease-in-out infinite;cursor:pointer;transition:transform .2s}
+.buddy img:active{transform:scale(1.15)!important}
 @keyframes buddyBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .buddy-name{font-family:'Fredoka One',cursive;font-size:.7rem;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,.5);margin-top:2px}
 
@@ -52,7 +53,13 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 
 /* BIG CHOICES (toddler-friendly huge buttons) */
 .big-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.big-btn{font-family:'Fredoka One',cursive;font-size:2.5rem;padding:20px;border-radius:20px;border:4px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.big-btn{font-family:'Fredoka One',cursive;font-size:2.5rem;padding:22px;border-radius:22px;border:none;background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;box-shadow:0 6px 0 #d6d3d1,0 8px 20px rgba(0,0,0,.08)}
+.big-btn:hover{transform:translateY(-4px);box-shadow:0 10px 0 #d6d3d1,0 12px 24px rgba(0,0,0,.1)}
+.big-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #d6d3d1}
+.big-btn.correct-answer{background:#dcfce7;box-shadow:0 6px 0 #86efac,0 8px 20px rgba(34,197,94,.15);animation:btnBounce .5s ease}
+.big-btn.wrong-answer{background:#fef2f2;box-shadow:0 6px 0 #fca5a5;animation:btnShake .4s ease}
+@keyframes btnBounce{0%{transform:scale(1)}30%{transform:scale(1.1)}60%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes btnShake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
 .big-btn:hover{border-color:var(--pink);background:#fff0f6;transform:translateY(-3px)}
 .big-btn:active{transform:translateY(0)}
 .big-btn.correct{background:#dcfce7;border-color:var(--green);color:#15803d;animation:correctPop .5s ease}
@@ -139,11 +146,11 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 <div class="scene" id="sceneArea" style="background-image:url('rosa-sprites/bg_park.png');background-color:#a7f3d0">
   <div class="buddies">
     <div class="buddy">
-      <img src="rosa-sprites/buddy_pup.png" alt="Puppy" id="buddyLeft" onerror="this.outerHTML='<div style=&quot;font-size:4rem&quot;>🐶</div>'">
+      <img src="rosa-sprites/buddy_pup.png" alt="Puppy" id="buddyLeft" onclick="G.tapBuddy('bingo')" onerror="this.outerHTML='<div style=&quot;font-size:4rem&quot;>🐶</div>'">
       <div class="buddy-name">Bingo</div>
     </div>
     <div class="buddy">
-      <img src="rosa-sprites/buddy_spider.png" alt="Spidey" id="buddyRight" onerror="this.outerHTML='<div style=&quot;font-size:4rem&quot;>🦸</div>'">
+      <img src="rosa-sprites/buddy_spider.png" alt="Spidey" id="buddyRight" onclick="G.tapBuddy('webby')" onerror="this.outerHTML='<div style=&quot;font-size:4rem&quot;>🦸</div>'">
       <div class="buddy-name">Webby</div>
     </div>
   </div>
@@ -319,6 +326,13 @@ const G={
     document.getElementById('scoreVal').textContent=this.score;
     document.getElementById('streakVal').textContent=this.streak;
     document.getElementById('gemVal').textContent=this.gems;
+    // Update coin display with animated color when earning
+    const gemEl=document.getElementById('gemVal');
+    if(gemEl&&this._lastGems!==undefined&&this.gems>this._lastGems){
+      gemEl.style.color='#fbbf24';gemEl.style.transform='scale(1.3)';
+      setTimeout(()=>{gemEl.style.color='';gemEl.style.transform='';},500);
+    }
+    this._lastGems=this.gems;
     const pct=Math.min(100,this.xp/this.xpNeeded*100);
     document.getElementById('xpFill').style.width=pct+'%';
     document.getElementById('xpLabel').textContent=this.xp+' / '+this.xpNeeded+' ⭐';
@@ -674,7 +688,14 @@ const G={
     this.score+=5;this.streak++;this.totalCorrect++;this.modeWins++;
     if(this.streak>(this.maxStreak||0)) this.maxStreak=this.streak;
     this.xp+=3; // more XP for toddlers — faster level ups!
-    this.gems++;
+    this.gems+=2; // 2 coins per correct answer
+    // Show floating +2 coins
+    const coinFloat=document.createElement('div');
+    coinFloat.textContent='+2 🪙';
+    coinFloat.style.cssText='position:fixed;top:20px;right:20px;font-family:Fredoka One,cursive;font-size:1.5rem;color:#fbbf24;text-shadow:1px 1px 0 rgba(0,0,0,.3);z-index:999;pointer-events:none;transition:all .8s ease;opacity:1';
+    document.body.appendChild(coinFloat);
+    requestAnimationFrame(()=>{coinFloat.style.top='-30px';coinFloat.style.opacity='0';});
+    setTimeout(()=>coinFloat.remove(),1000);
     this.checkLevelUp();
     this.checkSticker();
     this.updateHUD();this.updateModeBar();this.saveGame();
@@ -842,18 +863,24 @@ const G={
     this._modeBeforeShop=this.mode;
     const area=document.getElementById('gameArea');
     const SHOP=[
-      {id:'sticker_book',name:'Sticker Book',price:20,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null,emoji:'⭐'},
-      {id:'puzzle',name:'Safari Puzzles',price:40,desc:'Wooden animal puzzles!',realPrice:'~$10',url:'https://www.amazon.com/Melissa-Doug-Preschool-Full-Color-Pictures/dp/B000B9RHYC',img:'https://m.media-amazon.com/images/I/51sIjUFePwL._AC_SL500_.jpg',emoji:'🧩'},
-      {id:'playdoh',name:'Play-Doh Fun Tub',price:50,desc:'Colorful squishy fun!',realPrice:'~$18',url:'https://www.amazon.com/Playset-Starter-Non-Toxic-Preschool-Exclusive/dp/B00TPMDLOG',img:'https://m.media-amazon.com/images/I/51F+AV8iPYL._AC_SL500_.jpg',emoji:'🎨'},
-      {id:'crayons',name:'Crayola Wonder Kit',price:60,desc:'Mess-free coloring!',realPrice:'~$25',url:'https://www.amazon.com/Crayola-Wonder-Coloring-Amazon-Exclusive/dp/B071G4G3LT',img:'https://m.media-amazon.com/images/I/51sv3H7Zi1L._AC_SL500_.jpg',emoji:'🖍️'},
-      {id:'bluey_figures',name:'Bluey Family Set',price:50,desc:'Bluey, Bingo, Mum & Dad!',realPrice:'~$15',url:'https://www.amazon.com/Bluey-Figure-Pack-Family-Multicolor/dp/B083XNCRS3',img:'https://m.media-amazon.com/images/I/51lVkTgFO-L._AC_SL500_.jpg',emoji:'👨‍👩‍👧‍👦'},
-      {id:'bluey_plush',name:'Bluey Plush (11")',price:80,desc:'A soft cuddly Bluey!',realPrice:'~$30',url:'https://www.amazon.com/Bluey-Plush-Cuddle-Care-Baby/dp/B0DQ6ND4Q2',img:'https://m.media-amazon.com/images/I/410mK1OeyML._AC_SL500_.jpg',emoji:'🐕'},
+      // Small rewards (100-200 coins) — a few hours of play
+      {id:'sticker_book',name:'Sticker Book',price:100,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null,emoji:'⭐'},
+      {id:'puzzle',name:'Safari Puzzles',price:150,desc:'Wooden animal puzzles!',realPrice:'~$10',url:'https://www.amazon.com/Melissa-Doug-Preschool-Full-Color-Pictures/dp/B000B9RHYC',img:'https://m.media-amazon.com/images/I/51sIjUFePwL._AC_SL500_.jpg',emoji:'🧩'},
+      {id:'bluey_figures',name:'Bluey Family Set',price:200,desc:'Bluey, Bingo, Mum & Dad!',realPrice:'~$15',url:'https://www.amazon.com/Bluey-Figure-Pack-Family-Multicolor/dp/B083XNCRS3',img:'https://m.media-amazon.com/images/I/51lVkTgFO-L._AC_SL500_.jpg',emoji:'👨‍👩‍👧‍👦'},
+      // Medium rewards (250-400 coins) — a day or two of play
+      {id:'playdoh',name:'Play-Doh Fun Tub',price:250,desc:'Colorful squishy fun!',realPrice:'~$18',url:'https://www.amazon.com/Playset-Starter-Non-Toxic-Preschool-Exclusive/dp/B00TPMDLOG',img:'https://m.media-amazon.com/images/I/51F+AV8iPYL._AC_SL500_.jpg',emoji:'🎨'},
+      {id:'crayons',name:'Crayola Wonder Kit',price:350,desc:'Mess-free coloring!',realPrice:'~$25',url:'https://www.amazon.com/Crayola-Wonder-Coloring-Amazon-Exclusive/dp/B071G4G3LT',img:'https://m.media-amazon.com/images/I/51sv3H7Zi1L._AC_SL500_.jpg',emoji:'🖍️'},
+      // Big rewards (500+ coins) — several days of play
+      {id:'bluey_plush',name:'Bluey Plush (11")',price:500,desc:'A soft cuddly Bluey!',realPrice:'~$30',url:'https://www.amazon.com/Bluey-Plush-Cuddle-Care-Baby/dp/B0DQ6ND4Q2',img:'https://m.media-amazon.com/images/I/410mK1OeyML._AC_SL500_.jpg',emoji:'🐕'},
+      {id:'duplo',name:'LEGO DUPLO Set',price:600,desc:'Build castles and animals!',realPrice:'~$35',url:'https://www.amazon.com/s?k=lego+duplo+toddler',img:null,emoji:'🧱'},
+      {id:'magna_tiles',name:'Magna-Tiles Set',price:800,desc:'Magnetic building tiles!',realPrice:'~$50',url:'https://www.amazon.com/s?k=magna+tiles+toddler',img:null,emoji:'🔺'},
     ];
     let html='<div style="text-align:center;padding:12px">'+
       '<button onclick="G.backToGame()" style="display:block;margin:0 auto 10px;font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 20px;border-radius:12px;border:none;background:var(--pink);color:#fff;cursor:pointer">← Back to Game</button>'+
       '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--pink);margin-bottom:4px">🎁 Rosa\'s Toy Shop!</div>'+
-      '<div style="font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:8px">Earn gems to unlock real toys!</div>'+
-      '<div style="background:#fce7f3;border-radius:12px;padding:8px;margin-bottom:12px;font-family:Fredoka One,cursive;font-size:1rem;color:#be185d">💎 Your gems: '+this.gems+'</div>'+
+      '<div style="font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:4px">Every correct answer earns coins!</div>'+
+      '<div style="font-size:.75rem;color:#be185d;font-weight:700;margin-bottom:8px">When you earn enough, Mom or Dad will get the real toy!</div>'+
+      '<div style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-radius:14px;padding:10px;margin-bottom:12px;font-family:Fredoka One,cursive;font-size:1.1rem;color:#be185d;border:2px solid #f9a8d4">🪙 Your coins: '+this.gems+'</div>'+
       '<div class="shop-grid">';
     SHOP.forEach(item=>{
       const bought=this.purchased.includes(item.id);
@@ -865,11 +892,11 @@ const G={
         '<div class="item-name">'+item.name+'</div>'+
         '<div style="font-size:.65rem;color:var(--text2)">'+item.desc+'</div>'+
         (item.realPrice?'<div style="font-size:.55rem;color:#22c55e;font-weight:700">Real: '+item.realPrice+'</div>':'')+
-        '<div class="item-price">💎 '+item.price+' gems</div>'+
+        '<div class="item-price">🪙 '+item.price+' coins</div>'+
         (bought?'<div style="font-size:.7rem;color:#22c55e;font-weight:800">Earned! ✅</div>'+
           '<a href="'+item.url+'" target="_blank" style="font-size:.6rem;color:var(--pink)">View on Amazon</a>'
         :canBuy?'<button onclick="G.buyRosaItem(\''+item.id+'\','+item.price+')" style="font-family:Fredoka One,cursive;font-size:.75rem;padding:6px 12px;border-radius:8px;border:none;background:var(--pink);color:#fff;cursor:pointer;margin-top:4px">Buy! 🎉</button>'
-        :'<div style="font-size:.6rem;color:var(--text2);font-weight:600;margin-top:4px">Need '+(item.price-this.gems)+' more 💎</div>')+
+        :'<div style="font-size:.6rem;color:var(--text2);font-weight:600;margin-top:4px">Need '+(item.price-this.gems)+' more coins!</div>')+
         '</div>';
     });
     html+='</div></div>';
@@ -882,9 +909,24 @@ const G={
     this.purchased.push(id);
     SFX.play('fanfare');
     this.fireConfetti();
+    this.fireStars(15);
+    speak("Yay! You earned a new toy! Mom or Dad will get it for you!",0.85,1.15);
     this.updateHUD();
     this.saveGame();
     this.loadShop();
+  },
+
+  // Tap buddy characters for fun interactions
+  tapBuddy(who){
+    SFX.play('click');
+    const bingoSays=['Woof woof! You can do it Rosa!','Bingo believes in you!','Let\'s play! Tap the right answer!','Good girl Rosa!','Bingo loves you!','You\'re so smart!'];
+    const webbySays=['Go Rosa go!','Webby is here to help!','You\'re a superhero reader!','Pow! Great job!','Webby says you\'re amazing!','Keep going!'];
+    const lines=who==='bingo'?bingoSays:webbySays;
+    const line=lines[Math.floor(Math.random()*lines.length)];
+    speak(line,0.9,1.15);
+    // Bounce the buddy
+    const el=who==='bingo'?document.getElementById('buddyLeft'):document.getElementById('buddyRight');
+    if(el){el.style.animation='none';requestAnimationFrame(()=>{el.style.animation='buddyBounce .3s ease 3';setTimeout(()=>el.style.animation='buddyBounce 2s ease-in-out infinite',1000);});}
   },
 
   backToGame(){
