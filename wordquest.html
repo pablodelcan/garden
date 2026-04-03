@@ -21,9 +21,11 @@ body{font-family:'Nunito',sans-serif;background:#e2e0dc;color:var(--text);min-he
 h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 /* HEADER */
-.header{background:linear-gradient(180deg,#243b5e 0%,var(--navy) 100%);padding:10px 14px 6px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;box-shadow:0 4px 20px rgba(0,0,0,.2)}
-.header-logo{height:42px;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.3));flex-shrink:0}
-@media(min-width:500px){.header-logo{height:56px}}
+.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:10px 14px 6px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.header::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent)}
+.header-logo{height:48px;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.4));flex-shrink:0;transition:transform .2s}
+.header-logo:hover{transform:scale(1.05)}
+@media(min-width:500px){.header-logo{height:60px}}
 .hud{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
 .pill{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.3));color:#fff;padding:4px 10px;border-radius:20px;font-weight:700;font-size:.7rem;display:flex;align-items:center;gap:3px;border:1px solid rgba(255,255,255,.1);flex-shrink:0;white-space:nowrap;backdrop-filter:blur(4px)}
 .pill svg{width:14px;height:14px}
@@ -31,10 +33,10 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 /* XP BAR */
 .xp-wrap{width:100%;margin-top:4px}
-.xp-bar{background:rgba(0,0,0,.4);border-radius:10px;height:12px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
-.xp-fill{background:linear-gradient(180deg,#4ade80 0%,#22c55e 50%,#16a34a 100%);height:100%;border-radius:10px;transition:width .5s ease;position:relative}
-.xp-fill::after{content:'';position:absolute;top:1px;left:4px;right:4px;height:4px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);border-radius:4px}
-.xp-label{color:rgba(255,255,255,.9);font-size:.65rem;font-weight:700;text-align:center;margin-top:2px}
+.xp-bar{background:rgba(0,0,0,.5);border-radius:8px;height:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.xp-fill{background:linear-gradient(180deg,#4ade80 0%,#22c55e 50%,#16a34a 100%);height:100%;border-radius:8px;transition:width .5s ease;position:relative;box-shadow:0 0 8px rgba(34,197,94,.3)}
+.xp-fill::after{content:'';position:absolute;top:1px;left:4px;right:4px;height:5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);border-radius:4px}
+.xp-label{color:rgba(255,255,255,.85);font-size:.65rem;font-weight:700;text-align:center;margin-top:3px;letter-spacing:.5px}
 
 /* STREAK DOTS */
 .streak-wrap{display:flex;gap:6px;align-items:center;padding:8px 16px}
