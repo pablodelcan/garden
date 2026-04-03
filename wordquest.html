@@ -431,6 +431,25 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 <!-- EXPLORE BUTTON -->
 <button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!">🗺️</button>
 
+<!-- HOME BUTTON -->
+<button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House">🏠</button>
+
+<!-- HOUSE OVERLAY -->
+<div id="houseOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;overflow-y:auto;backdrop-filter:blur(4px)">
+  <div style="max-width:600px;margin:0 auto;position:relative;min-height:100vh">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+      <div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#fff">🏠 Río's House</div>
+      <button onclick="closeHouse()" style="background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.8rem;cursor:pointer">✕ Close</button>
+    </div>
+    <div id="houseScene" style="position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:16px;margin:0 12px;max-width:576px">
+      <img src="sprites/house_empty.png" style="width:100%;height:100%;object-fit:cover;border-radius:16px">
+      <!-- Wordmons will be positioned absolutely inside here -->
+      <div id="houseWordmons" style="position:absolute;inset:0"></div>
+    </div>
+    <div style="text-align:center;padding:12px;color:rgba(255,255,255,.7);font-size:.85rem;font-weight:600" id="houseCount">Your Wordmons are hanging out at home!</div>
+  </div>
+</div>
+
 <!-- ADVENTURE MODE OVERLAY -->
 <div id="adventureOverlay" style="display:none;position:fixed;inset:0;background:#000;z-index:200">
   <canvas id="adventureCanvas" style="display:block;margin:0 auto;image-rendering:pixelated;image-rendering:crisp-edges"></canvas>
@@ -4042,6 +4061,84 @@ if('serviceWorker' in navigator){
 }
 
 // POKÉDEX MODAL
+// HOUSE VIEW — show caught Wordmons hanging out in Río's room
+function openHouse(){
+  document.getElementById('houseOverlay').style.display='block';
+  SFX.play('whoosh');
+  const container=document.getElementById('houseWordmons');
+  container.innerHTML='';
+  const caught=G.caughtWordmons;
+  document.getElementById('houseCount').textContent=caught.length+' Wordmon'+(caught.length!==1?'s':'')+' living at home!';
+  // Define positions in the room (as % of container size)
+  // These correspond to furniture locations in the house_empty.png image
+  const POSITIONS=[
+    {x:8,y:55,scale:0.8,label:'on the bed'},      // bed area (left)
+    {x:45,y:60,scale:0.9,label:'on the couch'},    // couch (center)
+    {x:80,y:50,scale:0.7,label:'by the window'},   // window (right)
+    {x:20,y:75,scale:0.6,label:'on the rug'},      // floor left
+    {x:60,y:75,scale:0.65,label:'on the floor'},   // floor right
+    {x:35,y:40,scale:0.5,label:'on the shelf'},    // bookshelf
+    {x:70,y:35,scale:0.45,label:'on top of shelf'},// high shelf
+    {x:10,y:35,scale:0.4,label:'hiding'},           // corner
+    {x:50,y:30,scale:0.5,label:'on the desk'},     // desk area
+    {x:90,y:70,scale:0.55,label:'by the door'},    // door area
+    {x:30,y:65,scale:0.7,label:'playing'},          // middle floor
+    {x:75,y:65,scale:0.6,label:'napping'},          // right floor
+    {x:15,y:48,scale:0.55,label:'climbing'},        // left wall
+    {x:55,y:45,scale:0.5,label:'watching TV'},      // TV area
+    {x:42,y:78,scale:0.75,label:'walking around'},  // center bottom
+    {x:65,y:42,scale:0.45,label:'perched up high'}, // high right
+  ];
+  // Special house pose images for first few Wordmons
+  const HOUSE_POSES={
+    0:'sprites/sparky_couch.png',     // Sparky on couch
+    1:'sprites/flamepup_bed.png',     // Flamepup on bed
+    2:'sprites/bubblefin_window.png', // Bubblefin by window
+    3:'sprites/leafwhisk_bookshelf.png', // Leafwhisk on shelf
+    4:'sprites/spookle_corner.png',   // Spookle hiding
+    16:'sprites/crystalix_rug.png',   // Crystalix on rug
+  };
+  caught.forEach((wmIdx,i)=>{
+    const wm=G.getWordmon(wmIdx);
+    const pos=POSITIONS[i%POSITIONS.length];
+    const el=document.createElement('div');
+    el.style.cssText='position:absolute;left:'+pos.x+'%;top:'+pos.y+'%;transform:translate(-50%,-50%) scale('+pos.scale+');cursor:pointer;transition:all .3s;z-index:'+(10+i);
+    // Use special house pose image if available, otherwise use battle sprite
+    const imgSrc=HOUSE_POSES[wmIdx]||wm.spriteImg;
+    el.innerHTML='<img src="'+imgSrc+'" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.3))" onerror="this.src=\''+wm.spriteImg+'\'">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:.6rem;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.7);margin-top:-4px">'+wm.name+'</div>';
+    // Tap to hear name + bio
+    el.addEventListener('click',()=>{
+      el.style.transform='translate(-50%,-50%) scale('+(pos.scale*1.2)+')';
+      setTimeout(()=>el.style.transform='translate(-50%,-50%) scale('+pos.scale+')',300);
+      if(window.speechSynthesis){
+        speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(wm.name+' is '+pos.label+'! '+wm.bio);
+        u.rate=0.75;u.pitch=1.1;
+        const v=getBestVoice();if(v)u.voice=v;
+        speechSynthesis.speak(u);
+      }
+    });
+    // Add gentle floating animation
+    el.style.animation='houseFloat '+(2+Math.random()*2)+'s ease-in-out infinite '+(Math.random()*2)+'s';
+    container.appendChild(el);
+  });
+  // Add CSS for floating animation
+  if(!document.getElementById('houseStyles')){
+    const s=document.createElement('style');s.id='houseStyles';
+    s.textContent='@keyframes houseFloat{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-4px)}}';
+    document.head.appendChild(s);
+  }
+  // Also add Río standing in the house
+  const rio=document.createElement('div');
+  rio.style.cssText='position:absolute;left:50%;top:82%;transform:translate(-50%,-50%);z-index:50';
+  rio.innerHTML='<img src="sprites/rio_house.png" style="width:70px;height:70px;object-fit:contain;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.3))">';
+  container.appendChild(rio);
+}
+function closeHouse(){
+  document.getElementById('houseOverlay').style.display='none';
+}
+
 function openPokedex(){
   document.getElementById('pokedexOverlay').classList.add('open');
   G.renderPokedex();
