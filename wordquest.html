@@ -1257,8 +1257,8 @@ const G = {
   },
 
   MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',popquiz:'Pop Quiz',shop:'Shop'},
-  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong'],
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop'},
+  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong','sentence'],
 
   updateModeBar(){
     const mi=document.getElementById('modeIndicator');
@@ -1957,6 +1957,7 @@ const G = {
       case'decode':this.loadDecode();break;
       case'story':this.loadStory();break;
       case'readalong':this.loadReadAlong();break;
+      case'sentence':this.loadSentenceBuilder();break;
       case'popquiz':this.loadPopQuiz();break;
     }
   },
@@ -2470,39 +2471,98 @@ const G = {
   },
 
   showEvolution(idx,oldStage,newStage){
-    SFX.play('levelup');
-    this.fireConfetti();
     const wm=WORDMONS[idx];
     const oldName=wm.stages[oldStage].name;
     const newData=wm.stages[newStage];
-    // update HP
     this.playerMaxHp=newData.hp;
     this.playerHp=newData.hp;
-    // show evolution modal
+
+    // === CINEMATIC EVOLUTION SEQUENCE ===
     const overlay=document.createElement('div');
-    overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease';
-    overlay.innerHTML='<div style="background:#fff;border-radius:20px;padding:24px;max-width:320px;text-align:center;animation:popIn .4s ease .1s both">'+
-      '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:var(--accent);margin-bottom:8px">⚡ EVOLUTION! ⚡</div>'+
-      '<div style="font-size:1.1rem;font-weight:700;color:var(--text2);margin-bottom:12px">'+oldName+' is evolving!</div>'+
-      '<div id="evoSprite" style="width:120px;height:120px;margin:0 auto;animation:evoPulse 1.5s ease both"><img src="sprites/'+wm.id+'_'+(oldStage+1)+'.png" style="width:120px;height:120px;object-fit:contain;image-rendering:pixelated"></div>'+
-      '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:var(--text);margin-top:12px" id="evoNewName"></div>'+
-      '<div style="font-size:.9rem;color:var(--text2);font-weight:600" id="evoHP"></div>'+
-      '<button onclick="this.closest(\'div[style]\').remove();G.updateHUD()" style="margin-top:16px;font-family:Fredoka One,cursive;font-size:1.1rem;padding:10px 28px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer">Awesome!</button>'+
-    '</div>';
+    overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden';
+
+    // Phase 1: Dark screen with old Wordmon glowing
+    overlay.innerHTML='<div id="evoOld" style="animation:evoGlow 2s ease-in-out infinite"><img src="sprites/'+wm.id+'_'+(oldStage+1)+'.png" style="width:150px;height:150px;object-fit:contain;filter:brightness(1.2) drop-shadow(0 0 30px rgba(255,200,50,.8))"></div>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:1.3rem;color:rgba(255,255,255,.8);margin-top:16px" id="evoText">'+oldName+' is evolving...</div>';
     document.body.appendChild(overlay);
-    // after 1.5s, morph to new form
+
+    // Add evolution CSS
+    if(!document.getElementById('evoCinematicStyles')){
+      const s=document.createElement('style');s.id='evoCinematicStyles';
+      s.textContent=`
+        @keyframes evoGlow{0%,100%{filter:brightness(1.2) drop-shadow(0 0 30px rgba(255,200,50,.5))}50%{filter:brightness(2) drop-shadow(0 0 60px rgba(255,200,50,1))}}
+        @keyframes evoSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(0.5)}100%{transform:rotate(360deg) scale(0)}}
+        @keyframes evoReveal{0%{transform:scale(0) rotate(-30deg);opacity:0;filter:brightness(3)}50%{transform:scale(1.3) rotate(10deg);opacity:1;filter:brightness(2)}100%{transform:scale(1) rotate(0);filter:brightness(1) drop-shadow(0 0 40px rgba(255,200,50,.6))}}
+        @keyframes evoParticle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+        @keyframes evoNameReveal{0%{transform:translateY(30px);opacity:0}100%{transform:translateY(0);opacity:1}}
+      `;
+      document.head.appendChild(s);
+    }
+
+    // Sound: ascending tones
+    SFX.play('levelup');
+
+    // Phase 2 (1.5s): Sprite spins and shrinks
     setTimeout(()=>{
-      const sprite=document.getElementById('evoSprite');
-      if(sprite){
-        sprite.style.animation='evoFlash .3s ease';
-        setTimeout(()=>{
-          sprite.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:120px;height:120px;object-fit:contain;image-rendering:pixelated">';
-          sprite.style.animation='evoPop .4s ease';
-          document.getElementById('evoNewName').textContent=newData.name+'!';
-          document.getElementById('evoHP').textContent='HP: '+newData.hp+' (+' +(newData.hp-wm.stages[oldStage].hp)+')';
-        },300);
+      const old=document.getElementById('evoOld');
+      if(old) old.style.animation='evoSpin 1s ease-in forwards';
+      // Spawn energy particles
+      for(let i=0;i<20;i++){
+        const p=document.createElement('div');
+        const angle=Math.random()*Math.PI*2;
+        const dist=80+Math.random()*120;
+        p.style.cssText='position:absolute;width:8px;height:8px;border-radius:50%;background:'+(['#fbbf24','#f97316','#fff','#22c55e','#3b82f6'][Math.floor(Math.random()*5)])+';left:50%;top:50%;--dx:'+Math.cos(angle)*dist+'px;--dy:'+Math.sin(angle)*dist+'px;animation:evoParticle 1s ease-out '+(Math.random()*.5)+'s forwards';
+        overlay.appendChild(p);
       }
     },1500);
+
+    // Phase 3 (2.5s): White flash, new sprite reveals
+    setTimeout(()=>{
+      // Flash white
+      overlay.style.background='#fff';
+      setTimeout(()=>overlay.style.background='#000',200);
+      setTimeout(()=>{
+        overlay.style.background='radial-gradient(circle,#1a1a2e 0%,#000 100%)';
+        // Show new Wordmon!
+        const evoOld=document.getElementById('evoOld');
+        if(evoOld) evoOld.remove();
+        const newEl=document.createElement('div');
+        newEl.style.cssText='animation:evoReveal 1.2s ease forwards';
+        newEl.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:180px;height:180px;object-fit:contain">';
+        overlay.insertBefore(newEl,overlay.firstChild);
+
+        // New name reveal
+        const txt=document.getElementById('evoText');
+        if(txt){
+          txt.style.animation='evoNameReveal .5s ease .3s both';
+          txt.innerHTML='<div style="font-size:1.8rem;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.5)">'+newData.name+'!</div>'+
+            '<div style="font-size:.9rem;color:rgba(255,255,255,.6);margin-top:4px">HP: '+newData.hp+' | Stage '+(newStage+1)+'/3</div>';
+        }
+
+        SFX.play('fanfare');
+        this.fireConfetti();
+
+        // Close button after a moment
+        setTimeout(()=>{
+          const btn=document.createElement('button');
+          btn.textContent='AMAZING!';
+          btn.style.cssText='font-family:Fredoka One,cursive;font-size:1.2rem;padding:12px 32px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);margin-top:20px;animation:evoNameReveal .3s ease both';
+          btn.onclick=()=>{overlay.remove();this.updateHUD();};
+          overlay.appendChild(btn);
+          // Also speak it
+          if(window.speechSynthesis){
+            speechSynthesis.cancel();
+            const u=new SpeechSynthesisUtterance(oldName+' evolved into '+newData.name+'! Amazing!');
+            u.rate=0.85;u.pitch=1.15;
+            const v=getBestVoice();if(v)u.voice=v;
+            speechSynthesis.speak(u);
+          }
+        },1500);
+      },300);
+    },2500);
+
+    // Keep the old code path for the modal display
+    return; // skip the old modal below
   },
 
   onWrong(wd){
@@ -3477,6 +3537,120 @@ const G = {
   },
 
   // ---- READ ALONG (TTS reads sentence but pauses for target word) ----
+  // ---- SENTENCE BUILDER — tap words in correct order ----
+  loadSentenceBuilder(){
+    const area=document.getElementById('gameArea');
+    const SENTENCES=[
+      'The dog is big.',
+      'I can see you.',
+      'She said to go.',
+      'We like to play.',
+      'He was not here.',
+      'Look at the cat.',
+      'I have a book.',
+      'Come and see me.',
+      'They are my friends.',
+      'It is a good day.',
+      'The fish can swim.',
+      'We go to the park.',
+      'He said he was happy.',
+      'I like red and blue.',
+      'She can read very well.',
+      'Do you have a dog?',
+      'The cat is on the bed.',
+      'We are going to play.',
+      'I want to go home.',
+      'He is my best friend.',
+    ];
+    const sentence=SENTENCES[Math.floor(Math.random()*SENTENCES.length)];
+    const words=sentence.replace(/[.?!]/g,'').split(/\s+/);
+    const punctuation=sentence.match(/[.?!]$/)?.[0]||'.';
+    const scrambled=shuffle([...words]);
+    let built=[];
+    let remaining=[...scrambled];
+
+    const render=()=>{
+      area.innerHTML='<div class="card" id="qCard">'+
+        '<div class="question-text" style="font-size:1.1rem;margin-bottom:6px">Build the sentence!</div>'+
+        '<div style="text-align:center;font-size:.9rem;color:var(--text2);margin-bottom:12px">Tap the words in the right order</div>'+
+        // Built sentence area
+        '<div style="min-height:60px;background:#f8fafc;border-radius:14px;padding:12px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:2px dashed #d6d3d1" id="builtArea">'+
+        (built.length===0?'<div style="color:#a8a29e;font-style:italic;font-size:1rem;width:100%;text-align:center">Tap words below...</div>':
+        built.map((w,i)=>'<span style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--navy);background:#fff;padding:6px 12px;border-radius:10px;box-shadow:0 2px 0 #e7e5e4;cursor:pointer;transition:all .15s" data-built="'+i+'">'+w+'</span>').join(''))+
+        (built.length>0?'<span style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--text2)">'+punctuation+'</span>':'')+
+        '</div>'+
+        // Remaining words to choose from
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center" id="wordPool">'+
+        remaining.map((w,i)=>'<button class="choice-btn" data-idx="'+i+'" style="font-size:1.3rem;padding:12px 16px;min-height:auto">'+w+'</button>').join('')+
+        '</div>'+
+        // Undo button
+        '<div style="text-align:center;margin-top:10px">'+
+        (built.length>0?'<button id="undoBtn" style="font-family:Fredoka One,cursive;font-size:.85rem;padding:6px 16px;border-radius:10px;border:2px solid #d6d3d1;background:#fff;color:var(--text2);cursor:pointer">Undo</button>':'')+
+        '</div>'+
+        '<div id="sentResult" style="text-align:center;margin-top:8px;min-height:24px"></div>'+
+        '</div>';
+
+      // Wire up word pool buttons
+      area.querySelectorAll('#wordPool .choice-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const idx=parseInt(btn.dataset.idx);
+          built.push(remaining[idx]);
+          remaining.splice(idx,1);
+          SFX.play('click');
+          // Check if sentence is complete
+          if(remaining.length===0){
+            const builtSentence=built.join(' ');
+            const correctSentence=words.join(' ');
+            if(builtSentence===correctSentence){
+              // CORRECT!
+              render();
+              document.getElementById('builtArea').style.borderColor='var(--green)';
+              document.getElementById('builtArea').style.background='#dcfce7';
+              document.getElementById('sentResult').innerHTML='<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#22c55e">Perfect sentence!</div>';
+              this.onCorrect({w:words[0]});
+            } else {
+              // WRONG ORDER
+              render();
+              document.getElementById('builtArea').style.borderColor='#dc2626';
+              document.getElementById('builtArea').style.background='#fef2f2';
+              document.getElementById('sentResult').innerHTML='<div style="font-family:Fredoka One,cursive;font-size:.9rem;color:#dc2626">Not quite! The correct sentence is:</div><div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--navy);margin-top:4px">'+sentence+'</div>';
+              this.onWrong({w:words[0]});
+            }
+          } else {
+            render();
+          }
+        });
+      });
+
+      // Undo button
+      const undo=document.getElementById('undoBtn');
+      if(undo){
+        undo.addEventListener('click',()=>{
+          if(built.length>0){
+            remaining.push(built.pop());
+            SFX.play('click');
+            render();
+          }
+        });
+      }
+
+      // Tap built words to remove them
+      area.querySelectorAll('[data-built]').forEach(el=>{
+        el.addEventListener('click',()=>{
+          const idx=parseInt(el.dataset.built);
+          remaining.push(built[idx]);
+          built.splice(idx,1);
+          SFX.play('click');
+          render();
+        });
+      });
+    };
+
+    render();
+    // Speak the sentence first so they know what to build
+    speak("Put the words in order! "+sentence, 0.75, 1.1);
+  },
+
   loadReadAlong(){
     const wd=this.pickWord();
     const area=document.getElementById('gameArea');
@@ -4170,6 +4344,7 @@ const G = {
       decode:"Mystery word! Use the clues to figure out the secret word. Look at the first letter, how many letters it has, and the sentence. Then type the word!",
       story:"Story time! Read the short story, then answer the question about it. Tap the right answer!",
       readalong:"Read along! I will read the sentence out loud, but I will stop at some words. You need to read those words! Then tap the word you read.",
+      sentence:"Build the sentence! The words are all mixed up. Tap them in the right order to make a sentence that makes sense!",
       popquiz:"Pop quiz! I will say a word out loud. You need to spell it by tapping the letters in the right order. Listen carefully!",
       shop:"This is the shop! You earn coins by playing the game. Save up your coins to buy real Pokémon toys!"
     };
@@ -4698,6 +4873,57 @@ const ADV={
     const map=this.getMap();
     const exit=(map.exits||[]).find(e=>e.x===nx&&e.y===ny);
     if(exit){
+      // Reading gates — deeper zones require answering a question to enter
+      const GATED_ZONES=['cave','volcano','frozen','shadow','cosmic'];
+      if(GATED_ZONES.includes(exit.to) && !this._gatesPassed){this._gatesPassed={};}
+      if(GATED_ZONES.includes(exit.to) && !(this._gatesPassed||{})[exit.to]){
+        // Show a reading gate challenge!
+        this.dialogOpen=true;
+        const wd=WORDS[Math.floor(Math.random()*WORDS.length)];
+        const sent=wd.sent.replace('___','<span style="color:#dc2626;font-weight:800;border-bottom:3px solid #dc2626">???</span>');
+        const wrongs=WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+        const choices=shuffle([wd.w,...wrongs]);
+        const dialog=document.getElementById('advDialog');
+        dialog.style.display='block';
+        document.getElementById('advDialogText').innerHTML=
+          '<div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:#dc2626;margin-bottom:6px">Reading Gate!</div>'+
+          '<div style="font-size:.85rem;color:var(--text2);margin-bottom:8px">Answer correctly to enter '+this.MAPS[exit.to].name+'!</div>'+
+          '<div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">'+sent+'</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
+          choices.map(c=>'<button class="gate-btn" data-val="'+c+'" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px;border-radius:10px;border:2px solid #d6d3d1;background:#fff;cursor:pointer;transition:all .15s">'+c+'</button>').join('')+'</div>';
+        document.getElementById('advDialogOK').style.display='none';
+        // Wire up gate buttons
+        dialog.querySelectorAll('.gate-btn').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            dialog.querySelectorAll('.gate-btn').forEach(b=>b.style.pointerEvents='none');
+            if(btn.dataset.val===wd.w){
+              btn.style.background='#dcfce7';btn.style.borderColor='#22c55e';
+              SFX.play('correct');
+              if(!this._gatesPassed) this._gatesPassed={};
+              this._gatesPassed[exit.to]=true;
+              speak("Correct! The gate opens!",0.85,1.15);
+              setTimeout(()=>{
+                this.dialogOpen=false;dialog.style.display='none';
+                document.getElementById('advDialogOK').style.display='';
+                this.currentMap=exit.to;this.px=exit.spawnX;this.py=exit.spawnY;
+                this.resize();
+                document.getElementById('advZoneName').textContent=this.getMap().name;
+                SFX.play('whoosh');
+              },1500);
+            } else {
+              btn.style.background='#fef2f2';btn.style.borderColor='#dc2626';
+              SFX.play('wrong');
+              speak("Not quite! The gate stays locked. Try again!",0.85,1.0);
+              setTimeout(()=>{
+                this.dialogOpen=false;dialog.style.display='none';
+                document.getElementById('advDialogOK').style.display='';
+              },2000);
+            }
+          });
+        });
+        return;
+      }
+      // Normal exit (no gate or already passed)
       this.currentMap=exit.to;
       this.px=exit.spawnX;
       this.py=exit.spawnY;
