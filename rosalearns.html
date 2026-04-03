@@ -673,27 +673,75 @@ const G={
     this.changeBuddyMood('happy');
     this.score+=5;this.streak++;this.totalCorrect++;this.modeWins++;
     if(this.streak>(this.maxStreak||0)) this.maxStreak=this.streak;
-    this.xp+=2;this.gems++;
+    this.xp+=3; // more XP for toddlers — faster level ups!
+    this.gems++;
     this.checkLevelUp();
     this.checkSticker();
     this.updateHUD();this.updateModeBar();this.saveGame();
 
-    const praises=["Yay Rosa! 🎉","Super job! ⭐","Amazing! 🌟","You're so smart! 🧠","Wonderful! 🌈","Woohoo! 🎊","Perfect! 💖"];
+    // BIG praise every time!
+    const praises=["YAY ROSA! 🎉","SUPER JOB! ⭐","AMAZING! 🌟","SO SMART! 🧠","WONDERFUL! 🌈","WOOHOO! 🎊","PERFECT! 💖","YOU DID IT! 🥳","GREAT! 👏","AWESOME! 🦋"];
     const praise=praises[Math.floor(Math.random()*praises.length)];
+
+    // Show big floating praise text
+    const praiseEl=document.createElement('div');
+    praiseEl.textContent=praise;
+    praiseEl.style.cssText='position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:Fredoka One,cursive;font-size:2.5rem;color:#ec4899;text-shadow:3px 3px 0 #fff,-3px -3px 0 #fff,3px -3px 0 #fff,-3px 3px 0 #fff;z-index:999;pointer-events:none;transition:all .5s ease;white-space:nowrap';
+    document.body.appendChild(praiseEl);
+    requestAnimationFrame(()=>{praiseEl.style.transform='translate(-50%,-50%) scale(1)';praiseEl.style.opacity='1';});
+    setTimeout(()=>{praiseEl.style.transform='translate(-50%,-80%) scale(1.2)';praiseEl.style.opacity='0';},1500);
+    setTimeout(()=>praiseEl.remove(),2200);
+
     speak(praise.replace(/[^a-zA-Z! ]/g,''),0.9,1.2);
+
+    // Mini confetti on every correct!
+    this.fireStars(8);
+
+    // BIG celebration every 3 correct — extra confetti + sound
+    if(this.streak>0 && this.streak%3===0){
+      setTimeout(()=>{
+        this.fireStars(20);
+        SFX.play('victory');
+        speak("Rosa is on fire! "+this.streak+" in a row!",0.85,1.15);
+      },600);
+    }
 
     setTimeout(()=>{
       this.changeBuddyMood('normal');
       this.autoNext();
-    },2000);
+    },2200);
+  },
+
+  // Mini star burst effect
+  fireStars(count){
+    const emojis=['⭐','🌟','💫','✨','💖','🦋','🌈','🎀'];
+    for(let i=0;i<count;i++){
+      const s=document.createElement('div');
+      s.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.cssText='position:fixed;z-index:998;font-size:'+(20+Math.random()*20)+'px;pointer-events:none;left:'+(10+Math.random()*80)+'%;top:'+(-10)+'%;transition:all '+(1+Math.random())+'s ease-out';
+      document.body.appendChild(s);
+      requestAnimationFrame(()=>{
+        s.style.top=(60+Math.random()*40)+'%';
+        s.style.transform='rotate('+(Math.random()*360)+'deg)';
+        s.style.opacity='0';
+      });
+      setTimeout(()=>s.remove(),2500);
+    }
   },
 
   onWrong(){
     SFX.play('wrong');
     this.streak=0;
     this.updateHUD();this.saveGame();
-    speak("Oops! Try again next time!",0.85,1.0);
+    // Gentle encouragement — never negative!
+    const encouragements=["Almost! Try again!","So close! You got this!","Not quite, but that's okay!","Good try! Let's keep going!"];
+    const enc=encouragements[Math.floor(Math.random()*encouragements.length)];
+    speak(enc,0.85,1.0);
     this.changeBuddyMood('thinking');
+    // Show the correct answer highlighted
+    document.querySelectorAll('.big-btn').forEach(b=>{
+      if(b.classList.contains('correct-answer')) b.style.animation='correctPulse 1s ease infinite';
+    });
     setTimeout(()=>{
       this.changeBuddyMood('normal');
       this.autoNext();
@@ -723,8 +771,8 @@ const G={
   },
 
   checkSticker(){
-    // earn a sticker every 5 correct
-    if(this.totalCorrect>0 && this.totalCorrect%5===0 && this.stickers.length<30){
+    // earn a sticker every 3 correct — toddlers need frequent rewards!
+    if(this.totalCorrect>0 && this.totalCorrect%3===0 && this.stickers.length<30){
       const typeIdx=this.stickers.length%STICKER_TYPES.length;
       this.stickers.push(typeIdx);
       SFX.play('sticker');
