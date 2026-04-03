@@ -1,5 +1,5 @@
 // Service Worker for Río Reads — enables offline play on airplane!
-const CACHE_NAME = 'rio-reads-v2';
+const CACHE_NAME = 'rio-reads-v3';
 
 // On install, cache the main page
 self.addEventListener('install', event => {
