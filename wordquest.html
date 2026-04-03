@@ -4196,10 +4196,10 @@ function openHouse(){
     s.textContent='@keyframes houseFloat{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-4px)}}';
     document.head.appendChild(s);
   }
-  // Also add Río standing in the house
+  // Río standing prominently in center of room
   const rio=document.createElement('div');
-  rio.style.cssText='position:absolute;left:50%;top:82%;transform:translate(-50%,-50%);z-index:50';
-  rio.innerHTML='<img src="sprites/rio_house.png" style="width:70px;height:70px;object-fit:contain;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.3))">';
+  rio.style.cssText='position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);z-index:50';
+  rio.innerHTML='<img src="sprites/rio_house.png" style="width:140px;height:140px;object-fit:contain;filter:drop-shadow(3px 6px 8px rgba(0,0,0,.4))">';
   container.appendChild(rio);
 }
 function closeHouse(){
@@ -4354,68 +4354,97 @@ const ADV={
   MAPS:{
     town:{
       name:'Wordmon Town',
-      w:20,h:15,
+      w:30,h:25,
       data:[
-        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-        4,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,4,
-        4,0,5,5,0,1,0,0,0,0,0,0,0,0,1,0,6,6,0,4,
-        4,0,5,5,0,1,0,0,8,0,0,8,0,0,1,0,6,6,0,4,
-        4,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,4,
-        4,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,4,
-        4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,
-        4,0,7,7,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,
-        4,0,7,7,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,4,
-        4,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,9,9,9,4,
-        4,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,4,
-        4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,
-        4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        // 30 wide x 25 tall — a proper town with buildings, paths, lake, gardens
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        4,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,5,5,0,0,0,5,5,0,0,4,4,0,0,0,3,3,3,3,3,0,0,0,6,6,0,0,0,4,
+        4,0,5,5,0,8,0,5,5,0,0,4,4,0,0,3,3,3,3,3,3,3,0,0,6,6,0,8,0,4,
+        4,0,0,0,0,0,0,0,0,0,0,4,4,0,0,3,3,3,3,3,3,3,0,0,0,0,0,0,0,4,
+        4,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,3,3,3,3,3,0,0,0,0,0,0,0,0,4,
+        4,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,9,9,9,0,0,4,
+        4,0,0,1,0,0,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1,0,0,9,0,0,9,0,0,4,
+        4,9,9,1,0,0,0,0,1,9,9,0,0,1,0,0,0,0,0,0,1,0,0,9,0,0,9,0,0,4,
+        4,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,8,0,0,0,1,0,0,9,0,0,9,0,0,4,
+        4,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,9,9,9,9,0,0,4,
+        4,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,4,
+        4,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,7,7,0,0,0,0,0,0,0,4,
+        4,0,7,7,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,7,7,0,0,5,5,0,0,0,4,
+        4,0,7,7,0,1,0,0,5,5,0,0,0,1,1,1,1,1,1,1,1,1,1,0,5,5,0,8,0,4,
+        4,0,0,0,0,1,0,0,5,5,0,8,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,4,
+        4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,0,0,0,2,2,0,0,2,2,0,0,1,0,0,2,2,0,0,2,2,0,0,0,0,4,
+        4,0,0,0,0,0,0,2,2,2,2,2,2,2,2,0,1,0,2,2,2,2,2,2,2,2,0,0,0,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,4,4,4,
       ],
-      exits:[{x:9,y:14,to:'route1',spawnX:9,spawnY:0}],
+      exits:[{x:16,y:24,to:'route1',spawnX:15,spawnY:0}],
       npcs:[
-        {x:10,y:3,sprite:'npc_prof',name:'Professor Lexia',msg:'Welcome to Wordmon Town! I am Professor Lexia. I study Wordmons — creatures made of letters and sounds! Go south to explore and find wild ones!'},
+        {x:15,y:9,sprite:'npc_prof',name:'Professor Lexia',msg:'Welcome to Wordmon Town! I am Professor Lexia. I study Wordmons — creatures made of letters and sounds! Go south to explore and find wild ones!'},
         {x:5,y:7,sprite:'npc_kid',name:'Reader Milo',msg:'I caught my first Wordmon by reading a whole sentence! The more words you know, the stronger they get!'},
+        {x:25,y:8,sprite:'npc_kid',name:'Gardener Rosa',msg:'I grow flowers in my garden! Each flower has a name. Do you know how to read the names?'},
       ],
       signs:[
-        {x:8,y:3,msg:'Wordmon Town — Home of the Reading Trainers!'},
-        {x:11,y:3,msg:'Healing Station → Rest your Wordmons here!'},
+        {x:5,y:3,msg:'Río\'s House — This is where you live!'},
+        {x:16,y:9,msg:'Professor Lexia\'s Lab — Learn about Wordmons here!'},
+        {x:11,y:16,msg:'Wordmon Town — Home of the Reading Trainers!'},
+        {x:25,y:15,msg:'Exit → Route 1 is south of town. Be ready!'},
       ],
-      playerStart:{x:9,y:5},
+      playerStart:{x:5,y:10},
     },
     route1:{
       name:'Route 1 — Wild Area',
-      w:20,h:20,
+      w:30,h:30,
       data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,0,2,2,0,0,2,2,0,1,0,2,2,0,0,2,2,0,0,4,
-        4,2,2,2,2,0,2,2,0,1,0,2,2,0,2,2,2,2,0,4,
-        4,2,2,0,0,0,0,2,0,1,0,2,0,0,0,0,2,2,0,4,
-        4,0,0,0,0,2,0,0,0,1,0,0,0,2,0,0,0,0,0,4,
-        4,0,2,0,1,1,1,1,1,1,1,1,1,1,1,0,2,0,0,4,
-        4,2,2,0,1,0,0,0,2,2,2,0,0,0,1,0,2,2,0,4,
-        4,0,0,0,1,0,2,2,2,2,2,2,2,0,1,0,0,0,0,4,
-        4,0,2,0,1,0,2,2,2,2,2,2,2,0,1,0,2,0,0,4,
-        4,2,2,0,1,0,0,2,2,2,2,2,0,0,1,0,2,2,0,4,
-        4,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,4,
-        4,0,2,2,0,0,0,2,0,1,0,2,0,0,0,2,2,0,0,4,
-        4,2,2,2,0,2,0,0,0,1,0,0,0,2,0,2,2,2,0,4,
-        4,0,2,0,0,2,2,0,0,1,0,0,2,2,0,0,2,0,0,4,
-        4,0,0,0,0,0,2,2,0,1,0,2,2,0,0,0,0,0,0,4,
-        4,0,2,2,0,0,0,0,0,1,0,0,0,0,0,2,2,0,0,4,
-        4,2,2,2,2,0,2,2,0,1,0,2,2,0,2,2,2,2,0,4,
-        4,0,2,0,0,0,0,2,0,1,0,2,0,0,0,0,2,0,0,4,
-        4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        4,0,0,2,2,0,0,0,0,0,2,2,0,0,0,1,0,0,0,2,2,0,0,0,0,0,2,2,0,4,
+        4,0,2,2,2,2,0,0,0,2,2,2,2,0,0,1,0,0,2,2,2,2,0,0,0,2,2,2,0,4,
+        4,2,2,0,2,0,0,0,0,0,2,0,0,0,0,1,0,0,0,0,2,0,0,0,0,0,2,0,0,4,
+        4,0,0,0,0,0,4,4,0,0,0,0,0,4,0,1,0,4,0,0,0,0,0,4,4,0,0,0,0,4,
+        4,0,2,0,0,4,4,4,4,0,0,0,4,4,1,1,1,4,4,0,0,0,4,4,4,4,0,2,0,4,
+        4,2,2,0,0,0,4,4,0,0,2,0,0,1,1,0,1,1,0,0,2,0,0,4,4,0,0,2,2,4,
+        4,0,0,0,0,0,0,0,0,2,2,2,0,1,0,0,0,1,0,2,2,2,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,0,0,0,2,2,3,2,0,1,0,8,0,1,0,2,3,2,2,0,0,0,0,0,0,4,
+        4,0,2,2,0,0,0,0,0,2,3,2,0,1,0,0,0,1,0,2,3,2,0,0,0,0,2,2,0,4,
+        4,2,2,2,2,0,0,0,0,0,3,0,0,1,1,1,1,1,0,0,3,0,0,0,0,2,2,2,2,4,
+        4,0,2,2,0,0,0,4,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,4,0,0,2,2,0,4,
+        4,0,0,0,0,0,4,4,4,0,0,0,0,0,0,1,0,0,0,0,0,0,4,4,4,0,0,0,0,4,
+        4,0,0,0,0,0,0,4,0,0,2,2,0,0,0,1,0,0,0,2,2,0,0,4,0,0,0,0,0,4,
+        4,0,2,0,0,0,0,0,0,2,2,2,2,0,0,1,0,0,2,2,2,2,0,0,0,0,0,2,0,4,
+        4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4,
+        4,0,2,0,0,0,0,0,0,2,2,2,2,0,0,1,0,0,2,2,2,2,0,0,0,0,0,2,0,4,
+        4,0,0,0,0,0,0,0,0,0,2,2,0,0,0,1,0,0,0,2,2,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,4,0,0,0,0,4,
+        4,0,2,0,4,4,4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,4,4,4,0,2,0,4,
+        4,2,2,0,0,4,0,0,0,2,2,0,0,0,1,1,1,0,0,0,2,2,0,0,4,0,0,2,2,4,
+        4,0,0,0,0,0,0,0,2,2,2,2,0,0,1,0,1,0,0,2,2,2,2,0,0,0,0,0,0,4,
+        4,0,0,0,0,0,0,2,2,3,3,2,2,0,1,0,1,0,2,2,3,3,2,2,0,0,0,0,0,4,
+        4,0,2,0,0,0,0,0,2,3,3,2,0,0,1,0,1,0,0,2,3,3,2,0,0,0,0,2,0,4,
+        4,2,2,2,0,0,0,0,0,2,2,0,0,1,1,0,1,1,0,0,2,2,0,0,0,0,2,2,2,4,
+        4,0,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,2,0,4,
+        4,0,0,0,0,0,0,0,0,0,0,0,0,1,0,8,0,1,0,0,0,0,0,0,0,0,0,0,0,4,
+        4,0,0,0,0,0,2,2,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,2,2,0,0,0,0,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
       ],
       exits:[
-        {x:9,y:0,to:'town',spawnX:9,spawnY:13},
-        {x:9,y:19,to:'forest',spawnX:9,spawnY:0},
+        {x:15,y:0,to:'town',spawnX:16,spawnY:23},
+        {x:15,y:29,to:'forest',spawnX:15,spawnY:0},
       ],
-      npcs:[],
-      signs:[{x:9,y:1,msg:'Route 1 — Wild Wordmons live in the tall grass!'}],
-      playerStart:{x:9,y:1},
-      encounterRate:0.15, // 15% chance per tall grass step
+      npcs:[
+        {x:15,y:8,sprite:'npc_kid',name:'Trainer Kai',msg:'Watch out for the tall grass! Wild Wordmons hide there. The patches near the lakes have rare ones!'},
+      ],
+      signs:[
+        {x:15,y:8,msg:'Route 1 — Wild Wordmons live in the tall grass!'},
+        {x:15,y:26,msg:'South → Whispering Forest. Prepare yourself!'},
+      ],
+      playerStart:{x:15,y:1},
+      encounterRate:0.15,
     },
     forest:{
       name:'Whispering Forest',
@@ -4652,17 +4681,17 @@ const ADV={
   },
 
   resize(){
-    const map=this.MAPS[this.currentMap];
+    // Fill the entire screen — camera follows player
     const maxW=Math.min(window.innerWidth,600);
     const maxH=window.innerHeight;
-    const tileW=Math.floor(maxW/map.w);
-    const tileH=Math.floor(maxH/map.h);
-    this.TILE=Math.min(tileW,tileH,40);
-    this.canvas.width=map.w*this.TILE;
-    this.canvas.height=map.h*this.TILE;
-    this.canvas.style.width=this.canvas.width+'px';
-    this.canvas.style.height=this.canvas.height+'px';
-    this.canvas.style.marginTop=Math.max(0,(maxH-this.canvas.height)/2)+'px';
+    this.TILE=Math.max(32,Math.min(48,Math.floor(maxW/13))); // ~13 tiles visible across
+    this.viewW=Math.ceil(maxW/this.TILE)+2; // tiles visible horizontally
+    this.viewH=Math.ceil(maxH/this.TILE)+2; // tiles visible vertically
+    this.canvas.width=maxW;
+    this.canvas.height=maxH;
+    this.canvas.style.width=maxW+'px';
+    this.canvas.style.height=maxH+'px';
+    this.canvas.style.marginTop='0';
   },
 
   getMap(){return this.MAPS[this.currentMap];},
@@ -4854,95 +4883,99 @@ const ADV={
     G._wildCatchNeeded=3;
   },
 
+  // Helper: draw a single tile at screen position
+  drawTile(c,tile,sx,sy,T){
+    if(this.tileImgs[tile]){
+      c.drawImage(this.tileImgs[tile],sx,sy,T,T);
+    } else {
+      c.fillStyle=this.TILE_COLORS[tile]||'#888';
+      c.fillRect(sx,sy,T,T);
+      if(tile===2){c.fillStyle='#0f5132';for(let i=0;i<3;i++)c.fillRect(sx+4+i*(T/4),sy+2,2,T-4);}
+      if(tile===4){c.fillStyle='#0a4f28';c.beginPath();c.arc(sx+T/2,sy+T/2,T/2-2,0,Math.PI*2);c.fill();}
+      if(tile===5||tile===6||tile===7){c.fillStyle=tile===5?'#dc2626':tile===6?'#ec4899':'#3b82f6';c.fillRect(sx+2,sy+2,T-4,T-4);c.fillStyle='#fff';c.fillRect(sx+T/2-3,sy+T-8,6,6);}
+      if(tile===1){c.fillStyle='#c4a882';c.fillRect(sx+1,sy+1,T-2,T-2);}
+      if(tile===8){c.fillStyle='#92400e';c.fillRect(sx+T/2-1,sy+4,2,T-4);c.fillRect(sx+4,sy+2,T-8,8);}
+      if(tile===9){c.fillStyle='#a16207';c.fillRect(sx,sy+T/2-2,T,4);c.fillRect(sx+4,sy+2,3,T-4);c.fillRect(sx+T-7,sy+2,3,T-4);}
+      if(tile===10){c.fillStyle='#7c3aed';c.beginPath();c.moveTo(sx+T/2,sy+4);c.lineTo(sx+T-4,sy+T-4);c.lineTo(sx+4,sy+T-4);c.fill();}
+      if(tile===11){c.fillStyle='#ea580c';c.fillRect(sx,sy,T,T);c.fillStyle='#fbbf24';c.fillRect(sx+T/4,sy+T/4,T/2,T/2);}
+      if(tile===12){c.fillStyle='#bae6fd';c.fillRect(sx,sy,T,T);c.fillStyle='#e0f2fe';c.fillRect(sx+2,sy+2,T/3,T/3);}
+      if(tile===13){c.fillStyle='#1e1b4b';c.fillRect(sx,sy,T,T);c.fillStyle='#4c1d95';c.fillRect(sx+T/3,sy+T/3,T/3,T/3);}
+      if(tile===14){c.fillStyle='#312e81';c.fillRect(sx,sy,T,T);c.fillStyle='#fbbf24';c.beginPath();c.arc(sx+T*Math.random(),sy+T*Math.random(),1,0,Math.PI*2);c.fill();}
+      if(tile===15){c.fillStyle='#166534';c.fillRect(sx,sy,T,T);c.fillStyle='#a855f7';c.beginPath();c.arc(sx+T/2,sy+T/3,T/4,0,Math.PI*2);c.fill();c.fillRect(sx+T/2-1,sy+T/3,2,T/2);}
+    }
+  },
+
   render(){
     const c=this.ctx;
     const T=this.TILE;
     const map=this.getMap();
+    const CW=this.canvas.width, CH=this.canvas.height;
     this.animFrame++;
+
+    // Camera: center on player
+    const camX=this.px*T-CW/2+T/2;
+    const camY=this.py*T-CH/2+T/2;
+    // Clamp camera to map bounds
+    const maxCamX=Math.max(0,map.w*T-CW);
+    const maxCamY=Math.max(0,map.h*T-CH);
+    const cx=Math.max(0,Math.min(camX,maxCamX));
+    const cy=Math.max(0,Math.min(camY,maxCamY));
+
     // Clear
     c.fillStyle='#1a2744';
-    c.fillRect(0,0,this.canvas.width,this.canvas.height);
-    // Draw tiles
-    for(let y=0;y<map.h;y++){
-      for(let x=0;x<map.w;x++){
+    c.fillRect(0,0,CW,CH);
+
+    // Only draw visible tiles (performance)
+    const startX=Math.floor(cx/T);
+    const startY=Math.floor(cy/T);
+    const endX=Math.min(map.w,startX+Math.ceil(CW/T)+2);
+    const endY=Math.min(map.h,startY+Math.ceil(CH/T)+2);
+
+    for(let y=startY;y<endY;y++){
+      for(let x=startX;x<endX;x++){
         const tile=map.data[y*map.w+x];
-        const px=x*T,py=y*T;
-        // Use image if loaded, otherwise colored square
-        if(this.tileImgs[tile]){
-          c.drawImage(this.tileImgs[tile],px,py,T,T);
-        } else {
-          c.fillStyle=this.TILE_COLORS[tile]||'#888';
-          c.fillRect(px,py,T,T);
-          // Add detail for some tiles
-          if(tile===2){// tall grass dots
-            c.fillStyle='#0f5132';
-            for(let i=0;i<3;i++){
-              c.fillRect(px+4+i*8,py+2,2,T-4);
-            }
-          }
-          if(tile===4){// tree
-            c.fillStyle='#0a4f28';
-            c.beginPath();c.arc(px+T/2,py+T/2,T/2-2,0,Math.PI*2);c.fill();
-          }
-          if(tile===5||tile===6||tile===7){// buildings
-            c.fillStyle=tile===5?'#dc2626':tile===6?'#ec4899':'#3b82f6';
-            c.fillRect(px+2,py+2,T-4,T-4);
-            c.fillStyle='#fff';
-            c.fillRect(px+T/2-3,py+T-8,6,6);
-          }
-          if(tile===1){// path
-            c.fillStyle='#c4a882';
-            c.fillRect(px+1,py+1,T-2,T-2);
-          }
-          if(tile===8){// sign
-            c.fillStyle='#92400e';
-            c.fillRect(px+T/2-1,py+4,2,T-4);
-            c.fillRect(px+4,py+2,T-8,8);
-          }
-          if(tile===9){// fence
-            c.fillStyle='#a16207';
-            c.fillRect(px,py+T/2-2,T,4);
-            c.fillRect(px+4,py+2,3,T-4);
-            c.fillRect(px+T-7,py+2,3,T-4);
-          }
-        }
+        const sx=x*T-cx, sy=y*T-cy;
+        this.drawTile(c,tile,sx,sy,T);
       }
     }
+
     // Draw NPCs
     (map.npcs||[]).forEach(npc=>{
+      const nx=npc.x*T-cx, ny=npc.y*T-cy;
+      if(nx<-T||nx>CW+T||ny<-T||ny>CH+T) return; // off screen
       c.fillStyle='#7c3aed';
-      c.beginPath();c.arc(npc.x*T+T/2,npc.y*T+T/2,T/3,0,Math.PI*2);c.fill();
+      c.beginPath();c.arc(nx+T/2,ny+T/2,T/3,0,Math.PI*2);c.fill();
       c.fillStyle='#fbbf24';
-      c.beginPath();c.arc(npc.x*T+T/2,npc.y*T+T/4,T/5,0,Math.PI*2);c.fill();
-      // Name label
+      c.beginPath();c.arc(nx+T/2,ny+T/4,T/5,0,Math.PI*2);c.fill();
       c.fillStyle='#fff';
       c.font='bold '+(T/3)+'px Nunito';
       c.textAlign='center';
-      c.fillText(npc.name.split(' ')[1]||npc.name,npc.x*T+T/2,npc.y*T-2);
+      c.fillText(npc.name.split(' ')[1]||npc.name,nx+T/2,ny-2);
     });
-    // Draw player
+
+    // Draw player (always centered-ish on screen)
     const playerBob=Math.sin(this.animFrame/10)*2;
+    const psx=this.px*T-cx, psy=this.py*T-cy+playerBob;
     if(this.playerImgs[this.facing]){
-      c.drawImage(this.playerImgs[this.facing],this.px*T,this.py*T+playerBob,T,T);
+      c.drawImage(this.playerImgs[this.facing],psx,psy,T,T);
     } else {
-      // Fallback colored square for player
       c.fillStyle='#22c55e';
-      c.fillRect(this.px*T+4,this.py*T+4+playerBob,T-8,T-8);
+      c.fillRect(psx+4,psy+4,T-8,T-8);
       c.fillStyle='#92400e';
-      c.beginPath();c.arc(this.px*T+T/2,this.py*T+T/3+playerBob,T/5,0,Math.PI*2);c.fill();
-      // Direction arrow
+      c.beginPath();c.arc(psx+T/2,psy+T/3,T/5,0,Math.PI*2);c.fill();
       c.fillStyle='#fff';
       c.font='bold '+(T/2)+'px sans-serif';
       c.textAlign='center';
       const arrows={down:'▼',up:'▲',left:'◀',right:'▶'};
-      c.fillText(arrows[this.facing],this.px*T+T/2,this.py*T+T*0.8+playerBob);
+      c.fillText(arrows[this.facing],psx+T/2,psy+T*0.8);
     }
+
     // Draw active Wordmon following behind player
     const wm=G.getWordmon(G.activeWordmon);
     const followBob=Math.sin(this.animFrame/10+1)*2;
     const followOffsets={down:{x:0,y:-1},up:{x:0,y:1},left:{x:1,y:0},right:{x:-1,y:0}};
     const fo=followOffsets[this.facing];
-    const wmX=(this.px+fo.x)*T,wmY=(this.py+fo.y)*T+followBob;
+    const wmX=(this.px+fo.x)*T-cx,wmY=(this.py+fo.y)*T-cy+followBob;
     // Draw a small colored circle for the Wordmon
     c.fillStyle=wm.color||'#fbbf24';
     c.beginPath();c.arc(wmX+T/2,wmY+T/2,T/3,0,Math.PI*2);c.fill();
