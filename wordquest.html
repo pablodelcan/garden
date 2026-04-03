@@ -675,7 +675,7 @@ function speak(text, rate=0.7, pitch=1.0, onEnd){
 }
 
 // ========================================================
-// WORDMONS — custom creatures (NOT real Pokémon)
+// WORDMONS — original creatures born from words and sounds
 // ========================================================
 const WORDMONS = [
   {id:'sparky',type:'Electric',color:'#fbbf24',bio:'Sparky is a little yellow friend. He can make light! He likes to run and play. When he is happy, you can see sparks fly. He is the best!',stages:[
@@ -4210,12 +4210,12 @@ const ADV={
       ],
       exits:[{x:9,y:14,to:'route1',spawnX:9,spawnY:0}],
       npcs:[
-        {x:10,y:3,sprite:'npc_prof',name:'Professor Oak',msg:'Welcome to Wordmon Town! Go south to Route 1 to find wild Wordmons!'},
-        {x:5,y:7,sprite:'npc_kid',name:'Kid Timmy',msg:'I like to read books. Do you like books too?'},
+        {x:10,y:3,sprite:'npc_prof',name:'Professor Lexia',msg:'Welcome to Wordmon Town! I am Professor Lexia. I study Wordmons — creatures made of letters and sounds! Go south to explore and find wild ones!'},
+        {x:5,y:7,sprite:'npc_kid',name:'Reader Milo',msg:'I caught my first Wordmon by reading a whole sentence! The more words you know, the stronger they get!'},
       ],
       signs:[
-        {x:8,y:3,msg:'Wordmon Town — Where Reading Adventures Begin!'},
-        {x:11,y:3,msg:'Pokémon Center → Heal your Wordmons here!'},
+        {x:8,y:3,msg:'Wordmon Town — Home of the Reading Trainers!'},
+        {x:11,y:3,msg:'Healing Station → Rest your Wordmons here!'},
       ],
       playerStart:{x:9,y:5},
     },
@@ -4334,7 +4334,7 @@ const ADV={
         {x:9,y:0,to:'cave',spawnX:9,spawnY:13},
         {x:9,y:14,to:'frozen',spawnX:9,spawnY:0},
       ],
-      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Vulcan Sage',msg:'The lava here is hot! The Wordmons have adapted to the heat. Only strong trainers survive!'}],
+      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Fire Scholar',msg:'The lava here is hot! The Wordmons have adapted to the heat. Only strong trainers survive!'}],
       signs:[{x:10,y:7,msg:'Volcano Pass — Fire-type Wordmons rule here!'}],
       playerStart:{x:9,y:1},
       encounterRate:0.25,
@@ -4364,7 +4364,7 @@ const ADV={
         {x:9,y:0,to:'volcano',spawnX:9,spawnY:13},
         {x:9,y:14,to:'shadow',spawnX:9,spawnY:0},
       ],
-      npcs:[{x:10,y:7,sprite:'npc_kid',name:'Frost Monk',msg:'Brrr! The ice here never melts. The Wordmons have evolved to survive the cold. Watch your step on the frozen lake!'}],
+      npcs:[{x:10,y:7,sprite:'npc_kid',name:'Ice Reader',msg:'Brrr! The ice here never melts. The Wordmons have evolved to survive the cold. Watch your step on the frozen lake!'}],
       signs:[{x:10,y:7,msg:'Frozen Peaks — Ice Wordmons guard the mountain!'}],
       playerStart:{x:9,y:1},
       encounterRate:0.25,
@@ -4394,7 +4394,7 @@ const ADV={
         {x:9,y:0,to:'frozen',spawnX:9,spawnY:13},
         {x:9,y:14,to:'cosmic',spawnX:9,spawnY:0},
       ],
-      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Shadow Keeper',msg:'Few trainers make it this deep. The Shadow Wordmons are tricky — they feed on mistakes! Read carefully!'}],
+      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Riddle Master',msg:'Few trainers make it this deep. The Shadow Wordmons are tricky — they feed on mistakes! Read carefully!'}],
       signs:[{x:10,y:7,msg:'Shadow Realm — Only the bravest readers enter!'}],
       playerStart:{x:9,y:1},
       encounterRate:0.28,
@@ -4423,7 +4423,7 @@ const ADV={
       exits:[
         {x:9,y:0,to:'shadow',spawnX:9,spawnY:13},
       ],
-      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Cosmic Oracle',msg:'You have reached the end of the known world! The Wordmons here are the most powerful in existence. Only a true Reading Master can catch them all!'}],
+      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Word Sage',msg:'You have reached the end of the known world! The Wordmons here are the most powerful in existence. Only a true Reading Master can catch them all!'}],
       signs:[{x:10,y:7,msg:'Cosmic Void — The final frontier. Only Reading Masters survive!'}],
       playerStart:{x:9,y:1},
       encounterRate:0.30,
@@ -4557,7 +4557,7 @@ const ADV={
     if(sign){this.showDialog(sign.msg);return;}
     // Check special buildings
     const tile=this.getTile(fx,fy);
-    if(tile===6){this.showDialog('Welcome to the Pokémon Center! Your Wordmons will be healed!');return;}
+    if(tile===6){this.showDialog('Welcome to the Healing Station! Your Wordmons will be healed!');return;}
     if(tile===7){this.showDialog('Welcome to the Mart! Check the Shop tab to buy toys!');return;}
     if(tile===5){this.showDialog('Home sweet home! Río lives here.');return;}
   },
