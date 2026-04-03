@@ -4446,181 +4446,78 @@ const ADV={
       playerStart:{x:15,y:1},
       encounterRate:0.15,
     },
-    forest:{
-      name:'Whispering Forest',
-      w:20,h:15,
-      data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,4,2,2,4,0,0,2,0,1,0,2,0,0,4,2,2,4,4,4,
-        4,2,2,2,0,0,2,2,0,1,0,2,2,0,0,2,2,2,4,4,
-        4,2,4,0,0,2,2,2,0,1,0,2,2,2,0,0,4,2,0,4,
-        4,0,0,0,2,2,4,2,0,1,0,2,4,2,2,0,0,0,0,4,
-        4,0,2,2,2,4,4,0,1,1,1,0,4,4,2,2,2,0,0,4,
-        4,2,2,4,2,2,0,0,1,0,0,0,0,2,2,4,2,2,0,4,
-        4,0,2,2,2,0,0,2,1,0,8,0,2,0,0,2,2,0,0,4,
-        4,0,0,2,0,0,2,2,1,0,0,0,2,2,0,0,2,0,0,4,
-        4,2,0,0,0,2,2,4,1,1,1,4,2,2,0,0,0,2,0,4,
-        4,2,2,0,2,2,4,4,0,1,0,4,4,2,2,0,2,2,0,4,
-        4,0,2,2,2,0,0,0,0,1,0,0,0,0,2,2,2,0,0,4,
-        4,0,0,2,0,0,0,0,0,1,0,0,0,0,0,2,0,0,0,4,
-        4,4,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,4,4,4,
-        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-      ],
-      exits:[{x:9,y:0,to:'route1',spawnX:9,spawnY:18}],
-      npcs:[],
-      signs:[{x:10,y:7,msg:'Whispering Forest — Rare Wordmons hide here!'}],
-      playerStart:{x:9,y:12},
-      encounterRate:0.20,
-    },
-    cave:{
-      name:'Crystal Cave',
-      w:20,h:15,
-      bg:'bg_mushroom',
-      data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,10,10,0,0,15,0,10,0,1,0,10,0,15,0,0,10,10,0,4,
-        4,10,15,10,0,0,10,15,0,1,0,15,10,0,0,10,15,10,0,4,
-        4,0,10,0,2,2,0,10,0,1,0,10,0,2,2,0,10,0,0,4,
-        4,0,0,2,2,10,2,0,0,1,0,0,2,10,2,2,0,0,0,4,
-        4,15,0,2,10,15,2,0,1,1,1,0,2,15,10,2,0,15,0,4,
-        4,0,10,0,2,2,0,0,1,10,10,0,0,2,2,0,10,0,0,4,
-        4,10,15,0,0,0,10,0,1,15,15,0,10,0,0,0,15,10,0,4,
-        4,0,10,0,2,0,15,0,1,10,10,0,15,0,2,0,10,0,0,4,
-        4,0,0,2,2,10,0,0,1,1,1,0,0,10,2,2,0,0,0,4,
-        4,10,0,0,2,0,0,10,0,1,0,10,0,0,2,0,0,10,0,4,
-        4,15,10,0,0,0,10,15,0,1,0,15,10,0,0,0,10,15,0,4,
-        4,10,15,10,0,0,15,10,0,1,0,10,15,0,0,10,15,10,0,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-      ],
-      exits:[
-        {x:9,y:0,to:'forest',spawnX:9,spawnY:12},
-        {x:9,y:14,to:'volcano',spawnX:9,spawnY:0},
-      ],
-      npcs:[{x:10,y:7,sprite:'npc_kid',name:'Explorer Mae',msg:'These crystals are beautiful! But the Wordmons here are tough! Be careful in the mushroom patches!'}],
-      signs:[{x:9,y:1,msg:'Crystal Cave — Mysterious Wordmons glow in the dark!'}],
-      playerStart:{x:9,y:1},
-      encounterRate:0.22,
-    },
-    volcano:{
-      name:'Volcano Pass',
-      w:20,h:15,
-      bg:'bg_lavapit',
-      data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,0,11,11,0,0,0,11,0,1,0,11,0,0,0,11,11,0,0,4,
-        4,11,0,11,2,0,11,0,0,1,0,0,11,0,2,11,0,11,0,4,
-        4,11,11,0,2,2,0,11,0,1,0,11,0,2,2,0,11,11,0,4,
-        4,0,11,0,0,2,0,0,1,1,1,0,0,2,0,0,11,0,0,4,
-        4,0,0,2,2,11,2,0,1,11,11,0,2,11,2,2,0,0,0,4,
-        4,11,0,2,0,0,0,0,1,0,0,0,0,0,0,2,0,11,0,4,
-        4,0,0,0,0,11,0,0,1,0,8,0,0,11,0,0,0,0,0,4,
-        4,11,0,2,0,0,0,0,1,0,0,0,0,0,0,2,0,11,0,4,
-        4,0,0,2,2,11,2,0,1,11,11,0,2,11,2,2,0,0,0,4,
-        4,0,11,0,0,2,0,0,1,1,1,0,0,2,0,0,11,0,0,4,
-        4,11,0,0,2,0,11,0,0,1,0,0,11,0,2,0,0,11,0,4,
-        4,0,11,11,0,0,0,11,0,1,0,11,0,0,0,11,11,0,0,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-      ],
-      exits:[
-        {x:9,y:0,to:'cave',spawnX:9,spawnY:13},
-        {x:9,y:14,to:'frozen',spawnX:9,spawnY:0},
-      ],
-      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Fire Scholar',msg:'The lava here is hot! The Wordmons have adapted to the heat. Only strong trainers survive!'}],
-      signs:[{x:10,y:7,msg:'Volcano Pass — Fire-type Wordmons rule here!'}],
-      playerStart:{x:9,y:1},
-      encounterRate:0.25,
-    },
-    frozen:{
-      name:'Frozen Peaks',
-      w:20,h:15,
-      bg:'bg_frozen',
-      data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,12,0,12,0,0,12,0,0,1,0,0,12,0,0,12,0,12,0,4,
-        4,0,12,0,2,12,0,12,0,1,0,12,0,12,2,0,12,0,0,4,
-        4,12,0,2,2,0,12,0,0,1,0,0,12,0,2,2,0,12,0,4,
-        4,0,0,2,12,0,0,0,1,1,1,0,0,0,12,2,0,0,0,4,
-        4,12,0,0,2,2,0,0,1,3,3,0,0,2,2,0,0,12,0,4,
-        4,0,12,0,0,0,12,0,1,3,3,0,12,0,0,0,12,0,0,4,
-        4,0,0,12,0,0,0,0,1,0,8,0,0,0,0,12,0,0,0,4,
-        4,12,0,0,0,12,0,0,1,3,3,0,0,12,0,0,0,12,0,4,
-        4,0,12,0,2,0,12,0,1,1,1,0,12,0,2,0,12,0,0,4,
-        4,0,0,2,2,12,0,0,0,1,0,0,0,12,2,2,0,0,0,4,
-        4,12,0,2,0,0,12,0,0,1,0,0,12,0,0,2,0,12,0,4,
-        4,0,12,0,0,12,0,12,0,1,0,12,0,12,0,0,12,0,0,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-      ],
-      exits:[
-        {x:9,y:0,to:'volcano',spawnX:9,spawnY:13},
-        {x:9,y:14,to:'shadow',spawnX:9,spawnY:0},
-      ],
-      npcs:[{x:10,y:7,sprite:'npc_kid',name:'Ice Reader',msg:'Brrr! The ice here never melts. The Wordmons have evolved to survive the cold. Watch your step on the frozen lake!'}],
-      signs:[{x:10,y:7,msg:'Frozen Peaks — Ice Wordmons guard the mountain!'}],
-      playerStart:{x:9,y:1},
-      encounterRate:0.25,
-    },
-    shadow:{
-      name:'Shadow Realm',
-      w:20,h:15,
-      bg:'bg_shadow',
-      data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,13,0,13,0,13,0,13,0,1,0,13,0,13,0,13,0,13,0,4,
-        4,0,13,2,2,0,13,0,0,1,0,0,13,0,2,2,13,0,0,4,
-        4,13,2,2,13,0,0,13,0,1,0,13,0,0,13,2,2,13,0,4,
-        4,0,0,2,0,13,0,0,1,1,1,0,0,13,0,2,0,0,0,4,
-        4,13,0,0,0,2,2,0,1,13,13,0,2,2,0,0,0,13,0,4,
-        4,0,13,0,2,2,13,0,1,0,0,0,13,2,2,0,13,0,0,4,
-        4,13,0,0,0,13,0,0,1,0,8,0,0,13,0,0,0,13,0,4,
-        4,0,13,0,2,0,0,13,1,0,0,13,0,0,2,0,13,0,0,4,
-        4,13,0,2,2,0,13,0,1,13,13,0,13,0,2,2,0,13,0,4,
-        4,0,0,0,2,13,0,0,1,1,1,0,0,13,2,0,0,0,0,4,
-        4,13,0,0,0,0,13,0,0,1,0,0,13,0,0,0,0,13,0,4,
-        4,0,13,13,0,13,0,13,0,1,0,13,0,13,0,13,13,0,0,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-      ],
-      exits:[
-        {x:9,y:0,to:'frozen',spawnX:9,spawnY:13},
-        {x:9,y:14,to:'cosmic',spawnX:9,spawnY:0},
-      ],
-      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Riddle Master',msg:'Few trainers make it this deep. The Shadow Wordmons are tricky — they feed on mistakes! Read carefully!'}],
-      signs:[{x:10,y:7,msg:'Shadow Realm — Only the bravest readers enter!'}],
-      playerStart:{x:9,y:1},
-      encounterRate:0.28,
-    },
-    cosmic:{
-      name:'Cosmic Void',
-      w:20,h:15,
-      bg:'bg_cosmic',
-      data:[
-        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
-        4,14,0,14,0,0,14,0,0,1,0,0,14,0,0,14,0,14,0,4,
-        4,0,14,0,2,14,0,14,0,1,0,14,0,14,2,0,14,0,0,4,
-        4,14,0,2,2,0,14,0,0,1,0,0,14,0,2,2,0,14,0,4,
-        4,0,14,2,14,0,0,0,1,1,1,0,0,0,14,2,14,0,0,4,
-        4,14,0,0,2,2,14,0,1,14,14,0,14,2,2,0,0,14,0,4,
-        4,0,14,0,0,14,0,0,1,0,0,0,0,14,0,0,14,0,0,4,
-        4,14,0,0,0,0,14,0,1,0,8,0,14,0,0,0,0,14,0,4,
-        4,0,14,0,14,0,0,14,1,0,0,14,0,0,14,0,14,0,0,4,
-        4,14,0,0,2,2,14,0,1,14,14,0,14,2,2,0,0,14,0,4,
-        4,0,14,2,0,14,0,0,1,1,1,0,0,14,0,2,14,0,0,4,
-        4,14,0,2,2,0,14,0,0,1,0,0,14,0,2,2,0,14,0,4,
-        4,0,14,0,0,14,0,14,0,1,0,14,0,14,0,0,14,0,0,4,
-        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-      ],
-      exits:[
-        {x:9,y:0,to:'shadow',spawnX:9,spawnY:13},
-      ],
-      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Word Sage',msg:'You have reached the end of the known world! The Wordmons here are the most powerful in existence. Only a true Reading Master can catch them all!'}],
-      signs:[{x:10,y:7,msg:'Cosmic Void — The final frontier. Only Reading Masters survive!'}],
-      playerStart:{x:9,y:1},
-      encounterRate:0.30,
-    },
+    forest:{name:'Whispering Forest',w:30,h:25,bg:'bg_forest',
+      data:(function(){const W=30,H=25,d=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+        if(y===0||y===H-1||x===0||x===W-1){d.push(4);continue;}
+        if((x===15&&y<H-1)||(y===12&&x>=5&&x<=25)){d.push(1);continue;}
+        if(y===H-2&&x===15){d.push(1);continue;}
+        const r=Math.random();
+        if(r<0.3)d.push(2);else if(r<0.45)d.push(4);else d.push(0);
+      }return d;})(),
+      exits:[{x:15,y:0,to:'route1',spawnX:15,spawnY:28},{x:15,y:24,to:'cave',spawnX:15,spawnY:0}],
+      npcs:[{x:12,y:12,sprite:'npc_kid',name:'Forest Guide',msg:'The deeper you go, the denser the forest gets. Watch for rare Wordmons in the thick grass patches!'}],
+      signs:[{x:15,y:2,msg:'Whispering Forest — Rare Wordmons hide among the trees!'},{x:15,y:22,msg:'South → Crystal Cave entrance ahead!'}],
+      playerStart:{x:15,y:2},encounterRate:0.20},
+    cave:{name:'Crystal Cave',w:30,h:25,bg:'bg_mushroom',
+      data:(function(){const W=30,H=25,d=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+        if(y===0||y===H-1||x===0||x===W-1){d.push(4);continue;}
+        if((x===15&&(y<4||y>H-5))||(y===12&&x>=4&&x<=26)){d.push(1);continue;}
+        if(y===H-2&&x===15){d.push(1);continue;}
+        const r=Math.random();
+        if(r<0.15)d.push(10);else if(r<0.25)d.push(15);else if(r<0.35)d.push(2);else if(r<0.5)d.push(4);else d.push(0);
+      }return d;})(),
+      exits:[{x:15,y:0,to:'forest',spawnX:15,spawnY:23},{x:15,y:24,to:'volcano',spawnX:15,spawnY:0}],
+      npcs:[{x:12,y:12,sprite:'npc_kid',name:'Explorer Mae',msg:'These crystals are beautiful! But the Wordmons here are tough! Be careful in the mushroom patches!'}],
+      signs:[{x:15,y:2,msg:'Crystal Cave — Mysterious Wordmons glow in the dark!'}],
+      playerStart:{x:15,y:2},encounterRate:0.22},
+    volcano:{name:'Volcano Pass',w:30,h:25,bg:'bg_lavapit',
+      data:(function(){const W=30,H=25,d=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+        if(y===0||y===H-1||x===0||x===W-1){d.push(4);continue;}
+        if((x===15&&(y<4||y>H-5))||(y===12&&x>=4&&x<=26)){d.push(1);continue;}
+        if(y===H-2&&x===15){d.push(1);continue;}
+        const r=Math.random();
+        if(r<0.2)d.push(11);else if(r<0.3)d.push(2);else if(r<0.4)d.push(4);else d.push(0);
+      }return d;})(),
+      exits:[{x:15,y:0,to:'cave',spawnX:15,spawnY:23},{x:15,y:24,to:'frozen',spawnX:15,spawnY:0}],
+      npcs:[{x:12,y:12,sprite:'npc_prof',name:'Fire Scholar',msg:'The lava here is hot! Only strong trainers survive this pass!'}],
+      signs:[{x:15,y:2,msg:'Volcano Pass — Fire-type Wordmons rule here!'}],
+      playerStart:{x:15,y:2},encounterRate:0.25},
+    frozen:{name:'Frozen Peaks',w:30,h:25,bg:'bg_frozen',
+      data:(function(){const W=30,H=25,d=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+        if(y===0||y===H-1||x===0||x===W-1){d.push(4);continue;}
+        if((x===15&&(y<4||y>H-5))||(y===12&&x>=4&&x<=26)){d.push(1);continue;}
+        if(y===H-2&&x===15){d.push(1);continue;}
+        const r=Math.random();
+        if(r<0.2)d.push(12);else if(r<0.3)d.push(3);else if(r<0.4)d.push(2);else if(r<0.5)d.push(4);else d.push(0);
+      }return d;})(),
+      exits:[{x:15,y:0,to:'volcano',spawnX:15,spawnY:23},{x:15,y:24,to:'shadow',spawnX:15,spawnY:0}],
+      npcs:[{x:12,y:12,sprite:'npc_kid',name:'Ice Reader',msg:'Brrr! The ice here never melts. Watch your step on the frozen lake!'}],
+      signs:[{x:15,y:2,msg:'Frozen Peaks — Ice Wordmons guard the mountain!'}],
+      playerStart:{x:15,y:2},encounterRate:0.25},
+    shadow:{name:'Shadow Realm',w:30,h:25,bg:'bg_shadow',
+      data:(function(){const W=30,H=25,d=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+        if(y===0||y===H-1||x===0||x===W-1){d.push(4);continue;}
+        if((x===15&&(y<4||y>H-5))||(y===12&&x>=4&&x<=26)){d.push(1);continue;}
+        if(y===H-2&&x===15){d.push(1);continue;}
+        const r=Math.random();
+        if(r<0.25)d.push(13);else if(r<0.4)d.push(2);else if(r<0.5)d.push(4);else d.push(0);
+      }return d;})(),
+      exits:[{x:15,y:0,to:'frozen',spawnX:15,spawnY:23},{x:15,y:24,to:'cosmic',spawnX:15,spawnY:0}],
+      npcs:[{x:12,y:12,sprite:'npc_prof',name:'Riddle Master',msg:'Few trainers make it this deep. The Shadow Wordmons feed on mistakes! Read carefully!'}],
+      signs:[{x:15,y:2,msg:'Shadow Realm — Only the bravest readers enter!'}],
+      playerStart:{x:15,y:2},encounterRate:0.28},
+    cosmic:{name:'Cosmic Void',w:30,h:25,bg:'bg_cosmic',
+      data:(function(){const W=30,H=25,d=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+        if(y===0||y===H-1||x===0||x===W-1){d.push(4);continue;}
+        if(x===15&&y<H-1){d.push(1);continue;}
+        if(y===12&&x>=4&&x<=26){d.push(1);continue;}
+        const r=Math.random();
+        if(r<0.25)d.push(14);else if(r<0.35)d.push(2);else if(r<0.45)d.push(4);else d.push(0);
+      }return d;})(),
+      exits:[{x:15,y:0,to:'shadow',spawnX:15,spawnY:23}],
+      npcs:[{x:12,y:12,sprite:'npc_prof',name:'Word Sage',msg:'You have reached the end of the known world! Only a true Reading Master can catch them all!'}],
+      signs:[{x:15,y:2,msg:'Cosmic Void — The final frontier. Only Reading Masters survive!'}],
+      playerStart:{x:15,y:2},encounterRate:0.30},
   },
   // Tile colors (fallback when sprites not loaded)
   // 0=grass,1=path,2=tallgrass,3=water,4=tree,5=house,6=pokecenter,7=shop,8=sign,9=fence,10=crystal,11=lava,12=ice,13=void,14=cosmic,15=mushroom
