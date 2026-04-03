@@ -4168,16 +4168,19 @@ function openHouse(){
   caught.forEach((wmIdx,i)=>{
     const wm=G.getWordmon(wmIdx);
     const pos=POSITIONS[i%POSITIONS.length];
+    // Size varies by evolution stage — baby=small, mid=medium, final=big
+    const stageScale=wm.stage===0?0.7:wm.stage===1?0.9:1.1;
+    const finalScale=pos.scale*stageScale;
     const el=document.createElement('div');
-    el.style.cssText='position:absolute;left:'+pos.x+'%;top:'+pos.y+'%;transform:translate(-50%,-50%) scale('+pos.scale+');cursor:pointer;transition:all .3s;z-index:'+(10+i);
-    // Use special house pose image if available, otherwise use battle sprite
-    const imgSrc=HOUSE_POSES[wmIdx]||wm.spriteImg;
+    el.style.cssText='position:absolute;left:'+pos.x+'%;top:'+pos.y+'%;transform:translate(-50%,-50%) scale('+finalScale+');cursor:pointer;transition:all .3s;z-index:'+(10+i);
+    // Use battle sprite (cleaner backgrounds than house poses)
+    const imgSrc=wm.spriteImg;
     el.innerHTML='<img src="'+imgSrc+'" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.3))" onerror="this.src=\''+wm.spriteImg+'\'">'+
       '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:.6rem;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.7);margin-top:-4px">'+wm.name+'</div>';
     // Tap to hear name + bio
     el.addEventListener('click',()=>{
-      el.style.transform='translate(-50%,-50%) scale('+(pos.scale*1.2)+')';
-      setTimeout(()=>el.style.transform='translate(-50%,-50%) scale('+pos.scale+')',300);
+      el.style.transform='translate(-50%,-50%) scale('+(finalScale*1.2)+')';
+      setTimeout(()=>el.style.transform='translate(-50%,-50%) scale('+finalScale+')',300);
       if(window.speechSynthesis){
         speechSynthesis.cancel();
         const u=new SpeechSynthesisUtterance(wm.name+' is '+pos.label+'! '+wm.bio);
