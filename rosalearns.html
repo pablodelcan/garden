@@ -288,8 +288,8 @@ const G={
   stickers:[], // earned sticker indices
   mode:'letters', answering:false,
   currentSpoken:'', // what to repeat when speaker is tapped
-  GAME_MODES:['letters','numbers','colors','shapes','matching'],
-  MODE_NAMES:{letters:'🔤 Letters',numbers:'🔢 Numbers',colors:'🎨 Colors',shapes:'🔷 Shapes',matching:'🃏 Match'},
+  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish'],
+  MODE_NAMES:{letters:'🔤 Letters',numbers:'🔢 Numbers',colors:'🎨 Colors',shapes:'🔷 Shapes',matching:'🃏 Match',spanish:'🇪🇸 Español'},
 
   init(){
     this.loadGame();
@@ -360,6 +360,7 @@ const G={
       case'colors':this.loadColors();break;
       case'shapes':this.loadShapes();break;
       case'matching':this.loadMatching();break;
+      case'spanish':this.loadSpanish();break;
     }
   },
 
@@ -597,6 +598,74 @@ const G={
         }
       });
     });
+  },
+
+  // ---- SPANISH TRANSLATION GAME ----
+  loadSpanish(){
+    const area=document.getElementById('gameArea');
+    const SPANISH_WORDS=[
+      // Animals
+      {en:'Cat',es:'Gato',emoji:'🐱',category:'animals'},
+      {en:'Dog',es:'Perro',emoji:'🐶',category:'animals'},
+      {en:'Fish',es:'Pez',emoji:'🐟',category:'animals'},
+      {en:'Bird',es:'Pájaro',emoji:'🐦',category:'animals'},
+      {en:'Butterfly',es:'Mariposa',emoji:'🦋',category:'animals'},
+      {en:'Bear',es:'Oso',emoji:'🐻',category:'animals'},
+      // Colors
+      {en:'Red',es:'Rojo',emoji:'🔴',category:'colors'},
+      {en:'Blue',es:'Azul',emoji:'🔵',category:'colors'},
+      {en:'Green',es:'Verde',emoji:'🟢',category:'colors'},
+      {en:'Yellow',es:'Amarillo',emoji:'🟡',category:'colors'},
+      {en:'Pink',es:'Rosa',emoji:'💗',category:'colors'},
+      {en:'Purple',es:'Morado',emoji:'🟣',category:'colors'},
+      // Numbers
+      {en:'One',es:'Uno',emoji:'1️⃣',category:'numbers'},
+      {en:'Two',es:'Dos',emoji:'2️⃣',category:'numbers'},
+      {en:'Three',es:'Tres',emoji:'3️⃣',category:'numbers'},
+      {en:'Four',es:'Cuatro',emoji:'4️⃣',category:'numbers'},
+      {en:'Five',es:'Cinco',emoji:'5️⃣',category:'numbers'},
+      // Family
+      {en:'Mom',es:'Mamá',emoji:'👩',category:'family'},
+      {en:'Dad',es:'Papá',emoji:'👨',category:'family'},
+      {en:'Brother',es:'Hermano',emoji:'👦',category:'family'},
+      {en:'Sister',es:'Hermana',emoji:'👧',category:'family'},
+      {en:'Baby',es:'Bebé',emoji:'👶',category:'family'},
+      // Food
+      {en:'Water',es:'Agua',emoji:'💧',category:'food'},
+      {en:'Apple',es:'Manzana',emoji:'🍎',category:'food'},
+      {en:'Banana',es:'Plátano',emoji:'🍌',category:'food'},
+      {en:'Milk',es:'Leche',emoji:'🥛',category:'food'},
+      // Body
+      {en:'Hand',es:'Mano',emoji:'✋',category:'body'},
+      {en:'Eye',es:'Ojo',emoji:'👁️',category:'body'},
+      {en:'Mouth',es:'Boca',emoji:'👄',category:'body'},
+      {en:'Nose',es:'Nariz',emoji:'👃',category:'body'},
+    ];
+    // Pick a random type: en→es or es→en
+    const target=SPANISH_WORDS[Math.floor(Math.random()*SPANISH_WORDS.length)];
+    const direction=Math.random()<0.5?'en_to_es':'es_to_en';
+    const question=direction==='en_to_es'
+      ?'How do you say <strong>'+target.en+'</strong> '+target.emoji+' in Spanish?'
+      :'How do you say <strong>'+target.es+'</strong> '+target.emoji+' in English?';
+    const correctAnswer=direction==='en_to_es'?target.es:target.en;
+    // Get 3 wrong answers from same category
+    const sameCategory=SPANISH_WORDS.filter(w=>w!==target);
+    const wrongs=shuffle(sameCategory).slice(0,3).map(w=>direction==='en_to_es'?w.es:w.en);
+    const choices=shuffle([correctAnswer,...wrongs]);
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text" style="font-size:1.2rem;line-height:1.6">'+question+'</div>'+
+      '<div style="text-align:center;font-size:3.5rem;margin:8px 0">'+target.emoji+'</div>'+
+      '<div class="big-choices" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+      choices.map(c=>'<button class="big-btn" data-val="'+c+'" style="font-size:1.4rem;padding:16px;border-radius:16px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:700;transition:all .2s">'+
+        '<div class="big-btn-label">'+c+'</div></button>').join('')+
+      '</div></div>';
+    // Wire up choices
+    this.setupChoices(correctAnswer);
+    // Speak question
+    const spokenQ=direction==='en_to_es'
+      ?'How do you say '+target.en+' in Spanish?'
+      :'Cómo se dice '+target.es+' in English?';
+    this.speakAndHighlight(spokenQ, choices, correctAnswer);
   },
 
   onCorrect(){
