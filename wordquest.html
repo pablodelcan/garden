@@ -840,13 +840,39 @@ const WORDMONS = [
     {name:'Botbyte',hp:28,svg:`<svg viewBox="0 0 100 100"><rect x="32" y="30" width="36" height="32" rx="6" fill="#6366f1"/><rect x="36" y="34" width="28" height="20" rx="4" fill="#312e81"/><circle cx="44" cy="44" r="3" fill="#22d3ee"/><circle cx="56" cy="44" r="3" fill="#22d3ee"/><rect x="46" y="16" width="8" height="14" rx="4" fill="#6366f1"/><circle cx="50" cy="14" r="4" fill="#818cf8"/></svg>`},
     {name:'Megadroid',hp:40,svg:`<svg viewBox="0 0 100 100"><rect x="28" y="26" width="44" height="38" rx="8" fill="#4f46e5"/><rect x="32" y="30" width="36" height="26" rx="5" fill="#1e1b4b"/><circle cx="42" cy="42" r="4" fill="#22d3ee"/><circle cx="58" cy="42" r="4" fill="#22d3ee"/><rect x="44" y="12" width="12" height="14" rx="5" fill="#4f46e5"/><circle cx="50" cy="10" r="5" fill="#818cf8"/><rect x="18" y="36" width="10" height="6" rx="3" fill="#4f46e5"/><rect x="72" y="36" width="10" height="6" rx="3" fill="#4f46e5"/></svg>`},
     {name:'Ultramech',hp:58,svg:`<svg viewBox="0 0 100 100"><rect x="24" y="22" width="52" height="44" rx="10" fill="#3730a3"/><rect x="28" y="26" width="44" height="32" rx="6" fill="#0f0a2e"/><circle cx="40" cy="40" r="5" fill="#f43f5e"/><circle cx="60" cy="40" r="5" fill="#f43f5e"/><rect x="42" y="8" width="16" height="14" rx="6" fill="#3730a3"/><circle cx="50" cy="6" r="6" fill="#818cf8"/><rect x="12" y="32" width="12" height="8" rx="4" fill="#3730a3"/><rect x="76" y="32" width="12" height="8" rx="4" fill="#3730a3"/><polygon points="50,66 42,80 50,74 58,80" fill="#4f46e5"/></svg>`}
+  ]},
+  // --- DEEP ZONE WORDMONS (stronger, weirder) ---
+  {id:'crystalix',type:'Rock',color:'#a855f7',bio:'Crystalix was born deep in a cave. She is made of purple crystals! She said "I am so pretty!" She can glow in the dark. She likes to sing but it sounds like glass!',stages:[
+    {name:'Crystalix',hp:34,bio:'Crystalix was born deep in a cave. She is made of purple crystals!',svg:`<svg viewBox="0 0 100 100"><polygon points="50,10 20,50 35,90 65,90 80,50" fill="#a855f7"/><polygon points="50,10 20,50 50,45" fill="#c084fc"/><circle cx="40" cy="50" r="5" fill="#fff"/><circle cx="60" cy="50" r="5" fill="#fff"/><circle cx="40" cy="50" r="3" fill="#1e293b"/><circle cx="60" cy="50" r="3" fill="#1e293b"/><path d="M45 65 Q50 70 55 65" stroke="#1e293b" stroke-width="2" fill="none"/></svg>`},
+    {name:'Prismoth',hp:46,bio:'Prismoth has rainbow light inside! She said "Look at my colors!" She is bigger now and very strong.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,5 15,45 25,95 75,95 85,45" fill="#7c3aed"/><polygon points="50,5 15,45 50,40" fill="#a78bfa"/><polygon points="50,40 85,45 75,95" fill="#6d28d9"/><circle cx="38" cy="48" r="6" fill="#fff"/><circle cx="62" cy="48" r="6" fill="#fff"/><circle cx="38" cy="48" r="4" fill="#1e293b"/><circle cx="62" cy="48" r="4" fill="#1e293b"/><path d="M43 68 Q50 74 57 68" stroke="#1e293b" stroke-width="2.5" fill="none"/></svg>`},
+    {name:'Diamondcore',hp:62,bio:'Diamondcore is the hardest Wordmon! She said "You can not break me!" She shines like a star and all the cave lights up!',svg:`<svg viewBox="0 0 100 100"><polygon points="50,2 10,40 20,98 80,98 90,40" fill="#6d28d9"/><polygon points="50,2 10,40 50,35" fill="#a78bfa"/><polygon points="50,35 90,40 80,98" fill="#4c1d95"/><polygon points="50,2 30,20 50,35 70,20" fill="#c084fc"/><circle cx="36" cy="46" r="7" fill="#fff"/><circle cx="64" cy="46" r="7" fill="#fff"/><circle cx="36" cy="46" r="4" fill="#1e293b"/><circle cx="64" cy="46" r="4" fill="#1e293b"/><path d="M42 70 Q50 78 58 70" stroke="#1e293b" stroke-width="3" fill="none"/></svg>`}
+  ]},
+  {id:'magmawyrm',type:'Fire',color:'#f97316',bio:'Magmawyrm is a hot hot worm! He lives in the lava. He said "I am too hot to touch!" He is orange and red. Do not get too close or you will get burned!',stages:[
+    {name:'Magmawyrm',hp:36,bio:'Magmawyrm is a tiny lava worm. He is very hot!',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="60" rx="20" ry="28" fill="#f97316"/><ellipse cx="50" cy="62" rx="14" ry="20" fill="#fbbf24"/><circle cx="44" cy="52" r="4" fill="#1e293b"/><circle cx="56" cy="52" r="4" fill="#1e293b"/><path d="M46 64 Q50 68 54 64" stroke="#1e293b" stroke-width="2" fill="none"/><path d="M42 32 Q38 18 48 28" fill="#ef4444"/><path d="M58 32 Q62 18 52 28" fill="#ef4444"/></svg>`},
+    {name:'Lavafang',hp:48,bio:'Lavafang got bigger! He has fangs made of lava. He said "I can melt rocks!"',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="26" ry="32" fill="#ea580c"/><ellipse cx="50" cy="57" rx="18" ry="24" fill="#fbbf24"/><circle cx="42" cy="48" r="5" fill="#1e293b"/><circle cx="58" cy="48" r="5" fill="#1e293b"/><path d="M44 64 Q50 70 56 64" stroke="#1e293b" stroke-width="2.5" fill="none"/><path d="M38 24 Q30 4 46 22" fill="#ef4444"/><path d="M62 24 Q70 4 54 22" fill="#ef4444"/><path d="M50 22 Q50 6 56 20" fill="#fbbf24"/></svg>`},
+    {name:'Infernodrake',hp:64,bio:'Infernodrake is the king of the volcano! He said "I am made of fire!" He can fly and breathe flames!',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="36" fill="#dc2626"/><ellipse cx="50" cy="52" rx="22" ry="28" fill="#f97316"/><circle cx="40" cy="44" r="6" fill="#1e293b"/><circle cx="60" cy="44" r="6" fill="#1e293b"/><circle cx="42" cy="42" r="2" fill="#fbbf24"/><circle cx="62" cy="42" r="2" fill="#fbbf24"/><path d="M42 64 Q50 72 58 64" stroke="#1e293b" stroke-width="3" fill="none"/><path d="M32 18 Q22 -6 42 14" fill="#ef4444"/><path d="M68 18 Q78 -6 58 14" fill="#ef4444"/><polygon points="20,40 6,30 14,48" fill="#dc2626"/><polygon points="80,40 94,30 86,48" fill="#dc2626"/></svg>`}
+  ]},
+  {id:'frostwisp',type:'Ice',color:'#7dd3fc',bio:'Frostwisp is a tiny ice spirit. She floats like a snowflake! She said "I am cold but I am nice!" She can freeze water with one touch.',stages:[
+    {name:'Frostwisp',hp:32,bio:'Frostwisp is a tiny floating ice spirit. She is very cold!',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="24" fill="#bae6fd"/><circle cx="50" cy="50" r="16" fill="#e0f2fe"/><circle cx="44" cy="46" r="4" fill="#0ea5e9"/><circle cx="56" cy="46" r="4" fill="#0ea5e9"/><path d="M46 58 Q50 62 54 58" stroke="#0ea5e9" stroke-width="2" fill="none"/><polygon points="50,26 47,18 53,18" fill="#7dd3fc"/><polygon points="30,38 22,36 26,42" fill="#7dd3fc"/><polygon points="70,38 78,36 74,42" fill="#7dd3fc"/></svg>`},
+    {name:'Glaciara',hp:44,bio:'Glaciara got ice armor! She said "Now I am strong!" She can make a blizzard.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="48" r="28" fill="#7dd3fc"/><circle cx="50" cy="48" r="20" fill="#bae6fd"/><circle cx="42" cy="44" r="5" fill="#0284c7"/><circle cx="58" cy="44" r="5" fill="#0284c7"/><path d="M44 58 Q50 64 56 58" stroke="#0284c7" stroke-width="2.5" fill="none"/><polygon points="50,20 46,8 54,8" fill="#38bdf8"/><polygon points="24,34 14,30 20,40" fill="#38bdf8"/><polygon points="76,34 86,30 80,40" fill="#38bdf8"/><polygon points="50,76 46,88 54,88" fill="#38bdf8"/></svg>`},
+    {name:'Blizzardon',hp:60,bio:'Blizzardon is the ice queen! She said "I rule the frozen peaks!" She can freeze anything!',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="46" r="32" fill="#0ea5e9"/><circle cx="50" cy="46" r="24" fill="#7dd3fc"/><circle cx="50" cy="46" r="16" fill="#e0f2fe"/><circle cx="40" cy="42" r="6" fill="#0369a1"/><circle cx="60" cy="42" r="6" fill="#0369a1"/><path d="M42 60 Q50 68 58 60" stroke="#0369a1" stroke-width="3" fill="none"/><polygon points="50,14 44,0 56,0" fill="#38bdf8"/><polygon points="18,30 6,24 14,38" fill="#38bdf8"/><polygon points="82,30 94,24 86,38" fill="#38bdf8"/><polygon points="18,62 6,68 14,56" fill="#38bdf8"/><polygon points="82,62 94,68 86,56" fill="#38bdf8"/></svg>`}
+  ]},
+  {id:'gloomfang',type:'Dark',color:'#4c1d95',bio:'Gloomfang hides in the shadows. He is very sneaky! He said "You can not see me!" He has big yellow eyes that glow. He likes the dark.',stages:[
+    {name:'Gloomfang',hp:34,bio:'Gloomfang is a tiny shadow with glowing eyes!',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="22" ry="26" fill="#1e1b4b"/><ellipse cx="50" cy="58" rx="16" ry="18" fill="#312e81"/><circle cx="42" cy="50" r="5" fill="#fbbf24"/><circle cx="58" cy="50" r="5" fill="#fbbf24"/><circle cx="42" cy="50" r="2.5" fill="#1e293b"/><circle cx="58" cy="50" r="2.5" fill="#1e293b"/><path d="M46 64 Q50 60 54 64" stroke="#a855f7" stroke-width="2" fill="none"/><path d="M36 30 Q30 18 44 28" fill="#4c1d95"/><path d="M64 30 Q70 18 56 28" fill="#4c1d95"/></svg>`},
+    {name:'Duskterror',hp:48,bio:'Duskterror is bigger and scarier! He said "I am the night!" He has sharp claws.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="52" rx="28" ry="30" fill="#1e1b4b"/><ellipse cx="50" cy="54" rx="20" ry="22" fill="#312e81"/><circle cx="40" cy="46" r="6" fill="#ef4444"/><circle cx="60" cy="46" r="6" fill="#ef4444"/><circle cx="40" cy="46" r="3" fill="#1e293b"/><circle cx="60" cy="46" r="3" fill="#1e293b"/><path d="M44 64 Q50 58 56 64" stroke="#a855f7" stroke-width="2.5" fill="none"/><polygon points="24,36 14,20 30,32" fill="#4c1d95"/><polygon points="76,36 86,20 70,32" fill="#4c1d95"/></svg>`},
+    {name:'Voidreaper',hp:66,bio:'Voidreaper is the darkest Wordmon! He said "I am the shadow king!" He can vanish and appear anywhere!',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="32" ry="34" fill="#0f0a2e"/><ellipse cx="50" cy="52" rx="24" ry="26" fill="#1e1b4b"/><circle cx="38" cy="44" r="7" fill="#ef4444"/><circle cx="62" cy="44" r="7" fill="#ef4444"/><circle cx="38" cy="44" r="3.5" fill="#fbbf24"/><circle cx="62" cy="44" r="3.5" fill="#fbbf24"/><path d="M42 66 Q50 58 58 66" stroke="#a855f7" stroke-width="3" fill="none"/><polygon points="18,32 4,14 24,28" fill="#312e81"/><polygon points="82,32 96,14 76,28" fill="#312e81"/><polygon points="50,18 44,4 56,4" fill="#4c1d95"/></svg>`}
+  ]},
+  {id:'nebulark',type:'Psychic',color:'#6366f1',bio:'Nebulark is from outer space! She is made of stars! She said "I come from far away!" She can read your mind and she knows all the words!',stages:[
+    {name:'Nebulark',hp:36,bio:'Nebulark is a tiny star creature from space!',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="24" fill="#4338ca"/><circle cx="50" cy="50" r="16" fill="#6366f1"/><circle cx="44" cy="46" r="5" fill="#e0e7ff"/><circle cx="56" cy="46" r="5" fill="#e0e7ff"/><circle cx="44" cy="46" r="3" fill="#1e293b"/><circle cx="56" cy="46" r="3" fill="#1e293b"/><path d="M46 58 Q50 62 54 58" stroke="#1e293b" stroke-width="2" fill="none"/><circle cx="30" cy="32" r="3" fill="#fbbf24" opacity=".6"/><circle cx="70" cy="36" r="2" fill="#fbbf24" opacity=".5"/><circle cx="50" cy="22" r="2" fill="#fbbf24" opacity=".7"/></svg>`},
+    {name:'Cosmoglide',hp:50,bio:'Cosmoglide has a ring of stars! She said "I am bigger now!" She can fly through space.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="48" r="28" fill="#3730a3"/><circle cx="50" cy="48" r="20" fill="#4f46e5"/><ellipse cx="50" cy="48" rx="40" ry="8" fill="none" stroke="#a5b4fc" stroke-width="2" opacity=".5"/><circle cx="42" cy="44" r="6" fill="#e0e7ff"/><circle cx="58" cy="44" r="6" fill="#e0e7ff"/><circle cx="42" cy="44" r="3.5" fill="#1e293b"/><circle cx="58" cy="44" r="3.5" fill="#1e293b"/><path d="M44 58 Q50 64 56 58" stroke="#1e293b" stroke-width="2.5" fill="none"/><circle cx="26" cy="28" r="3" fill="#fbbf24" opacity=".7"/><circle cx="74" cy="32" r="3" fill="#fbbf24" opacity=".6"/><circle cx="50" cy="18" r="3" fill="#fbbf24" opacity=".8"/></svg>`},
+    {name:'Galaxion',hp:70,bio:'Galaxion is the most powerful Wordmon! She said "I am the universe!" She has galaxies inside her! She is the final challenge!',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="46" r="32" fill="#1e1b4b"/><circle cx="50" cy="46" r="24" fill="#3730a3"/><circle cx="50" cy="46" r="16" fill="#4f46e5"/><ellipse cx="50" cy="46" rx="44" ry="10" fill="none" stroke="#a5b4fc" stroke-width="3" opacity=".5"/><ellipse cx="50" cy="46" rx="30" ry="6" fill="none" stroke="#818cf8" stroke-width="2" opacity=".4" transform="rotate(30 50 46)"/><circle cx="40" cy="42" r="7" fill="#e0e7ff"/><circle cx="60" cy="42" r="7" fill="#e0e7ff"/><circle cx="40" cy="42" r="4" fill="#1e293b"/><circle cx="60" cy="42" r="4" fill="#1e293b"/><circle cx="42" cy="40" r="1.5" fill="#a5b4fc"/><circle cx="62" cy="40" r="1.5" fill="#a5b4fc"/><path d="M42 60 Q50 68 58 60" stroke="#1e293b" stroke-width="3" fill="none"/><circle cx="22" cy="24" r="4" fill="#fbbf24" opacity=".8"/><circle cx="78" cy="28" r="3" fill="#fbbf24" opacity=".7"/><circle cx="50" cy="12" r="4" fill="#fbbf24"/></svg>`}
   ]}
 ];
 
 // ========================================================
 // ENEMY MONSTERS
 // ========================================================
-const BATTLE_BGS = ['bg_forest','bg_volcano','bg_ocean','bg_cave','bg_sky','bg_snow','bg_castle','bg_space'];
+const BATTLE_BGS = ['bg_forest','bg_volcano','bg_ocean','bg_cave','bg_sky','bg_snow','bg_castle','bg_space','bg_mushroom','bg_lavapit','bg_frozen','bg_shadow','bg_cosmic'];
 const ENEMIES = [
   {name:'Grumblob',hp:20,sprite:'sprites/enemy_grumblob.png',bg:'bg_forest'},
   {name:'Muddle',hp:22,sprite:'sprites/enemy_muddle.png',bg:'bg_ocean'},
@@ -1319,7 +1345,11 @@ const G = {
     this.playerMaxHp = wm.hp;
     this.playerHp = this.getWordmonHp(this.activeWordmon);
     // Set battle background
-    const bg = this.currentEnemy.bg || BATTLE_BGS[this.enemyIdx % BATTLE_BGS.length];
+    const bg = this.currentEnemy.bg || this._zoneBg || BATTLE_BGS[this.enemyIdx % BATTLE_BGS.length];
+    this.changeBattleBg(bg);
+  },
+  changeBattleBg(bg){
+    this._zoneBg=bg;
     const scene = document.getElementById('battleScene');
     scene.style.backgroundImage = 'url(sprites/'+bg+'.png)';
     scene.style.backgroundSize = 'cover';
@@ -4249,9 +4279,159 @@ const ADV={
       playerStart:{x:9,y:12},
       encounterRate:0.20,
     },
+    cave:{
+      name:'Crystal Cave',
+      w:20,h:15,
+      bg:'bg_mushroom',
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,10,10,0,0,15,0,10,0,1,0,10,0,15,0,0,10,10,0,4,
+        4,10,15,10,0,0,10,15,0,1,0,15,10,0,0,10,15,10,0,4,
+        4,0,10,0,2,2,0,10,0,1,0,10,0,2,2,0,10,0,0,4,
+        4,0,0,2,2,10,2,0,0,1,0,0,2,10,2,2,0,0,0,4,
+        4,15,0,2,10,15,2,0,1,1,1,0,2,15,10,2,0,15,0,4,
+        4,0,10,0,2,2,0,0,1,10,10,0,0,2,2,0,10,0,0,4,
+        4,10,15,0,0,0,10,0,1,15,15,0,10,0,0,0,15,10,0,4,
+        4,0,10,0,2,0,15,0,1,10,10,0,15,0,2,0,10,0,0,4,
+        4,0,0,2,2,10,0,0,1,1,1,0,0,10,2,2,0,0,0,4,
+        4,10,0,0,2,0,0,10,0,1,0,10,0,0,2,0,0,10,0,4,
+        4,15,10,0,0,0,10,15,0,1,0,15,10,0,0,0,10,15,0,4,
+        4,10,15,10,0,0,15,10,0,1,0,10,15,0,0,10,15,10,0,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[
+        {x:9,y:0,to:'forest',spawnX:9,spawnY:12},
+        {x:9,y:14,to:'volcano',spawnX:9,spawnY:0},
+      ],
+      npcs:[{x:10,y:7,sprite:'npc_kid',name:'Explorer Mae',msg:'These crystals are beautiful! But the Wordmons here are tough! Be careful in the mushroom patches!'}],
+      signs:[{x:9,y:1,msg:'Crystal Cave — Mysterious Wordmons glow in the dark!'}],
+      playerStart:{x:9,y:1},
+      encounterRate:0.22,
+    },
+    volcano:{
+      name:'Volcano Pass',
+      w:20,h:15,
+      bg:'bg_lavapit',
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,0,11,11,0,0,0,11,0,1,0,11,0,0,0,11,11,0,0,4,
+        4,11,0,11,2,0,11,0,0,1,0,0,11,0,2,11,0,11,0,4,
+        4,11,11,0,2,2,0,11,0,1,0,11,0,2,2,0,11,11,0,4,
+        4,0,11,0,0,2,0,0,1,1,1,0,0,2,0,0,11,0,0,4,
+        4,0,0,2,2,11,2,0,1,11,11,0,2,11,2,2,0,0,0,4,
+        4,11,0,2,0,0,0,0,1,0,0,0,0,0,0,2,0,11,0,4,
+        4,0,0,0,0,11,0,0,1,0,8,0,0,11,0,0,0,0,0,4,
+        4,11,0,2,0,0,0,0,1,0,0,0,0,0,0,2,0,11,0,4,
+        4,0,0,2,2,11,2,0,1,11,11,0,2,11,2,2,0,0,0,4,
+        4,0,11,0,0,2,0,0,1,1,1,0,0,2,0,0,11,0,0,4,
+        4,11,0,0,2,0,11,0,0,1,0,0,11,0,2,0,0,11,0,4,
+        4,0,11,11,0,0,0,11,0,1,0,11,0,0,0,11,11,0,0,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[
+        {x:9,y:0,to:'cave',spawnX:9,spawnY:13},
+        {x:9,y:14,to:'frozen',spawnX:9,spawnY:0},
+      ],
+      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Vulcan Sage',msg:'The lava here is hot! The Wordmons have adapted to the heat. Only strong trainers survive!'}],
+      signs:[{x:10,y:7,msg:'Volcano Pass — Fire-type Wordmons rule here!'}],
+      playerStart:{x:9,y:1},
+      encounterRate:0.25,
+    },
+    frozen:{
+      name:'Frozen Peaks',
+      w:20,h:15,
+      bg:'bg_frozen',
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,12,0,12,0,0,12,0,0,1,0,0,12,0,0,12,0,12,0,4,
+        4,0,12,0,2,12,0,12,0,1,0,12,0,12,2,0,12,0,0,4,
+        4,12,0,2,2,0,12,0,0,1,0,0,12,0,2,2,0,12,0,4,
+        4,0,0,2,12,0,0,0,1,1,1,0,0,0,12,2,0,0,0,4,
+        4,12,0,0,2,2,0,0,1,3,3,0,0,2,2,0,0,12,0,4,
+        4,0,12,0,0,0,12,0,1,3,3,0,12,0,0,0,12,0,0,4,
+        4,0,0,12,0,0,0,0,1,0,8,0,0,0,0,12,0,0,0,4,
+        4,12,0,0,0,12,0,0,1,3,3,0,0,12,0,0,0,12,0,4,
+        4,0,12,0,2,0,12,0,1,1,1,0,12,0,2,0,12,0,0,4,
+        4,0,0,2,2,12,0,0,0,1,0,0,0,12,2,2,0,0,0,4,
+        4,12,0,2,0,0,12,0,0,1,0,0,12,0,0,2,0,12,0,4,
+        4,0,12,0,0,12,0,12,0,1,0,12,0,12,0,0,12,0,0,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[
+        {x:9,y:0,to:'volcano',spawnX:9,spawnY:13},
+        {x:9,y:14,to:'shadow',spawnX:9,spawnY:0},
+      ],
+      npcs:[{x:10,y:7,sprite:'npc_kid',name:'Frost Monk',msg:'Brrr! The ice here never melts. The Wordmons have evolved to survive the cold. Watch your step on the frozen lake!'}],
+      signs:[{x:10,y:7,msg:'Frozen Peaks — Ice Wordmons guard the mountain!'}],
+      playerStart:{x:9,y:1},
+      encounterRate:0.25,
+    },
+    shadow:{
+      name:'Shadow Realm',
+      w:20,h:15,
+      bg:'bg_shadow',
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,13,0,13,0,13,0,13,0,1,0,13,0,13,0,13,0,13,0,4,
+        4,0,13,2,2,0,13,0,0,1,0,0,13,0,2,2,13,0,0,4,
+        4,13,2,2,13,0,0,13,0,1,0,13,0,0,13,2,2,13,0,4,
+        4,0,0,2,0,13,0,0,1,1,1,0,0,13,0,2,0,0,0,4,
+        4,13,0,0,0,2,2,0,1,13,13,0,2,2,0,0,0,13,0,4,
+        4,0,13,0,2,2,13,0,1,0,0,0,13,2,2,0,13,0,0,4,
+        4,13,0,0,0,13,0,0,1,0,8,0,0,13,0,0,0,13,0,4,
+        4,0,13,0,2,0,0,13,1,0,0,13,0,0,2,0,13,0,0,4,
+        4,13,0,2,2,0,13,0,1,13,13,0,13,0,2,2,0,13,0,4,
+        4,0,0,0,2,13,0,0,1,1,1,0,0,13,2,0,0,0,0,4,
+        4,13,0,0,0,0,13,0,0,1,0,0,13,0,0,0,0,13,0,4,
+        4,0,13,13,0,13,0,13,0,1,0,13,0,13,0,13,13,0,0,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[
+        {x:9,y:0,to:'frozen',spawnX:9,spawnY:13},
+        {x:9,y:14,to:'cosmic',spawnX:9,spawnY:0},
+      ],
+      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Shadow Keeper',msg:'Few trainers make it this deep. The Shadow Wordmons are tricky — they feed on mistakes! Read carefully!'}],
+      signs:[{x:10,y:7,msg:'Shadow Realm — Only the bravest readers enter!'}],
+      playerStart:{x:9,y:1},
+      encounterRate:0.28,
+    },
+    cosmic:{
+      name:'Cosmic Void',
+      w:20,h:15,
+      bg:'bg_cosmic',
+      data:[
+        4,4,4,4,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,
+        4,14,0,14,0,0,14,0,0,1,0,0,14,0,0,14,0,14,0,4,
+        4,0,14,0,2,14,0,14,0,1,0,14,0,14,2,0,14,0,0,4,
+        4,14,0,2,2,0,14,0,0,1,0,0,14,0,2,2,0,14,0,4,
+        4,0,14,2,14,0,0,0,1,1,1,0,0,0,14,2,14,0,0,4,
+        4,14,0,0,2,2,14,0,1,14,14,0,14,2,2,0,0,14,0,4,
+        4,0,14,0,0,14,0,0,1,0,0,0,0,14,0,0,14,0,0,4,
+        4,14,0,0,0,0,14,0,1,0,8,0,14,0,0,0,0,14,0,4,
+        4,0,14,0,14,0,0,14,1,0,0,14,0,0,14,0,14,0,0,4,
+        4,14,0,0,2,2,14,0,1,14,14,0,14,2,2,0,0,14,0,4,
+        4,0,14,2,0,14,0,0,1,1,1,0,0,14,0,2,14,0,0,4,
+        4,14,0,2,2,0,14,0,0,1,0,0,14,0,2,2,0,14,0,4,
+        4,0,14,0,0,14,0,14,0,1,0,14,0,14,0,0,14,0,0,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+      ],
+      exits:[
+        {x:9,y:0,to:'shadow',spawnX:9,spawnY:13},
+      ],
+      npcs:[{x:10,y:7,sprite:'npc_prof',name:'Cosmic Oracle',msg:'You have reached the end of the known world! The Wordmons here are the most powerful in existence. Only a true Reading Master can catch them all!'}],
+      signs:[{x:10,y:7,msg:'Cosmic Void — The final frontier. Only Reading Masters survive!'}],
+      playerStart:{x:9,y:1},
+      encounterRate:0.30,
+    },
   },
   // Tile colors (fallback when sprites not loaded)
-  TILE_COLORS:['#4ade80','#d4a574','#166534','#3b82f6','#15803d','#ef4444','#ec4899','#3b82f6','#a16207','#92400e'],
+  // 0=grass,1=path,2=tallgrass,3=water,4=tree,5=house,6=pokecenter,7=shop,8=sign,9=fence,10=crystal,11=lava,12=ice,13=void,14=cosmic,15=mushroom
+  TILE_COLORS:['#4ade80','#d4a574','#166534','#3b82f6','#15803d','#ef4444','#ec4899','#3b82f6','#a16207','#92400e','#a855f7','#f97316','#7dd3fc','#4c1d95','#6366f1','#c084fc'],
   // State
   currentMap:'town',
   px:9,py:5, // player position
@@ -4270,7 +4450,7 @@ const ADV={
     this.resize();
     window.addEventListener('resize',()=>this.resize());
     // Load tile images
-    ['grass','path','tallgrass','water','tree','house','pokecenter','shop','sign','fence'].forEach((name,i)=>{
+    ['grass','path','tallgrass','water','tree','house','pokecenter','shop','sign','fence','crystal','lava','ice','void','cosmic','mushroom'].forEach((name,i)=>{
       const img=new Image();
       img.src='sprites/tile_'+name+'.png';
       img.onload=()=>{this.tileImgs[i]=img;};
@@ -4423,8 +4603,28 @@ const ADV={
   },
 
   wildEncounter(){
-    const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!G.caughtWordmons.includes(i));
-    const pickIdx=uncaught.length>0?uncaught[Math.floor(Math.random()*uncaught.length)]:Math.floor(Math.random()*WORDMONS.length);
+    // Zone-specific Wordmon pools — deeper zones have stronger/rarer Wordmons
+    const ZONE_WORDMONS={
+      town:[0,1,2,3],     // Sparky, Flamepup, Bubblefin, Leafwhisk (basic)
+      route1:[0,1,2,3,4,5,6,7],  // + Spookle, Titanfist, Frostbite, Giggleslime
+      forest:[4,5,6,7,8,9,10,11], // mid-tier
+      cave:[8,9,10,11,16,17],     // + Crystalix, Magmawyrm (Rock zone)
+      volcano:[16,17,12,13],       // Crystalix, Magmawyrm, Sandsnap, Starpix (fire zone)
+      frozen:[18,14,15,10,11],     // Frostwisp + others (ice zone)
+      shadow:[19,8,9,12,13],       // Gloomfang + dark types
+      cosmic:[20,16,17,18,19],     // Nebulark + all deep zone mons
+    };
+    const pool=ZONE_WORDMONS[this.currentMap]||ZONE_WORDMONS.route1;
+    // Prefer uncaught from this zone's pool
+    const uncaughtInZone=pool.filter(i=>i<WORDMONS.length&&!G.caughtWordmons.includes(i));
+    const uncaughtAny=WORDMONS.map((_,i)=>i).filter(i=>!G.caughtWordmons.includes(i));
+    let pickIdx;
+    if(uncaughtInZone.length>0) pickIdx=uncaughtInZone[Math.floor(Math.random()*uncaughtInZone.length)];
+    else if(uncaughtAny.length>0) pickIdx=uncaughtAny[Math.floor(Math.random()*uncaughtAny.length)];
+    else pickIdx=pool[Math.floor(Math.random()*pool.length)];
+    // Set zone battle background
+    const map=this.getMap();
+    if(map.bg) G.changeBattleBg(map.bg);
     const wild=G.getWordmon(pickIdx);
     this.dialogOpen=true;
 
