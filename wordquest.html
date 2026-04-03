@@ -99,6 +99,9 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .tab.shop-tab{background:#fef3c7;color:#92400e}
 .tab.shop-tab.active{background:linear-gradient(135deg,var(--gold),#f59e0b);color:#92400e;box-shadow:0 4px 12px rgba(251,191,36,.3)}
 .mode-icon{width:20px;height:20px;vertical-align:middle;margin-right:2px}
+.ico{width:18px;height:18px;vertical-align:middle;margin-right:2px;display:inline-block}
+.ico-sm{width:14px;height:14px;vertical-align:middle;display:inline-block}
+.ico-lg{width:28px;height:28px;vertical-align:middle;display:inline-block}
 
 /* GAME AREA */
 .game-area{padding:10px 12px;min-height:180px}
@@ -373,11 +376,11 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 <div class="tabs" id="tabs">
   <div class="mode-indicator" id="modeIndicator"><img src="sprites/mode_fillin.png" class="mode-icon"> Fill In</div>
   <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 15</div>
-  <button class="tab quiz-tab" data-mode="popquiz">🎧 Pop Quiz</button>
-  <button class="tab phonics-tab" data-mode="phonics">📖 Phonics</button>
-  <button class="tab heal-tab" data-mode="heal">🏥 Heal</button>
-  <button class="tab battle-tab" data-mode="hardbattle">⚔️ Battle!</button>
-  <button class="tab shop-tab" data-mode="shop"><img src="sprites/mode_shop.png" class="mode-icon"> Shop</button>
+  <button class="tab quiz-tab" data-mode="popquiz"><img src="sprites/ico_quiz.png" class="ico"> Pop Quiz</button>
+  <button class="tab phonics-tab" data-mode="phonics"><img src="sprites/ico_phonics.png" class="ico"> Phonics</button>
+  <button class="tab heal-tab" data-mode="heal"><img src="sprites/ico_heal.png" class="ico"> Heal</button>
+  <button class="tab battle-tab" data-mode="hardbattle"><img src="sprites/ico_battle.png" class="ico"> Battle!</button>
+  <button class="tab shop-tab" data-mode="shop"><img src="sprites/ico_shop.png" class="ico"> Shop</button>
 </div>
 
 <!-- GAME AREA -->
@@ -437,16 +440,16 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 </div>
 
 <!-- EXPLORE BUTTON -->
-<button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!">🗺️</button>
+<button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!"><img src="sprites/ico_explore.png" style="width:32px;height:32px"></button>
 
 <!-- HOME BUTTON -->
-<button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House">🏠</button>
+<button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
 
 <!-- HOUSE OVERLAY -->
 <div id="houseOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;overflow-y:auto;backdrop-filter:blur(4px)">
   <div style="max-width:600px;margin:0 auto;position:relative;min-height:100vh">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
-      <div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#fff">🏠 Río's House</div>
+      <div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#fff"><img src="sprites/ico_home.png" class="ico-lg"> Río's House</div>
       <button onclick="closeHouse()" style="background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.8rem;cursor:pointer">✕ Close</button>
     </div>
     <div id="houseScene" style="position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:16px;margin:0 12px;max-width:576px">
@@ -1019,6 +1022,8 @@ const SHOP_ITEMS = [
   {id:'sprig_costume',name:'Sprigatito Costume',price:1000,desc:'Become Sprigatito for Halloween!',realPrice:'~$33',url:'https://www.amazon.com/Disguise-Sprigatito-Costume-Official-Jumpsuit/dp/B0DCXGC5BF',img:'https://m.media-amazon.com/images/I/31H5fvGd-hL._AC_SL500_.jpg',svg:PH},
   {id:'meow_premium',name:'Meowscarada ex Premium Box',price:1500,desc:'Cards + figure + playmat!',realPrice:'~$48',url:'https://www.amazon.com/Pokemon-Scarlet-Paldean-Collection-Meowscarada/dp/B0CQDG6YMS',img:'https://m.media-amazon.com/images/I/51QQZsmM4sL._AC_SL500_.jpg',svg:PH},
   {id:'meow_plush',name:'Meowscarada Plush (16")',price:2000,desc:'The ULTIMATE plush! Huge and amazing!',realPrice:'~$80',url:'https://www.amazon.com/Pok%C3%A9mon-Center-Meowscarada-Pok%C3%A9-Plush/dp/B0CHZY9KPP',img:'https://m.media-amazon.com/images/I/41w6qzBfFiL._AC_SL500_.jpg',svg:PH},
+  // --- VIDEO GAMES ---
+  {id:'hotwheels',name:'Hot Wheels Unlimited',price:500,desc:'Race cars on crazy tracks! Nintendo Switch game!',realPrice:'~$30',url:'https://www.amazon.com/s?k=hot+wheels+unlimited+nintendo+switch',img:'https://m.media-amazon.com/images/I/81qhMRuax-L._AC_SL500_.jpg',svg:PH},
 ];
 
 // ========================================================
@@ -1962,7 +1967,7 @@ const G = {
     let html='<button onclick="G.backToGame()" style="display:block;margin:0 auto 12px;font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">← Back to Game</button>'+
       '<button onclick="openParentDashboard()" style="display:block;margin:0 auto 12px;font-family:Fredoka One,cursive;font-size:.85rem;padding:8px 18px;border-radius:12px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">📊 Parent Dashboard</button>'+
       '<div class="shop-banner">'+
-      '<h2>🎁 Earn REAL Toys!</h2>'+
+      '<h2><img src=\"sprites/ico_shop.png\" class=\"ico-lg\"> Earn REAL Toys!</h2>'+
       '<p>Every correct answer earns you coins.<br>Save up your coins to unlock real Pokémon toys!</p>'+
       '<div class="real-deal">💡 When you buy a toy here, Mom or Dad will order the real one from Amazon!</div>'+
       '</div>'+
@@ -2567,7 +2572,7 @@ const G = {
     // Big bill flash in center
     const flash=document.createElement('div');
     flash.className='money-big-flash';
-    flash.innerHTML='<div class="bill">💵</div><div class="amount">+'+n+' coins!</div>';
+    flash.innerHTML='<div class="bill"><img src="sprites/ico_coin.png" style="width:48px;height:48px"></div><div class="amount">+'+n+' coins!</div>';
     document.body.appendChild(flash);
     SFX.play('coin');
     // After flash, fly a bill to the backpack
@@ -2575,7 +2580,7 @@ const G = {
       flash.remove();
       const bill=document.createElement('div');
       bill.className='money-fly';
-      bill.textContent='💵';
+      bill.textContent='<img src="sprites/ico_coin.png" style="width:48px;height:48px">';
       const bp=document.getElementById('backpack');
       const bpRect=bp.getBoundingClientRect();
       bill.style.left='50%';bill.style.top='40%';
