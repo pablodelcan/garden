@@ -96,6 +96,35 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 .tab.battle-tab{background:#fef2f2;color:#dc2626;animation:battlePulse 2s ease-in-out infinite}
 .tab.battle-tab.active{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
 @keyframes battlePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 12px 4px rgba(239,68,68,.3)}}
+
+/* FULL-SCREEN TRAINER BATTLE */
+.battle-overlay{position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;background:#000}
+.battle-overlay .battle-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.85}
+.battle-overlay .battle-content{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;max-width:600px;margin:0 auto;width:100%;padding:8px}
+.battle-overlay .battle-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.6);border-radius:14px;backdrop-filter:blur(8px);margin-bottom:8px}
+.battle-overlay .battle-header .bh-name{font-family:'Fredoka One',cursive;font-size:.85rem;color:#fff}
+.battle-overlay .battle-header .bh-hp{background:rgba(0,0,0,.4);border-radius:6px;height:10px;overflow:hidden;width:100px;border:1px solid rgba(255,255,255,.15)}
+.battle-overlay .battle-header .bh-hp-fill{height:100%;border-radius:6px;transition:width .4s}
+.battle-overlay .battle-header .bh-hp-text{font-size:.55rem;color:rgba(255,255,255,.7);font-weight:700}
+.battle-overlay .battle-arena{flex:1;display:flex;justify-content:space-between;align-items:flex-end;padding:0 20px 10px;min-height:200px}
+.battle-overlay .battle-fighter{text-align:center}
+.battle-overlay .battle-fighter img{width:140px;height:140px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
+.battle-overlay .battle-fighter.player img{animation:bouncePl 2s ease-in-out infinite}
+.battle-overlay .battle-fighter.enemy img{animation:bounceEn 2s ease-in-out infinite .3s}
+.battle-overlay .battle-msg-area{text-align:center;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,.5);padding:4px;min-height:32px}
+.battle-overlay .battle-controls{background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border-radius:20px 20px 0 0;padding:14px 12px;border-top:2px solid rgba(255,255,255,.1)}
+.battle-overlay .attack-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.battle-overlay .atk-btn{font-family:'Fredoka One',cursive;font-size:1.2rem;padding:14px 10px;border-radius:14px;border:2px solid rgba(255,255,255,.15);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));color:#fff;cursor:pointer;transition:all .15s;text-align:center;backdrop-filter:blur(4px)}
+.battle-overlay .atk-btn:hover{background:rgba(255,255,255,.2);transform:translateY(-2px)}
+.battle-overlay .atk-btn:active{transform:translateY(1px)}
+.battle-overlay .atk-btn .atk-power{font-size:.65rem;color:#fbbf24;font-weight:700;margin-top:2px}
+.battle-overlay .confirm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.battle-overlay .confirm-btn{font-family:'Fredoka One',cursive;font-size:1.1rem;padding:12px;border-radius:12px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;transition:all .15s}
+.battle-overlay .confirm-btn:hover{background:rgba(255,255,255,.15)}
+.battle-overlay .confirm-btn.correct{background:rgba(34,197,94,.3);border-color:#22c55e}
+.battle-overlay .confirm-btn.wrong-pick{background:rgba(220,38,38,.3);border-color:#dc2626}
+.battle-overlay .confirm-btn.disabled{pointer-events:none;opacity:.6}
+.battle-overlay .battle-close{position:absolute;top:12px;right:12px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;padding:6px 14px;border-radius:10px;font-family:'Fredoka One',cursive;font-size:.75rem;cursor:pointer;backdrop-filter:blur(4px)}
 .tab.shop-tab{background:#fef3c7;color:#92400e}
 .tab.shop-tab.active{background:linear-gradient(135deg,var(--gold),#f59e0b);color:#92400e;box-shadow:0 4px 12px rgba(251,191,36,.3)}
 .mode-icon{width:20px;height:20px;vertical-align:middle;margin-right:2px}
@@ -3300,6 +3329,12 @@ const G = {
     this._battleMusicNodes=[];
   },
 
+  closeBattleOverlay(){
+    const ov=document.getElementById('trainerBattleOverlay');
+    if(ov) ov.remove();
+    this.stopBattleMusic();
+  },
+
   loadHardBattle(){
     this.stopBattleMusic();
     const myHp=this.getWordmonHp(this.activeWordmon);
@@ -3308,8 +3343,18 @@ const G = {
       this.forceHealingCenter();
       return;
     }
-    const area=document.getElementById('gameArea');
     const wm=this.getWordmon(this.activeWordmon);
+    // Create full-screen battle overlay
+    let ov=document.getElementById('trainerBattleOverlay');
+    if(ov) ov.remove();
+    ov=document.createElement('div');
+    ov.id='trainerBattleOverlay';
+    ov.className='battle-overlay';
+    document.body.appendChild(ov);
+    const ARENAS=['sprites/battle_arena_1.png','sprites/battle_arena_2.png','sprites/battle_arena_3.png'];
+    const arena=ARENAS[Math.floor(Math.random()*ARENAS.length)];
+    // Use ov as our "area" for rendering
+    const area={innerHTML:'',set innerHTML(v){ov.innerHTML='<div class="battle-bg" style="background-image:url(\''+arena+'\')"></div><div class="battle-content">'+v+'</div>';},querySelector:s=>ov.querySelector(s),querySelectorAll:s=>ov.querySelectorAll(s)};
     // Trainer names and their Wordmons
     const TRAINERS=[
       {name:'Trainer Ace',wordmon:'Shadowfang',type:'Dark',hp:80,sprite:'sprites/enemy_shadow_1.png'},
@@ -3379,39 +3424,48 @@ const G = {
       const playerPct=Math.round(this.playerHp/this.playerMaxHp*100);
       const enemyPct=Math.round(battleHp/trainer.hp*100);
 
-      area.innerHTML='<div class="card" style="position:relative" id="qCard">'+
-        '<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;padding:4px 14px;border-radius:12px;font-family:Fredoka One,cursive;font-size:.75rem;box-shadow:0 2px 8px rgba(220,38,38,.3)"><img src="sprites/ico_battle.png" class="ico-sm"> BATTLE vs '+trainer.name+'</div>'+
-
-        // Battle scene
-        '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin:16px 0 8px;min-height:90px">'+
-          '<div style="text-align:center;flex:1">'+
-            this.spriteHtml(wm,70)+
-            '<div style="font-family:Fredoka One,cursive;font-size:.7rem;color:var(--navy)">'+wm.name+'</div>'+
-            '<div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden;margin:2px auto;width:80px"><div style="background:'+(playerPct>50?'var(--green)':playerPct>25?'#eab308':'#dc2626')+';height:100%;width:'+playerPct+'%;border-radius:4px;transition:width .4s"></div></div>'+
-            '<div style="font-size:.55rem;font-weight:700;color:var(--text2)">'+this.playerHp+'/'+this.playerMaxHp+'</div>'+
+      // FULL-SCREEN BATTLE LAYOUT
+      const playerHpColor=playerPct>50?'#22c55e':playerPct>25?'#eab308':'#dc2626';
+      area.innerHTML=
+        // Top: HP bars
+        '<div class="battle-header">'+
+          '<div style="flex:1">'+
+            '<div class="bh-name">'+wm.name+'</div>'+
+            '<div class="bh-hp"><div class="bh-hp-fill" style="background:'+playerHpColor+';width:'+playerPct+'%"></div></div>'+
+            '<div class="bh-hp-text">'+this.playerHp+'/'+this.playerMaxHp+'</div>'+
           '</div>'+
-          '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#dc2626;padding:0 8px">VS</div>'+
-          '<div style="text-align:center;flex:1">'+
-            '<img src="'+trainer.sprite+'" style="width:70px;height:70px;object-fit:contain" onerror="this.style.display=\'none\'">'+
-            '<div style="font-family:Fredoka One,cursive;font-size:.7rem;color:#dc2626">'+trainer.wordmon+'</div>'+
-            '<div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden;margin:2px auto;width:80px"><div style="background:#dc2626;height:100%;width:'+enemyPct+'%;border-radius:4px;transition:width .4s"></div></div>'+
-            '<div style="font-size:.55rem;font-weight:700;color:var(--text2)">'+battleHp+'/'+trainer.hp+'</div>'+
+          '<div style="font-family:Fredoka One,cursive;font-size:.8rem;color:#dc2626;padding:0 10px;text-shadow:0 0 10px rgba(220,38,38,.5)">VS</div>'+
+          '<div style="flex:1;text-align:right">'+
+            '<div class="bh-name" style="text-align:right">'+trainer.wordmon+'</div>'+
+            '<div class="bh-hp"><div class="bh-hp-fill" style="background:#dc2626;width:'+enemyPct+'%"></div></div>'+
+            '<div class="bh-hp-text" style="text-align:right">'+battleHp+'/'+trainer.hp+'</div>'+
           '</div>'+
         '</div>'+
 
-        // Attack message area
-        '<div id="attackMsg" style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);min-height:28px;margin-bottom:4px">Choose your word attack!</div>'+
+        // Middle: Battle arena with fighters
+        '<div class="battle-arena">'+
+          '<div class="battle-fighter player">'+
+            this.spriteHtml(wm,130)+
+          '</div>'+
+          '<div class="battle-fighter enemy">'+
+            '<img src="'+trainer.sprite+'" style="width:130px;height:130px;object-fit:contain" onerror="this.style.display=\'none\'">'+
+          '</div>'+
+        '</div>'+
 
-        // Word attack buttons — styled as RPG attack moves
-        '<div style="font-family:Fredoka One,cursive;font-size:.75rem;color:var(--text2);margin-bottom:6px;text-align:center">Harder words deal more damage!</div>'+
-        '<div class="choices">'+allAttacks.map(atk=>{
-          const power=WORD_POWER[atk.w]||8;
-          const color=power>=15?'#dc2626':power>=12?'#f97316':power>=8?'#eab308':'#22c55e';
-          return '<button class="choice-btn attack-btn" data-word="'+atk.w+'" data-sent="'+atk.sent.replace(/"/g,'&quot;')+'" data-power="'+power+'" style="flex-direction:column;gap:2px;padding:12px 8px">'+
-            '<div style="font-size:1.3rem;font-weight:800">'+atk.w.toUpperCase()+'</div>'+
-            '<div style="font-size:.6rem;color:'+color+';font-weight:700">⚡ '+power+' DMG</div>'+
-          '</button>';
-        }).join('')+'</div></div>';
+        // Message area
+        '<div class="battle-msg-area" id="attackMsg">Choose your word attack!</div>'+
+
+        // Bottom: Attack controls
+        '<div class="battle-controls" id="battleControls">'+
+          '<div style="font-size:.7rem;color:rgba(255,255,255,.5);text-align:center;margin-bottom:6px;font-weight:700">Harder words = More damage!</div>'+
+          '<div class="attack-grid">'+allAttacks.map(atk=>{
+            const power=WORD_POWER[atk.w]||8;
+            return '<button class="atk-btn attack-btn" data-word="'+atk.w+'" data-sent="'+atk.sent.replace(/"/g,'&quot;')+'" data-power="'+power+'">'+
+              '<div>'+atk.w.toUpperCase()+'</div>'+
+              '<div class="atk-power">'+power+' DMG</div>'+
+            '</button>';
+          }).join('')+'</div>'+
+        '</div>';
       // PHASE 1: Pick your attack word
       area.querySelectorAll('.attack-btn').forEach(btn=>{
         btn.addEventListener('click',()=>{
@@ -3461,7 +3515,7 @@ const G = {
                         this.spriteHtml(wm,80)+
                         '<div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--navy);margin:8px 0">'+wm.name+' defeated '+trainer.wordmon+'!</div>'+
                         '<div style="font-size:1.1rem;color:var(--gold);font-weight:800;margin-bottom:12px"><img src="sprites/ico_coin.png" class="ico"> +'+pendingCoins+' coins!</div>'+
-                        '<button onclick="G.mode=G._modeBeforeShop||G.GAME_MODES[0];G.updateModeBar();G.loadMode(G.mode)" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(249,115,22,.3)">Back to Reading!</button></div>';
+                        '<button onclick="G.closeBattleOverlay();G.mode=G._modeBeforeShop||G.GAME_MODES[0];G.updateModeBar();G.loadMode(G.mode)" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(249,115,22,.3)">Back to Reading!</button></div>';
                     },1800);
                   } else {
                     // Enemy counter-attack
@@ -3480,7 +3534,7 @@ const G = {
                             '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:8px">DEFEATED!</div>'+
                             '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:8px">'+wm.name+' fainted...</div>'+
                             '<div style="font-size:.9rem;color:var(--text2);margin-bottom:12px">Lost '+pendingCoins+' coins. Heal your Wordmon!</div>'+
-                            '<button onclick="G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;cursor:pointer"><img src="sprites/ico_heal.png" class="ico"> Healing Center</button></div>';
+                            '<button onclick="G.closeBattleOverlay();G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;cursor:pointer"><img src="sprites/ico_heal.png" class="ico"> Healing Center</button></div>';
                           this.renderRoster();this.saveGame();
                         },1500);
                       } else {
@@ -3508,7 +3562,7 @@ const G = {
                       area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
                         '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:8px">DEFEATED!</div>'+
                         '<div style="font-size:1rem;color:var(--text);margin-bottom:12px">'+wm.name+' fainted... Heal your Wordmon!</div>'+
-                        '<button onclick="G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;cursor:pointer"><img src="sprites/ico_heal.png" class="ico"> Healing Center</button></div>';
+                        '<button onclick="G.closeBattleOverlay();G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;cursor:pointer"><img src="sprites/ico_heal.png" class="ico"> Healing Center</button></div>';
                       this.renderRoster();this.saveGame();
                     },1500);
                   } else {
@@ -3523,14 +3577,23 @@ const G = {
       });
     };
 
-    // Show intro screen first
-    area.innerHTML='<div class="card" style="text-align:center;padding:24px;border-color:#dc2626">'+
-      '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:8px">⚔️ TRAINER BATTLE!</div>'+
-      '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:4px">'+trainer.name+' wants to battle!</div>'+
-      '<div style="font-size:.9rem;color:var(--text2);margin-bottom:8px">They have <strong>'+trainer.wordmon+'</strong> ('+trainer.type+' type, '+trainer.hp+' HP)</div>'+
-      '<div style="background:#fef3c7;border:2px solid var(--gold);border-radius:12px;padding:10px;margin:8px 0;font-size:.85rem;font-weight:600;color:#92400e">⚠️ Harder words! 2 coins per answer — but you LOSE them all if you faint!</div>'+
-      '<button id="startBattle" style="font-family:Fredoka One,cursive;font-size:1.1rem;padding:12px 28px;border-radius:14px;border:3px solid #dc2626;background:#dc2626;color:#fff;cursor:pointer;margin-top:8px">⚔️ FIGHT!</button></div>';
-    document.getElementById('startBattle').addEventListener('click',()=>{
+    // Show epic intro screen
+    area.innerHTML=
+      '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px">'+
+        '<div style="font-family:Fredoka One,cursive;font-size:2rem;color:#fff;text-shadow:0 0 30px rgba(220,38,38,.8);margin-bottom:12px;animation:encounterPulse 1.5s ease-in-out infinite"><img src="sprites/ico_battle.png" style="width:36px;height:36px;vertical-align:middle"> TRAINER BATTLE!</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:rgba(255,255,255,.8);margin-bottom:20px">'+trainer.name+' challenges you!</div>'+
+        '<div style="display:flex;gap:30px;align-items:flex-end;margin-bottom:20px">'+
+          '<div style="text-align:center">'+this.spriteHtml(wm,110)+'<div style="font-family:Fredoka One,cursive;font-size:.9rem;color:#fff;margin-top:4px">'+wm.name+'</div></div>'+
+          '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,.5)">VS</div>'+
+          '<div style="text-align:center"><img src="'+trainer.sprite+'" style="width:110px;height:110px;object-fit:contain" onerror="this.style.display=\'none\'"><div style="font-family:Fredoka One,cursive;font-size:.9rem;color:#dc2626;margin-top:4px">'+trainer.wordmon+'</div></div>'+
+        '</div>'+
+        '<div style="background:rgba(255,255,255,.1);backdrop-filter:blur(4px);border-radius:14px;padding:12px 20px;margin-bottom:16px;border:1px solid rgba(255,255,255,.1)">'+
+          '<div style="font-size:.9rem;color:#fbbf24;font-weight:700">Harder words = More damage!</div>'+
+          '<div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Win to earn coins. Lose and your Wordmon faints!</div>'+
+        '</div>'+
+        '<button id="startBattle" style="font-family:Fredoka One,cursive;font-size:1.3rem;padding:14px 36px;border-radius:16px;border:none;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(220,38,38,.4);animation:encounterBounce .6s ease .3s both"><img src="sprites/ico_battle.png" style="width:24px;height:24px;vertical-align:middle"> FIGHT!</button>'+
+      '</div>';
+    ov.querySelector('#startBattle').addEventListener('click',()=>{
       this.answering=false;
       showQuestion();
     });
