@@ -3242,7 +3242,6 @@ const G = {
 
   loadHardBattle(){
     this.stopBattleMusic();
-    // Check if active Wordmon is alive
     const myHp=this.getWordmonHp(this.activeWordmon);
     if(myHp<=0){
       this.showToast('Your Wordmon fainted! Heal it first!');
@@ -3299,96 +3298,169 @@ const G = {
     // Start music!
     this.startBattleMusic();
 
+    // WORD POWER: harder words deal more damage
+    const WORD_POWER={
+      // 3-letter words: 5 damage
+      the:5,was:5,for:5,are:5,his:5,had:5,not:5,but:5,you:5,all:5,can:5,
+      // 4-letter words: 8 damage
+      like:8,have:8,said:8,from:8,they:8,come:8,some:8,what:8,with:8,were:8,been:8,make:8,
+      // 5-letter words: 12 damage
+      about:12,every:12,after:12,where:12,first:12,which:12,their:12,there:12,would:12,could:12,other:12,
+      water:12,never:12,found:12,house:12,those:12,think:12,right:12,might:12,under:12,still:12,while:12,
+      // 6+ letter words: 15-20 damage
+      before:15,should:15,people:15,little:15,because:20,again:12,
+    };
+
     const showQuestion=()=>{
       if(battleOver) return;
       questionNum++;
-      const wd=HARD_WORDS[Math.floor(Math.random()*HARD_WORDS.length)];
-      const sent=wd.sent.replace('___','<span class="blank">_____</span>');
-      const wrongs=HARD_WORDS.filter(x=>x.w!==wd.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
-      const choices=shuffle([wd.w,...wrongs]);
-      area.innerHTML='<div class="card" style="border-color:#dc2626;position:relative" id="qCard">'+
-        '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:3px 12px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.75rem">⚔️ TRAINER BATTLE vs '+trainer.name+'</div>'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px">'+
-        '<div style="text-align:center;font-size:.7rem;font-weight:700;color:var(--navy)">'+wm.name+'<br>HP: '+this.playerHp+'/'+this.playerMaxHp+'</div>'+
-        '<div style="text-align:center;font-size:.7rem;font-weight:700;color:#dc2626">'+trainer.wordmon+'<br>HP: '+battleHp+'/'+trainer.hp+'</div></div>'+
-        '<div style="display:flex;gap:4px;margin-bottom:10px">'+
-        '<div style="flex:1;background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden"><div style="background:var(--green);height:100%;width:'+Math.round(this.playerHp/this.playerMaxHp*100)+'%;border-radius:4px"></div></div>'+
-        '<div style="flex:1;background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden"><div style="background:#dc2626;height:100%;width:'+Math.round(battleHp/trainer.hp*100)+'%;border-radius:4px"></div></div></div>'+
-        '<div style="font-size:.7rem;color:var(--gold);font-weight:700;text-align:center;margin-bottom:6px">💰 Coins at stake: '+pendingCoins+' (keep if you win!)</div>'+
-        '<div class="question-text">'+sent+'</div>'+
-        '<div class="choices">'+choices.map(c=>'<button class="choice-btn" data-val="'+c+'" style="border-color:#dc2626">'+c+'</button>').join('')+'</div></div>';
-      area.querySelectorAll('.choice-btn').forEach(btn=>{
+      // Pick 4 attack words of varying difficulty
+      const allAttacks=shuffle(HARD_WORDS).slice(0,4);
+      const playerPct=Math.round(this.playerHp/this.playerMaxHp*100);
+      const enemyPct=Math.round(battleHp/trainer.hp*100);
+
+      area.innerHTML='<div class="card" style="position:relative" id="qCard">'+
+        '<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;padding:4px 14px;border-radius:12px;font-family:Fredoka One,cursive;font-size:.75rem;box-shadow:0 2px 8px rgba(220,38,38,.3)"><img src="sprites/ico_battle.png" class="ico-sm"> BATTLE vs '+trainer.name+'</div>'+
+
+        // Battle scene
+        '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin:16px 0 8px;min-height:90px">'+
+          '<div style="text-align:center;flex:1">'+
+            this.spriteHtml(wm,70)+
+            '<div style="font-family:Fredoka One,cursive;font-size:.7rem;color:var(--navy)">'+wm.name+'</div>'+
+            '<div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden;margin:2px auto;width:80px"><div style="background:'+(playerPct>50?'var(--green)':playerPct>25?'#eab308':'#dc2626')+';height:100%;width:'+playerPct+'%;border-radius:4px;transition:width .4s"></div></div>'+
+            '<div style="font-size:.55rem;font-weight:700;color:var(--text2)">'+this.playerHp+'/'+this.playerMaxHp+'</div>'+
+          '</div>'+
+          '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#dc2626;padding:0 8px">VS</div>'+
+          '<div style="text-align:center;flex:1">'+
+            '<img src="'+trainer.sprite+'" style="width:70px;height:70px;object-fit:contain" onerror="this.style.display=\'none\'">'+
+            '<div style="font-family:Fredoka One,cursive;font-size:.7rem;color:#dc2626">'+trainer.wordmon+'</div>'+
+            '<div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden;margin:2px auto;width:80px"><div style="background:#dc2626;height:100%;width:'+enemyPct+'%;border-radius:4px;transition:width .4s"></div></div>'+
+            '<div style="font-size:.55rem;font-weight:700;color:var(--text2)">'+battleHp+'/'+trainer.hp+'</div>'+
+          '</div>'+
+        '</div>'+
+
+        // Attack message area
+        '<div id="attackMsg" style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);min-height:28px;margin-bottom:4px">Choose your word attack!</div>'+
+
+        // Word attack buttons — styled as RPG attack moves
+        '<div style="font-family:Fredoka One,cursive;font-size:.75rem;color:var(--text2);margin-bottom:6px;text-align:center">Harder words deal more damage!</div>'+
+        '<div class="choices">'+allAttacks.map(atk=>{
+          const power=WORD_POWER[atk.w]||8;
+          const color=power>=15?'#dc2626':power>=12?'#f97316':power>=8?'#eab308':'#22c55e';
+          return '<button class="choice-btn attack-btn" data-word="'+atk.w+'" data-sent="'+atk.sent.replace(/"/g,'&quot;')+'" data-power="'+power+'" style="flex-direction:column;gap:2px;padding:12px 8px">'+
+            '<div style="font-size:1.3rem;font-weight:800">'+atk.w.toUpperCase()+'</div>'+
+            '<div style="font-size:.6rem;color:'+color+';font-weight:700">⚡ '+power+' DMG</div>'+
+          '</button>';
+        }).join('')+'</div></div>';
+      // PHASE 1: Pick your attack word
+      area.querySelectorAll('.attack-btn').forEach(btn=>{
         btn.addEventListener('click',()=>{
           if(this.answering||battleOver) return;
           this.answering=true;
-          const card=document.getElementById('qCard');
-          card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
-          if(btn.dataset.val===wd.w){
-            btn.classList.add('correct');
-            SFX.play('correct');
-            this.fireSparkles(btn);
-            card.querySelector('.blank').textContent=wd.w;
-            pendingCoins+=2;
-            // Damage enemy trainer
-            const dmg=8+Math.floor(Math.random()*5);
-            battleHp=Math.max(0,battleHp-dmg);
-            if(battleHp<=0){
-              // WIN!
-              battleOver=true;
-              this.stopBattleMusic();
-              SFX.play('fanfare');
-              this.addCoins(pendingCoins);
-              this.showMoneyAnimation(pendingCoins);
-              this.fireConfetti();
-              this.score+=pendingCoins*5;
-              setTimeout(()=>{
-                area.innerHTML='<div class="card" style="text-align:center;padding:24px;border-color:#22c55e">'+
-                  '<div style="font-size:2rem;margin-bottom:8px">🏆</div>'+
-                  '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#22c55e;margin-bottom:6px">YOU WIN!</div>'+
-                  '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:4px">You beat '+trainer.name+'!</div>'+
-                  '<div style="font-size:1.2rem;color:var(--gold);font-weight:800;margin-bottom:12px">💰 +'+pendingCoins+' coins earned!</div>'+
-                  '<button onclick="G.mode=G._modeBeforeShop||G.GAME_MODES[0];G.updateModeBar();G.loadMode(G.mode)" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:2px solid var(--navy);background:var(--gold);color:var(--navy);cursor:pointer">Back to Reading!</button></div>';
-              },1500);
-            } else {
-              this.answering=false;
-              setTimeout(showQuestion,1200);
-            }
-          } else {
-            btn.classList.add('wrong-pick');
-            card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.val===wd.w)b.classList.add('correct');});
-            card.querySelector('.blank').textContent=wd.w;
-            SFX.play('wrong');
-            // Heavy damage to player!
-            const dmg=8+Math.floor(Math.random()*6);
-            this.playerHp=Math.max(0,this.playerHp-dmg);
-            this.wordmonHpMap[this.activeWordmon]=this.playerHp;
-            this.updateHUD();
-            if(this.playerHp<=0){
-              // LOSE — coins lost, Wordmon faints
-              battleOver=true;
-              this.stopBattleMusic();
-              SFX.play('faint');
-              this.wordmonHpMap[this.activeWordmon]=0;
-              setTimeout(()=>{
-                area.innerHTML='<div class="card" style="text-align:center;padding:24px;border-color:#dc2626">'+
-                  '<div style="font-size:2rem;margin-bottom:8px">😵</div>'+
-                  '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:6px">DEFEATED!</div>'+
-                  '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:4px">'+trainer.name+' wins this time...</div>'+
-                  '<div style="font-size:1rem;color:#dc2626;font-weight:700;margin-bottom:4px">'+wm.name+' fainted! 💔</div>'+
-                  '<div style="font-size:.9rem;color:var(--text2);margin-bottom:12px">You lost '+pendingCoins+' coins. Heal your Wordmon!</div>'+
-                  '<button onclick="G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:12px;border:2px solid #dc2626;background:#fef2f2;color:#dc2626;cursor:pointer">🏥 Go to Healing Center</button></div>';
-                this.renderRoster();
-                this.saveGame();
-              },1500);
-            } else {
-              if(this.playerHp<=Math.floor(this.playerMaxHp*0.3)) SFX.play('lowHp');
-              this.answering=false;
-              setTimeout(showQuestion,1500);
-            }
-          }
+          const word=btn.dataset.word;
+          const sent=btn.dataset.sent;
+          const power=parseInt(btn.dataset.power);
+
+          // Highlight chosen attack
+          area.querySelectorAll('.attack-btn').forEach(b=>b.style.opacity='.3');
+          btn.style.opacity='1';btn.style.transform='scale(1.05)';
+          document.getElementById('attackMsg').innerHTML='<span style="color:var(--navy)">'+wm.name+' uses <strong style="color:#dc2626;font-size:1.2rem">'+word.toUpperCase()+'</strong>!</span>';
+          SFX.play('attack');
+
+          // PHASE 2: Confirm by reading the sentence (fill in blank)
+          setTimeout(()=>{
+            const sentHtml=sent.replace('___','<span class="blank">_____</span>');
+            const wrongs=HARD_WORDS.filter(x=>x.w!==word).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.w);
+            const choices=shuffle([word,...wrongs]);
+            document.getElementById('attackMsg').innerHTML='Read the sentence to land the attack!';
+            const confirmArea=document.createElement('div');
+            confirmArea.innerHTML='<div class="question-text" style="font-size:1.2rem;margin:8px 0">'+sentHtml+'</div>'+
+              '<div class="choices">'+choices.map(c=>'<button class="choice-btn confirm-btn" data-val="'+c+'">'+c+'</button>').join('')+'</div>';
+            // Replace attack buttons with confirmation
+            area.querySelector('.choices').replaceWith(confirmArea);
+
+            confirmArea.querySelectorAll('.confirm-btn').forEach(cbtn=>{
+              cbtn.addEventListener('click',()=>{
+                confirmArea.querySelectorAll('.confirm-btn').forEach(b=>b.classList.add('disabled'));
+                if(cbtn.dataset.val===word){
+                  // HIT! Deal damage based on word power
+                  cbtn.classList.add('correct');
+                  confirmArea.querySelector('.blank').textContent=word;
+                  SFX.play('correct');this.fireSparkles(cbtn);
+                  pendingCoins+=Math.ceil(power/5);
+                  battleHp=Math.max(0,battleHp-power);
+                  document.getElementById('attackMsg').innerHTML='<span style="color:#22c55e;font-size:1.3rem">'+wm.name+'\'s '+word.toUpperCase()+' hits for <strong>'+power+' damage</strong>!</span>';
+
+                  if(battleHp<=0){
+                    battleOver=true;this.stopBattleMusic();SFX.play('fanfare');
+                    this.addCoins(pendingCoins);this.showMoneyAnimation(pendingCoins);this.fireConfetti();
+                    this.score+=pendingCoins*5;
+                    setTimeout(()=>{
+                      area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+                        '<div style="font-family:Fredoka One,cursive;font-size:1.6rem;color:#22c55e;margin-bottom:8px">VICTORY!</div>'+
+                        this.spriteHtml(wm,80)+
+                        '<div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--navy);margin:8px 0">'+wm.name+' defeated '+trainer.wordmon+'!</div>'+
+                        '<div style="font-size:1.1rem;color:var(--gold);font-weight:800;margin-bottom:12px"><img src="sprites/ico_coin.png" class="ico"> +'+pendingCoins+' coins!</div>'+
+                        '<button onclick="G.mode=G._modeBeforeShop||G.GAME_MODES[0];G.updateModeBar();G.loadMode(G.mode)" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(249,115,22,.3)">Back to Reading!</button></div>';
+                    },1800);
+                  } else {
+                    // Enemy counter-attack
+                    setTimeout(()=>{
+                      const eDmg=5+Math.floor(Math.random()*4);
+                      this.playerHp=Math.max(0,this.playerHp-eDmg);
+                      this.wordmonHpMap[this.activeWordmon]=this.playerHp;
+                      document.getElementById('attackMsg').innerHTML='<span style="color:#dc2626">'+trainer.wordmon+' counter-attacks for '+eDmg+' damage!</span>';
+                      SFX.play('hurt');
+                      this.updateHUD();
+                      if(this.playerHp<=0){
+                        battleOver=true;this.stopBattleMusic();SFX.play('faint');
+                        this.wordmonHpMap[this.activeWordmon]=0;
+                        setTimeout(()=>{
+                          area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+                            '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:8px">DEFEATED!</div>'+
+                            '<div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:8px">'+wm.name+' fainted...</div>'+
+                            '<div style="font-size:.9rem;color:var(--text2);margin-bottom:12px">Lost '+pendingCoins+' coins. Heal your Wordmon!</div>'+
+                            '<button onclick="G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;cursor:pointer"><img src="sprites/ico_heal.png" class="ico"> Healing Center</button></div>';
+                          this.renderRoster();this.saveGame();
+                        },1500);
+                      } else {
+                        if(this.playerHp<=Math.floor(this.playerMaxHp*0.3)) SFX.play('lowHp');
+                        this.answering=false;
+                        setTimeout(showQuestion,1200);
+                      }
+                    },1000);
+                  }
+                } else {
+                  // MISS! Attack fails, enemy gets free hit
+                  cbtn.classList.add('wrong-pick');
+                  confirmArea.querySelectorAll('.confirm-btn').forEach(b=>{if(b.dataset.val===word)b.classList.add('correct');});
+                  confirmArea.querySelector('.blank').textContent=word;
+                  SFX.play('wrong');
+                  document.getElementById('attackMsg').innerHTML='<span style="color:#dc2626">MISS! '+wm.name+' fumbled the attack!</span>';
+                  const eDmg=10+Math.floor(Math.random()*5);
+                  this.playerHp=Math.max(0,this.playerHp-eDmg);
+                  this.wordmonHpMap[this.activeWordmon]=this.playerHp;
+                  this.updateHUD();
+                  if(this.playerHp<=0){
+                    battleOver=true;this.stopBattleMusic();SFX.play('faint');
+                    this.wordmonHpMap[this.activeWordmon]=0;
+                    setTimeout(()=>{
+                      area.innerHTML='<div class="card" style="text-align:center;padding:24px">'+
+                        '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#dc2626;margin-bottom:8px">DEFEATED!</div>'+
+                        '<div style="font-size:1rem;color:var(--text);margin-bottom:12px">'+wm.name+' fainted... Heal your Wordmon!</div>'+
+                        '<button onclick="G.forceHealingCenter()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;cursor:pointer"><img src="sprites/ico_heal.png" class="ico"> Healing Center</button></div>';
+                      this.renderRoster();this.saveGame();
+                    },1500);
+                  } else {
+                    this.answering=false;
+                    setTimeout(showQuestion,1500);
+                  }
+                }
+              });
+            });
+          },1200);
         });
       });
-      this.thinkFirst(document.getElementById('qCard'),2);
     };
 
     // Show intro screen first
