@@ -4772,7 +4772,12 @@ const CloudSync={
   }
 };
 
+const PARENT_PIN='0704'; // Pablo's PIN — change anytime
 function openParentDashboard(){
+  // PIN gate
+  const pin=prompt('Parent PIN:');
+  if(pin!==PARENT_PIN){if(pin!==null)alert('Wrong PIN!');return;}
+
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
