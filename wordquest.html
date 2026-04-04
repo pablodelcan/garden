@@ -1251,6 +1251,9 @@ const G = {
       secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
       currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{}};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
+    // Auto-sync to cloud (debounced)
+    if(this._cloudSyncTimer) clearTimeout(this._cloudSyncTimer);
+    this._cloudSyncTimer=setTimeout(()=>{CloudSync.push();},5000); // sync 5s after last save
   },
   loadGame(){
     try{
@@ -4667,6 +4670,108 @@ function renderAchievements(){
   });
 })();
 
+// ---- SAVE EXPORT/IMPORT ----
+function exportSave(){
+  const data=localStorage.getItem('rio_reads_save');
+  if(!data){alert('No save data found!');return;}
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='rio-reads-save-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importSave(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      // Validate it looks like a save file
+      if(data.score!==undefined && data.coins!==undefined){
+        localStorage.setItem('rio_reads_save',JSON.stringify(data));
+        alert('Save imported! Reloading...');
+        location.reload();
+      } else {
+        alert('This doesn\'t look like a valid save file.');
+      }
+    }catch(err){
+      alert('Error reading file: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---- SUPABASE CLOUD SYNC ----
+const SUPABASE_URL='https://tvbdmtumbfweyoofvies.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_i5J1n3RcobBemwMKqobWew_UFiwxgX7';
+const CloudSync={
+  enabled:false,
+  playerId:null,
+
+  init(){
+    if(!SUPABASE_ANON_KEY){this.enabled=false;return;}
+    this.enabled=true;
+    // Check for existing player ID in localStorage
+    this.playerId=localStorage.getItem('rio_player_id');
+    if(!this.playerId){
+      // Generate a simple player ID
+      this.playerId='rio_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+      localStorage.setItem('rio_player_id',this.playerId);
+    }
+    // Auto-sync on load
+    this.pull();
+  },
+
+  async push(){
+    if(!this.enabled) return;
+    const data=localStorage.getItem('rio_reads_save');
+    if(!data) return;
+    try{
+      await fetch(SUPABASE_URL+'/rest/v1/game_saves',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':SUPABASE_ANON_KEY,
+          'Authorization':'Bearer '+SUPABASE_ANON_KEY,
+          'Prefer':'resolution=merge-duplicates'
+        },
+        body:JSON.stringify({
+          player_id:this.playerId,
+          game:'rio_reads',
+          save_data:JSON.parse(data),
+          updated_at:new Date().toISOString()
+        })
+      });
+    }catch(e){console.warn('Cloud sync push failed:',e);}
+  },
+
+  async pull(){
+    if(!this.enabled) return;
+    try{
+      const res=await fetch(SUPABASE_URL+'/rest/v1/game_saves?player_id=eq.'+this.playerId+'&game=eq.rio_reads&select=save_data,updated_at&limit=1',{
+        headers:{
+          'apikey':SUPABASE_ANON_KEY,
+          'Authorization':'Bearer '+SUPABASE_ANON_KEY,
+        }
+      });
+      const rows=await res.json();
+      if(rows.length>0 && rows[0].save_data){
+        const cloud=rows[0].save_data;
+        const local=JSON.parse(localStorage.getItem('rio_reads_save')||'{}');
+        // Use whichever has more progress (higher score)
+        if((cloud.score||0)>(local.score||0)){
+          localStorage.setItem('rio_reads_save',JSON.stringify(cloud));
+          console.log('Cloud save restored (more progress)');
+          location.reload();
+        }
+      }
+    }catch(e){console.warn('Cloud sync pull failed:',e);}
+  }
+};
+
 function openParentDashboard(){
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
@@ -4741,7 +4846,12 @@ function openParentDashboard(){
     '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px">'+
       '<button onclick="G.score+=100;G.saveGame();G.updateHUD()" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer">+100 XP</button>'+
       '<button onclick="G.lives=3;G.playerHp=G.playerMaxHp;G.saveGame();G.updateHUD()" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer">Heal all</button>'+
-      '<button onclick="if(confirm(\'Reset ALL progress?\')){localStorage.removeItem(\'rioReadsV2\');location.reload()}" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #fecaca;background:#fef2f2;color:#dc2626;cursor:pointer">Reset game</button>'+
+      '<button onclick="if(confirm(\'Reset ALL progress?\')){localStorage.removeItem(\'rio_reads_save\');location.reload()}" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #fecaca;background:#fef2f2;color:#dc2626;cursor:pointer">Reset game</button>'+
+    '</div>'+
+    '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0">'+
+      '<button onclick="exportSave()" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:700">📥 Download Save</button>'+
+      '<button onclick="document.getElementById(\'importSaveInput\').click()" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:700">📤 Import Save</button>'+
+      '<input type="file" id="importSaveInput" accept=".json" style="display:none" onchange="importSave(this)">'+
     '</div></div>'+
     '<div style="margin-top:12px;text-align:center;font-size:.7rem;color:var(--text2)">Type "stats" on keyboard to open this panel anytime</div></div>';
   document.body.appendChild(overlay);
@@ -5553,6 +5663,7 @@ G.closeAdventure=function(){
 
 // GO!
 G.init();
+CloudSync.init();
 ADV.init();
 </script>
 </body>
