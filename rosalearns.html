@@ -246,6 +246,50 @@ function speak(text, rate=0.8, pitch=1.1, onEnd){
   speechSynthesis.speak(u);
 }
 
+// Spanish voice picker - finds the best Spanish voice
+let _bestSpanishVoice=null;
+let _spanishVoicesLoaded=false;
+function getBestSpanishVoice(){
+  if(_bestSpanishVoice&&_spanishVoicesLoaded) return _bestSpanishVoice;
+  const voices=speechSynthesis.getVoices();
+  if(!voices.length) return null;
+  _spanishVoicesLoaded=true;
+  const prefs=[
+    v=>v.name.includes('Enhanced')&&v.lang.startsWith('es'),
+    v=>v.name.includes('Premium')&&v.lang.startsWith('es'),
+    v=>/Natural/.test(v.name)&&v.lang.startsWith('es'),
+    v=>v.name==='Paulina'&&v.localService, // Mexican Spanish (macOS)
+    v=>v.name==='Monica'&&v.localService, // Spain Spanish (macOS)
+    v=>v.name==='Jorge'&&v.localService, // Mexican Spanish male
+    v=>v.name.includes('Google')&&v.lang.startsWith('es'),
+    v=>v.lang==='es-MX'&&v.localService, // Mexican Spanish
+    v=>v.lang==='es-US'&&v.localService, // US Spanish
+    v=>v.lang.startsWith('es')&&v.localService,
+    v=>v.lang.startsWith('es'),
+  ];
+  for(const test of prefs){
+    const found=voices.find(test);
+    if(found){_bestSpanishVoice=found;return found;}
+  }
+  return null;
+}
+if('speechSynthesis' in window){
+  speechSynthesis.addEventListener('voiceschanged',()=>{_bestSpanishVoice=null;_spanishVoicesLoaded=false;});
+}
+
+// Speak Spanish text with proper accent
+function speakSpanish(text, rate=0.75, pitch=1.1, onEnd){
+  if(!('speechSynthesis' in window)){if(onEnd)setTimeout(onEnd,500);return;}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=rate; u.pitch=pitch;
+  u.lang='es-MX'; // Set language to Spanish
+  const good=getBestSpanishVoice();
+  if(good) u.voice=good;
+  if(onEnd){u.onend=onEnd;u.onerror=()=>onEnd();}
+  speechSynthesis.speak(u);
+}
+
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 // ========================================================
@@ -674,12 +718,27 @@ const G={
         '<div class="big-btn-label">'+c+'</div></button>').join('')+
       '</div></div>';
     // Wire up choices
+    // Store Spanish context for the onCorrect celebration
+    this._spanishContext={target, direction};
     this.setupChoices(correctAnswer);
-    // Speak question
-    const spokenQ=direction==='en_to_es'
-      ?'How do you say '+target.en+' in Spanish?'
-      :'Cómo se dice '+target.es+' in English?';
-    this.speakAndHighlight(spokenQ, choices, correctAnswer);
+    // Speak question - use Spanish voice for Spanish parts
+    if(direction==='en_to_es'){
+      speak('How do you say '+target.en+' in Spanish?', 0.75, 1.1, ()=>{
+        // Read each Spanish choice with Spanish voice
+        const btns=document.querySelectorAll('.big-btn');
+        btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
+        // Read the correct answer in Spanish
+        setTimeout(()=>speakSpanish(target.es, 0.7, 1.1),500);
+      });
+    } else {
+      // Read the question in Spanish first
+      speakSpanish('Cómo se dice '+target.es, 0.7, 1.1, ()=>{
+        speak(' in English?', 0.75, 1.1, ()=>{
+          const btns=document.querySelectorAll('.big-btn');
+          btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
+        });
+      });
+    }
   },
 
   onCorrect(){
@@ -701,7 +760,7 @@ const G={
     this.updateHUD();this.updateModeBar();this.saveGame();
 
     // BIG praise every time!
-    const praises=["YAY ROSA! 🎉","SUPER JOB! ⭐","AMAZING! 🌟","SO SMART! 🧠","WONDERFUL! 🌈","WOOHOO! 🎊","PERFECT! 💖","YOU DID IT! 🥳","GREAT! 👏","AWESOME! 🦋"];
+    const praises=["YAY ROSA! 🎉","SUPER JOB! ⭐","AMAZING! 🌟","SO SMART! 🧠","WONDERFUL! 🌈","WOOHOO! 🎊","PERFECT! 💖","YOU DID IT! 🥳","GREAT! 👏","AWESOME! 🦋","WOOHOO! I PEED IN MY SHOE! 👟💦","WOOHOO! I PEED IN MY SHOE! 👟💦","SILLY ROSA! 🤪","STINKY FEET! 🦶😂"];
     const praise=praises[Math.floor(Math.random()*praises.length)];
 
     // Show big floating praise text
@@ -713,7 +772,16 @@ const G={
     setTimeout(()=>{praiseEl.style.transform='translate(-50%,-80%) scale(1.2)';praiseEl.style.opacity='0';},1500);
     setTimeout(()=>praiseEl.remove(),2200);
 
-    speak(praise.replace(/[^a-zA-Z! ]/g,''),0.9,1.2);
+    // If in Spanish mode, reinforce the Spanish word with proper accent
+    if(this._spanishContext){
+      const ctx=this._spanishContext;
+      speak(praise.replace(/[^a-zA-Z! ]/g,''),0.9,1.2,()=>{
+        speakSpanish(ctx.target.es+'!', 0.7, 1.1);
+      });
+      this._spanishContext=null;
+    } else {
+      speak(praise.replace(/[^a-zA-Z! ]/g,''),0.9,1.2);
+    }
 
     // Mini confetti on every correct!
     this.fireStars(8);
