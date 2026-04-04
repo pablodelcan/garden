@@ -373,7 +373,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
   <div class="streak-dot" id="sd2"></div>
   <div class="streak-dot" id="sd3"></div>
   <div class="streak-dot" id="sd4"></div>
-  <span class="streak-label">Catch streak!</span>
+  <span class="streak-label">5 in a row = Catch!</span>
 </div>
 
 <!-- BATTLE -->
@@ -1360,12 +1360,15 @@ const G = {
     const pct = Math.min(100,(this.xp/this.xpNeeded)*100);
     document.getElementById('xpFill').style.width = pct+'%';
     document.getElementById('xpLabel').textContent = this.xp+' / '+this.xpNeeded+' XP';
-    // streak dots
-    const catchAt = this.caughtWordmons.length < 8 ? 10 : 15;
-    const streakMod = this.streak % catchAt;
+    // streak dots — 5 dots = catch a Wordmon!
+    const streakMod = this.streak % 5;
     for(let i=0;i<5;i++){
-      const threshold = Math.floor((i+1) * catchAt / 5);
-      document.getElementById('sd'+i).classList.toggle('filled', streakMod >= threshold);
+      document.getElementById('sd'+i).classList.toggle('filled', streakMod > i || (this.streak > 0 && streakMod === 0));
+    }
+    // Reset dots after catch (streak resets to 0 visually on next wrong)
+    if(this.streak>0 && this.streak%5===0){
+      // All dots filled — about to catch!
+      for(let i=0;i<5;i++) document.getElementById('sd'+i).classList.add('filled');
     }
     // player
     const wm = this.getWordmon(this.activeWordmon);
@@ -1599,23 +1602,18 @@ const G = {
 
   // ---- STREAK / CATCH ----
   checkCatch(){
-    // need 10-streak for catches; harder ones need 15
-    const catchAt = this.caughtWordmons.length < 8 ? 10 : 15;
+    // Catch at 5 streak — matches the 5 streak dots!
+    const catchAt = 5;
     if(this.streak>0 && this.streak%catchAt===0){
       const uncaught=WORDMONS.map((_,i)=>i).filter(i=>!this.caughtWordmons.includes(i));
       if(uncaught.length>0){
         const pick=uncaught[Math.floor(Math.random()*uncaught.length)];
-        // Show a catch challenge — must read a story to complete the catch!
-        this._pendingCatchIdx=pick;
-        SFX.play('fanfare');
-        // Delay then show catch story challenge
-        if(this._autoTimer) clearTimeout(this._autoTimer);
-        this._autoTimer=setTimeout(()=>{
-          this._autoTimer=null;
-          this.loadCatchStory(pick);
-        },2000);
-        setTimeout(()=>this.updateHUD(),100);
-        return;
+        // Instant catch — no extra challenge, the streak IS the challenge
+        this.caughtWordmons.push(pick);
+        SFX.play('catch');
+        this.showCatchModal(this.getWordmon(pick));
+        this.fireConfetti();
+        this.saveGame();
       }
     }
     setTimeout(()=>this.updateHUD(),100);
