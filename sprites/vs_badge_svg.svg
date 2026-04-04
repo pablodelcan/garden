@@ -1,14 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
   <defs>
-    <linearGradient id="vg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#fbbf24"/>
-      <stop offset="100%" style="stop-color:#f97316"/>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="30%" style="stop-color:#fff4a3"/>
+      <stop offset="50%" style="stop-color:#fbbf24"/>
+      <stop offset="70%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
     </linearGradient>
+    <linearGradient id="depth" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2744"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <radialGradient id="burst" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="60%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
   </defs>
-  <!-- Spiky burst -->
-  <polygon points="60,0 72,38 110,20 82,50 120,60 82,70 110,100 72,82 60,120 48,82 10,100 38,70 0,60 38,50 10,20 48,38" fill="url(#vg)" stroke="#92400e" stroke-width="2"/>
-  <!-- Inner circle -->
-  <circle cx="60" cy="60" r="28" fill="#fff" stroke="#92400e" stroke-width="2"/>
-  <!-- VS text -->
-  <text x="60" y="68" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="28" font-weight="900" fill="#1a2744" letter-spacing="1">VS</text>
+  <!-- Explosion burst -->
+  <polygon points="70,2 82,30 112,10 92,38 138,32 100,52 136,70 100,78 134,102 90,90 108,128 78,98 70,138 62,98 32,128 50,90 6,102 40,78 4,70 40,52 2,32 48,38 28,10 58,30" fill="url(#burst)" filter="url(#glow)"/>
+  <!-- Inner circle navy -->
+  <circle cx="70" cy="70" r="38" fill="url(#depth)" stroke="#fbbf24" stroke-width="3"/>
+  <circle cx="70" cy="70" r="34" fill="#1e3a5f"/>
+  <!-- 3D depth shadow -->
+  <text x="73" y="82" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="#0f172a" letter-spacing="2">VS</text>
+  <text x="72" y="81" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="#1a2744" letter-spacing="2">VS</text>
+  <!-- Gold text -->
+  <text x="70" y="79" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="url(#gold)" letter-spacing="2" stroke="#92400e" stroke-width="1">VS</text>
+  <!-- Shine -->
+  <text x="70" y="79" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" letter-spacing="2">VS</text>
+  <!-- Sparkles -->
+  <circle cx="38" cy="28" r="3" fill="#fff" opacity="0.8"/>
+  <circle cx="105" cy="25" r="2" fill="#fff" opacity="0.6"/>
+  <circle cx="110" cy="108" r="2.5" fill="#fff" opacity="0.7"/>
+  <circle cx="30" cy="105" r="2" fill="#fff" opacity="0.5"/>
 </svg>
