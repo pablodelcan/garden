@@ -683,6 +683,102 @@ const SFX = {
 };
 
 // ========================================================
+// ========================================================
+// VEO VIDEO GENERATOR - evolution cinematics
+// ========================================================
+const VEO={
+  API_KEY:'AIzaSyDriNOwxkoOsyNAjjboPoRummdRcVSaLws',
+  MODEL:'veo-3.1-lite-generate-preview',
+  cache:{}, // {wmId_stage: videoUrl}
+  generating:new Set(), // currently generating
+
+  async generateEvolutionVideo(wm, oldName, newName, type){
+    const cacheKey=wm.id+'_'+newName;
+    if(this.cache[cacheKey]) return this.cache[cacheKey];
+    if(this.generating.has(cacheKey)) return null; // already in progress
+    this.generating.add(cacheKey);
+
+    const typeVisuals={
+      Electric:'lightning bolts and electric sparks',
+      Fire:'flames and fire swirls',
+      Water:'water splashes and ocean waves',
+      Grass:'leaves and vines growing',
+      Ghost:'purple mist and ghostly wisps',
+      Rock:'rocks crumbling and reforming',
+      Dark:'dark shadows and red eyes glowing',
+      Ice:'ice crystals and snowflakes',
+      Fairy:'pink sparkles and stars',
+      Steel:'metallic shine and gears',
+      Bug:'green particles and web strings',
+      Psychic:'purple energy waves and floating orbs',
+    };
+    const effects=typeVisuals[type]||'colorful energy and sparkles';
+
+    const prompt=`A cute cartoon creature called ${oldName} is glowing with intense energy, surrounded by ${effects}. It transforms and morphs into a bigger, more powerful creature called ${newName}. The transformation is dramatic with bright light, particle effects, and a flash of energy. Anime style, vibrant colors, epic evolution moment, game cinematic quality. The new creature strikes a powerful pose at the end.`;
+
+    try{
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.MODEL}:predictLongRunning?key=${this.API_KEY}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          instances:[{prompt}],
+          parameters:{aspectRatio:'16:9',durationSeconds:8,sampleCount:1}
+        })
+      });
+      const op=await res.json();
+      if(op.error){console.warn('Veo error:',op.error.message);this.generating.delete(cacheKey);return null;}
+      if(!op.name){this.generating.delete(cacheKey);return null;}
+
+      // Poll for completion (up to 5 min)
+      for(let i=0;i<30;i++){
+        await new Promise(r=>setTimeout(r,10000)); // 10s intervals
+        const pollRes=await fetch(`https://generativelanguage.googleapis.com/v1beta/${op.name}?key=${this.API_KEY}`);
+        const pollData=await pollRes.json();
+        if(pollData.done){
+          const samples=pollData.response?.generateVideoResponse?.generatedSamples||[];
+          if(samples.length>0&&samples[0].video?.uri){
+            // Append API key to the download URI
+            const rawUri=samples[0].video.uri;
+            const videoUrl=rawUri+(rawUri.includes('?')?'&':'?')+'key='+this.API_KEY;
+            this.cache[cacheKey]=videoUrl;
+            this.generating.delete(cacheKey);
+            // Save to localStorage
+            try{localStorage.setItem('veo_cache',JSON.stringify(this.cache));}catch(e){}
+            return videoUrl;
+          }
+          this.generating.delete(cacheKey);
+          return null;
+        }
+      }
+      this.generating.delete(cacheKey);
+      return null;
+    }catch(e){
+      console.warn('Veo fetch error:',e);
+      this.generating.delete(cacheKey);
+      return null;
+    }
+  },
+
+  // Pre-generate videos for Wordmons close to evolving
+  pregenForActive(){
+    const idx=G.activeWordmon;
+    const xp=G.wordmonXP[idx]||0;
+    const wm=WORDMONS[idx];
+    // If close to evolving (within 3 XP), start generating
+    if(xp>=7&&xp<10&&wm.stages[1]){
+      this.generateEvolutionVideo(wm,wm.stages[0].name,wm.stages[1].name,wm.type);
+    }
+    if(xp>=22&&xp<25&&wm.stages[2]){
+      this.generateEvolutionVideo(wm,wm.stages[1].name,wm.stages[2].name,wm.type);
+    }
+  },
+
+  init(){
+    try{const c=JSON.parse(localStorage.getItem('veo_cache')||'{}');this.cache=c;}catch(e){}
+  }
+};
+VEO.init();
+
 // SMART VOICE PICKER — prefer natural/enhanced voices
 // ========================================================
 let _bestVoice=null;
@@ -2407,6 +2503,8 @@ const G = {
     this.playerAttack();
     this.checkCatch();
     this.addWordmonXP(1);
+    // Pre-generate evolution video if close to evolving
+    try{VEO.pregenForActive();}catch(e){}
     this.showJoke(wd);
     this.checkAchievements();
     const willKill = this.enemyHp <= 0;
@@ -2504,14 +2602,62 @@ const G = {
     this.playerMaxHp=newData.hp;
     this.playerHp=newData.hp;
 
+    // Check if we have a pre-generated Veo video
+    const videoKey=wm.id+'_'+newData.name;
+    const videoUrl=VEO.cache[videoKey];
+
+    // Also start generating the NEXT evolution video in background
+    VEO.pregenForActive();
+
     // === CINEMATIC EVOLUTION SEQUENCE ===
     const overlay=document.createElement('div');
     overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden';
 
+    // If we have a video, show it!
+    if(videoUrl){
+      overlay.innerHTML='<video id="evoVideo" autoplay playsinline muted style="width:100%;max-height:70vh;object-fit:contain;border-radius:12px"></video>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.5);margin-top:16px;animation:evoNameReveal .5s ease .3s both" id="evoText">'+oldName+' is evolving...</div>';
+      document.body.appendChild(overlay);
+      const video=document.getElementById('evoVideo');
+      video.src=videoUrl;
+      video.play().catch(()=>{});
+      SFX.play('levelup');
+      // When video ends (or after 8s), show the new Wordmon
+      const showNew=()=>{
+        video.style.display='none';
+        overlay.style.background='radial-gradient(circle,#1a1a2e 0%,#000 100%)';
+        const newEl=document.createElement('div');
+        newEl.style.cssText='animation:evoReveal 1.2s ease forwards';
+        newEl.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:200px;height:200px;object-fit:contain">';
+        overlay.insertBefore(newEl,overlay.firstChild);
+        const txt=document.getElementById('evoText');
+        if(txt){
+          txt.innerHTML='<div style="font-size:2rem;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.5)">'+newData.name+'!</div>'+
+            '<div style="font-size:.9rem;color:rgba(255,255,255,.6);margin-top:4px">HP: '+newData.hp+' | Stage '+(newStage+1)+'/3</div>';
+        }
+        SFX.play('fanfare');this.fireConfetti();
+        setTimeout(()=>{
+          const btn=document.createElement('button');
+          btn.textContent='AMAZING!';
+          btn.style.cssText='font-family:Fredoka One,cursive;font-size:1.2rem;padding:12px 32px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);margin-top:20px';
+          btn.onclick=()=>{overlay.remove();this.updateHUD();};
+          overlay.appendChild(btn);
+          if(window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(oldName+' evolved into '+newData.name+'! Amazing!');u.rate=0.85;u.pitch=1.15;const v=getBestVoice();if(v)u.voice=v;speechSynthesis.speak(u);}
+        },1500);
+      };
+      video.onended=showNew;
+      setTimeout(showNew,9000); // fallback
+      return;
+    }
+
+    // No video — fall back to the sprite-based cinematic
     // Phase 1: Dark screen with old Wordmon glowing
     overlay.innerHTML='<div id="evoOld" style="animation:evoGlow 2s ease-in-out infinite"><img src="sprites/'+wm.id+'_'+(oldStage+1)+'.png" style="width:150px;height:150px;object-fit:contain;filter:brightness(1.2) drop-shadow(0 0 30px rgba(255,200,50,.8))"></div>'+
       '<div style="font-family:Fredoka One,cursive;font-size:1.3rem;color:rgba(255,255,255,.8);margin-top:16px" id="evoText">'+oldName+' is evolving...</div>';
     document.body.appendChild(overlay);
+
+    // Start generating video for next time (in background, won't affect this evolution)
+    VEO.generateEvolutionVideo(wm,oldName,newData.name,wm.type);
 
     // Add evolution CSS
     if(!document.getElementById('evoCinematicStyles')){
