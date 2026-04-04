@@ -684,101 +684,6 @@ const SFX = {
 
 // ========================================================
 // ========================================================
-// VEO VIDEO GENERATOR - evolution cinematics
-// ========================================================
-const VEO={
-  API_KEY:'AIzaSyDriNOwxkoOsyNAjjboPoRummdRcVSaLws',
-  MODEL:'veo-3.1-lite-generate-preview',
-  cache:{}, // {wmId_stage: videoUrl}
-  generating:new Set(), // currently generating
-
-  async generateEvolutionVideo(wm, oldName, newName, type){
-    const cacheKey=wm.id+'_'+newName;
-    if(this.cache[cacheKey]) return this.cache[cacheKey];
-    if(this.generating.has(cacheKey)) return null; // already in progress
-    this.generating.add(cacheKey);
-
-    const typeVisuals={
-      Electric:'lightning bolts and electric sparks',
-      Fire:'flames and fire swirls',
-      Water:'water splashes and ocean waves',
-      Grass:'leaves and vines growing',
-      Ghost:'purple mist and ghostly wisps',
-      Rock:'rocks crumbling and reforming',
-      Dark:'dark shadows and red eyes glowing',
-      Ice:'ice crystals and snowflakes',
-      Fairy:'pink sparkles and stars',
-      Steel:'metallic shine and gears',
-      Bug:'green particles and web strings',
-      Psychic:'purple energy waves and floating orbs',
-    };
-    const effects=typeVisuals[type]||'colorful energy and sparkles';
-
-    const prompt=`A cute cartoon creature called ${oldName} is glowing with intense energy, surrounded by ${effects}. It transforms and morphs into a bigger, more powerful creature called ${newName}. The transformation is dramatic with bright light, particle effects, and a flash of energy. Anime style, vibrant colors, epic evolution moment, game cinematic quality. The new creature strikes a powerful pose at the end.`;
-
-    try{
-      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.MODEL}:predictLongRunning?key=${this.API_KEY}`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          instances:[{prompt}],
-          parameters:{aspectRatio:'16:9',durationSeconds:8,sampleCount:1}
-        })
-      });
-      const op=await res.json();
-      if(op.error){console.warn('Veo error:',op.error.message);this.generating.delete(cacheKey);return null;}
-      if(!op.name){this.generating.delete(cacheKey);return null;}
-
-      // Poll for completion (up to 5 min)
-      for(let i=0;i<30;i++){
-        await new Promise(r=>setTimeout(r,10000)); // 10s intervals
-        const pollRes=await fetch(`https://generativelanguage.googleapis.com/v1beta/${op.name}?key=${this.API_KEY}`);
-        const pollData=await pollRes.json();
-        if(pollData.done){
-          const samples=pollData.response?.generateVideoResponse?.generatedSamples||[];
-          if(samples.length>0&&samples[0].video?.uri){
-            // Append API key to the download URI
-            const rawUri=samples[0].video.uri;
-            const videoUrl=rawUri+(rawUri.includes('?')?'&':'?')+'key='+this.API_KEY;
-            this.cache[cacheKey]=videoUrl;
-            this.generating.delete(cacheKey);
-            // Save to localStorage
-            try{localStorage.setItem('veo_cache',JSON.stringify(this.cache));}catch(e){}
-            return videoUrl;
-          }
-          this.generating.delete(cacheKey);
-          return null;
-        }
-      }
-      this.generating.delete(cacheKey);
-      return null;
-    }catch(e){
-      console.warn('Veo fetch error:',e);
-      this.generating.delete(cacheKey);
-      return null;
-    }
-  },
-
-  // Pre-generate videos for Wordmons close to evolving
-  pregenForActive(){
-    const idx=G.activeWordmon;
-    const xp=G.wordmonXP[idx]||0;
-    const wm=WORDMONS[idx];
-    // If close to evolving (within 3 XP), start generating
-    if(xp>=7&&xp<10&&wm.stages[1]){
-      this.generateEvolutionVideo(wm,wm.stages[0].name,wm.stages[1].name,wm.type);
-    }
-    if(xp>=22&&xp<25&&wm.stages[2]){
-      this.generateEvolutionVideo(wm,wm.stages[1].name,wm.stages[2].name,wm.type);
-    }
-  },
-
-  init(){
-    try{const c=JSON.parse(localStorage.getItem('veo_cache')||'{}');this.cache=c;}catch(e){}
-  }
-};
-VEO.init();
-
 // SMART VOICE PICKER — prefer natural/enhanced voices
 // ========================================================
 let _bestVoice=null;
@@ -2504,7 +2409,7 @@ const G = {
     this.checkCatch();
     this.addWordmonXP(1);
     // Pre-generate evolution video if close to evolving
-    try{VEO.pregenForActive();}catch(e){}
+    // Evolution is handled by CSS cinematic (no video generation needed)
     this.showJoke(wd);
     this.checkAchievements();
     const willKill = this.enemyHp <= 0;
@@ -2601,73 +2506,31 @@ const G = {
     const newData=wm.stages[newStage];
     this.playerMaxHp=newData.hp;
     this.playerHp=newData.hp;
+    const typeColors={Electric:'#fbbf24',Fire:'#ef4444',Water:'#3b82f6',Grass:'#22c55e',Ghost:'#a855f7',Rock:'#94a3b8',Dark:'#1e293b',Ice:'#67e8f9',Fairy:'#f9a8d4',Steel:'#94a3b8',Bug:'#84cc16',Psychic:'#c084fc',Dragon:'#818cf8',Flying:'#93c5fd',Poison:'#c084fc',Fighting:'#ef4444',Normal:'#d4d4d4',Ground:'#fbbf24'};
+    const glow=typeColors[wm.type]||'#fbbf24';
 
-    // Check if we have a pre-generated Veo video
-    const videoKey=wm.id+'_'+newData.name;
-    const videoUrl=VEO.cache[videoKey];
-
-    // Also start generating the NEXT evolution video in background
-    VEO.pregenForActive();
-
-    // === CINEMATIC EVOLUTION SEQUENCE ===
+    // === EPIC CSS-ONLY EVOLUTION CINEMATIC ===
     const overlay=document.createElement('div');
     overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden';
 
-    // If we have a video, show it!
-    if(videoUrl){
-      overlay.innerHTML='<video id="evoVideo" autoplay playsinline muted style="width:100%;max-height:70vh;object-fit:contain;border-radius:12px"></video>'+
-        '<div style="font-family:Fredoka One,cursive;font-size:1.8rem;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.5);margin-top:16px;animation:evoNameReveal .5s ease .3s both" id="evoText">'+oldName+' is evolving...</div>';
-      document.body.appendChild(overlay);
-      const video=document.getElementById('evoVideo');
-      video.src=videoUrl;
-      video.play().catch(()=>{});
-      SFX.play('levelup');
-      // When video ends (or after 8s), show the new Wordmon
-      const showNew=()=>{
-        video.style.display='none';
-        overlay.style.background='radial-gradient(circle,#1a1a2e 0%,#000 100%)';
-        const newEl=document.createElement('div');
-        newEl.style.cssText='animation:evoReveal 1.2s ease forwards';
-        newEl.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:200px;height:200px;object-fit:contain">';
-        overlay.insertBefore(newEl,overlay.firstChild);
-        const txt=document.getElementById('evoText');
-        if(txt){
-          txt.innerHTML='<div style="font-size:2rem;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.5)">'+newData.name+'!</div>'+
-            '<div style="font-size:.9rem;color:rgba(255,255,255,.6);margin-top:4px">HP: '+newData.hp+' | Stage '+(newStage+1)+'/3</div>';
-        }
-        SFX.play('fanfare');this.fireConfetti();
-        setTimeout(()=>{
-          const btn=document.createElement('button');
-          btn.textContent='AMAZING!';
-          btn.style.cssText='font-family:Fredoka One,cursive;font-size:1.2rem;padding:12px 32px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);margin-top:20px';
-          btn.onclick=()=>{overlay.remove();this.updateHUD();};
-          overlay.appendChild(btn);
-          if(window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(oldName+' evolved into '+newData.name+'! Amazing!');u.rate=0.85;u.pitch=1.15;const v=getBestVoice();if(v)u.voice=v;speechSynthesis.speak(u);}
-        },1500);
-      };
-      video.onended=showNew;
-      setTimeout(showNew,9000); // fallback
-      return;
-    }
-
-    // No video — fall back to the sprite-based cinematic
     // Phase 1: Dark screen with old Wordmon glowing
     overlay.innerHTML='<div id="evoOld" style="animation:evoGlow 2s ease-in-out infinite"><img src="sprites/'+wm.id+'_'+(oldStage+1)+'.png" style="width:150px;height:150px;object-fit:contain;filter:brightness(1.2) drop-shadow(0 0 30px rgba(255,200,50,.8))"></div>'+
       '<div style="font-family:Fredoka One,cursive;font-size:1.3rem;color:rgba(255,255,255,.8);margin-top:16px" id="evoText">'+oldName+' is evolving...</div>';
     document.body.appendChild(overlay);
 
-    // Start generating video for next time (in background, won't affect this evolution)
-    VEO.generateEvolutionVideo(wm,oldName,newData.name,wm.type);
-
     // Add evolution CSS
     if(!document.getElementById('evoCinematicStyles')){
       const s=document.createElement('style');s.id='evoCinematicStyles';
       s.textContent=`
-        @keyframes evoGlow{0%,100%{filter:brightness(1.2) drop-shadow(0 0 30px rgba(255,200,50,.5))}50%{filter:brightness(2) drop-shadow(0 0 60px rgba(255,200,50,1))}}
-        @keyframes evoSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(0.5)}100%{transform:rotate(360deg) scale(0)}}
-        @keyframes evoReveal{0%{transform:scale(0) rotate(-30deg);opacity:0;filter:brightness(3)}50%{transform:scale(1.3) rotate(10deg);opacity:1;filter:brightness(2)}100%{transform:scale(1) rotate(0);filter:brightness(1) drop-shadow(0 0 40px rgba(255,200,50,.6))}}
+        @keyframes evoGlow{0%,100%{filter:brightness(1.2) drop-shadow(0 0 30px ${glow}80)}50%{filter:brightness(2.5) drop-shadow(0 0 80px ${glow})}}
+        @keyframes evoSpin{0%{transform:rotate(0) scale(1)}30%{transform:rotate(90deg) scale(1.2)}60%{transform:rotate(270deg) scale(0.6)}100%{transform:rotate(720deg) scale(0)}}
+        @keyframes evoReveal{0%{transform:scale(0) rotate(-30deg);opacity:0;filter:brightness(4) drop-shadow(0 0 60px ${glow})}30%{transform:scale(1.5) rotate(10deg);opacity:1;filter:brightness(2.5)}60%{transform:scale(0.9) rotate(-5deg);filter:brightness(1.5)}100%{transform:scale(1) rotate(0);filter:brightness(1) drop-shadow(0 0 40px ${glow}80)}}
         @keyframes evoParticle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
-        @keyframes evoNameReveal{0%{transform:translateY(30px);opacity:0}100%{transform:translateY(0);opacity:1}}
+        @keyframes evoNameReveal{0%{transform:translateY(30px) scale(0.5);opacity:0}50%{transform:translateY(-5px) scale(1.1)}100%{transform:translateY(0) scale(1);opacity:1}}
+        @keyframes evoRing{0%{transform:scale(0);opacity:.8;border-width:6px}100%{transform:scale(4);opacity:0;border-width:1px}}
+        @keyframes evoShake{0%,100%{transform:translateX(0)}10%{transform:translateX(-4px)}20%{transform:translateX(4px)}30%{transform:translateX(-6px)}40%{transform:translateX(6px)}50%{transform:translateX(-4px)}60%{transform:translateX(4px)}70%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+        @keyframes evoPulseRing{0%{box-shadow:0 0 0 0 ${glow}80}100%{box-shadow:0 0 0 60px ${glow}00}}
+        @keyframes evoStarBurst{0%{transform:rotate(0) scale(0);opacity:1}100%{transform:rotate(180deg) scale(1.5);opacity:0}}
       `;
       document.head.appendChild(s);
     }
@@ -2675,64 +2538,109 @@ const G = {
     // Sound: ascending tones
     SFX.play('levelup');
 
-    // Phase 2 (1.5s): Sprite spins and shrinks
+    // Phase 2 (2s): Energy builds — particles spiral INWARD, screen shakes
     setTimeout(()=>{
+      overlay.style.animation='evoShake .8s ease';
       const old=document.getElementById('evoOld');
-      if(old) old.style.animation='evoSpin 1s ease-in forwards';
-      // Spawn energy particles
-      for(let i=0;i<20;i++){
+      if(old) old.style.animation='evoGlow .4s ease-in-out infinite';
+      // Inward-spiraling energy particles
+      for(let i=0;i<30;i++){
         const p=document.createElement('div');
         const angle=Math.random()*Math.PI*2;
-        const dist=80+Math.random()*120;
-        p.style.cssText='position:absolute;width:8px;height:8px;border-radius:50%;background:'+(['#fbbf24','#f97316','#fff','#22c55e','#3b82f6'][Math.floor(Math.random()*5)])+';left:50%;top:50%;--dx:'+Math.cos(angle)*dist+'px;--dy:'+Math.sin(angle)*dist+'px;animation:evoParticle 1s ease-out '+(Math.random()*.5)+'s forwards';
+        const dist=150+Math.random()*100;
+        const startX=Math.cos(angle)*dist;
+        const startY=Math.sin(angle)*dist;
+        p.style.cssText='position:absolute;width:'+(6+Math.random()*6)+'px;height:'+(6+Math.random()*6)+'px;border-radius:50%;background:'+([glow,'#fff','#fbbf24','#f97316'][Math.floor(Math.random()*4)])+';left:calc(50% + '+startX+'px);top:calc(50% + '+startY+'px);--dx:'+(-startX)+'px;--dy:'+(-startY)+'px;animation:evoParticle 1.2s ease-in '+(Math.random()*.6)+'s forwards;box-shadow:0 0 8px '+glow;
         overlay.appendChild(p);
       }
-    },1500);
+      // Expanding energy rings
+      for(let i=0;i<3;i++){
+        const ring=document.createElement('div');
+        ring.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;border:4px solid '+glow+';animation:evoRing 1s ease-out '+(i*0.3)+'s forwards;pointer-events:none';
+        overlay.appendChild(ring);
+      }
+    },2000);
 
-    // Phase 3 (2.5s): White flash, new sprite reveals
+    // Phase 3 (3.5s): Old sprite spins away dramatically
     setTimeout(()=>{
-      // Flash white
+      const old=document.getElementById('evoOld');
+      if(old) old.style.animation='evoSpin 1.2s ease-in forwards';
+      // More particles burst outward
+      for(let i=0;i<25;i++){
+        const p=document.createElement('div');
+        const angle=Math.random()*Math.PI*2;
+        const dist=60+Math.random()*100;
+        p.style.cssText='position:absolute;width:4px;height:16px;border-radius:3px;background:'+glow+';left:50%;top:50%;transform-origin:center;--dx:'+Math.cos(angle)*dist+'px;--dy:'+Math.sin(angle)*dist+'px;animation:evoParticle .8s ease-out '+(Math.random()*.3)+'s forwards;box-shadow:0 0 6px '+glow;
+        overlay.appendChild(p);
+      }
+      SFX.play('whoosh');
+    },3500);
+
+    // Phase 4 (4.5s): MASSIVE white flash — the big moment
+    setTimeout(()=>{
+      // Triple flash
+      overlay.style.transition='background .1s';
       overlay.style.background='#fff';
-      setTimeout(()=>overlay.style.background='#000',200);
+      setTimeout(()=>{overlay.style.background='#000';},150);
+      setTimeout(()=>{overlay.style.background='#fff';},300);
+      setTimeout(()=>{overlay.style.background='#000';},450);
       setTimeout(()=>{
-        overlay.style.background='radial-gradient(circle,#1a1a2e 0%,#000 100%)';
-        // Show new Wordmon!
+        overlay.style.background='radial-gradient(circle at 50% 40%, '+glow+'30 0%, #0a0a1a 60%, #000 100%)';
+        overlay.style.transition='background 1s';
+
+        // Remove old sprite
         const evoOld=document.getElementById('evoOld');
         if(evoOld) evoOld.remove();
+        // Remove old particles
+        overlay.querySelectorAll('div[style*="evoParticle"],div[style*="evoRing"]').forEach(p=>p.remove());
+
+        // BIG new Wordmon reveal!
         const newEl=document.createElement('div');
-        newEl.style.cssText='animation:evoReveal 1.2s ease forwards';
-        newEl.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:180px;height:180px;object-fit:contain">';
-        overlay.insertBefore(newEl,overlay.firstChild);
+        newEl.style.cssText='animation:evoReveal 1.5s ease forwards;position:relative';
+        newEl.innerHTML='<img src="sprites/'+wm.id+'_'+(newStage+1)+'.png" style="width:200px;height:200px;object-fit:contain">';
+        overlay.insertBefore(newEl,overlay.querySelector('#evoText'));
+
+        // Celebration particles around new Wordmon
+        for(let i=0;i<20;i++){
+          const star=document.createElement('div');
+          const a=Math.random()*Math.PI*2;
+          const d=80+Math.random()*60;
+          star.textContent=['✨','⭐','💫','🌟'][Math.floor(Math.random()*4)];
+          star.style.cssText='position:absolute;left:calc(50% + '+Math.cos(a)*d+'px);top:calc(40% + '+Math.sin(a)*d+'px);font-size:'+(16+Math.random()*14)+'px;animation:evoNameReveal .5s ease '+(0.5+Math.random()*.8)+'s both;pointer-events:none';
+          overlay.appendChild(star);
+        }
 
         // New name reveal
         const txt=document.getElementById('evoText');
         if(txt){
-          txt.style.animation='evoNameReveal .5s ease .3s both';
-          txt.innerHTML='<div style="font-size:1.8rem;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.5)">'+newData.name+'!</div>'+
-            '<div style="font-size:.9rem;color:rgba(255,255,255,.6);margin-top:4px">HP: '+newData.hp+' | Stage '+(newStage+1)+'/3</div>';
+          txt.style.animation='evoNameReveal .6s ease .5s both';
+          txt.innerHTML='<div style="font-size:2.2rem;color:'+glow+';text-shadow:0 0 30px '+glow+'80, 0 2px 4px rgba(0,0,0,.5)">'+newData.name+'!</div>'+
+            '<div style="font-size:1rem;color:rgba(255,255,255,.7);margin-top:6px;font-weight:600">HP: '+newData.hp+' | Stage '+(newStage+1)+'/3</div>';
         }
 
         SFX.play('fanfare');
         this.fireConfetti();
 
-        // Close button after a moment
+        // AMAZING button
         setTimeout(()=>{
           const btn=document.createElement('button');
           btn.textContent='AMAZING!';
-          btn.style.cssText='font-family:Fredoka One,cursive;font-size:1.2rem;padding:12px 32px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.4);margin-top:20px;animation:evoNameReveal .3s ease both';
-          btn.onclick=()=>{overlay.remove();this.updateHUD();};
+          btn.style.cssText='font-family:Fredoka One,cursive;font-size:1.3rem;padding:14px 36px;border-radius:16px;border:3px solid '+glow+';background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(249,115,22,.4),0 0 30px '+glow+'40;margin-top:24px;animation:evoNameReveal .4s ease both;transition:transform .1s';
+          btn.onmousedown=()=>{btn.style.transform='scale(0.95)';};
+          btn.onmouseup=()=>{btn.style.transform='scale(1)';};
+          btn.onclick=()=>{overlay.remove();this.updateHUD();this.renderRoster();};
           overlay.appendChild(btn);
-          // Also speak it
+          // Speak it
           if(window.speechSynthesis){
             speechSynthesis.cancel();
             const u=new SpeechSynthesisUtterance(oldName+' evolved into '+newData.name+'! Amazing!');
-            u.rate=0.85;u.pitch=1.15;
+            u.rate=0.8;u.pitch=1.2;
             const v=getBestVoice();if(v)u.voice=v;
             speechSynthesis.speak(u);
           }
-        },1500);
-      },300);
-    },2500);
+        },1800);
+      },500);
+    },4500);
 
     // Keep the old code path for the modal display
     return; // skip the old modal below
