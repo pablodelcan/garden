@@ -3349,31 +3349,98 @@ const G = {
     SFX.init();
     const c=SFX.ctx;
     if(!c) return;
-    const now=c.currentTime;
     this._battleMusic=true;
-    // Create an intense battle loop
+    // Epic 4-part battle theme with bass, melody, harmony, and percussion
+    const BPM=140;
+    const beat=60/BPM;
+    const bar=beat*4;
+    let section=0;
+    const SECTIONS=[
+      // Section A: Intense minor key intro (Am)
+      {bass:[220,220,165,165,185,185,220,220, 220,220,165,165,185,185,220,262],
+       mel:[660,0,784,660,0,554,660,0, 784,880,784,660,554,0,660,0],
+       harm:[440,0,554,440,0,370,440,0, 554,660,554,440,370,0,440,0]},
+      // Section B: Rising tension (Dm → Em)
+      {bass:[147,147,165,165,185,185,196,196, 220,220,247,247,262,262,294,294],
+       mel:[587,660,698,660,587,554,587,660, 698,784,880,784,698,660,587,554],
+       harm:[440,494,554,494,440,415,440,494, 554,587,660,587,554,494,440,415]},
+      // Section C: Triumphant bridge (F → G → Am)
+      {bass:[175,175,175,175,196,196,196,196, 220,220,220,220,262,262,220,220],
+       mel:[880,784,698,784,880,784,880,988, 880,784,660,554,660,784,880,0],
+       harm:[698,660,554,660,698,660,698,784, 660,554,440,370,440,554,660,0]},
+      // Section D: Dramatic finale loop (Am → F → G)
+      {bass:[220,220,175,175,196,196,220,220, 175,175,196,196,220,262,220,196],
+       mel:[880,988,880,698,784,880,660,784, 698,880,784,660,880,988,880,784],
+       harm:[660,698,660,554,587,660,440,587, 554,660,587,440,660,698,660,587]},
+    ];
+
     const playLoop=()=>{
       if(!this._battleMusic) return;
       const n=c.currentTime;
-      const bassNotes=[110,110,138,110,110,138,165,138];
-      const melNotes=[330,392,440,392,330,294,330,262];
-      bassNotes.forEach((f,i)=>{
+      const S=SECTIONS[section%SECTIONS.length];
+      const noteLen=bar*4/S.bass.length;
+
+      // Bass line — deep square wave
+      S.bass.forEach((f,i)=>{
+        if(!f) return;
         const o=c.createOscillator(),g=c.createGain();
         o.connect(g);g.connect(c.destination);
-        o.type='square';o.frequency.setValueAtTime(f,n+i*.25);
-        g.gain.setValueAtTime(.08,n+i*.25);g.gain.setValueAtTime(.01,n+i*.25+.2);
-        o.start(n+i*.25);o.stop(n+i*.25+.24);
+        o.type='square';o.frequency.setValueAtTime(f,n+i*noteLen);
+        g.gain.setValueAtTime(.07,n+i*noteLen);
+        g.gain.exponentialRampToValueAtTime(.01,n+i*noteLen+noteLen*.9);
+        o.start(n+i*noteLen);o.stop(n+i*noteLen+noteLen*.95);
         this._battleMusicNodes.push(o);
       });
-      melNotes.forEach((f,i)=>{
+
+      // Melody — bright triangle
+      S.mel.forEach((f,i)=>{
+        if(!f) return;
         const o=c.createOscillator(),g=c.createGain();
         o.connect(g);g.connect(c.destination);
-        o.type='triangle';o.frequency.setValueAtTime(f,n+i*.25);
-        g.gain.setValueAtTime(.06,n+i*.25);g.gain.setValueAtTime(.01,n+i*.25+.2);
-        o.start(n+i*.25);o.stop(n+i*.25+.24);
+        o.type='triangle';o.frequency.setValueAtTime(f,n+i*noteLen);
+        g.gain.setValueAtTime(.05,n+i*noteLen);
+        g.gain.exponentialRampToValueAtTime(.01,n+i*noteLen+noteLen*.85);
+        o.start(n+i*noteLen);o.stop(n+i*noteLen+noteLen*.9);
         this._battleMusicNodes.push(o);
       });
-      this._battleMusicTimer=setTimeout(playLoop,2000);
+
+      // Harmony — soft sine pad
+      S.harm.forEach((f,i)=>{
+        if(!f) return;
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(f,n+i*noteLen);
+        g.gain.setValueAtTime(.03,n+i*noteLen);
+        g.gain.exponentialRampToValueAtTime(.005,n+i*noteLen+noteLen*.8);
+        o.start(n+i*noteLen);o.stop(n+i*noteLen+noteLen*.85);
+        this._battleMusicNodes.push(o);
+      });
+
+      // Percussion — kick/hihat pattern
+      for(let i=0;i<16;i++){
+        // Kick on beats 1 and 3
+        if(i%4===0){
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='sine';o.frequency.setValueAtTime(80,n+i*noteLen);
+          o.frequency.exponentialRampToValueAtTime(30,n+i*noteLen+.1);
+          g.gain.setValueAtTime(.12,n+i*noteLen);g.gain.exponentialRampToValueAtTime(.001,n+i*noteLen+.15);
+          o.start(n+i*noteLen);o.stop(n+i*noteLen+.16);
+          this._battleMusicNodes.push(o);
+        }
+        // Hi-hat on every note
+        const noise=c.createOscillator(),ng=c.createGain();
+        noise.connect(ng);ng.connect(c.destination);
+        noise.type='sawtooth';noise.frequency.setValueAtTime(3000+Math.random()*2000,n+i*noteLen);
+        ng.gain.setValueAtTime(i%2===0?.02:.01,n+i*noteLen);ng.gain.exponentialRampToValueAtTime(.001,n+i*noteLen+.05);
+        noise.start(n+i*noteLen);noise.stop(n+i*noteLen+.06);
+        this._battleMusicNodes.push(noise);
+      }
+
+      section++;
+      // Clean up old nodes
+      this._battleMusicNodes=this._battleMusicNodes.filter(o=>{try{return o.context.currentTime<n+bar*4+1;}catch(e){return false;}});
+      this._battleMusicTimer=setTimeout(playLoop,bar*4*1000);
     };
     playLoop();
   },
@@ -3512,12 +3579,14 @@ const G = {
 
         // Bottom: Attack controls
         '<div class="battle-controls" id="battleControls">'+
-          '<div style="font-size:.7rem;color:rgba(255,255,255,.5);text-align:center;margin-bottom:6px;font-weight:700">Harder words = More damage!</div>'+
+          '<div style="font-size:.85rem;color:#fbbf24;text-align:center;margin-bottom:8px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.5)">⚔️ Pick a word to attack! Harder words = more damage!</div>'+
           '<div class="attack-grid">'+allAttacks.map(atk=>{
             const power=WORD_POWER[atk.w]||8;
-            return '<button class="atk-btn attack-btn" data-word="'+atk.w+'" data-sent="'+atk.sent.replace(/"/g,'&quot;')+'" data-power="'+power+'">'+
-              '<div>'+atk.w.toUpperCase()+'</div>'+
-              '<div class="atk-power">'+power+' DMG</div>'+
+            const powerColor=power>=15?'#ef4444':power>=12?'#f97316':power>=8?'#fbbf24':'#22c55e';
+            const powerLabel=power>=15?'SUPER':power>=12?'STRONG':power>=8?'MEDIUM':'EASY';
+            return '<button class="atk-btn attack-btn" data-word="'+atk.w+'" data-sent="'+atk.sent.replace(/"/g,'&quot;')+'" data-power="'+power+'" style="border-left:4px solid '+powerColor+'">'+
+              '<div style="font-size:1.6rem;font-weight:800;letter-spacing:1px">'+atk.w+'</div>'+
+              '<div style="display:flex;align-items:center;gap:4px;justify-content:center;margin-top:2px"><span style="font-size:.6rem;color:'+powerColor+';font-weight:800">'+powerLabel+'</span><span class="atk-power" style="color:'+powerColor+'">'+power+' DMG</span></div>'+
             '</button>';
           }).join('')+'</div>'+
         '</div>';
@@ -3533,7 +3602,7 @@ const G = {
           // Highlight chosen attack
           area.querySelectorAll('.attack-btn').forEach(b=>b.style.opacity='.3');
           btn.style.opacity='1';btn.style.transform='scale(1.05)';
-          document.getElementById('attackMsg').innerHTML='<span style="color:var(--navy)">'+wm.name+' uses <strong style="color:#dc2626;font-size:1.2rem">'+word.toUpperCase()+'</strong>!</span>';
+          document.getElementById('attackMsg').innerHTML='<span style="color:var(--navy)">'+wm.name+' uses <strong style="color:#dc2626;font-size:1.3rem">'+word+'</strong>!</span>';
           SFX.play('attack');
 
           // PHASE 2: Confirm by reading the sentence (fill in blank)
@@ -3561,7 +3630,7 @@ const G = {
                   SFX.play('correct');this.fireSparkles(cbtn);
                   pendingCoins+=Math.ceil(power/5);
                   battleHp=Math.max(0,battleHp-power);
-                  document.getElementById('attackMsg').innerHTML='<span style="color:#22c55e;font-size:1.3rem">'+wm.name+'\'s '+word.toUpperCase()+' hits for <strong>'+power+' damage</strong>!</span>';
+                  document.getElementById('attackMsg').innerHTML='<span style="color:#22c55e;font-size:1.3rem">'+wm.name+'\'s <strong>'+word+'</strong> hits for '+power+' damage!</span>';
 
                   if(battleHp<=0){
                     battleOver=true;this.stopBattleMusic();SFX.play('fanfare');

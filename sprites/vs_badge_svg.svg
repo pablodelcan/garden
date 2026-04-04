@@ -1,41 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <defs>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffd700"/>
-      <stop offset="30%" style="stop-color:#fff4a3"/>
-      <stop offset="50%" style="stop-color:#fbbf24"/>
-      <stop offset="70%" style="stop-color:#f59e0b"/>
+    <linearGradient id="goldFace" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff7a3"/>
+      <stop offset="35%" style="stop-color:#fbbf24"/>
+      <stop offset="65%" style="stop-color:#f59e0b"/>
       <stop offset="100%" style="stop-color:#d97706"/>
     </linearGradient>
-    <linearGradient id="depth" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a2744"/>
+    <linearGradient id="navy3d" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f"/>
+      <stop offset="100%" style="stop-color:#0c1929"/>
+    </linearGradient>
+    <linearGradient id="burstGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="50%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#dc2626"/>
+    </linearGradient>
+    <linearGradient id="innerGlow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d4a6f"/>
       <stop offset="100%" style="stop-color:#0f172a"/>
     </linearGradient>
-    <radialGradient id="burst" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#fbbf24"/>
-      <stop offset="60%" style="stop-color:#f97316"/>
-      <stop offset="100%" style="stop-color:#ea580c"/>
-    </radialGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    <filter id="outerGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="textShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="1" flood-color="#000" flood-opacity="0.4"/>
     </filter>
   </defs>
-  <!-- Explosion burst -->
-  <polygon points="70,2 82,30 112,10 92,38 138,32 100,52 136,70 100,78 134,102 90,90 108,128 78,98 70,138 62,98 32,128 50,90 6,102 40,78 4,70 40,52 2,32 48,38 28,10 58,30" fill="url(#burst)" filter="url(#glow)"/>
-  <!-- Inner circle navy -->
-  <circle cx="70" cy="70" r="38" fill="url(#depth)" stroke="#fbbf24" stroke-width="3"/>
-  <circle cx="70" cy="70" r="34" fill="#1e3a5f"/>
-  <!-- 3D depth shadow -->
-  <text x="73" y="82" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="#0f172a" letter-spacing="2">VS</text>
-  <text x="72" y="81" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="#1a2744" letter-spacing="2">VS</text>
-  <!-- Gold text -->
-  <text x="70" y="79" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="url(#gold)" letter-spacing="2" stroke="#92400e" stroke-width="1">VS</text>
-  <!-- Shine -->
-  <text x="70" y="79" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="40" font-weight="900" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" letter-spacing="2">VS</text>
-  <!-- Sparkles -->
-  <circle cx="38" cy="28" r="3" fill="#fff" opacity="0.8"/>
-  <circle cx="105" cy="25" r="2" fill="#fff" opacity="0.6"/>
-  <circle cx="110" cy="108" r="2.5" fill="#fff" opacity="0.7"/>
-  <circle cx="30" cy="105" r="2" fill="#fff" opacity="0.5"/>
+
+  <!-- Spiky explosion burst (12 points) -->
+  <polygon points="100,6 115,50 150,15 130,55 190,30 140,68 196,88 142,92 185,130 132,108 155,170 118,118 100,194 82,118 45,170 68,108 15,130 58,92 4,88 60,68 10,30 70,55 50,15 85,50"
+    fill="url(#burstGrad)" filter="url(#outerGlow)" opacity="0.95"/>
+
+  <!-- Second smaller burst layer for depth -->
+  <polygon points="100,22 112,55 140,28 125,62 175,42 135,72 180,88 138,90 170,120 128,105 145,155 115,115 100,178 85,115 55,155 72,105 30,120 62,90 20,88 65,72 25,42 75,62 60,28 88,55"
+    fill="url(#burstGrad)" opacity="0.6"/>
+
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="50" fill="none" stroke="#fbbf24" stroke-width="4" opacity="0.8"/>
+  <!-- Dark inner circle -->
+  <circle cx="100" cy="100" r="46" fill="url(#innerGlow)" stroke="#0c1929" stroke-width="2"/>
+  <!-- Subtle inner ring highlight -->
+  <circle cx="100" cy="100" r="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- V letter - built from polygon paths for consistency -->
+  <!-- 3D shadow layer -->
+  <polygon points="68,76 82,76 97,118 112,76 126,76 105,130 89,130" fill="#0a1020" transform="translate(3,3)"/>
+  <!-- Dark depth layer -->
+  <polygon points="68,76 82,76 97,118 112,76 126,76 105,130 89,130" fill="#1a2744" transform="translate(2,2)"/>
+  <!-- Main gold V -->
+  <polygon points="68,76 82,76 97,118 112,76 126,76 105,130 89,130" fill="url(#goldFace)" stroke="#92400e" stroke-width="1.5" stroke-linejoin="round" filter="url(#textShadow)"/>
+  <!-- V shine highlight -->
+  <polygon points="72,78 82,78 88,96" fill="rgba(255,255,255,0.25)"/>
+
+  <!-- S letter - built from path -->
+  <!-- 3D shadow -->
+  <path d="M143,80 C143,74 137,70 128,70 C119,70 113,74 113,80 C113,86 119,89 128,91 C137,93 143,96 143,103 C143,110 137,114 128,114 C119,114 113,110 113,103" fill="none" stroke="#0a1020" stroke-width="12" stroke-linecap="round" transform="translate(3,3)"/>
+  <!-- Dark depth -->
+  <path d="M143,80 C143,74 137,70 128,70 C119,70 113,74 113,80 C113,86 119,89 128,91 C137,93 143,96 143,103 C143,110 137,114 128,114 C119,114 113,110 113,103" fill="none" stroke="#1a2744" stroke-width="12" stroke-linecap="round" transform="translate(2,2)"/>
+  <!-- Main gold S -->
+  <path d="M143,80 C143,74 137,70 128,70 C119,70 113,74 113,80 C113,86 119,89 128,91 C137,93 143,96 143,103 C143,110 137,114 128,114 C119,114 113,110 113,103" fill="none" stroke="url(#goldFace)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M143,80 C143,74 137,70 128,70 C119,70 113,74 113,80 C113,86 119,89 128,91 C137,93 143,96 143,103 C143,110 137,114 128,114 C119,114 113,110 113,103" fill="none" stroke="#92400e" stroke-width="12.5" stroke-linecap="round" opacity="0.15"/>
+  <!-- S shine -->
+  <path d="M138,76 C138,73 134,72 128,72 C122,72 118,73 118,76" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Corner sparkles -->
+  <circle cx="40" cy="30" r="4" fill="#fff" opacity="0.9"><animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.5s" repeatCount="indefinite"/></circle>
+  <circle cx="165" cy="25" r="3" fill="#fff" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="2s" repeatCount="indefinite"/></circle>
+  <circle cx="170" cy="165" r="3.5" fill="#fff" opacity="0.8"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.8s" repeatCount="indefinite"/></circle>
+  <circle cx="30" cy="160" r="2.5" fill="#fff" opacity="0.6"><animate attributeName="opacity" values="0.6;0.2;0.6" dur="2.2s" repeatCount="indefinite"/></circle>
+  <circle cx="100" cy="18" r="2" fill="#fbbf24" opacity="0.8"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.3s" repeatCount="indefinite"/></circle>
 </svg>
