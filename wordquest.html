@@ -404,7 +404,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 <!-- MODE BAR -->
 <div class="tabs" id="tabs">
   <div class="mode-indicator" id="modeIndicator"><img src="sprites/mode_fillin.png" class="mode-icon"> Fill In</div>
-  <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 15</div>
+  <div class="mode-progress" id="modeProgress"><span id="modePoints">0</span> / 6</div>
   <button class="tab quiz-tab" data-mode="popquiz"><img src="sprites/ico_quiz.png" class="ico"> Pop Quiz</button>
   <button class="tab phonics-tab" data-mode="phonics"><img src="sprites/ico_phonics.png" class="ico"> Phonics</button>
   <button class="tab heal-tab" data-mode="heal"><img src="sprites/ico_heal.png" class="ico"> Heal</button>
@@ -1225,6 +1225,23 @@ const WORDS = [
   {w:'dark',sent:'It is ___ outside.',joke:'Are you afraid of the DARK? The DARK is afraid of flashlights!',priority:true},
   {w:'park',sent:'Let\'s go to the ___.',joke:'The PARK is where dogs go to BARK in the DARK! Wait, that\'s scary.',priority:true},
   {w:'spark',sent:'The fire made a ___.',joke:'A tiny SPARK can start a big fire! And a tiny word can start big reading!',priority:true},
+  // ---- FUNNY WORDS (to keep Río engaged!) ----
+  {w:'stinky',sent:'My socks are ___!',joke:'STINKY feet, STINKY cheese, STINKY brother! Wait, don\'t tell him I said that!',priority:true},
+  {w:'smelly',sent:'That garbage is ___.',joke:'SMELLY dogs, SMELLY farts, SMELLY toots! Reading this made me laugh so hard I tooted!',priority:true},
+  {w:'fart',sent:'The dog did a loud ___.',joke:'A FART walked into a library. Everyone said SHHH! But the FART just kept going. PFFFT!',priority:true},
+  {w:'poop',sent:'The baby did a ___!',joke:'POOP? POOP!! Did someone say POOP?! Ha ha ha! POOP is the funniest word!',priority:true},
+  {w:'burp',sent:'I did a big ___!',joke:'BURRRRP! Excuse me! In some countries a BURP means "great food!" In others it means "gross!"',priority:true},
+  {w:'toot',sent:'My brother did a ___!',joke:'TOOT TOOT! Is that a train? Nope! Just my belly making music!',priority:true},
+  {w:'butt',sent:'I sat on my ___.',joke:'BUTT! Ha! You read the word BUTT! That means you\'re officially hilarious!',priority:true},
+  {w:'booger',sent:'Ew, a ___!',joke:'BOOGERs are basically free nose stickers. Gross? Yes. Free? Also yes!',priority:true},
+  {w:'gross',sent:'That is so ___!',joke:'GROSS! My sandwich has a hair in it. Wait, that\'s my hair. Still GROSS!',priority:true},
+  {w:'yucky',sent:'Broccoli is ___!',joke:'YUCKY? Broccoli is tiny TREES! You\'re basically a GIANT eating a FOREST!',priority:true},
+  {w:'slimy',sent:'The slug is ___.',joke:'SLIMY snails, SLIMY slugs, SLIMY boogers! All the best things are SLIMY!',priority:true},
+  {w:'goo',sent:'There is ___ on my shoe.',joke:'GOO! GOOEY GOO! The stickier the GOO, the funnier the GOO!',priority:true},
+  {w:'snot',sent:'Wipe your ___!',joke:'SNOT is just nose juice. And now you can never unread that!',priority:true},
+  {w:'belch',sent:'He did a giant ___.',joke:'A BELCH is a fancy word for BURP. So if you BELCH at a castle, it\'s actually polite!',priority:true},
+  {w:'stink',sent:'Onions ___!',joke:'Why did the STINKy sock cross the road? To get away from my feet!',priority:true},
+  {w:'gunk',sent:'There is ___ in the sink.',joke:'GUNK is like goo\'s grosser cousin. GUNK lives in drains. GUNK has stories.',priority:true},
 ];
 
 // ========================================================
@@ -2503,8 +2520,8 @@ const G = {
     const milestones=[10,20,30,50,100];
     if(milestones.includes(this.streak)){
       this.showMilestone(this.streak);
-      this.autoNext(willKill?5500:4500, this.modeWins>=15);
-    } else if(this.modeWins>=15){
+      this.autoNext(willKill?5500:4500, this.modeWins>=6);
+    } else if(this.modeWins>=6){
       this.autoNext(willKill?3000:2000,true);
     } else {
       this.autoNext(willKill?3000:2000);
@@ -2727,8 +2744,13 @@ const G = {
 
   rotateMode(){
     SFX.play('modeSwitch');
-    const others=this.GAME_MODES.filter(m=>m!==this.mode);
-    const next=others[Math.floor(Math.random()*others.length)];
+    // FORCE Rio to play every mode. Use a queue: shuffle all modes once,
+    // then pop one off each rotation. When empty, reshuffle. This guarantees
+    // he sees every game (including reading!) before any repeats.
+    if(!this._modeQueue||this._modeQueue.length===0){
+      this._modeQueue=this.GAME_MODES.filter(m=>m!==this.mode).sort(()=>Math.random()-.5);
+    }
+    const next=this._modeQueue.shift();
     this.modeWins=0;
     const msgs=["You're on fire! 🔥 New challenge!","Too easy! 💪 Mix it up!","15 points! ⭐ New game!","Super smart! 🧠 Switching!","Champion! 🏆 Next game!"];
     const msg=msgs[Math.floor(Math.random()*msgs.length)];
