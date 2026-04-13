@@ -1430,7 +1430,6 @@ const G = {
       t.addEventListener('click',()=>{
         if(this.answering) return;
         if(this.mode!=='popquiz'&&this.mode!=='shop'&&this.mode!=='heal') this._modeBeforeShop=this.mode;
-        this.clearPendingWord();
         this.mode='popquiz';
         this.updateModeBar();
         this.loadMode('popquiz');
@@ -1441,7 +1440,6 @@ const G = {
       t.addEventListener('click',()=>{
         if(this.answering) return;
         if(this.mode!=='popquiz'&&this.mode!=='shop'&&this.mode!=='heal'&&this.mode!=='phonics') this._modeBeforeShop=this.mode;
-        this.clearPendingWord();
         this.mode='phonics';
         this.loadPhonics();
       });
@@ -2026,8 +2024,41 @@ const G = {
 
   // ---- PICK WORD ----
   pickWord(){
-    // If there's a pending word the player hasn't answered yet, force them to do it
+    // ANTI-SKIP: If there's a pending word the player hasn't answered yet,
+    // force them to do it. Persists across refreshes via localStorage.
     if(this._pendingWord) return this._pendingWord;
+    // Check for a word saved from a previous session/refresh
+    try{
+      const saved=localStorage.getItem('rio_pending_word');
+      if(saved){
+        const pw=JSON.parse(saved);
+        // Verify the word still exists in WORDS array
+        const match=WORDS.find(w=>w.w===pw.w);
+        if(match){
+          this._pendingWord=match;
+          // Track refresh attempts — if they refresh 3+ times, they lose a coin
+          const skips=parseInt(localStorage.getItem('rio_skip_count')||'0')+1;
+          localStorage.setItem('rio_skip_count',String(skips));
+          if(skips>=3){
+            // Penalty: lose coins for trying to skip
+            const penalty=Math.min(this.coins, skips);
+            if(penalty>0){
+              this.coins-=penalty;
+              this.updateHUD();
+              this.saveGame();
+              setTimeout(()=>{
+                const warn=document.createElement('div');
+                warn.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:20px 32px;border-radius:16px;font-family:Fredoka One,cursive;font-size:1.2rem;z-index:9998;text-align:center;box-shadow:0 8px 32px rgba(239,68,68,.5);animation:popIn .3s ease';
+                warn.innerHTML='No skipping! 🚫<br><span style="font-size:.9rem;opacity:.9">-'+penalty+' coin'+(penalty>1?'s':'')+' for refreshing!</span><br><span style="font-size:.8rem;opacity:.7">Answer the word to keep playing!</span>';
+                document.body.appendChild(warn);
+                setTimeout(()=>warn.remove(),3000);
+              },500);
+            }
+          }
+          return match;
+        }
+      }
+    }catch(e){}
     if(this.usedWords.length>=WORDS.length) this.usedWords=[];
     // ADAPTIVE WORD FREQUENCY — weight words by how much the player needs them
     // Words they get wrong a lot appear 4x more often; unseen words 3x; teacher priority 2x
@@ -2064,10 +2095,13 @@ const G = {
     this.usedWords.push(idx);
     const wd=WORDS[idx];
     this._pendingWord=wd;
+    // Persist to localStorage so refreshing can't skip it
+    try{localStorage.setItem('rio_pending_word',JSON.stringify({w:wd.w}));localStorage.setItem('rio_skip_count','0');}catch(e){}
     return wd;
   },
   clearPendingWord(){
     this._pendingWord=null;
+    try{localStorage.removeItem('rio_pending_word');localStorage.removeItem('rio_skip_count');}catch(e){}
   },
 
   pickStory(){
