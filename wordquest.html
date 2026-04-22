@@ -4175,6 +4175,56 @@ const G = {
     });
   },
 
+  // === GATED READING: Río must tap each word IN ORDER left-to-right ===
+  // Returns HTML where every word is a .gw span that must be activated in
+  // sequence. onComplete fires once all are tapped. He has to actually
+  // read the whole sentence, can't skip ahead.
+  _gatedSentence(text,size='1.4rem'){
+    let idx=0;
+    return text.split(/(\s+)/).map(w=>{
+      const clean=w.trim();
+      if(!clean) return w;
+      const i=idx++;
+      return '<span class="gw" data-gi="'+i+'" data-say="'+clean.replace(/"/g,'&quot;')+'" style="padding:4px 7px;border-radius:8px;background:#fff7ed;border:2px dashed #cbd5e1;color:#94a3b8;cursor:pointer;transition:all .2s;display:inline-block;margin:2px;font-size:'+size+'">'+w+'</span>';
+    }).join('');
+  },
+  _wireGated(rootEl,onComplete){
+    const spans=[...rootEl.querySelectorAll('.gw')];
+    if(spans.length===0){onComplete&&onComplete();return;}
+    let nextIdx=0;
+    const highlight=(el,color)=>{if(el)el.style.borderColor=color;};
+    highlight(spans[0],'var(--accent)');
+    if(spans[0]) spans[0].style.boxShadow='0 0 0 3px #fbbf24';
+    spans.forEach(sp=>{
+      sp.addEventListener('click',()=>{
+        const i=parseInt(sp.dataset.gi);
+        if(i===nextIdx){
+          // correct order: reveal + speak
+          sp.style.background='#dcfce7';
+          sp.style.borderStyle='solid';
+          sp.style.borderColor='var(--green)';
+          sp.style.color='var(--text)';
+          sp.style.boxShadow='';
+          this._speak(sp.dataset.say,0.7);
+          nextIdx++;
+          if(spans[nextIdx]){
+            spans[nextIdx].style.borderColor='var(--accent)';
+            spans[nextIdx].style.boxShadow='0 0 0 3px #fbbf24';
+          }
+          if(nextIdx>=spans.length){
+            setTimeout(()=>onComplete&&onComplete(),300);
+          }
+        } else {
+          // wrong order: gentle shake + flash correct word
+          sp.animate([{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:260});
+          if(spans[nextIdx]){
+            spans[nextIdx].animate([{transform:'scale(1)'},{transform:'scale(1.15)'},{transform:'scale(1)'}],{duration:400});
+          }
+        }
+      });
+    });
+  },
+
   // =========================================================
   // 📖 STORYBOOK — page-by-page reading + comprehension question
   // =========================================================
@@ -4192,34 +4242,41 @@ const G = {
         area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
           '<div style="text-align:center;font-size:3.5rem;margin-bottom:8px">'+(book.emoji||'📖')+'</div>'+
           '<div style="background:#fef3c7;border-radius:14px;padding:6px 10px;text-align:center;font-family:Fredoka One,cursive;font-size:.85rem;color:#92400e;margin-bottom:10px">Page '+(pageIdx+1)+' of '+book.pages.length+'</div>'+
-          '<div style="background:#fff;border:3px solid var(--accent);border-radius:16px;padding:22px 18px;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.9">'+
-            '<div style="font-family:\'Fredoka One\',cursive;color:var(--text);font-size:'+(level<=1?'1.6rem':level===2?'1.4rem':'1.25rem')+'">'+this._tapSentence(book.pages[pageIdx])+'</div>'+
+          '<div style="background:#fff;border:3px solid var(--accent);border-radius:16px;padding:22px 18px;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:2.4">'+
+            '<div style="font-family:\'Fredoka One\',cursive;color:var(--text);font-size:'+(level<=1?'1.5rem':level===2?'1.3rem':'1.15rem')+'">'+this._gatedSentence(book.pages[pageIdx],'inherit')+'</div>'+
           '</div>'+
-          '<div style="text-align:center;font-size:.75rem;color:var(--text2);font-weight:700;margin-top:10px">👆 Tap any word to hear it!</div>'+
+          '<div id="sbHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word in order to read it!</div>'+
           '<div style="display:flex;gap:10px;margin-top:14px;justify-content:center">'+
-            '<button id="sbSpeakAll" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:10px 18px;border-radius:12px;border:none;background:#3b82f6;color:#fff;cursor:pointer">🔊 Read to me</button>'+
-            '<button id="sbNext" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">'+(pageIdx===book.pages.length-1?'Next →':'Next Page →')+'</button>'+
+            '<button id="sbNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">'+(pageIdx===book.pages.length-1?'🔒 Read it first':'🔒 Read it first')+'</button>'+
           '</div>'+
           '<div style="background:#f1f5f9;border-radius:8px;height:6px;margin-top:14px;overflow:hidden"><div style="background:var(--accent);height:100%;width:'+pct+'%;transition:width .4s"></div></div>'+
           '<div id="jokeArea"></div></div>';
-        this._wireTapWords(area);
-        document.getElementById('sbSpeakAll').addEventListener('click',()=>this._speak(book.pages[pageIdx]));
+        this._wireGated(area,()=>{
+          const hint=document.getElementById('sbHint');
+          if(hint){hint.textContent='✅ You read it! Now tap Next.';hint.style.color='var(--green)';}
+          const btn=document.getElementById('sbNext');
+          if(btn){
+            btn.disabled=false;
+            btn.style.background='var(--accent)';
+            btn.style.cursor='pointer';
+            btn.style.opacity='1';
+            btn.textContent=pageIdx===book.pages.length-1?'I read the story →':'Next Page →';
+          }
+        });
         document.getElementById('sbNext').addEventListener('click',()=>{
+          if(document.getElementById('sbNext').disabled) return;
           SFX.play('click');
           pageIdx++;
           render();
         });
-        // auto-read first time the page loads
-        setTimeout(()=>this._speak(book.pages[pageIdx]),400);
       } else {
-        // comprehension question
+        // comprehension question (no auto-read — only speak on wrong)
         const cs=shuffle(book.choices.map((c,i)=>({c,i})));
         area.innerHTML='<div class="card" id="qCard">'+
           '<div style="text-align:center;font-size:2.5rem;margin-bottom:4px">'+(book.emoji||'📖')+'</div>'+
           '<div class="question-text" style="font-size:1.2rem">'+book.q+'</div>'+
           '<div class="choices">'+cs.map(c=>'<button class="choice-btn" data-idx="'+c.i+'">'+c.c+'</button>').join('')+'</div>'+
           '<div id="jokeArea"></div></div>';
-        setTimeout(()=>this._speak(book.q,0.8),300);
         area.querySelectorAll('.choice-btn').forEach(btn=>{
           btn.addEventListener('click',()=>{
             if(this.answering)return;
@@ -4234,6 +4291,8 @@ const G = {
               btn.classList.add('wrong-pick');
               card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.idx)===book.answer)b.classList.add('correct');});
               card.classList.add('wrong-shake');
+              // Correction: speak the correct answer + re-read the story
+              this._speak('The answer is: '+book.choices[book.answer],0.7);
               this.onWrong({w:'storybook',joke:'No worries! Read it again and you will get it!'});
             }
           });
@@ -4254,67 +4313,88 @@ const G = {
     this._pendingWord={w:'comic_'+comic.panels[0].text.slice(0,6)};
     const area=document.getElementById('gameArea');
     const bubbleColors=['#fef3c7','#dbeafe','#dcfce7','#fce7f3'];
-    let revealedPanels=0;
+    let revealedPanels=1; // first panel visible at start
+    let panelDone=false; // current panel's words all tapped?
     const render=()=>{
+      panelDone=false;
       const panelsHtml=comic.panels.map((p,i)=>{
         const visible=i<revealedPanels;
+        const current=i===revealedPanels-1;
         const bg=bubbleColors[i%bubbleColors.length];
+        const textHtml=visible
+          ? (current?this._gatedSentence(p.text,'inherit'):this._tapSentence(p.text,'inherit'))
+          : '???';
         return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;opacity:'+(visible?'1':'.25')+';transition:opacity .4s">'+
           '<div style="font-size:3rem;min-width:54px;text-align:center">'+p.char+'</div>'+
-          '<div style="flex:1;background:'+bg+';border:2px solid #1e293b;border-radius:16px;padding:10px 14px;position:relative">'+
+          '<div style="flex:1;background:'+bg+';border:2px solid '+(current?'var(--accent)':'#1e293b')+';border-radius:16px;padding:10px 14px;position:relative">'+
             '<div style="font-family:Fredoka One,cursive;font-size:.7rem;color:var(--text2);margin-bottom:2px">'+p.name+':</div>'+
-            '<div style="font-size:'+(level<=2?'1.1rem':'1rem')+';line-height:1.5;color:var(--text)">'+(visible?this._tapSentence(p.text,'inherit'):'???')+'</div>'+
+            '<div style="font-size:'+(level<=2?'1.05rem':'.95rem')+';line-height:2;color:var(--text)">'+textHtml+'</div>'+
           '</div></div>';
       }).join('');
-      const done=revealedPanels>=comic.panels.length;
+      const isLastPanel=revealedPanels>=comic.panels.length;
       area.innerHTML='<div class="card" id="qCard" style="padding:16px">'+
         '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:10px">💬 Read the comic!</div>'+
         panelsHtml+
-        (done?
+        '<div id="cmcQuestion" style="display:none">'+
           '<div class="question-text" style="font-size:1.15rem;margin-top:14px">'+comic.q+'</div>'+
-          '<div class="choices">'+shuffle(comic.choices.map((c,i)=>({c,i}))).map(c=>'<button class="choice-btn" data-idx="'+c.i+'">'+c.c+'</button>').join('')+'</div>'
-          :
-          '<div style="text-align:center;margin-top:10px"><button id="cmcNext" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Next Panel →</button></div>'+
-          '<div style="text-align:center;font-size:.7rem;color:var(--text2);font-weight:700;margin-top:8px">👆 Tap words to hear them</div>'
-        )+
+          '<div class="choices">'+shuffle(comic.choices.map((c,i)=>({c,i}))).map(c=>'<button class="choice-btn" data-idx="'+c.i+'">'+c.c+'</button>').join('')+'</div>'+
+        '</div>'+
+        '<div id="cmcNextBox" style="text-align:center;margin-top:10px">'+
+          '<button id="cmcNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">🔒 Read the bubble first</button>'+
+        '</div>'+
+        '<div id="cmcHint" style="text-align:center;font-size:.8rem;color:var(--accent);font-weight:700;margin-top:8px">👆 Tap each word in order!</div>'+
         '<div id="jokeArea"></div></div>';
-      this._wireTapWords(area);
-      if(!done){
+      // Gate only the current (latest) panel's words
+      const currentBubble=area.querySelectorAll('[style*="border:2px solid var(--accent)"]')[0];
+      this._wireGated(currentBubble||area,()=>{
+        panelDone=true;
+        const hint=document.getElementById('cmcHint');
+        if(hint){hint.textContent='✅ Great reading!';hint.style.color='var(--green)';}
         const btn=document.getElementById('cmcNext');
-        if(btn) btn.addEventListener('click',()=>{
-          SFX.play('click');
-          this._speak(comic.panels[revealedPanels].text,0.75);
-          revealedPanels++;
-          setTimeout(render,200);
-        });
-        // auto-speak current revealed panel
-        if(revealedPanels>0) setTimeout(()=>this._speak(comic.panels[revealedPanels-1].text),300);
-      } else {
-        setTimeout(()=>this._speak(comic.q,0.8),300);
-        area.querySelectorAll('.choice-btn').forEach(btn=>{
-          btn.addEventListener('click',()=>{
-            if(this.answering)return;
-            this.answering=true;
-            const card=document.getElementById('qCard');
-            card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
-            const picked=parseInt(btn.dataset.idx);
-            if(picked===comic.answer){
-              btn.classList.add('correct');
-              this.onCorrect({w:'comic',joke:'You read the whole comic! So good!'});
-            } else {
-              btn.classList.add('wrong-pick');
-              card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.idx)===comic.answer)b.classList.add('correct');});
-              card.classList.add('wrong-shake');
-              this.onWrong({w:'comic',joke:'Read the comic again and look closely!'});
-            }
+        if(btn){
+          btn.disabled=false;
+          btn.style.background='var(--accent)';
+          btn.style.cursor='pointer';
+          btn.style.opacity='1';
+          btn.textContent=isLastPanel?'I read the comic! ✓':'Next Panel →';
+        }
+      });
+      // older panels: tap-to-hear only (not gated)
+      this._wireTapWords(area);
+      document.getElementById('cmcNext').addEventListener('click',()=>{
+        if(!panelDone) return;
+        SFX.play('click');
+        if(isLastPanel){
+          // show the question
+          document.getElementById('cmcNextBox').style.display='none';
+          document.getElementById('cmcHint').style.display='none';
+          document.getElementById('cmcQuestion').style.display='block';
+          area.querySelectorAll('.choice-btn').forEach(btn=>{
+            btn.addEventListener('click',()=>{
+              if(this.answering)return;
+              this.answering=true;
+              const card=document.getElementById('qCard');
+              card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+              const picked=parseInt(btn.dataset.idx);
+              if(picked===comic.answer){
+                btn.classList.add('correct');
+                this.onCorrect({w:'comic',joke:'You read the whole comic! So good!'});
+              } else {
+                btn.classList.add('wrong-pick');
+                card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.idx)===comic.answer)b.classList.add('correct');});
+                card.classList.add('wrong-shake');
+                this._speak('The answer is: '+comic.choices[comic.answer],0.7);
+                this.onWrong({w:'comic',joke:'Read the comic again and look closely!'});
+              }
+            });
           });
-        });
-        this.thinkFirst(document.getElementById('qCard'),2);
-      }
+          this.thinkFirst(document.getElementById('qCard'),2);
+        } else {
+          revealedPanels++;
+          render();
+        }
+      });
     };
-    // kick off: reveal first panel
-    revealedPanels=1;
-    setTimeout(()=>this._speak(comic.panels[0].text,0.75),400);
     render();
   },
 
@@ -4408,14 +4488,18 @@ const G = {
       '<div style="text-align:center;font-size:.8rem;color:var(--text2);font-weight:700;margin-bottom:12px">Look carefully — some letters are tricky!</div>'+
       '<div style="background:#fffbeb;border:3px solid #fbbf24;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px">'+
         '<div style="font-family:Fredoka One,cursive;font-size:.75rem;color:#92400e;margin-bottom:4px">FIND THIS:</div>'+
-        '<div style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.3rem':'1.15rem')+';color:var(--text);line-height:1.5">'+this._tapSentence(pick.prompt,'inherit')+'</div>'+
+        '<div id="rfPrompt" style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.25rem':'1.1rem')+';color:var(--text);line-height:2.4">'+this._gatedSentence(pick.prompt,'inherit')+'</div>'+
       '</div>'+
-      '<div style="display:flex;flex-direction:column;gap:8px">'+
+      '<div id="rfHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-bottom:10px">👆 Read every word first, then pick!</div>'+
+      '<div id="rfOptions" style="display:none;flex-direction:column;gap:8px">'+
         choices.map((c,i)=>'<button class="rf-opt" data-ok="'+(c.ok?'1':'0')+'" style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.1rem':'.98rem')+';padding:12px 14px;border-radius:12px;border:2px solid #cbd5e1;background:#fff;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">'+c.s+'</button>').join('')+
       '</div>'+
       '<div id="jokeArea"></div></div>';
-    this._wireTapWords(area);
-    setTimeout(()=>this._speak('Find: '+pick.prompt,0.7),400);
+    this._wireGated(document.getElementById('rfPrompt'),()=>{
+      document.getElementById('rfHint').textContent='✅ Now find it below!';
+      document.getElementById('rfHint').style.color='var(--green)';
+      document.getElementById('rfOptions').style.display='flex';
+    });
     area.querySelectorAll('.rf-opt').forEach(btn=>{
       btn.addEventListener('click',()=>{
         if(this.answering)return;
@@ -4448,19 +4532,25 @@ const G = {
     this._pendingWord={w:'finisher_'+pick.setup[0].slice(0,8)};
     const choices=shuffle(pick.ends.map((e,i)=>({e,i})));
     const area=document.getElementById('gameArea');
+    // Build a single gated block of ALL setup sentences concatenated
+    const allSetup=pick.setup.join(' ');
     area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
       '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:4px">📚 What comes next?</div>'+
-      '<div style="text-align:center;font-size:.8rem;color:var(--text2);font-weight:700;margin-bottom:12px">Read the story, then pick the sentence that fits.</div>'+
+      '<div style="text-align:center;font-size:.8rem;color:var(--text2);font-weight:700;margin-bottom:12px">Read every word. Then pick what fits.</div>'+
       '<div style="background:#f0fdf4;border:3px solid #22c55e;border-radius:14px;padding:16px;margin-bottom:10px">'+
-        pick.setup.map(s=>'<div style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.2rem':'1.05rem')+';color:var(--text);line-height:1.8;margin-bottom:6px">'+this._tapSentence(s,'inherit')+'</div>').join('')+
-        '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#22c55e;text-align:center;margin-top:6px">...then what? ⬇</div>'+
+        '<div id="finSetup" style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.15rem':'1rem')+';color:var(--text);line-height:2.4">'+this._gatedSentence(allSetup,'inherit')+'</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.3rem;color:#22c55e;text-align:center;margin-top:10px">...then what? ⬇</div>'+
       '</div>'+
-      '<div style="display:flex;flex-direction:column;gap:8px">'+
+      '<div id="finHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-bottom:10px">👆 Tap each word as you read!</div>'+
+      '<div id="finOptions" style="display:none;flex-direction:column;gap:8px">'+
         choices.map(c=>'<button class="fin-opt" data-idx="'+c.i+'" style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.05rem':'.95rem')+';padding:12px 14px;border-radius:12px;border:2px solid #cbd5e1;background:#fff;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">'+c.e+'</button>').join('')+
       '</div>'+
       '<div id="jokeArea"></div></div>';
-    this._wireTapWords(area);
-    setTimeout(()=>this._speak(pick.setup.join(' '),0.72),400);
+    this._wireGated(document.getElementById('finSetup'),()=>{
+      document.getElementById('finHint').textContent='✅ Now pick the sentence that fits!';
+      document.getElementById('finHint').style.color='var(--green)';
+      document.getElementById('finOptions').style.display='flex';
+    });
     area.querySelectorAll('.fin-opt').forEach(btn=>{
       btn.addEventListener('click',()=>{
         if(this.answering)return;
