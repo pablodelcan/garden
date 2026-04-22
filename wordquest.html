@@ -1314,11 +1314,252 @@ const STORIES = [
 ];
 
 // ========================================================
+// LEVELED READING CONTENT — for Storybook / Read & Find / Finisher
+// Level 1: 2-3 word sentences.  Level 2: 3-5 words.
+// Level 3: full 3-sentence stories.  Level 4: 4-6 sentence stories.
+// Distractor sentences intentionally swap n/u and d/b to train Río.
+// ========================================================
+const STORYBOOKS = {
+  1: [
+    {pages:['Rio has a dog.','The dog is big.','Rio loves the dog.'],q:'Who has a dog?',choices:['Rio','Mom','Dad'],answer:0,emoji:'🐶'},
+    {pages:['I see a cat.','The cat is fat.','The cat is mine.'],q:'How is the cat?',choices:['Sad','Fat','Tall'],answer:1,emoji:'🐱'},
+    {pages:['Dad made a cake.','The cake is red.','I ate it all!'],q:'Who made the cake?',choices:['Mom','Dad','Rio'],answer:1,emoji:'🎂'},
+    {pages:['The bug is small.','It is on a bun.','I ran away fast!'],q:'What was on the bun?',choices:['A bug','A cat','A dog'],answer:0,emoji:'🐛'},
+    {pages:['The sun is up.','The bird can fly.','I can run and jump.'],q:'What can the bird do?',choices:['Sing','Fly','Sit'],answer:1,emoji:'🐦'},
+    {pages:['My bed is red.','My pup is in bed.','We take a nap.'],q:'Who is in bed?',choices:['The cat','The pup','Mom'],answer:1,emoji:'🛏️'},
+    {pages:['I have fun.','I run and run.','I jump so high!'],q:'What do I do?',choices:['Sleep','Run and jump','Eat'],answer:1,emoji:'⭐'},
+    {pages:['Mom has a hat.','The hat is big.','It is too big!'],q:'How is the hat?',choices:['Blue','Too big','Small'],answer:1,emoji:'👒'},
+    {pages:['The dog dug a hole.','The hole is deep.','Now he is stuck!'],q:'What is in the hole?',choices:['The cat','The dog','A bird'],answer:1,emoji:'🕳️'},
+    {pages:['I did a bad burp.','Mom said "oh no!"','The dog ran away.'],q:'What did I do?',choices:['A bad burp','Sing','Dance'],answer:0,emoji:'💨'},
+  ],
+  2: [
+    {pages:['Rio went to the park.','He had his red ball.','The ball fell in mud!'],q:'Where did the ball fall?',choices:['In a tree','In mud','In the car'],answer:1,emoji:'⚽'},
+    {pages:['A pup ran up to me.','The pup had a bone.','I gave him a pat.'],q:'What did the pup have?',choices:['A ball','A bone','A hat'],answer:1,emoji:'🐕'},
+    {pages:['My cat is so silly.','She fell off the bed.','Then she did it again!'],q:'What did the cat do?',choices:['Fell off','Ran away','Hid'],answer:0,emoji:'😹'},
+    {pages:['The sun was up high.','I had a big cold drink.','Yum! That was the best.'],q:'What did I have?',choices:['A hot drink','A cold drink','A fan'],answer:1,emoji:'🥤'},
+    {pages:['A bug sat on the bun.','Mom said "not that one!"','We got a new bun.'],q:'What sat on the bun?',choices:['A bird','A bug','A bee'],answer:1,emoji:'🥖'},
+    {pages:['Dad did a big dance.','His hat fell off!','The dog took the hat.'],q:'What did the dog take?',choices:['A ball','The hat','A bone'],answer:1,emoji:'🕺'},
+    {pages:['I saw a big red bug.','It did not run away.','It sat on my hand!'],q:'Where did the bug sit?',choices:['My shoe','My hand','My hat'],answer:1,emoji:'🐞'},
+    {pages:['The dog dug in the mud.','He got so dirty!','Mom gave him a bath.'],q:'Who got a bath?',choices:['Rio','The dog','Dad'],answer:1,emoji:'🛁'},
+    {pages:['Pikachu did a big fart.','All the mons ran away!','Pikachu said "my bad."'],q:'What did Pikachu do?',choices:['Sing','A big fart','Run'],answer:1,emoji:'💨'},
+    {pages:['A zombie came to school.','He just wanted to read.','The kids said "hi!"'],q:'What did the zombie want?',choices:['To read','To eat','To run'],answer:0,emoji:'🧟'},
+    {pages:['Rio had a big idea.','He built a dog ramp.','Now the pup can get up!'],q:'What did Rio build?',choices:['A bed','A dog ramp','A hat'],answer:1,emoji:'🔨'},
+    {pages:['The creeper was sad.','No one would be his friend.','Rio gave him a hug!'],q:'Who hugged the creeper?',choices:['Mom','Rio','The dog'],answer:1,emoji:'💚'},
+  ],
+  3: [
+    {pages:['One day Rio went to the park with his dog Bubble.','Bubble saw a big fat cat on a bench.','The cat did not run. The cat did a little dance!','Bubble was so shocked he sat down and watched.'],q:'What did the cat do?',choices:['Ran away','Did a little dance','Hissed','Fell asleep'],answer:1,emoji:'🐱'},
+    {pages:['Mom made a big pile of pancakes for lunch.','Rio put on so much syrup the plate was a lake!','Dad said "slow down, you will get a tummy ache."','But Rio was too fast. He ate them all in one go!'],q:'What was for lunch?',choices:['Pizza','Eggs','Pancakes','Soup'],answer:2,emoji:'🥞'},
+    {pages:['A Creeper wanted to go to school like the other kids.','He brought a lunch and a little red backpack.','The teacher said "just do not sneeze!" and all the kids laughed.','The Creeper had the best day of his life.'],q:'Who wanted to go to school?',choices:['A zombie','A Creeper','A skeleton','A pig'],answer:1,emoji:'🎒'},
+    {pages:['Rio had a bad dream about a big mean dog.','He woke up and his pup was on the bed.','The pup gave him a lick and a little paw.','Rio said "you are the best!" and went back to sleep.'],q:'What gave Rio a lick?',choices:['The cat','The pup','Mom','The bird'],answer:1,emoji:'🌙'},
+    {pages:['Pikachu was late for the big ketchup sale.','He ran so fast his tail was a yellow blur!','He got to the shop but it was all sold out.','Then the shop man said "just kidding, I saved some for you!"'],q:'What was Pikachu late for?',choices:['A test','A ketchup sale','A race','A snack'],answer:1,emoji:'⚡'},
+    {pages:['Sprigatito sat on a big soft bed of flowers.','A bee came buzzing up and said "move it!"','Sprigatito jumped up and ran to hide in a bush.','The bee had the bed all to herself.'],q:'Who got the bed?',choices:['Sprigatito','Rio','The bee','The dog'],answer:2,emoji:'🌼'},
+    {pages:['The big bad Ender took my last slice of pizza.','I said "hey, that was mine, give it back!"','He just looked at me and did a big burp.','Then he gave me a new pizza that was even bigger!'],q:'What did I get?',choices:['A bone','A new pizza','A cake','A hug'],answer:1,emoji:'🍕'},
+    {pages:['Rio found an old map in a dusty box.','The map had an X near a big tree.','He dug and dug and found a tiny key!','The key did not fit any door in the house.'],q:'What was under the X?',choices:['A hat','A key','A dog','A cake'],answer:1,emoji:'🗺️'},
+  ],
+  4: [
+    {pages:['It was a hot summer day and Rio wanted to make a stand.','He mixed up lemonade with lots of sugar in a big jug.','A bunch of kids came by and said "we will take one of each!"','Rio sold every last cup and got a whole pile of coins.','He gave the best coin to his little sister Rosa.','She bought a sticker and a gummy bear with it.'],q:'What did Rio make?',choices:['Cookies','Lemonade','Ice cream','Pizza'],answer:1,emoji:'🍋'},
+    {pages:['The dog ran into the room with a muddy bone in his mouth.','Mom yelled "not on the new rug, please!" and dad just laughed.','The dog put the bone down and did a silly little spin.','Then he picked it up and ran right back outside.','Mom said "that dog is going to drive me nuts!"','Dad said "but he is the best dog in the world."'],q:'Who said the dog is the best?',choices:['Mom','Rio','Dad','The bird'],answer:2,emoji:'🦴'},
+    {pages:['One spooky night Rio heard a noise in the closet.','He was so scared he hid under his cozy red blanket.','Then a tiny voice said "can I come out? I am lost!"','Rio jumped up and opened the closet very slowly.','A tiny blue ghost smiled up at him and said hi!','Now they are the best of friends and read books at night.'],q:'Who was in the closet?',choices:['A cat','A ghost','A bug','A dog'],answer:1,emoji:'👻'},
+    {pages:['Pikachu and Sprigatito were the best of friends.','They went to the pond to eat some big red apples.','A frog on a leaf said "pick me up and I will sing!"','They picked him up and he sang the funniest song.','All the bugs in the pond came out to listen.','It was the best frog song the pond had ever heard.'],q:'Who sang the song?',choices:['Pikachu','The frog','A bug','Sprigatito'],answer:1,emoji:'🐸'},
+    {pages:['Rio built a fort out of all the pillows in the house.','He put in a flashlight, a book, and a bag of gummies.','His pup Bubble wagged his tail and crawled in too.','They read the book together until it got dark and quiet.','Mom came by and said "goodnight my little reader!"','Rio and Bubble slept in the fort all night long.'],q:'Where did they sleep?',choices:['The bed','The fort','The couch','The car'],answer:1,emoji:'🏕️'},
+    {pages:['It was the first day of school and Rio was a little nervous.','He put on his best shirt and a bright red hat.','Mom said "you will be great, just be you!" and gave him a hug.','At school he met a kid named Leo who liked dogs too.','They sat at the same table and did every math problem.','Now they are best friends and read books every day.'],q:'Who is Rio\'s new friend?',choices:['Ben','Leo','Sam','Max'],answer:1,emoji:'🎒'},
+  ],
+};
+
+// ========================================================
+// COMIC CHAT — speech-bubble mini comics (emoji-based so no API needed)
+// Each comic has 3 panels of dialogue, then a comprehension question.
+// ========================================================
+const COMICS = {
+  1: [
+    {panels:[
+      {char:'🐶',name:'Dog',text:'I am sad.'},
+      {char:'👦',name:'Rio',text:'Why, dog?'},
+      {char:'🐶',name:'Dog',text:'I lost my bone!'}
+    ],q:'Why is the dog sad?',choices:['Lost his bone','Lost his ball','He is wet'],answer:0},
+    {panels:[
+      {char:'🐱',name:'Cat',text:'Meow!'},
+      {char:'👦',name:'Rio',text:'Are you hungry?'},
+      {char:'🐱',name:'Cat',text:'Yes! Feed me!'}
+    ],q:'What does the cat want?',choices:['A hug','Food','A nap'],answer:1},
+    {panels:[
+      {char:'⚡',name:'Pika',text:'I want ketchup!'},
+      {char:'👦',name:'Rio',text:'Here you go!'},
+      {char:'⚡',name:'Pika',text:'Yum! Thank you!'}
+    ],q:'What did Pika get?',choices:['Ketchup','Pizza','A hat'],answer:0},
+  ],
+  2: [
+    {panels:[
+      {char:'🐶',name:'Pup',text:'I ran in the mud!'},
+      {char:'👩',name:'Mom',text:'Oh no, not again!'},
+      {char:'🐶',name:'Pup',text:'Bath time is fun!'}
+    ],q:'Why is Mom upset?',choices:['Pup is in mud','Pup ran away','Pup is sleeping'],answer:0},
+    {panels:[
+      {char:'🧟',name:'Zombie',text:'I want to read a book.'},
+      {char:'👦',name:'Rio',text:'Here is a good one!'},
+      {char:'🧟',name:'Zombie',text:'This is the best!'}
+    ],q:'What does the zombie want?',choices:['To eat','To read','To run'],answer:1},
+    {panels:[
+      {char:'🐸',name:'Frog',text:'I did a burp!'},
+      {char:'👦',name:'Rio',text:'That was so loud!'},
+      {char:'🐸',name:'Frog',text:'I eat lots of bugs.'}
+    ],q:'Why did the frog burp?',choices:['He was happy','He ate bugs','He was sad'],answer:1},
+    {panels:[
+      {char:'👦',name:'Rio',text:'I made a fort!'},
+      {char:'🐶',name:'Bubble',text:'Can I come in?'},
+      {char:'👦',name:'Rio',text:'Yes, you are my best pal!'}
+    ],q:'Who is in the fort?',choices:['Mom','Rio and Bubble','Just Rio'],answer:1},
+  ],
+  3: [
+    {panels:[
+      {char:'🐲',name:'Dragon',text:'I can fly up to the clouds!'},
+      {char:'👦',name:'Rio',text:'Wow, can I come with you?'},
+      {char:'🐲',name:'Dragon',text:'Hop on and hold tight!'}
+    ],q:'Where are they going?',choices:['To the pond','To the clouds','To school'],answer:1},
+    {panels:[
+      {char:'🌱',name:'Sprig',text:'I smell a big pizza!'},
+      {char:'🔥',name:'Fuego',text:'Me too! Let us go eat.'},
+      {char:'💧',name:'Quaxly',text:'Wait for me! I am coming!'}
+    ],q:'What do they all smell?',choices:['A cake','A pizza','A flower'],answer:1},
+    {panels:[
+      {char:'👻',name:'Ghost',text:'I am new to this house.'},
+      {char:'👦',name:'Rio',text:'Want to play a game?'},
+      {char:'👻',name:'Ghost',text:'Yes! I love to play!'}
+    ],q:'Who is new to the house?',choices:['A cat','A ghost','Mom'],answer:1},
+    {panels:[
+      {char:'🐛',name:'Bug',text:'I found a big green leaf.'},
+      {char:'🐞',name:'Bee',text:'Can I share it with you?'},
+      {char:'🐛',name:'Bug',text:'Yes, we can be friends!'}
+    ],q:'What did the bug find?',choices:['A big leaf','A red flower','A yellow bun'],answer:0},
+  ],
+  4: [
+    {panels:[
+      {char:'👦',name:'Rio',text:'I made a rocket out of paper!'},
+      {char:'🐶',name:'Bubble',text:'Can it really go up to space?'},
+      {char:'👦',name:'Rio',text:'No, but it can fly all the way to the tree!'}
+    ],q:'How far can the rocket fly?',choices:['To space','To the tree','To the moon'],answer:1},
+    {panels:[
+      {char:'🧙',name:'Wizard',text:'I will turn this rock into a pizza!'},
+      {char:'👦',name:'Rio',text:'Wow, can you really do that?'},
+      {char:'🧙',name:'Wizard',text:'Not yet, but I am still learning!'}
+    ],q:'What did the wizard try to make?',choices:['A cake','A pizza','A dog'],answer:1},
+    {panels:[
+      {char:'🦖',name:'T-Rex',text:'I am big but I am not mean.'},
+      {char:'👦',name:'Rio',text:'Want to come to my party?'},
+      {char:'🦖',name:'T-Rex',text:'Yes! I will bring a big cake!'}
+    ],q:'What is the T-Rex bringing?',choices:['A gift','A big cake','A friend'],answer:1},
+  ],
+};
+
+// ========================================================
+// SCRAMBLE SETS — correct sentence Río must rebuild
+// Mixed with n/u, d/b confusion practice.
+// ========================================================
+const SCRAMBLES = {
+  1: [
+    {s:'I see a dog.'},{s:'The cat is fat.'},{s:'My pup is fun.'},
+    {s:'Dad has a bun.'},{s:'I run and jump.'},{s:'The sun is up.'},
+    {s:'My bed is red.'},{s:'The bug is big.'},{s:'Mom has a hat.'},
+    {s:'I like to nap.'},{s:'The dog is mad.'},{s:'I did a dance.'},
+  ],
+  2: [
+    {s:'The dog ran in the mud.'},{s:'I gave my pup a bone.'},{s:'Mom made a big cake.'},
+    {s:'A bug sat on my bun.'},{s:'Dad did a funny dance.'},{s:'The cat fell off the bed.'},
+    {s:'I had a cold drink.'},{s:'Rio has a red ball.'},{s:'The bird can fly up high.'},
+    {s:'I ran to the big tree.'},{s:'My best friend is fun.'},{s:'The pup dug up a bone.'},
+  ],
+  3: [
+    {s:'Rio went to the park with his dog.'},{s:'Pikachu did a big silly dance.'},
+    {s:'The cat sat on top of the big bed.'},{s:'Mom made pancakes for us to eat.'},
+    {s:'My pup ran fast after a red ball.'},{s:'The creeper just wanted a big hug.'},
+    {s:'I built a fort out of soft pillows.'},{s:'Sprigatito took a nap in the flowers.'},
+  ],
+  4: [
+    {s:'Rio and his dog ran all the way to the big park.'},
+    {s:'The dragon said he could fly up to the clouds.'},
+    {s:'Mom made the best pancakes in the whole wide world.'},
+    {s:'A tiny ghost smiled at Rio and asked to play a game.'},
+    {s:'The bug found a huge green leaf and sat right on top.'},
+  ],
+};
+
+// ========================================================
+// READ & FIND SETS — Río must pick the sentence that matches the prompt.
+// Distractors intentionally use n/u and d/b swaps to train the eye.
+// ========================================================
+const READFIND = {
+  1: [
+    {prompt:'Rio has a big dog.',wrong:['Rio has a big bog.','Rio has a big dug.','Rio has a big pig.']},
+    {prompt:'The bun is on the plate.',wrong:['The bun is on the plane.','The bud is on the plate.','The nun is on the plate.']},
+    {prompt:'My pup is in the bed.',wrong:['My pup is in the bud.','My pub is in the bed.','My pun is in the bed.']},
+    {prompt:'I ran to my dad.',wrong:['I ran to my bad.','I run to my dad.','I ran to my bod.']},
+    {prompt:'The bug sat on a bun.',wrong:['The bug sat on a bud.','The dug sat on a bun.','The bug sat on a nub.']},
+    {prompt:'I did a fun dance.',wrong:['I bid a fun dance.','I did a fun bance.','I did a fnu dance.']},
+    {prompt:'Dad is in the den.',wrong:['Bad is in the den.','Dad is in the ben.','Dad is in the dun.']},
+    {prompt:'My cat is big and fat.',wrong:['My cat is big and fad.','My cat is dig and fat.','My bat is big and fat.']},
+  ],
+  2: [
+    {prompt:'The dog ran up the hill.',wrong:['The dog run up the hill.','The bog ran up the hill.','The dog ran up the nill.']},
+    {prompt:'Mom gave me a red bun.',wrong:['Mom gave me a red bud.','Mom gave me a red nun.','Mom gave me a red bin.']},
+    {prompt:'I did a big silly dance.',wrong:['I bid a big silly dance.','I did a dig silly dance.','I did a big silly bance.']},
+    {prompt:'The pup dug a deep hole.',wrong:['The pup bug a deep hole.','The bup dug a deep hole.','The pup dug a beep hole.']},
+    {prompt:'Rio ran to the big tree.',wrong:['Rio run to the big tree.','Rio ran to the dig tree.','Rio ran to the big nree.']},
+    {prompt:'I had a bad dream at night.',wrong:['I had a dad dream at night.','I had a bad dream at nignt.','I hap a bad dream at night.']},
+  ],
+  3: [
+    {prompt:'The dog dug a big hole in the yard and fell in.',wrong:['The dog bug a big hole in the yard and fell in.','The bog dug a big hole in the yard and fell in.','The dog dug a big pole in the yard and fell in.']},
+    {prompt:'Rio made a bun and put lots of jam on it.',wrong:['Rio made a bud and put lots of jam on it.','Rio mabe a bun and put lots of jam on it.','Rio made a nun and put lots of jam on it.']},
+    {prompt:'My pup did a funny dance when the music played.',wrong:['My pup bid a funny dance when the music played.','My pub did a funny dance when the music played.','My pup did a fuuny dance when the music played.']},
+  ],
+  4: [
+    {prompt:'The big red dog ran down the road to find his best friend.',wrong:['The big red dog ran bown the road to find his best friend.','The dig red dog ran down the road to find his best friend.','The big red dog run down the road to find his best friend.']},
+    {prompt:'Rio dug a hole in the sand to bury his old red bucket.',wrong:['Rio bug a hole in the sand to bury his old red bucket.','Rio dug a hole in the sand to dury his old red bucket.','Rio dug a nole in the sand to bury his old red bucket.']},
+  ],
+};
+
+// ========================================================
+// STORY FINISHER SETS — Río picks the sentence that makes sense next.
+// Wrong choices use similar words but don't fit the story.
+// ========================================================
+const FINISHERS = {
+  1: [
+    {setup:['I have a dog.','My dog is fun.'],ends:['We play all day.','The rock is big.','I ate a car.'],answer:0},
+    {setup:['The bug is small.','It sits on a leaf.'],ends:['The bug likes the leaf.','The house is loud.','Dad is a fish.'],answer:0},
+    {setup:['I see a big cake.','It is for my mom.'],ends:['Mom will be so happy!','The sun is wet.','A rock can fly.'],answer:0},
+    {setup:['My pup ran fast.','He saw a big tree.'],ends:['He ran up to it.','He sang a song.','He cooked dinner.'],answer:0},
+  ],
+  2: [
+    {setup:['Rio made a big mess.','Mom was not happy.'],ends:['Rio had to clean it up.','Rio went to the moon.','Rio ate a dog.'],answer:0},
+    {setup:['The dog dug in the mud.','He got all dirty.'],ends:['He had to take a bath.','He ate a pizza.','He went to work.'],answer:0},
+    {setup:['Pikachu was hungry for lunch.','He wanted some ketchup.'],ends:['He ran to the shop fast.','He took a long nap.','He sang a loud song.'],answer:0},
+    {setup:['I built a fort out of pillows.','My pup crawled inside.'],ends:['We read a book together.','We flew to the moon.','We ate the pillows.'],answer:0},
+  ],
+  3: [
+    {setup:['One day Rio saw a tiny ghost in his room.','The ghost was sad and said it was lost.','Rio was not scared at all.'],ends:['He asked the ghost to play a game.','He ate a big fat bug.','He ran out to the park.'],answer:0},
+    {setup:['The dog ran into the kitchen with a muddy bone.','Mom said "not on the new rug!"','The dog did a silly little spin.'],ends:['Then he ran right back outside.','Then he made a big pizza.','Then he painted the wall.'],answer:0},
+    {setup:['Sprigatito sat on a soft bed of flowers.','A bee came buzzing up and said "move!"','Sprigatito jumped up in fear.'],ends:['She ran and hid in a bush.','She baked a big cake.','She read a long book.'],answer:0},
+  ],
+  4: [
+    {setup:['Rio built a lemonade stand on a hot summer day.','A bunch of kids came and bought every cup.','He had a big pile of coins to count.','He gave the best one to his sister Rosa.'],ends:['She used it to buy a sticker at the shop.','She rode a rocket to Mars.','She ate a big red car.'],answer:0},
+    {setup:['The dragon said he could fly high up to the clouds.','Rio asked if he could come along for the ride.','The dragon said "hop on and hold tight!"','They zoomed up into the sky.'],ends:['They saw the whole world from way up there.','They fell down into the sea.','They ate a pizza for lunch.'],answer:0},
+  ],
+};
+
+// ========================================================
+// TRICKY SENTENCES — b/d and n/u focused reading sentences
+// Used by Storybook and Read & Find at all levels.
+// ========================================================
+const TRICKY_FOCUS_WORDS = {
+  'b/d':['dog','bog','bed','bud','dad','bad','dig','big','did','bid','dab','bad','bun','bin','bob','dub'],
+  'n/u':['run','nun','bun','nut','fun','sun','pun','up','on','no','un','nu','din','bun','nub']
+};
+
+// ========================================================
 // GAME ENGINE
 // ========================================================
 const G = {
   score:0, streak:0, lives:3, xp:0, level:1, xpNeeded:50, coins:0,
-  mode:'fill', activeWordmon:0, caughtWordmons:[0],
+  mode:'storybook', activeWordmon:0, caughtWordmons:[0],
   wordmonXP:{}, // {0: 12, 1: 5, ...} tracks XP per wordmon
   currentEnemy:null, enemyHp:0, enemyMaxHp:0, playerHp:0, playerMaxHp:0,
   answering:false, enemyIdx:0, modeWins:0, totalCorrect:0,
@@ -1403,9 +1644,20 @@ const G = {
     document.getElementById('bpBadge').textContent=this.coins;
   },
 
-  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop'},
-  GAME_MODES:['fill','spell','tricky','hear','flash','decode','story','readalong','sentence'],
+  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story'},
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next'},
+  // === READING-FOCUSED MODES (active) ===
+  GAME_MODES:['storybook','comicchat','scramble','readfind','finisher','tricky'],
+  // === LEGACY MODES (hidden but preserved — restore by moving back into GAME_MODES) ===
+  LEGACY_MODES:['fill','spell','hear','flash','decode','story','readalong','sentence'],
+  // Reading level progresses with totalCorrect: harder text as Río improves
+  getReadingLevel(){
+    const tc=this.totalCorrect||0;
+    if(tc<15) return 1;   // 2-3 word sentences
+    if(tc<50) return 2;   // 3-5 word sentences
+    if(tc<120) return 3;  // short stories (3 sentences)
+    return 4;             // full 1st grade stories (4-6 sentences)
+  },
 
   updateModeBar(){
     const mi=document.getElementById('modeIndicator');
@@ -2128,9 +2380,16 @@ const G = {
       return;
     }
     switch(mode){
+      // === ACTIVE READING-FOCUSED MODES ===
+      case'storybook':this.loadStorybook();break;
+      case'comicchat':this.loadComicChat();break;
+      case'scramble':this.loadScramble();break;
+      case'readfind':this.loadReadFind();break;
+      case'finisher':this.loadStoryFinisher();break;
+      case'tricky':this.loadTricky();break; // kept active — helps with b/d n/u
+      // === LEGACY (hidden but still callable if forced) ===
       case'fill':this.loadFillIn();break;
       case'spell':this.loadSpellIt();break;
-      case'tricky':this.loadTricky();break;
       case'hear':this.loadHearIt();break;
       case'flash':this.loadFlash();break;
       case'decode':this.loadDecode();break;
@@ -2138,6 +2397,7 @@ const G = {
       case'readalong':this.loadReadAlong();break;
       case'sentence':this.loadSentenceBuilder();break;
       case'popquiz':this.loadPopQuiz();break;
+      default:this.loadStorybook();break; // fallback to Storybook if unknown mode
     }
   },
 
@@ -3877,6 +4137,352 @@ const G = {
       this.answering=false;
       showQuestion();
     });
+  },
+
+  // ========================================================
+  // === NEW READING-FOCUSED MODES (active in GAME_MODES) ===
+  // ========================================================
+
+  // --- helper: speak text with best voice ---
+  _speak(text,rate=0.75){
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=rate;u.pitch=1.0;
+    const v=getBestVoice();if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  },
+
+  // --- helper: render a sentence with each word tappable ---
+  _tapSentence(text,size='1.4rem'){
+    return text.split(/(\s+)/).map(w=>{
+      const clean=w.trim();
+      if(!clean) return w;
+      return '<span class="tap-word" data-say="'+clean.replace(/"/g,'&quot;')+'" style="cursor:pointer;padding:2px 4px;border-radius:6px;transition:all .2s;display:inline-block;font-size:'+size+'">'+w+'</span>';
+    }).join('');
+  },
+
+  // --- helper: wire up .tap-word click = speak the word ---
+  _wireTapWords(root){
+    root.querySelectorAll('.tap-word').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const w=el.dataset.say||el.textContent.trim().replace(/[^a-zA-Z]/g,'');
+        if(!w) return;
+        el.style.background='#fef3c7';
+        setTimeout(()=>el.style.background='',400);
+        this._speak(w,0.7);
+      });
+    });
+  },
+
+  // =========================================================
+  // 📖 STORYBOOK — page-by-page reading + comprehension question
+  // =========================================================
+  loadStorybook(){
+    const level=this.getReadingLevel();
+    const pool=STORYBOOKS[level]||STORYBOOKS[1];
+    const book=pool[Math.floor(Math.random()*pool.length)];
+    this._pendingWord={w:'storybook_'+book.pages[0].slice(0,8)}; // lock: don't let Rio skip
+    const area=document.getElementById('gameArea');
+    let pageIdx=0;
+    const render=()=>{
+      const isLast=pageIdx>=book.pages.length;
+      if(!isLast){
+        const pct=Math.round(((pageIdx+1)/book.pages.length)*100);
+        area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
+          '<div style="text-align:center;font-size:3.5rem;margin-bottom:8px">'+(book.emoji||'📖')+'</div>'+
+          '<div style="background:#fef3c7;border-radius:14px;padding:6px 10px;text-align:center;font-family:Fredoka One,cursive;font-size:.85rem;color:#92400e;margin-bottom:10px">Page '+(pageIdx+1)+' of '+book.pages.length+'</div>'+
+          '<div style="background:#fff;border:3px solid var(--accent);border-radius:16px;padding:22px 18px;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.9">'+
+            '<div style="font-family:\'Fredoka One\',cursive;color:var(--text);font-size:'+(level<=1?'1.6rem':level===2?'1.4rem':'1.25rem')+'">'+this._tapSentence(book.pages[pageIdx])+'</div>'+
+          '</div>'+
+          '<div style="text-align:center;font-size:.75rem;color:var(--text2);font-weight:700;margin-top:10px">👆 Tap any word to hear it!</div>'+
+          '<div style="display:flex;gap:10px;margin-top:14px;justify-content:center">'+
+            '<button id="sbSpeakAll" style="font-family:Fredoka One,cursive;font-size:.9rem;padding:10px 18px;border-radius:12px;border:none;background:#3b82f6;color:#fff;cursor:pointer">🔊 Read to me</button>'+
+            '<button id="sbNext" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">'+(pageIdx===book.pages.length-1?'Next →':'Next Page →')+'</button>'+
+          '</div>'+
+          '<div style="background:#f1f5f9;border-radius:8px;height:6px;margin-top:14px;overflow:hidden"><div style="background:var(--accent);height:100%;width:'+pct+'%;transition:width .4s"></div></div>'+
+          '<div id="jokeArea"></div></div>';
+        this._wireTapWords(area);
+        document.getElementById('sbSpeakAll').addEventListener('click',()=>this._speak(book.pages[pageIdx]));
+        document.getElementById('sbNext').addEventListener('click',()=>{
+          SFX.play('click');
+          pageIdx++;
+          render();
+        });
+        // auto-read first time the page loads
+        setTimeout(()=>this._speak(book.pages[pageIdx]),400);
+      } else {
+        // comprehension question
+        const cs=shuffle(book.choices.map((c,i)=>({c,i})));
+        area.innerHTML='<div class="card" id="qCard">'+
+          '<div style="text-align:center;font-size:2.5rem;margin-bottom:4px">'+(book.emoji||'📖')+'</div>'+
+          '<div class="question-text" style="font-size:1.2rem">'+book.q+'</div>'+
+          '<div class="choices">'+cs.map(c=>'<button class="choice-btn" data-idx="'+c.i+'">'+c.c+'</button>').join('')+'</div>'+
+          '<div id="jokeArea"></div></div>';
+        setTimeout(()=>this._speak(book.q,0.8),300);
+        area.querySelectorAll('.choice-btn').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(this.answering)return;
+            this.answering=true;
+            const card=document.getElementById('qCard');
+            card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+            const picked=parseInt(btn.dataset.idx);
+            if(picked===book.answer){
+              btn.classList.add('correct');
+              this.onCorrect({w:'storybook',joke:'You read the whole story! That is what readers do! 📖'});
+            } else {
+              btn.classList.add('wrong-pick');
+              card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.idx)===book.answer)b.classList.add('correct');});
+              card.classList.add('wrong-shake');
+              this.onWrong({w:'storybook',joke:'No worries! Read it again and you will get it!'});
+            }
+          });
+        });
+        this.thinkFirst(document.getElementById('qCard'),2);
+      }
+    };
+    render();
+  },
+
+  // =========================================================
+  // 💬 COMIC CHAT — read 3 panels of dialogue, answer question
+  // =========================================================
+  loadComicChat(){
+    const level=this.getReadingLevel();
+    const pool=COMICS[level]||COMICS[1];
+    const comic=pool[Math.floor(Math.random()*pool.length)];
+    this._pendingWord={w:'comic_'+comic.panels[0].text.slice(0,6)};
+    const area=document.getElementById('gameArea');
+    const bubbleColors=['#fef3c7','#dbeafe','#dcfce7','#fce7f3'];
+    let revealedPanels=0;
+    const render=()=>{
+      const panelsHtml=comic.panels.map((p,i)=>{
+        const visible=i<revealedPanels;
+        const bg=bubbleColors[i%bubbleColors.length];
+        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;opacity:'+(visible?'1':'.25')+';transition:opacity .4s">'+
+          '<div style="font-size:3rem;min-width:54px;text-align:center">'+p.char+'</div>'+
+          '<div style="flex:1;background:'+bg+';border:2px solid #1e293b;border-radius:16px;padding:10px 14px;position:relative">'+
+            '<div style="font-family:Fredoka One,cursive;font-size:.7rem;color:var(--text2);margin-bottom:2px">'+p.name+':</div>'+
+            '<div style="font-size:'+(level<=2?'1.1rem':'1rem')+';line-height:1.5;color:var(--text)">'+(visible?this._tapSentence(p.text,'inherit'):'???')+'</div>'+
+          '</div></div>';
+      }).join('');
+      const done=revealedPanels>=comic.panels.length;
+      area.innerHTML='<div class="card" id="qCard" style="padding:16px">'+
+        '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:10px">💬 Read the comic!</div>'+
+        panelsHtml+
+        (done?
+          '<div class="question-text" style="font-size:1.15rem;margin-top:14px">'+comic.q+'</div>'+
+          '<div class="choices">'+shuffle(comic.choices.map((c,i)=>({c,i}))).map(c=>'<button class="choice-btn" data-idx="'+c.i+'">'+c.c+'</button>').join('')+'</div>'
+          :
+          '<div style="text-align:center;margin-top:10px"><button id="cmcNext" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Next Panel →</button></div>'+
+          '<div style="text-align:center;font-size:.7rem;color:var(--text2);font-weight:700;margin-top:8px">👆 Tap words to hear them</div>'
+        )+
+        '<div id="jokeArea"></div></div>';
+      this._wireTapWords(area);
+      if(!done){
+        const btn=document.getElementById('cmcNext');
+        if(btn) btn.addEventListener('click',()=>{
+          SFX.play('click');
+          this._speak(comic.panels[revealedPanels].text,0.75);
+          revealedPanels++;
+          setTimeout(render,200);
+        });
+        // auto-speak current revealed panel
+        if(revealedPanels>0) setTimeout(()=>this._speak(comic.panels[revealedPanels-1].text),300);
+      } else {
+        setTimeout(()=>this._speak(comic.q,0.8),300);
+        area.querySelectorAll('.choice-btn').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(this.answering)return;
+            this.answering=true;
+            const card=document.getElementById('qCard');
+            card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+            const picked=parseInt(btn.dataset.idx);
+            if(picked===comic.answer){
+              btn.classList.add('correct');
+              this.onCorrect({w:'comic',joke:'You read the whole comic! So good!'});
+            } else {
+              btn.classList.add('wrong-pick');
+              card.querySelectorAll('.choice-btn').forEach(b=>{if(parseInt(b.dataset.idx)===comic.answer)b.classList.add('correct');});
+              card.classList.add('wrong-shake');
+              this.onWrong({w:'comic',joke:'Read the comic again and look closely!'});
+            }
+          });
+        });
+        this.thinkFirst(document.getElementById('qCard'),2);
+      }
+    };
+    // kick off: reveal first panel
+    revealedPanels=1;
+    setTimeout(()=>this._speak(comic.panels[0].text,0.75),400);
+    render();
+  },
+
+  // =========================================================
+  // 🔀 SENTENCE SCRAMBLE — tap words in correct order
+  // =========================================================
+  loadScramble(){
+    const level=this.getReadingLevel();
+    const pool=SCRAMBLES[level]||SCRAMBLES[1];
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    this._pendingWord={w:'scramble_'+pick.s.slice(0,8)};
+    // split sentence into word tokens (keep punctuation on last)
+    const words=pick.s.split(/\s+/);
+    const target=words.map(w=>w.toLowerCase().replace(/[^a-z]/g,''));
+    const shuffled=shuffle(words.map((w,i)=>({w,i})));
+    const area=document.getElementById('gameArea');
+    const picked=[]; // array of {w,i} in order tapped
+    const render=()=>{
+      const remaining=shuffled.filter(t=>!picked.find(p=>p.i===t.i));
+      const correctSoFar=picked.every((p,idx)=>p.i===idx);
+      area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
+        '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:4px">🔀 Put the words in order!</div>'+
+        '<div style="text-align:center;font-size:.8rem;color:var(--text2);font-weight:700;margin-bottom:12px">Read the sentence in your head, then tap the words.</div>'+
+        '<div id="scrSlots" style="min-height:56px;border:3px dashed #cbd5e1;border-radius:14px;padding:10px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#fff7ed">'+
+          (picked.length===0?'<span style="color:var(--text2);font-size:.9rem;font-style:italic">tap words below ↓</span>':
+            picked.map((p,i)=>'<span class="scr-slot" data-i="'+i+'" style="background:'+(correctSoFar?'var(--accent)':'#fbbf24')+';color:#fff;padding:8px 12px;border-radius:10px;font-family:Fredoka One,cursive;font-size:1.1rem;cursor:pointer">'+p.w+'</span>').join(''))+
+        '</div>'+
+        '<div id="scrBank" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px">'+
+          remaining.map(t=>'<button class="scr-tile" data-i="'+t.i+'" style="font-family:Fredoka One,cursive;font-size:1.05rem;padding:10px 14px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;color:var(--text);cursor:pointer">'+t.w+'</button>').join('')+
+        '</div>'+
+        '<div style="display:flex;gap:8px;justify-content:center">'+
+          '<button id="scrClear" style="font-family:Nunito,sans-serif;font-weight:700;font-size:.85rem;padding:8px 16px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">⬅ Clear</button>'+
+          '<button id="scrCheck" '+(picked.length===words.length?'':'disabled')+' style="font-family:Fredoka One,cursive;font-size:.95rem;padding:8px 20px;border-radius:10px;border:none;background:'+(picked.length===words.length?'var(--accent)':'#cbd5e1')+';color:#fff;cursor:'+(picked.length===words.length?'pointer':'default')+'">Check ✓</button>'+
+        '</div>'+
+        '<div id="jokeArea"></div></div>';
+      area.querySelectorAll('.scr-tile').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          SFX.play('click');
+          const i=parseInt(btn.dataset.i);
+          const item=shuffled.find(t=>t.i===i);
+          picked.push(item);
+          this._speak(item.w,0.7);
+          render();
+        });
+      });
+      area.querySelectorAll('.scr-slot').forEach(sp=>{
+        sp.addEventListener('click',()=>{
+          const idx=parseInt(sp.dataset.i);
+          picked.splice(idx,1);
+          render();
+        });
+      });
+      document.getElementById('scrClear').addEventListener('click',()=>{
+        picked.length=0;render();
+      });
+      const checkBtn=document.getElementById('scrCheck');
+      if(checkBtn) checkBtn.addEventListener('click',()=>{
+        if(this.answering||picked.length!==words.length)return;
+        this.answering=true;
+        const built=picked.map(p=>p.w).join(' ');
+        const card=document.getElementById('qCard');
+        if(built===pick.s){
+          document.getElementById('scrSlots').style.borderColor='var(--green)';
+          this._speak(pick.s,0.7);
+          this.onCorrect({w:'scramble',joke:'"'+pick.s+'" — that is the one! 🎉'});
+        } else {
+          card.classList.add('wrong-shake');
+          // show the right answer highlighted
+          document.getElementById('scrSlots').innerHTML=words.map(w=>'<span style="background:var(--green);color:#fff;padding:8px 12px;border-radius:10px;font-family:Fredoka One,cursive;font-size:1.1rem;margin:2px">'+w+'</span>').join('');
+          document.getElementById('scrSlots').style.borderColor='var(--green)';
+          this._speak('The right way is: '+pick.s,0.7);
+          this.onWrong({w:'scramble',joke:'Close! Read it out loud: "'+pick.s+'"'});
+        }
+      });
+    };
+    render();
+  },
+
+  // =========================================================
+  // 🔎 READ & FIND — pick the sentence that matches (n/u, b/d distractors)
+  // =========================================================
+  loadReadFind(){
+    const level=this.getReadingLevel();
+    const pool=READFIND[level]||READFIND[1];
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    this._pendingWord={w:'readfind_'+pick.prompt.slice(0,8)};
+    const choices=shuffle([{s:pick.prompt,ok:true},...pick.wrong.map(s=>({s,ok:false}))]);
+    const area=document.getElementById('gameArea');
+    area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:4px">🔎 Which one is RIGHT?</div>'+
+      '<div style="text-align:center;font-size:.8rem;color:var(--text2);font-weight:700;margin-bottom:12px">Look carefully — some letters are tricky!</div>'+
+      '<div style="background:#fffbeb;border:3px solid #fbbf24;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px">'+
+        '<div style="font-family:Fredoka One,cursive;font-size:.75rem;color:#92400e;margin-bottom:4px">FIND THIS:</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.3rem':'1.15rem')+';color:var(--text);line-height:1.5">'+this._tapSentence(pick.prompt,'inherit')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:8px">'+
+        choices.map((c,i)=>'<button class="rf-opt" data-ok="'+(c.ok?'1':'0')+'" style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.1rem':'.98rem')+';padding:12px 14px;border-radius:12px;border:2px solid #cbd5e1;background:#fff;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">'+c.s+'</button>').join('')+
+      '</div>'+
+      '<div id="jokeArea"></div></div>';
+    this._wireTapWords(area);
+    setTimeout(()=>this._speak('Find: '+pick.prompt,0.7),400);
+    area.querySelectorAll('.rf-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.rf-opt').forEach(b=>{
+          b.style.pointerEvents='none';
+          if(b.dataset.ok==='1'){b.style.borderColor='var(--green)';b.style.background='#dcfce7';}
+        });
+        if(btn.dataset.ok==='1'){
+          this._speak(pick.prompt,0.7);
+          this.onCorrect({w:'readfind',joke:'You read it carefully — nice work!'});
+        } else {
+          btn.style.borderColor='var(--red)';btn.style.background='#fef2f2';
+          card.classList.add('wrong-shake');
+          this._speak('The right one is: '+pick.prompt,0.7);
+          this.onWrong({w:'readfind',joke:'Watch out for n/u and b/d — they look sneaky!'});
+        }
+      });
+    });
+  },
+
+  // =========================================================
+  // 📚 STORY FINISHER — read setup, pick sentence that comes next
+  // =========================================================
+  loadStoryFinisher(){
+    const level=this.getReadingLevel();
+    const pool=FINISHERS[level]||FINISHERS[1];
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    this._pendingWord={w:'finisher_'+pick.setup[0].slice(0,8)};
+    const choices=shuffle(pick.ends.map((e,i)=>({e,i})));
+    const area=document.getElementById('gameArea');
+    area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:4px">📚 What comes next?</div>'+
+      '<div style="text-align:center;font-size:.8rem;color:var(--text2);font-weight:700;margin-bottom:12px">Read the story, then pick the sentence that fits.</div>'+
+      '<div style="background:#f0fdf4;border:3px solid #22c55e;border-radius:14px;padding:16px;margin-bottom:10px">'+
+        pick.setup.map(s=>'<div style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.2rem':'1.05rem')+';color:var(--text);line-height:1.8;margin-bottom:6px">'+this._tapSentence(s,'inherit')+'</div>').join('')+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:#22c55e;text-align:center;margin-top:6px">...then what? ⬇</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:8px">'+
+        choices.map(c=>'<button class="fin-opt" data-idx="'+c.i+'" style="font-family:Fredoka One,cursive;font-size:'+(level<=1?'1.05rem':'.95rem')+';padding:12px 14px;border-radius:12px;border:2px solid #cbd5e1;background:#fff;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">'+c.e+'</button>').join('')+
+      '</div>'+
+      '<div id="jokeArea"></div></div>';
+    this._wireTapWords(area);
+    setTimeout(()=>this._speak(pick.setup.join(' '),0.72),400);
+    area.querySelectorAll('.fin-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.fin-opt').forEach(b=>b.style.pointerEvents='none');
+        const idx=parseInt(btn.dataset.idx);
+        const correct=pick.ends[pick.answer];
+        if(idx===pick.answer){
+          btn.style.borderColor='var(--green)';btn.style.background='#dcfce7';
+          this._speak(correct,0.7);
+          this.onCorrect({w:'finisher',joke:'You figured out the story! That is real reading!'});
+        } else {
+          btn.style.borderColor='var(--red)';btn.style.background='#fef2f2';
+          card.querySelectorAll('.fin-opt').forEach(b=>{if(parseInt(b.dataset.idx)===pick.answer){b.style.borderColor='var(--green)';b.style.background='#dcfce7';}});
+          card.classList.add('wrong-shake');
+          this._speak('The best one was: '+correct,0.7);
+          this.onWrong({w:'finisher',joke:'Read the story again and think what fits!'});
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),3);
   },
 
   // ---- READ ALONG (TTS reads sentence but pauses for target word) ----

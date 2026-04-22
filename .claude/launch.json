@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "giannacuneo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/pablodelcan/GitHub/giannacuneo", "-l", "3456"],
+      "port": 3456
+    },
+    {
+      "name": "garden",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/pablodelcan/Documents/Github/garden", "-l", "3457"],
+      "port": 3457
+    }
+  ]
+}
