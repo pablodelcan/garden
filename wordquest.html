@@ -56,26 +56,9 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 
 /* BATTLE SCENE */
 .battle{background:linear-gradient(180deg,#e0f2fe 0%,#bae6fd 45%,#a7f3d0 45%,#6ee7b7 100%);background-size:cover;background-position:center bottom;border-radius:20px;margin:8px 12px;padding:14px 20px;min-height:220px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(147,51,234,.18),inset 0 1px 0 rgba(255,255,255,.35);transition:background .6s ease;border:2px solid rgba(147,51,234,.15)}
-/* === FRESH GRADIENT BATTLE SCENES — replaces PNG backgrounds === */
-/* Each zone gets a distinct 2-3 color gradient + optional decorative layer */
-.battle.zone-forest{background:linear-gradient(180deg,#c7f9cc 0%,#80ed99 40%,#57cc99 70%,#38a3a5 100%)}
-.battle.zone-ocean{background:radial-gradient(ellipse at top,#fef08a 0%,transparent 40%),linear-gradient(180deg,#a7f3d0 0%,#22d3ee 40%,#0891b2 80%,#155e75 100%)}
-.battle.zone-volcano{background:radial-gradient(circle at 30% 20%,#fde047 0%,transparent 30%),linear-gradient(180deg,#450a0a 0%,#991b1b 30%,#dc2626 60%,#f97316 90%,#fbbf24 100%)}
-.battle.zone-cave{background:radial-gradient(ellipse at 50% 30%,#c084fc 0%,transparent 45%),linear-gradient(180deg,#1e1b4b 0%,#3730a3 40%,#5b21b6 80%,#1e1b4b 100%)}
-.battle.zone-sky{background:linear-gradient(180deg,#e0f2fe 0%,#bae6fd 30%,#7dd3fc 60%,#38bdf8 100%)}
-.battle.zone-snow{background:linear-gradient(180deg,#eff6ff 0%,#dbeafe 30%,#bfdbfe 60%,#93c5fd 100%)}
-.battle.zone-castle{background:radial-gradient(ellipse at top,#fef3c7 0%,transparent 30%),linear-gradient(180deg,#64748b 0%,#475569 40%,#334155 80%,#1e293b 100%)}
-.battle.zone-space{background:radial-gradient(circle at 20% 30%,#fef08a 0%,transparent 8%),radial-gradient(circle at 70% 20%,#fde047 0%,transparent 5%),radial-gradient(circle at 85% 50%,#f9a8d4 0%,transparent 6%),linear-gradient(180deg,#0f172a 0%,#1e1b4b 40%,#312e81 80%,#4338ca 100%)}
-.battle.zone-mushroom{background:radial-gradient(circle at 75% 25%,#f9a8d4 0%,transparent 25%),linear-gradient(180deg,#fce7f3 0%,#f9a8d4 30%,#e879f9 70%,#a855f7 100%)}
-.battle.zone-lavapit{background:radial-gradient(circle at 50% 80%,#fef3c7 0%,transparent 25%),linear-gradient(180deg,#450a0a 0%,#7c2d12 20%,#c2410c 50%,#f97316 80%,#fde047 100%)}
-.battle.zone-frozen{background:linear-gradient(180deg,#ecfeff 0%,#a5f3fc 35%,#22d3ee 70%,#0e7490 100%)}
-.battle.zone-shadow{background:radial-gradient(ellipse at center,#7c3aed 0%,transparent 50%),linear-gradient(180deg,#020617 0%,#0f172a 40%,#1e1b4b 100%)}
-.battle.zone-cosmic{background:conic-gradient(from 180deg at 50% 100%,#ec4899 0deg,#9333ea 60deg,#3b82f6 120deg,#06b6d4 180deg,#10b981 240deg,#ec4899 360deg);filter:saturate(1.2)}
-/* decorative sun/moon circle on all scenes */
-.battle::before{content:'';position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.8) 0%,rgba(255,255,255,.2) 70%,transparent 100%);top:12px;right:20px;filter:blur(1px);pointer-events:none;animation:sunPulse 6s ease-in-out infinite}
-@keyframes sunPulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
-/* subtle floating particles for cosmic flavor */
-.battle::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 15% 85%,rgba(255,255,255,.3) 1px,transparent 2px),radial-gradient(circle at 85% 75%,rgba(255,255,255,.25) 1px,transparent 2px),radial-gradient(circle at 60% 90%,rgba(255,255,255,.2) 1px,transparent 2px);pointer-events:none}
+/* Battle scene uses AI-generated PNG backgrounds via JS (changeBattleBg) */
+/* Subtle sparkle particle overlay for magical feel */
+.battle::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 15% 85%,rgba(255,255,255,.4) 1px,transparent 2px),radial-gradient(circle at 85% 75%,rgba(255,255,255,.3) 1px,transparent 2px),radial-gradient(circle at 60% 90%,rgba(255,255,255,.25) 1px,transparent 2px);pointer-events:none;z-index:1}
 .battle-ground{display:flex;justify-content:space-between;align-items:flex-end;min-height:180px;position:relative;padding:0 10px}
 .fighter{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:2}
 .sprite-box{transition:transform .5s ease}
@@ -378,7 +361,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
 <!-- HEADER -->
 <div class="header">
   <div class="header-top">
-    <img src="sprites/logo_rioreads_v6.png?v=2" alt="Río Reads — Word Quest" class="header-logo">
+    <img src="sprites/logo_rioreads_v7.png?v=7" alt="Río Reads — Word Quest" class="header-logo">
     <div class="hud">
       <div class="pill"><img src="sprites/hud_star.png" class="hud-icon"><span id="scoreVal">0</span></div>
       <div class="pill"><img src="sprites/hud_fire.png" class="hud-icon"><span id="streakVal">0</span></div>
@@ -494,6 +477,18 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
   <img src="sprites/backpack_detailed.png" style="width:56px;height:56px;object-fit:contain">
   <div class="backpack-badge" id="bpBadge">0</div>
 </div>
+
+<!-- STORYBOOK SHELF BUTTON (above backpack) — AI-illustrated story Río can read -->
+<div id="bookshelfBtn" onclick="openBookshelf()" title="Read a story for 20 points!" style="position:fixed;bottom:82px;right:16px;z-index:150;width:56px;height:56px;cursor:pointer;filter:drop-shadow(2px 4px 6px rgba(147,51,234,.4));transition:transform .2s;animation:bookFloat 3s ease-in-out infinite">
+  <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 4px 12px rgba(147,51,234,.4);border:2px solid #fff;position:relative">
+    📖
+    <div id="bookBadge" style="position:absolute;top:-4px;right:-4px;background:var(--hot);color:#fff;font-family:'Fredoka One',cursive;font-size:.6rem;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;padding:0 4px">+20</div>
+  </div>
+</div>
+<style>
+@keyframes bookFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+#bookshelfBtn:hover{transform:scale(1.1)}
+</style>
 
 <!-- EXPLORE BUTTON -->
 <button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!"><img src="sprites/ico_explore.png" style="width:32px;height:32px"></button>
@@ -983,6 +978,102 @@ const WORDMONS = [
     {name:'Turboroar',hp:28,bio:'Turboroar is a Wordmon shaped like a race car! He said "Vrooom! I am the fastest!" He has big wheels and a tiny engine that goes PUT PUT PUT!',svg:`<svg viewBox="0 0 100 100"><rect x="18" y="46" width="64" height="22" rx="10" fill="#9333ea"/><rect x="30" y="30" width="40" height="22" rx="6" fill="#a855f7"/><circle cx="36" cy="40" r="4" fill="#1e293b"/><circle cx="64" cy="40" r="4" fill="#1e293b"/><circle cx="37" cy="39" r="1.5" fill="#fff"/><circle cx="65" cy="39" r="1.5" fill="#fff"/><path d="M42 46 Q50 50 58 46" stroke="#1e293b" stroke-width="2" fill="none"/><circle cx="28" cy="72" r="10" fill="#1e293b"/><circle cx="28" cy="72" r="5" fill="#94a3b8"/><circle cx="72" cy="72" r="10" fill="#1e293b"/><circle cx="72" cy="72" r="5" fill="#94a3b8"/><rect x="80" y="52" width="8" height="6" rx="2" fill="#ef4444"/></svg>`},
     {name:'Nitrofang',hp:42,bio:'Nitrofang is faster and meaner! He said "I have nitro boosts!" He has flames on his sides and a big scoop on his back. ZOOM ZOOM!',svg:`<svg viewBox="0 0 100 100"><rect x="12" y="44" width="76" height="26" rx="12" fill="#7c3aed"/><rect x="26" y="24" width="48" height="24" rx="8" fill="#9333ea"/><circle cx="36" cy="34" r="5" fill="#1e293b"/><circle cx="64" cy="34" r="5" fill="#1e293b"/><circle cx="38" cy="32" r="2" fill="#fff"/><circle cx="66" cy="32" r="2" fill="#fff"/><path d="M42 42 Q50 48 58 42" stroke="#1e293b" stroke-width="2.5" fill="none"/><polygon points="42,44 46,52 50,44" fill="#fff"/><polygon points="50,44 54,52 58,44" fill="#fff"/><circle cx="26" cy="74" r="12" fill="#1e293b"/><circle cx="26" cy="74" r="6" fill="#94a3b8"/><circle cx="74" cy="74" r="12" fill="#1e293b"/><circle cx="74" cy="74" r="6" fill="#94a3b8"/><path d="M8 50 Q0 54 4 62 Q10 56 14 58" fill="#fbbf24"/><path d="M8 50 Q-4 58 2 66" fill="#ef4444"/><rect x="30" y="14" width="40" height="10" rx="3" fill="#b45309"/></svg>`},
     {name:'Velocitron',hp:60,bio:'Velocitron is the FASTEST Wordmon ever! He said "I break the sound wall!" He has jet engines and gold wheels. Do not blink or you will miss him!',svg:`<svg viewBox="0 0 100 100"><rect x="6" y="42" width="88" height="30" rx="14" fill="#c2410c"/><rect x="20" y="18" width="60" height="28" rx="10" fill="#7c3aed"/><rect x="26" y="22" width="48" height="20" rx="6" fill="#9333ea"/><circle cx="34" cy="30" r="6" fill="#1e293b"/><circle cx="66" cy="30" r="6" fill="#1e293b"/><circle cx="36" cy="28" r="2.5" fill="#fff"/><circle cx="68" cy="28" r="2.5" fill="#fff"/><path d="M40 38 Q50 46 60 38" stroke="#1e293b" stroke-width="3" fill="none"/><polygon points="42,40 46,50 50,40" fill="#fff"/><polygon points="50,40 54,50 58,40" fill="#fff"/><circle cx="24" cy="76" r="14" fill="#1e293b"/><circle cx="24" cy="76" r="8" fill="#fbbf24"/><circle cx="24" cy="76" r="3" fill="#1e293b"/><circle cx="76" cy="76" r="14" fill="#1e293b"/><circle cx="76" cy="76" r="8" fill="#fbbf24"/><circle cx="76" cy="76" r="3" fill="#1e293b"/><path d="M0 48 Q-12 56 -2 68 Q6 60 12 60" fill="#fbbf24"/><path d="M0 48 Q-16 60 -4 72" fill="#ef4444"/><path d="M-2 52 Q-18 64 -6 76" fill="#fde047"/><rect x="40" y="6" width="20" height="14" rx="3" fill="#78350f"/><rect x="44" y="10" width="12" height="6" fill="#fbbf24"/></svg>`}
+  ]},
+  // ===== 20 NEW WORDMONS (sprites generated via Nano Banana) =====
+  {id:'sproutkin',type:'Grass',color:'#86efac',bio:'Sproutkin just popped out of the ground! She is a tiny green plant with a smile. She said "I am new!" and she likes the sun on her face.',stages:[
+    {name:'Sproutkin',hp:28,bio:'Sproutkin just popped out of the ground! She is a tiny green plant with a smile. She likes sunshine.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="65" rx="20" ry="18" fill="#86efac"/><circle cx="44" cy="62" r="3" fill="#1e293b"/><circle cx="56" cy="62" r="3" fill="#1e293b"/><path d="M44 72 Q50 76 56 72" stroke="#1e293b" stroke-width="2" fill="none"/><path d="M50 48 Q42 28 32 38 Q42 36 50 48Z" fill="#22c55e"/><path d="M50 48 Q58 28 68 38 Q58 36 50 48Z" fill="#22c55e"/></svg>`},
+    {name:'Bloomstar',hp:42,bio:'Bloomstar has a big pink flower on her head! She said "I can smell the bees coming!" She is green and pink and she glows in the sun.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="62" rx="24" ry="22" fill="#86efac"/><circle cx="42" cy="58" r="4" fill="#1e293b"/><circle cx="58" cy="58" r="4" fill="#1e293b"/><path d="M44 70 Q50 75 56 70" stroke="#1e293b" stroke-width="2" fill="none"/><circle cx="50" cy="30" r="12" fill="#f472b6"/><circle cx="50" cy="30" r="5" fill="#fde047"/><path d="M40 25 L35 18Z M60 25 L65 18Z M50 18 L50 10Z" stroke="#ec4899" stroke-width="3"/></svg>`},
+    {name:'Florawarden',hp:56,bio:'Florawarden is the queen of the garden! She said "every flower listens to me!" She is big and green with a crown of flowers. All the bugs are her friends.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="32" ry="30" fill="#22c55e"/><circle cx="40" cy="48" r="5" fill="#1e293b"/><circle cx="60" cy="48" r="5" fill="#1e293b"/><path d="M42 62 Q50 70 58 62" stroke="#1e293b" stroke-width="2.5" fill="none"/><circle cx="30" cy="20" r="8" fill="#f472b6"/><circle cx="50" cy="14" r="9" fill="#ec4899"/><circle cx="70" cy="20" r="8" fill="#f472b6"/><circle cx="30" cy="20" r="3" fill="#fde047"/><circle cx="50" cy="14" r="3" fill="#fde047"/><circle cx="70" cy="20" r="3" fill="#fde047"/></svg>`}
+  ]},
+  {id:'pebblet',type:'Rock',color:'#a8a29e',bio:'Pebblet is a tiny rock with eyes. He is quiet but kind. He said "I am small but strong!" He is the youngest of all the rocks in the hills.',stages:[
+    {name:'Pebblet',hp:32,bio:'Pebblet is a tiny round rock with eyes. He is small but strong.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="22" ry="20" fill="#a8a29e"/><ellipse cx="50" cy="60" rx="16" ry="14" fill="#d6d3d1"/><circle cx="43" cy="56" r="3" fill="#1e293b"/><circle cx="57" cy="56" r="3" fill="#1e293b"/><path d="M45 66 L55 66" stroke="#1e293b" stroke-width="2"/></svg>`},
+    {name:'Mossboulder',hp:46,bio:'Mossboulder has a top of green moss! He said "I am a boulder now!" He rolls down the hill so fast. Do not get in his way.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="28" ry="26" fill="#78716c"/><ellipse cx="50" cy="60" rx="22" ry="18" fill="#a8a29e"/><path d="M30 42 Q50 28 70 42 Q60 34 50 36 Q40 34 30 42Z" fill="#22c55e"/><circle cx="42" cy="56" r="4" fill="#1e293b"/><circle cx="58" cy="56" r="4" fill="#1e293b"/><path d="M44 68 L56 68" stroke="#1e293b" stroke-width="2.5"/></svg>`},
+    {name:'Mountainguard',hp:64,bio:'Mountainguard is a living mountain! He said "I guard the whole valley!" He has crystals on his back and his fists can shake the ground.',svg:`<svg viewBox="0 0 100 100"><polygon points="12,80 50,10 88,80" fill="#57534e"/><polygon points="20,80 50,22 80,80" fill="#78716c"/><polygon points="30,80 50,36 70,80" fill="#a8a29e"/><circle cx="42" cy="56" r="5" fill="#fbbf24"/><circle cx="58" cy="56" r="5" fill="#fbbf24"/><path d="M44 68 L56 68" stroke="#1e293b" stroke-width="3"/><polygon points="40,30 44,20 48,32" fill="#06b6d4"/><polygon points="56,28 60,18 64,30" fill="#06b6d4"/></svg>`}
+  ]},
+  {id:'chirpy',type:'Flying',color:'#fde047',bio:'Chirpy is a little yellow bird! She said "tweet tweet hi!" She has tiny wings and big eyes. She likes to sing at sunrise.',stages:[
+    {name:'Chirpy',hp:26,bio:'Chirpy is a little yellow bird. She likes to sing at sunrise.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="22" fill="#fde047"/><circle cx="42" cy="50" r="4" fill="#1e293b"/><circle cx="58" cy="50" r="4" fill="#1e293b"/><polygon points="50,58 44,64 56,64" fill="#f97316"/><path d="M30 55 Q22 50 28 60Z" fill="#fbbf24"/><path d="M70 55 Q78 50 72 60Z" fill="#fbbf24"/></svg>`},
+    {name:'Featherjet',hp:40,bio:'Featherjet has big wings and can zoom across the sky! She said "watch me loop!" Her feathers are yellow and blue and she loves to race.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="26" ry="22" fill="#fde047"/><path d="M20 48 Q2 36 14 62 Q22 56 20 48Z" fill="#38bdf8"/><path d="M80 48 Q98 36 86 62 Q78 56 80 48Z" fill="#38bdf8"/><circle cx="42" cy="48" r="5" fill="#1e293b"/><circle cx="58" cy="48" r="5" fill="#1e293b"/><polygon points="50,58 42,66 58,66" fill="#f97316"/></svg>`},
+    {name:'Skyraptor',hp:58,bio:'Skyraptor is the king of the sky! He said "I see every cloud!" He has golden wings and sharp claws. Birds everywhere bow to him.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="52" rx="30" ry="26" fill="#fbbf24"/><path d="M14 44 Q-12 24 8 70 Q22 58 14 44Z" fill="#f59e0b"/><path d="M86 44 Q112 24 92 70 Q78 58 86 44Z" fill="#f59e0b"/><circle cx="40" cy="46" r="6" fill="#ef4444"/><circle cx="60" cy="46" r="6" fill="#ef4444"/><circle cx="40" cy="46" r="3" fill="#1e293b"/><circle cx="60" cy="46" r="3" fill="#1e293b"/><polygon points="50,58 40,70 60,70" fill="#b91c1c"/><polygon points="50,18 46,8 54,8" fill="#fbbf24"/></svg>`}
+  ]},
+  {id:'munchy',type:'Normal',color:'#fb923c',bio:'Munchy is always so hungry! He said "gimme a snack!" He is a round orange blob with a big mouth. He will eat anything that is not nailed down.',stages:[
+    {name:'Munchy',hp:30,bio:'Munchy is always hungry! He will eat anything.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="26" fill="#fb923c"/><circle cx="42" cy="50" r="4" fill="#1e293b"/><circle cx="58" cy="50" r="4" fill="#1e293b"/><ellipse cx="50" cy="66" rx="10" ry="6" fill="#1e293b"/><rect x="48" y="64" width="2" height="4" fill="#fff"/><rect x="52" y="64" width="2" height="4" fill="#fff"/></svg>`},
+    {name:'Biteball',hp:44,bio:'Biteball has huge teeth and he is still always hungry! He said "I need more snacks!" He can chomp through a pizza in one big bite.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="54" r="30" fill="#f97316"/><circle cx="40" cy="46" r="5" fill="#1e293b"/><circle cx="60" cy="46" r="5" fill="#1e293b"/><ellipse cx="50" cy="66" rx="16" ry="10" fill="#1e293b"/><polygon points="40,60 42,70 44,60" fill="#fff"/><polygon points="46,60 48,72 50,60" fill="#fff"/><polygon points="52,60 54,72 56,60" fill="#fff"/><polygon points="58,60 60,70 62,60" fill="#fff"/></svg>`},
+    {name:'Gobbleking',hp:62,bio:'Gobbleking is the king of snacks! He said "bow down and feed me!" He has a crown and his mouth is the size of a door.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="54" r="34" fill="#ea580c"/><polygon points="30,24 34,14 38,22 42,10 46,20 50,8 54,20 58,10 62,22 66,14 70,24 50,30" fill="#fbbf24" stroke="#d97706" stroke-width="1"/><circle cx="38" cy="48" r="6" fill="#1e293b"/><circle cx="62" cy="48" r="6" fill="#1e293b"/><ellipse cx="50" cy="68" rx="22" ry="14" fill="#1e293b"/><polygon points="36,60 38,74 40,60" fill="#fff"/><polygon points="44,60 46,76 48,60" fill="#fff"/><polygon points="52,60 54,76 56,60" fill="#fff"/><polygon points="60,60 62,74 64,60" fill="#fff"/></svg>`}
+  ]},
+  {id:'fluffle',type:'Fairy',color:'#f9a8d4',bio:'Fluffle is a soft pink cloud of fluff! She said "pet me please!" She has big eyes and a little tail and she smells like cotton candy.',stages:[
+    {name:'Fluffle',hp:28,bio:'Fluffle is a soft pink cloud of fluff. She smells like cotton candy.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="24" ry="22" fill="#f9a8d4"/><ellipse cx="50" cy="57" rx="18" ry="15" fill="#fbcfe8"/><circle cx="43" cy="52" r="3" fill="#1e293b"/><circle cx="57" cy="52" r="3" fill="#1e293b"/><path d="M45 62 Q50 66 55 62" stroke="#1e293b" stroke-width="2" fill="none"/></svg>`},
+    {name:'Cottonhop',hp:42,bio:'Cottonhop hops so high! She said "I bounce on clouds!" Her fluff is pink and white and she has little bunny feet.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="28" ry="24" fill="#f472b6"/><ellipse cx="50" cy="56" rx="22" ry="18" fill="#fbcfe8"/><path d="M30 28 Q28 10 36 26Z" fill="#f9a8d4"/><path d="M70 28 Q72 10 64 26Z" fill="#f9a8d4"/><circle cx="42" cy="48" r="4" fill="#1e293b"/><circle cx="58" cy="48" r="4" fill="#1e293b"/><path d="M44 62 Q50 66 56 62" stroke="#1e293b" stroke-width="2" fill="none"/><circle cx="34" cy="78" r="6" fill="#fbcfe8"/><circle cx="66" cy="78" r="6" fill="#fbcfe8"/></svg>`},
+    {name:'Cloudqueen',hp:58,bio:'Cloudqueen is the softest and kindest of all! She said "I make rainbows for the kids!" She floats in the sky and she has a sparkly crown.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="34" ry="28" fill="#ec4899"/><ellipse cx="50" cy="56" rx="28" ry="22" fill="#f9a8d4"/><polygon points="30,24 34,14 38,22 42,12 46,20 50,10 54,20 58,12 62,22 66,14 70,24 50,30" fill="#fde047"/><circle cx="40" cy="46" r="5" fill="#1e293b"/><circle cx="60" cy="46" r="5" fill="#1e293b"/><path d="M42 60 Q50 66 58 60" stroke="#1e293b" stroke-width="2.5" fill="none"/><path d="M20 70 Q50 80 80 70" stroke="#9333ea" stroke-width="3" fill="none"/><path d="M20 74 Q50 84 80 74" stroke="#3b82f6" stroke-width="3" fill="none"/><path d="M20 78 Q50 88 80 78" stroke="#22c55e" stroke-width="3" fill="none"/></svg>`}
+  ]},
+  {id:'zappit',type:'Electric',color:'#facc15',bio:'Zappit is tiny but ZAPPY! He said "I will shock you!" He is yellow with a little lightning tail and he sparkles all day.',stages:[
+    {name:'Zappit',hp:30,bio:'Zappit is tiny but zappy. He sparkles all day.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,18 38,48 48,48 40,78 62,38 52,38 60,18" fill="#facc15" stroke="#ca8a04" stroke-width="2"/><circle cx="46" cy="40" r="3" fill="#1e293b"/><circle cx="54" cy="40" r="3" fill="#1e293b"/></svg>`},
+    {name:'Thundernap',hp:44,bio:'Thundernap is a lightning bolt with legs! He said "run from me!" He zooms around and makes tiny thunder.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,10 34,44 48,44 38,84 66,36 54,36 64,10" fill="#fde047" stroke="#ca8a04" stroke-width="3"/><circle cx="44" cy="36" r="4" fill="#1e293b"/><circle cx="56" cy="36" r="4" fill="#1e293b"/><rect x="38" y="82" width="6" height="12" fill="#ca8a04"/><rect x="58" y="82" width="6" height="12" fill="#ca8a04"/></svg>`},
+    {name:'Boltmaster',hp:60,bio:'Boltmaster is the thunder king! He said "hear my mighty CRACK!" His bolts light up the whole sky and make the clouds shake.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,4 28,46 46,46 34,94 72,36 56,36 68,4" fill="#fbbf24" stroke="#92400e" stroke-width="4"/><circle cx="42" cy="36" r="5" fill="#ef4444"/><circle cx="58" cy="36" r="5" fill="#ef4444"/><circle cx="42" cy="36" r="2" fill="#fff"/><circle cx="58" cy="36" r="2" fill="#fff"/><polygon points="20,20 12,38 26,30" fill="#fde047"/><polygon points="80,20 88,38 74,30" fill="#fde047"/></svg>`}
+  ]},
+  {id:'blubber',type:'Water',color:'#93c5fd',bio:'Blubber is a tiny blue whale! He said "splish splash!" He likes the deep sea and his eyes sparkle under water.',stages:[
+    {name:'Blubber',hp:32,bio:'Blubber is a tiny blue whale. He likes deep water.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="28" ry="20" fill="#93c5fd"/><ellipse cx="50" cy="58" rx="20" ry="12" fill="#bfdbfe"/><circle cx="36" cy="50" r="3" fill="#1e293b"/><circle cx="56" cy="50" r="3" fill="#1e293b"/><path d="M40 62 Q46 66 52 62" stroke="#1e293b" stroke-width="2" fill="none"/><path d="M80 50 Q92 40 86 60Z" fill="#93c5fd"/></svg>`},
+    {name:'Splasho',hp:46,bio:'Splasho can shoot water from his mouth! He said "I can make a rainbow!" He is bigger now and his fins are strong.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="32" ry="24" fill="#3b82f6"/><ellipse cx="50" cy="58" rx="24" ry="16" fill="#93c5fd"/><circle cx="36" cy="48" r="4" fill="#fff"/><circle cx="60" cy="48" r="4" fill="#fff"/><circle cx="36" cy="48" r="2" fill="#1e293b"/><circle cx="60" cy="48" r="2" fill="#1e293b"/><path d="M40 62 Q48 68 56 62" stroke="#1e293b" stroke-width="2.5" fill="none"/><path d="M82 48 Q100 36 92 62Z" fill="#3b82f6"/><path d="M40 22 Q44 10 50 22" fill="#bfdbfe"/></svg>`},
+    {name:'Tidalord',hp:66,bio:'Tidalord is the ruler of the sea! He said "one spout and a wave comes!" He is massive with big jaws and a crown of coral.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="38" ry="28" fill="#1d4ed8"/><ellipse cx="50" cy="58" rx="30" ry="22" fill="#3b82f6"/><ellipse cx="50" cy="60" rx="20" ry="14" fill="#93c5fd"/><circle cx="34" cy="46" r="6" fill="#fff"/><circle cx="62" cy="46" r="6" fill="#fff"/><circle cx="34" cy="46" r="3" fill="#1e293b"/><circle cx="62" cy="46" r="3" fill="#1e293b"/><path d="M38 62 Q50 70 58 62" stroke="#1e293b" stroke-width="3" fill="none"/><polygon points="40,60 44,70 48,60" fill="#fff"/><polygon points="52,60 56,70 60,60" fill="#fff"/><path d="M42 24 Q46 14 50 24 Q54 14 58 24 Q52 18 50 18 Q48 18 42 24Z" fill="#f472b6"/></svg>`}
+  ]},
+  {id:'mudkin',type:'Ground',color:'#a16207',bio:'Mudkin is a happy mud baby! She said "squish squish!" She likes to make mud pies and her toes are always dirty.',stages:[
+    {name:'Mudkin',hp:30,bio:'Mudkin is a mud baby. She likes to make mud pies.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="60" rx="26" ry="22" fill="#a16207"/><ellipse cx="50" cy="62" rx="18" ry="14" fill="#ca8a04"/><circle cx="42" cy="54" r="4" fill="#1e293b"/><circle cx="58" cy="54" r="4" fill="#1e293b"/><path d="M44 66 Q50 70 56 66" stroke="#1e293b" stroke-width="2" fill="none"/><rect x="38" y="80" width="8" height="8" fill="#78350f"/><rect x="54" y="80" width="8" height="8" fill="#78350f"/></svg>`},
+    {name:'Dirtclod',hp:44,bio:'Dirtclod is a clump of hard mud! He said "I can dig!" He has strong arms and can tunnel under the ground.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="32" ry="26" fill="#78350f"/><ellipse cx="50" cy="58" rx="24" ry="18" fill="#a16207"/><circle cx="40" cy="50" r="5" fill="#1e293b"/><circle cx="60" cy="50" r="5" fill="#1e293b"/><path d="M42 64 Q50 70 58 64" stroke="#1e293b" stroke-width="2.5" fill="none"/><rect x="16" y="54" width="10" height="18" rx="5" fill="#78350f"/><rect x="74" y="54" width="10" height="18" rx="5" fill="#78350f"/></svg>`},
+    {name:'Earthsmash',hp:62,bio:'Earthsmash is a mountain of muscle! He said "ONE punch and the ground SHAKES!" He has huge stone fists and everything around him trembles.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="38" ry="32" fill="#451a03"/><ellipse cx="50" cy="56" rx="30" ry="24" fill="#78350f"/><ellipse cx="50" cy="58" rx="22" ry="16" fill="#a16207"/><circle cx="38" cy="48" r="6" fill="#fbbf24"/><circle cx="62" cy="48" r="6" fill="#fbbf24"/><circle cx="38" cy="48" r="3" fill="#1e293b"/><circle cx="62" cy="48" r="3" fill="#1e293b"/><path d="M42 66 Q50 74 58 66" stroke="#1e293b" stroke-width="3" fill="none"/><rect x="6" y="50" width="14" height="24" rx="7" fill="#451a03"/><rect x="80" y="50" width="14" height="24" rx="7" fill="#451a03"/></svg>`}
+  ]},
+  {id:'pyrofly',type:'Bug',color:'#f87171',bio:'Pyrofly is a tiny fire bug! She said "zzzzz I am HOT!" She has red wings and her bug belly glows like a little ember.',stages:[
+    {name:'Pyrofly',hp:28,bio:'Pyrofly is a tiny fire bug. Her belly glows like an ember.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="16" ry="22" fill="#ef4444"/><ellipse cx="26" cy="48" rx="10" ry="16" fill="#fecaca" opacity=".8"/><ellipse cx="74" cy="48" rx="10" ry="16" fill="#fecaca" opacity=".8"/><circle cx="44" cy="48" r="3" fill="#1e293b"/><circle cx="56" cy="48" r="3" fill="#1e293b"/><ellipse cx="50" cy="68" rx="6" ry="8" fill="#fbbf24"/><circle cx="50" cy="68" r="3" fill="#f97316"/></svg>`},
+    {name:'Cinderwing',hp:42,bio:'Cinderwing has burning wings! She said "look at me glow!" She shoots tiny sparks when she flies.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="20" ry="24" fill="#dc2626"/><ellipse cx="22" cy="44" rx="14" ry="22" fill="#fde047" opacity=".85"/><ellipse cx="78" cy="44" rx="14" ry="22" fill="#fde047" opacity=".85"/><path d="M22 48 Q16 40 24 40" fill="#f97316"/><path d="M78 48 Q84 40 76 40" fill="#f97316"/><circle cx="42" cy="46" r="4" fill="#fbbf24"/><circle cx="58" cy="46" r="4" fill="#fbbf24"/><circle cx="42" cy="46" r="2" fill="#1e293b"/><circle cx="58" cy="46" r="2" fill="#1e293b"/><ellipse cx="50" cy="68" rx="8" ry="10" fill="#fbbf24"/></svg>`},
+    {name:'Emberstorm',hp:58,bio:'Emberstorm is a storm of fire and wings! She said "FEEL THE HEAT!" Her four wings light up the night and burn bright.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="22" ry="28" fill="#991b1b"/><ellipse cx="18" cy="36" rx="12" ry="22" fill="#fbbf24"/><ellipse cx="82" cy="36" rx="12" ry="22" fill="#fbbf24"/><ellipse cx="22" cy="70" rx="10" ry="18" fill="#f97316"/><ellipse cx="78" cy="70" rx="10" ry="18" fill="#f97316"/><path d="M18 30 Q10 18 20 24" fill="#fde047"/><path d="M82 30 Q90 18 80 24" fill="#fde047"/><circle cx="40" cy="44" r="6" fill="#fef3c7"/><circle cx="60" cy="44" r="6" fill="#fef3c7"/><circle cx="40" cy="44" r="3" fill="#ef4444"/><circle cx="60" cy="44" r="3" fill="#ef4444"/><ellipse cx="50" cy="70" rx="12" ry="14" fill="#fbbf24"/><circle cx="50" cy="70" r="6" fill="#fef3c7"/></svg>`}
+  ]},
+  {id:'glimmer',type:'Fairy',color:'#fef9c3',bio:'Glimmer is a tiny ball of light! She said "I sparkle for you!" She is soft and yellow and she floats like a firefly.',stages:[
+    {name:'Glimmer',hp:28,bio:'Glimmer is a tiny ball of light. She floats like a firefly.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="#fef3c7" opacity=".4"/><circle cx="50" cy="50" r="18" fill="#fde047"/><circle cx="44" cy="46" r="3" fill="#1e293b"/><circle cx="56" cy="46" r="3" fill="#1e293b"/><path d="M45 56 Q50 60 55 56" stroke="#1e293b" stroke-width="2" fill="none"/><circle cx="28" cy="30" r="2" fill="#fde047"/><circle cx="74" cy="32" r="2" fill="#fde047"/></svg>`},
+    {name:'Starshine',hp:42,bio:'Starshine is shaped like a little star! She said "wish on me!" She twinkles when she is happy and she glows in the dark.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,14 60,40 88,44 64,58 74,84 50,68 26,84 36,58 12,44 40,40" fill="#facc15" stroke="#ca8a04" stroke-width="2"/><circle cx="44" cy="50" r="4" fill="#1e293b"/><circle cx="56" cy="50" r="4" fill="#1e293b"/><path d="M46 60 Q50 64 54 60" stroke="#1e293b" stroke-width="2" fill="none"/></svg>`},
+    {name:'Luminara',hp:58,bio:'Luminara is a walking rainbow! She said "all the colors live in me!" She has wings made of pure light and a crown of stars.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill="#a855f7" opacity=".3"/><circle cx="50" cy="50" r="28" fill="#c084fc"/><circle cx="50" cy="50" r="20" fill="#fde047"/><polygon points="30,14 36,24 24,24" fill="#ec4899"/><polygon points="50,6 56,18 44,18" fill="#3b82f6"/><polygon points="70,14 76,24 64,24" fill="#22c55e"/><circle cx="42" cy="48" r="5" fill="#1e293b"/><circle cx="58" cy="48" r="5" fill="#1e293b"/><path d="M44 58 Q50 64 56 58" stroke="#1e293b" stroke-width="2.5" fill="none"/></svg>`}
+  ]},
+  {id:'bramblepup',type:'Grass',color:'#84cc16',bio:'Bramblepup is a grass puppy! He said "woof woof woof!" He is green and has little leaves for ears. He likes to chase butterflies.',stages:[
+    {name:'Bramblepup',hp:32,bio:'Bramblepup is a green grass puppy. He chases butterflies.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="24" ry="20" fill="#84cc16"/><ellipse cx="50" cy="60" rx="18" ry="14" fill="#bef264"/><path d="M30 38 L20 26 L34 32Z" fill="#22c55e"/><path d="M70 38 L80 26 L66 32Z" fill="#22c55e"/><circle cx="42" cy="52" r="4" fill="#1e293b"/><circle cx="58" cy="52" r="4" fill="#1e293b"/><ellipse cx="50" cy="62" rx="3" ry="2" fill="#1e293b"/></svg>`},
+    {name:'Thornhound',hp:46,bio:'Thornhound has spikes along his back! He said "I will guard the forest!" He is fast and he can jump over any bush.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="30" ry="22" fill="#65a30d"/><ellipse cx="50" cy="58" rx="22" ry="16" fill="#84cc16"/><path d="M28 34 L18 22 L32 28Z" fill="#16a34a"/><path d="M72 34 L82 22 L68 28Z" fill="#16a34a"/><polygon points="44,32 46,24 50,32" fill="#16a34a"/><polygon points="52,32 54,24 58,32" fill="#16a34a"/><circle cx="40" cy="50" r="5" fill="#1e293b"/><circle cx="60" cy="50" r="5" fill="#1e293b"/><ellipse cx="50" cy="62" rx="4" ry="2.5" fill="#1e293b"/></svg>`},
+    {name:'Wildgrove',hp:62,bio:'Wildgrove is a wolf of the forest! He said "I lead the wild pack!" He is huge and green and his howl makes the trees dance.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="36" ry="28" fill="#14532d"/><ellipse cx="50" cy="56" rx="28" ry="22" fill="#16a34a"/><ellipse cx="50" cy="58" rx="20" ry="14" fill="#84cc16"/><polygon points="20,24 12,8 30,20" fill="#15803d"/><polygon points="80,24 88,8 70,20" fill="#15803d"/><polygon points="38,22 42,10 46,20" fill="#22c55e"/><polygon points="54,20 58,10 62,22" fill="#22c55e"/><circle cx="38" cy="48" r="6" fill="#fde047"/><circle cx="62" cy="48" r="6" fill="#fde047"/><circle cx="38" cy="48" r="3" fill="#1e293b"/><circle cx="62" cy="48" r="3" fill="#1e293b"/><ellipse cx="50" cy="62" rx="5" ry="3" fill="#1e293b"/><path d="M42 68 Q50 72 58 68" stroke="#1e293b" stroke-width="2.5" fill="none"/><polygon points="46,72 48,82 50,72" fill="#fff"/><polygon points="50,72 52,82 54,72" fill="#fff"/></svg>`}
+  ]},
+  {id:'squibble',type:'Water',color:'#a855f7',bio:'Squibble is a little purple octopus! She said "shake a tentacle!" She has eight arms and she loves to dance under the sea.',stages:[
+    {name:'Squibble',hp:30,bio:'Squibble is a little purple octopus. She loves to dance.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="44" r="22" fill="#a855f7"/><circle cx="44" cy="42" r="4" fill="#1e293b"/><circle cx="56" cy="42" r="4" fill="#1e293b"/><path d="M46 52 Q50 56 54 52" stroke="#1e293b" stroke-width="2" fill="none"/><path d="M32 60 Q28 80 34 82" stroke="#a855f7" stroke-width="6" fill="none"/><path d="M42 62 Q40 84 46 86" stroke="#a855f7" stroke-width="6" fill="none"/><path d="M58 62 Q60 84 54 86" stroke="#a855f7" stroke-width="6" fill="none"/><path d="M68 60 Q72 80 66 82" stroke="#a855f7" stroke-width="6" fill="none"/></svg>`},
+    {name:'Inkjet',hp:44,bio:'Inkjet can shoot purple ink! She said "try to catch me!" She zooms around with her eight strong arms.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="40" r="26" fill="#9333ea"/><circle cx="42" cy="38" r="5" fill="#fde047"/><circle cx="58" cy="38" r="5" fill="#fde047"/><circle cx="42" cy="38" r="2.5" fill="#1e293b"/><circle cx="58" cy="38" r="2.5" fill="#1e293b"/><path d="M44 50 Q50 55 56 50" stroke="#1e293b" stroke-width="2.5" fill="none"/><path d="M28 58 Q22 84 32 88" stroke="#9333ea" stroke-width="7" fill="none"/><path d="M38 60 Q34 88 42 92" stroke="#9333ea" stroke-width="7" fill="none"/><path d="M50 62 Q50 90 50 94" stroke="#9333ea" stroke-width="7" fill="none"/><path d="M62 60 Q66 88 58 92" stroke="#9333ea" stroke-width="7" fill="none"/><path d="M72 58 Q78 84 68 88" stroke="#9333ea" stroke-width="7" fill="none"/><circle cx="22" cy="22" r="3" fill="#c084fc" opacity=".6"/><circle cx="80" cy="28" r="3" fill="#c084fc" opacity=".6"/></svg>`},
+    {name:'Krakenette',hp:60,bio:'Krakenette is the queen of the deep! She said "bow down to the kraken!" Her arms reach across the whole sea.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="36" r="30" fill="#6b21a8"/><circle cx="50" cy="36" r="22" fill="#9333ea"/><polygon points="30,8 34,-2 38,6 42,-4 46,4 50,-6 54,4 58,-4 62,6 66,-2 70,8 50,14" fill="#fde047"/><circle cx="40" cy="36" r="6" fill="#fef08a"/><circle cx="60" cy="36" r="6" fill="#fef08a"/><circle cx="40" cy="36" r="3" fill="#1e293b"/><circle cx="60" cy="36" r="3" fill="#1e293b"/><path d="M42 50 Q50 58 58 50" stroke="#1e293b" stroke-width="3" fill="none"/><path d="M20 58 Q10 92 26 96" stroke="#6b21a8" stroke-width="8" fill="none"/><path d="M32 62 Q26 96 40 98" stroke="#6b21a8" stroke-width="8" fill="none"/><path d="M50 64 Q50 96 50 98" stroke="#6b21a8" stroke-width="8" fill="none"/><path d="M68 62 Q74 96 60 98" stroke="#6b21a8" stroke-width="8" fill="none"/><path d="M80 58 Q90 92 74 96" stroke="#6b21a8" stroke-width="8" fill="none"/></svg>`}
+  ]},
+  {id:'moonmoth',type:'Psychic',color:'#818cf8',bio:'Moonmoth is a dreamy little moth! She said "follow me to the moon!" Her wings have tiny stars and she only flies at night.',stages:[
+    {name:'Moonmoth',hp:30,bio:'Moonmoth is a dreamy little moth. She only flies at night.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="10" ry="20" fill="#4338ca"/><path d="M30 40 Q14 28 22 56 Q34 50 40 44Z" fill="#818cf8"/><path d="M70 40 Q86 28 78 56 Q66 50 60 44Z" fill="#818cf8"/><circle cx="24" cy="38" r="2" fill="#fde047"/><circle cx="36" cy="50" r="1.5" fill="#fde047"/><circle cx="64" cy="50" r="1.5" fill="#fde047"/><circle cx="76" cy="38" r="2" fill="#fde047"/><circle cx="46" cy="48" r="3" fill="#fde047"/><circle cx="54" cy="48" r="3" fill="#fde047"/></svg>`},
+    {name:'Dreamwing',hp:44,bio:'Dreamwing makes kids have sweet dreams! She said "close your eyes and see!" Her big wings have glowing patterns.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="12" ry="26" fill="#3730a3"/><path d="M26 34 Q4 14 12 60 Q28 54 40 44Z" fill="#6366f1"/><path d="M74 34 Q96 14 88 60 Q72 54 60 44Z" fill="#6366f1"/><circle cx="20" cy="34" r="3" fill="#fde047"/><circle cx="16" cy="50" r="2" fill="#fde047"/><circle cx="80" cy="34" r="3" fill="#fde047"/><circle cx="84" cy="50" r="2" fill="#fde047"/><circle cx="30" cy="44" r="5" fill="#a5b4fc"/><circle cx="70" cy="44" r="5" fill="#a5b4fc"/><circle cx="44" cy="46" r="4" fill="#fde047"/><circle cx="56" cy="46" r="4" fill="#fde047"/></svg>`},
+    {name:'Etherflight',hp:60,bio:'Etherflight is a cosmic moth! She said "I fly in space!" Her wings are filled with tiny galaxies and her eyes glow purple.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="14" ry="30" fill="#1e1b4b"/><path d="M22 28 Q-6 2 2 64 Q22 56 38 44Z" fill="#4f46e5"/><path d="M78 28 Q106 2 98 64 Q78 56 62 44Z" fill="#4f46e5"/><circle cx="16" cy="26" r="3" fill="#fde047"/><circle cx="8" cy="44" r="2" fill="#fde047"/><circle cx="24" cy="56" r="2" fill="#fde047"/><circle cx="84" cy="26" r="3" fill="#fde047"/><circle cx="92" cy="44" r="2" fill="#fde047"/><circle cx="76" cy="56" r="2" fill="#fde047"/><circle cx="28" cy="40" r="6" fill="#c084fc"/><circle cx="72" cy="40" r="6" fill="#c084fc"/><circle cx="28" cy="40" r="2" fill="#fff"/><circle cx="72" cy="40" r="2" fill="#fff"/><circle cx="44" cy="44" r="5" fill="#fde047"/><circle cx="56" cy="44" r="5" fill="#fde047"/><circle cx="44" cy="44" r="2" fill="#1e1b4b"/><circle cx="56" cy="44" r="2" fill="#1e1b4b"/></svg>`}
+  ]},
+  {id:'pizzarone',type:'Food',color:'#fde047',bio:'Pizzarone is a SLICE of pizza that can walk! He said "eat me no WAIT do not eat me!" He smells like cheese and he loves to run.',stages:[
+    {name:'Pizzarone',hp:28,bio:'Pizzarone is a slice of pizza that can walk. He runs from forks.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,12 20,78 80,78" fill="#fbbf24"/><polygon points="50,20 28,72 72,72" fill="#fef3c7"/><circle cx="42" cy="48" r="4" fill="#ef4444"/><circle cx="58" cy="48" r="4" fill="#ef4444"/><circle cx="50" cy="60" r="4" fill="#ef4444"/><circle cx="44" cy="58" r="3" fill="#1e293b"/><circle cx="56" cy="58" r="3" fill="#1e293b"/><path d="M46 66 Q50 70 54 66" stroke="#1e293b" stroke-width="2" fill="none"/></svg>`},
+    {name:'Cheesemelt',hp:40,bio:'Cheesemelt is dripping with cheese! He said "I am so DELICIOUS!" He has little legs and he leaves cheesy footprints.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,8 14,82 86,82" fill="#ca8a04"/><polygon points="50,16 22,76 78,76" fill="#fbbf24"/><polygon points="50,22 28,70 72,70" fill="#fef3c7"/><path d="M22 76 Q24 88 30 82Z" fill="#fde047"/><path d="M78 76 Q76 88 70 82Z" fill="#fde047"/><circle cx="38" cy="48" r="5" fill="#ef4444"/><circle cx="62" cy="48" r="5" fill="#ef4444"/><circle cx="50" cy="56" r="5" fill="#ef4444"/><circle cx="40" cy="58" r="3" fill="#1e293b"/><circle cx="60" cy="58" r="3" fill="#1e293b"/><path d="M44 64 Q50 70 56 64" stroke="#1e293b" stroke-width="2.5" fill="none"/><rect x="32" y="82" width="6" height="10" fill="#78350f"/><rect x="62" y="82" width="6" height="10" fill="#78350f"/></svg>`},
+    {name:'Pepperoniking',hp:58,bio:'Pepperoniking is the KING of pizza! He said "I am the BIG CHEESE!" He is a whole pizza with a crown of pepperoni.',svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#78350f"/><circle cx="50" cy="50" r="34" fill="#ca8a04"/><circle cx="50" cy="50" r="28" fill="#fde047"/><circle cx="30" cy="34" r="5" fill="#ef4444"/><circle cx="62" cy="30" r="5" fill="#ef4444"/><circle cx="72" cy="52" r="5" fill="#ef4444"/><circle cx="60" cy="68" r="5" fill="#ef4444"/><circle cx="34" cy="64" r="5" fill="#ef4444"/><circle cx="24" cy="50" r="5" fill="#ef4444"/><polygon points="30,14 34,4 38,12 42,2 46,10 50,0 54,10 58,2 62,12 66,4 70,14 50,20" fill="#dc2626"/><circle cx="42" cy="48" r="4" fill="#fff"/><circle cx="58" cy="48" r="4" fill="#fff"/><circle cx="42" cy="48" r="2" fill="#1e293b"/><circle cx="58" cy="48" r="2" fill="#1e293b"/><path d="M44 58 Q50 64 56 58" stroke="#1e293b" stroke-width="2.5" fill="none"/></svg>`}
+  ]},
+  {id:'shadowkit',type:'Dark',color:'#1e293b',bio:'Shadowkit is a little black kitten! She said "meow in the dark!" Her eyes glow bright yellow and she can hide in any shadow.',stages:[
+    {name:'Shadowkit',hp:30,bio:'Shadowkit is a little black kitten. Her eyes glow bright yellow.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="22" ry="20" fill="#1e293b"/><polygon points="34,42 28,28 42,38" fill="#1e293b"/><polygon points="66,42 72,28 58,38" fill="#1e293b"/><circle cx="42" cy="52" r="5" fill="#fde047"/><circle cx="58" cy="52" r="5" fill="#fde047"/><ellipse cx="42" cy="52" rx="1.5" ry="4" fill="#1e293b"/><ellipse cx="58" cy="52" rx="1.5" ry="4" fill="#1e293b"/><path d="M46 62 L50 66 L54 62" stroke="#1e293b" stroke-width="2" fill="none"/></svg>`},
+    {name:'Nightfur',hp:44,bio:'Nightfur is big and sleek! She said "I vanish into the dark!" Her fur is black as coal and she can see in total darkness.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="28" ry="22" fill="#0f172a"/><ellipse cx="50" cy="56" rx="22" ry="16" fill="#1e293b"/><polygon points="28,38 20,20 36,32" fill="#0f172a"/><polygon points="72,38 80,20 64,32" fill="#0f172a"/><circle cx="40" cy="48" r="6" fill="#fde047"/><circle cx="60" cy="48" r="6" fill="#fde047"/><ellipse cx="40" cy="48" rx="1.8" ry="5" fill="#1e293b"/><ellipse cx="60" cy="48" rx="1.8" ry="5" fill="#1e293b"/><path d="M44 60 L50 64 L56 60" stroke="#1e293b" stroke-width="2.5" fill="none"/><path d="M82 56 Q96 62 86 74" stroke="#1e293b" stroke-width="4" fill="none"/></svg>`},
+    {name:'Umbracat',hp:60,bio:'Umbracat is the panther of pure shadow! She said "nothing can find me!" Her eyes are like two suns and she moves like smoke.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="34" ry="26" fill="#020617"/><ellipse cx="50" cy="56" rx="26" ry="20" fill="#0f172a"/><ellipse cx="50" cy="58" rx="18" ry="14" fill="#1e293b"/><polygon points="22,34 12,12 32,28" fill="#020617"/><polygon points="78,34 88,12 68,28" fill="#020617"/><circle cx="38" cy="48" r="7" fill="#f59e0b"/><circle cx="62" cy="48" r="7" fill="#f59e0b"/><ellipse cx="38" cy="48" rx="2" ry="6" fill="#1e293b"/><ellipse cx="62" cy="48" rx="2" ry="6" fill="#1e293b"/><circle cx="38" cy="46" r="1" fill="#fff"/><circle cx="62" cy="46" r="1" fill="#fff"/><path d="M44 62 L50 68 L56 62" stroke="#1e293b" stroke-width="3" fill="none"/><polygon points="46,66 48,74 52,66" fill="#fff"/><polygon points="52,66 54,74 58,66" fill="#fff"/><path d="M86 52 Q106 62 92 80" stroke="#020617" stroke-width="5" fill="none"/></svg>`}
+  ]},
+  {id:'crunchbite',type:'Fighting',color:'#f97316',bio:'Crunchbite is a tiny dino with HUGE teeth! He said "I wanna fight!" He is orange and he is always ready for a scrap.',stages:[
+    {name:'Crunchbite',hp:32,bio:'Crunchbite is a tiny orange dino with huge teeth. He is always ready to fight.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="24" ry="20" fill="#f97316"/><ellipse cx="50" cy="58" rx="18" ry="14" fill="#fed7aa"/><circle cx="42" cy="50" r="4" fill="#1e293b"/><circle cx="58" cy="50" r="4" fill="#1e293b"/><path d="M38 62 Q50 70 62 62 L62 64 L58 68 L50 62 L42 68 L38 64Z" fill="#fff" stroke="#1e293b" stroke-width="1.5"/><rect x="32" y="74" width="8" height="12" fill="#ea580c"/><rect x="60" y="74" width="8" height="12" fill="#ea580c"/></svg>`},
+    {name:'Rexclaw',hp:46,bio:'Rexclaw has sharp claws and bigger teeth! He said "I am ALMOST a T-Rex!" He loves to smash rocks and roar at clouds.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="30" ry="24" fill="#ea580c"/><ellipse cx="50" cy="56" rx="22" ry="18" fill="#fb923c"/><circle cx="40" cy="46" r="5" fill="#1e293b"/><circle cx="60" cy="46" r="5" fill="#1e293b"/><path d="M34 60 Q50 72 66 60 L66 64 L60 70 L54 62 L46 70 L40 62Z" fill="#fff" stroke="#1e293b" stroke-width="1.5"/><path d="M24 34 L14 20 L28 28Z" fill="#ea580c"/><path d="M76 34 L86 20 L72 28Z" fill="#ea580c"/><rect x="28" y="74" width="10" height="16" fill="#c2410c"/><rect x="62" y="74" width="10" height="16" fill="#c2410c"/><polygon points="22,78 14,86 24,82" fill="#fff"/><polygon points="78,78 86,86 76,82" fill="#fff"/></svg>`},
+    {name:'Tyrannogod',hp:66,bio:'Tyrannogod is the KING of dinos! He said "BOW BEFORE MY ROAR!" His teeth are the size of bananas and his roar shakes mountains.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="38" ry="32" fill="#7c2d12"/><ellipse cx="50" cy="52" rx="30" ry="24" fill="#c2410c"/><ellipse cx="50" cy="54" rx="22" ry="18" fill="#f97316"/><circle cx="38" cy="44" r="6" fill="#fde047"/><circle cx="62" cy="44" r="6" fill="#fde047"/><circle cx="38" cy="44" r="3" fill="#1e293b"/><circle cx="62" cy="44" r="3" fill="#1e293b"/><path d="M28 58 Q50 78 72 58 L72 64 L66 74 L58 62 L50 74 L42 62 L34 74 L28 64Z" fill="#fff" stroke="#1e293b" stroke-width="2"/><path d="M16 24 L2 4 L22 18Z" fill="#7c2d12"/><path d="M84 24 L98 4 L78 18Z" fill="#7c2d12"/><polygon points="42,14 46,2 50,14" fill="#ea580c"/><polygon points="50,12 54,0 58,14" fill="#ea580c"/><rect x="22" y="74" width="12" height="20" fill="#451a03"/><rect x="66" y="74" width="12" height="20" fill="#451a03"/><polygon points="14,80 4,92 18,86" fill="#fff"/><polygon points="86,80 96,92 82,86" fill="#fff"/></svg>`}
+  ]},
+  {id:'frostfin',type:'Ice',color:'#a5f3fc',bio:'Frostfin is a tiny icy fish! She said "brrrr I am cold!" She swims in frozen water and her fins are like snowflakes.',stages:[
+    {name:'Frostfin',hp:30,bio:'Frostfin is a tiny icy fish. She swims in frozen water.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="24" ry="16" fill="#a5f3fc"/><ellipse cx="50" cy="56" rx="16" ry="10" fill="#e0f2fe"/><path d="M72 50 Q86 40 82 62Z" fill="#67e8f9"/><circle cx="38" cy="52" r="4" fill="#fff"/><circle cx="38" cy="52" r="2" fill="#1e293b"/><path d="M28 50 L22 44 L22 50 L16 50 L22 56 L22 52Z" fill="#67e8f9"/></svg>`},
+    {name:'Iceflow',hp:44,bio:'Iceflow has sharp icy fins! She said "I can freeze the pond!" She has a long tail and her scales shimmer like snow.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="30" ry="20" fill="#67e8f9"/><ellipse cx="50" cy="56" rx="22" ry="14" fill="#a5f3fc"/><path d="M80 46 Q98 32 92 66 Q86 56 80 48Z" fill="#22d3ee"/><path d="M20 46 Q2 32 8 66 Q14 56 20 48Z" fill="#22d3ee"/><circle cx="34" cy="50" r="5" fill="#fff"/><circle cx="34" cy="50" r="3" fill="#1e293b"/><polygon points="50,28 44,16 56,16" fill="#a5f3fc"/><polygon points="40,28 34,20 42,22" fill="#a5f3fc"/></svg>`},
+    {name:'Glaciara',hp:60,bio:'Glaciara is the ice queen! She said "I rule the frozen sea!" Her fins are made of solid ice and she has a crown of crystals.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="36" ry="24" fill="#0e7490"/><ellipse cx="50" cy="56" rx="28" ry="18" fill="#22d3ee"/><ellipse cx="50" cy="58" rx="20" ry="12" fill="#a5f3fc"/><path d="M84 44 Q108 28 100 70 Q90 58 84 48Z" fill="#155e75"/><path d="M16 44 Q-8 28 0 70 Q10 58 16 48Z" fill="#155e75"/><circle cx="32" cy="48" r="6" fill="#fff"/><circle cx="32" cy="48" r="3" fill="#1e293b"/><polygon points="26,24 22,10 30,18 34,6 38,16 44,2 50,14 56,2 60,16 64,6 68,18 72,10 76,24 50,30" fill="#a5f3fc" stroke="#67e8f9" stroke-width="1"/><polygon points="46,60 42,76 48,70" fill="#67e8f9"/><polygon points="52,60 54,76 56,70" fill="#67e8f9"/></svg>`}
+  ]},
+  {id:'sparklebub',type:'Electric',color:'#fbbf24',bio:'Sparklebub is a tiny shiny fairy bug! She said "I zap with glitter!" She is yellow and pink and her tiny wings make sparks.',stages:[
+    {name:'Sparklebub',hp:30,bio:'Sparklebub is a tiny shiny fairy bug. Her wings make sparks.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="16" ry="20" fill="#fbbf24"/><circle cx="44" cy="52" r="3" fill="#1e293b"/><circle cx="56" cy="52" r="3" fill="#1e293b"/><path d="M46 62 Q50 64 54 62" stroke="#1e293b" stroke-width="2" fill="none"/><ellipse cx="28" cy="46" rx="10" ry="14" fill="#f9a8d4" opacity=".75"/><ellipse cx="72" cy="46" rx="10" ry="14" fill="#f9a8d4" opacity=".75"/><polygon points="20,28 24,32 20,36 16,32" fill="#fde047"/><polygon points="80,28 84,32 80,36 76,32" fill="#fde047"/></svg>`},
+    {name:'Wattfly',hp:44,bio:'Wattfly can zoom and zap at the same time! She said "I am a ZAPPY butterfly!" Her wings shoot little sparks.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="18" ry="24" fill="#facc15"/><circle cx="42" cy="48" r="4" fill="#1e293b"/><circle cx="58" cy="48" r="4" fill="#1e293b"/><path d="M44 60 Q50 66 56 60" stroke="#1e293b" stroke-width="2" fill="none"/><ellipse cx="22" cy="42" rx="14" ry="22" fill="#ec4899" opacity=".75"/><ellipse cx="78" cy="42" rx="14" ry="22" fill="#ec4899" opacity=".75"/><polygon points="14,20 18,28 22,20 18,14" fill="#fde047"/><polygon points="86,20 82,28 78,20 82,14" fill="#fde047"/><polygon points="50,8 46,16 54,16" fill="#fde047"/></svg>`},
+    {name:'Voltstar',hp:60,bio:'Voltstar is a living star of thunder and sparkle! She said "KAZAAM!" Her wings beat in time with the lightning.',svg:`<svg viewBox="0 0 100 100"><polygon points="50,6 62,36 92,40 68,56 76,86 50,70 24,86 32,56 8,40 38,36" fill="#fbbf24" stroke="#92400e" stroke-width="2"/><ellipse cx="50" cy="52" rx="16" ry="20" fill="#fef08a"/><circle cx="42" cy="46" r="4" fill="#ec4899"/><circle cx="58" cy="46" r="4" fill="#ec4899"/><circle cx="42" cy="46" r="2" fill="#1e293b"/><circle cx="58" cy="46" r="2" fill="#1e293b"/><path d="M44 58 Q50 64 56 58" stroke="#1e293b" stroke-width="2" fill="none"/><polygon points="30,16 34,22 28,26" fill="#fef08a"/><polygon points="70,16 66,22 72,26" fill="#fef08a"/></svg>`}
+  ]},
+  {id:'doodledoo',type:'Normal',color:'#fb923c',bio:'Doodledoo is a silly chicken! He said "BAWK BAWK!" He forgets stuff and he lays the tiniest eggs. Everyone loves him.',stages:[
+    {name:'Doodledoo',hp:28,bio:'Doodledoo is a silly chicken. He forgets stuff a lot.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="62" rx="20" ry="18" fill="#fed7aa"/><ellipse cx="50" cy="64" rx="14" ry="12" fill="#fef3c7"/><circle cx="50" cy="42" r="12" fill="#fed7aa"/><path d="M46 30 Q50 22 54 30" fill="#ef4444"/><circle cx="46" cy="40" r="2" fill="#1e293b"/><circle cx="54" cy="40" r="2" fill="#1e293b"/><polygon points="48,44 52,44 50,50" fill="#fbbf24"/></svg>`},
+    {name:'Featherbrain',hp:42,bio:'Featherbrain is a fluffy chicken with a LOT of feathers! He said "I can ALMOST fly!" He runs around in silly circles.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="28" ry="24" fill="#fb923c"/><ellipse cx="50" cy="60" rx="22" ry="18" fill="#fed7aa"/><circle cx="50" cy="34" r="15" fill="#fb923c"/><circle cx="50" cy="36" r="10" fill="#fed7aa"/><path d="M40 20 Q50 10 60 20 L58 26 L50 22 L42 26Z" fill="#ef4444"/><circle cx="45" cy="34" r="3" fill="#1e293b"/><circle cx="55" cy="34" r="3" fill="#1e293b"/><polygon points="47,38 53,38 50,44" fill="#fbbf24"/><path d="M20 50 L8 58 L20 60" stroke="#fb923c" stroke-width="4" fill="none"/><path d="M80 50 L92 58 L80 60" stroke="#fb923c" stroke-width="4" fill="none"/></svg>`},
+    {name:'Roosterific',hp:58,bio:'Roosterific is the king of the farm! He said "COCK-A-DOODLE-DOO!" He has a golden comb and a tail of rainbow feathers.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="32" ry="28" fill="#ea580c"/><ellipse cx="50" cy="58" rx="26" ry="22" fill="#fb923c"/><circle cx="50" cy="30" r="18" fill="#ea580c"/><circle cx="50" cy="32" r="13" fill="#fb923c"/><path d="M36 12 Q44 4 50 10 Q56 4 64 12 L62 20 L56 16 L50 18 L44 16 L38 20Z" fill="#ef4444"/><circle cx="44" cy="30" r="3.5" fill="#fde047"/><circle cx="56" cy="30" r="3.5" fill="#fde047"/><circle cx="44" cy="30" r="1.5" fill="#1e293b"/><circle cx="56" cy="30" r="1.5" fill="#1e293b"/><polygon points="46,36 54,36 50,46" fill="#fbbf24"/><path d="M78 40 Q98 30 94 56 Q86 48 78 46Z" fill="#ef4444"/><path d="M82 46 Q100 40 96 60 Q88 52 82 50Z" fill="#3b82f6"/><path d="M86 52 Q102 50 96 64 Q90 56 86 54Z" fill="#22c55e"/></svg>`}
   ]}
 ];
 
@@ -1622,6 +1713,71 @@ const TRICKY_FOCUS_WORDS = {
 };
 
 // ========================================================
+// ILLUSTRATED STORYBOOKS — big AI-illustrated stories Río reads for 20 pts
+// Each book has 4 pages with an AI-generated illustration + text.
+// After 3 successful reads of a book, it rotates to the next one.
+// Earn 20 points when he passes the comprehension test.
+// ========================================================
+const ILLUSTRATED_BOOKS = [
+  {
+    id:'book_sparky_storm',
+    title:'Sparky and the Big Storm',
+    cover:'sprites/book_sparky_cover.png',
+    pages:[
+      {img:'sprites/book_sparky_1.png',text:'One rainy day, Río heard a BIG BOOM outside. Sparky ran under the bed.'},
+      {img:'sprites/book_sparky_2.png',text:'"Are you OK?" said Río. Sparky said, "the thunder is SO loud!" He was shaking.'},
+      {img:'sprites/book_sparky_3.png',text:'Río said, "you are a thunder Wordmon! The storm is just singing your song!"'},
+      {img:'sprites/book_sparky_4.png',text:'Sparky smiled big. Then he zapped back at the sky! Now storms are his favorite thing.'}
+    ],
+    q:'What was Sparky scared of?',
+    choices:['The rain','The thunder','The dark','Río'],
+    answer:1
+  },
+  {
+    id:'book_flamepup_friend',
+    title:'Flamepup Meets a Friend',
+    cover:'sprites/book_flamepup_cover.png',
+    pages:[
+      {img:'sprites/book_flamepup_1.png',text:'Flamepup was hot and fast. He loved to run, but nobody could keep up with him!'},
+      {img:'sprites/book_flamepup_2.png',text:'One day he met Bubblefin in a pond. She said, "your fire scares me!" and swam away.'},
+      {img:'sprites/book_flamepup_3.png',text:'Flamepup was sad. Río said, "just be her friend! You do not have to use your fire."'},
+      {img:'sprites/book_flamepup_4.png',text:'Now Flamepup sits by the pond and Bubblefin makes bubbles for him. Best friends!'}
+    ],
+    q:'Who is Flamepup\'s new friend?',
+    choices:['Sparky','Bubblefin','Leafwhisk','Río'],
+    answer:1
+  },
+  {
+    id:'book_drakle_fly',
+    title:'Drakle Learns to Fly',
+    cover:'sprites/book_drakle_cover.png',
+    pages:[
+      {img:'sprites/book_drakle_1.png',text:'Drakle was a baby dragon. His wings were tiny. He REALLY wanted to fly like the big ones.'},
+      {img:'sprites/book_drakle_2.png',text:'He jumped off a rock and flapped so hard! But he just fell down with a PLOP.'},
+      {img:'sprites/book_drakle_3.png',text:'Río said, "try again, buddy! Run and jump!" So Drakle ran with Río cheering him on.'},
+      {img:'sprites/book_drakle_4.png',text:'He flapped his little wings and — WHOOSH! He flew up in the sky! He did a tiny roar of joy.'}
+    ],
+    q:'How did Drakle finally fly?',
+    choices:['He ate food','He jumped off a rock','He ran and jumped','He grew big wings'],
+    answer:2
+  },
+  {
+    id:'book_snowpuff_sun',
+    title:'Snowpuff in the Sun',
+    cover:'sprites/book_snowpuff_cover.png',
+    pages:[
+      {img:'sprites/book_snowpuff_1.png',text:'Snowpuff was a little ball of snow. She loved to roll in the cold winter grass.'},
+      {img:'sprites/book_snowpuff_2.png',text:'One day the sun came out. It got hot! Snowpuff said, "help! I am melting!"'},
+      {img:'sprites/book_snowpuff_3.png',text:'Río ran fast and got a huge umbrella. He put it over her to make cool shade.'},
+      {img:'sprites/book_snowpuff_4.png',text:'Snowpuff was safe! Now she always plays in the shade on sunny days. The team is her hero!'}
+    ],
+    q:'What did Río get for Snowpuff?',
+    choices:['A hat','An umbrella','A fan','Ice'],
+    answer:1
+  }
+];
+
+// ========================================================
 // GAME ENGINE
 // ========================================================
 const G = {
@@ -1850,9 +2006,11 @@ const G = {
   changeBattleBg(bg){
     this._zoneBg=bg;
     const scene = document.getElementById('battleScene');
-    // Clear old PNG backgroundImage (we're pure CSS now)
-    scene.style.backgroundImage = '';
-    // Remove any prior zone-* class, apply the new one
+    // Use the fresh AI-generated PNG backgrounds
+    scene.style.backgroundImage = 'url(sprites/'+bg+'.png)';
+    scene.style.backgroundSize = 'cover';
+    scene.style.backgroundPosition = 'center center';
+    // Also apply zone class for any CSS effects
     scene.className = scene.className.replace(/\bzone-\w+\b/g,'').trim();
     const zone = bg.replace(/^bg_/,'zone-');
     scene.classList.add(zone);
@@ -4873,7 +5031,9 @@ const G = {
     // update battle scene for boss
     const bs=document.getElementById('battleScene');
     if(bs){
-      bs.style.backgroundImage='';
+      bs.style.backgroundImage="url('sprites/"+boss.bg+".png')";
+      bs.style.backgroundSize='cover';
+      bs.style.backgroundPosition='center center';
       bs.className=bs.className.replace(/\bzone-\w+\b/g,'').trim();
       bs.classList.add(boss.bg.replace(/^bg_/,'zone-'));
       bs.style.backgroundSize='cover';
@@ -5500,6 +5660,164 @@ if('serviceWorker' in navigator){
 
 // POKÉDEX MODAL
 // HOUSE VIEW — show caught Wordmons hanging out in Río's room
+// ========================================================
+// 📖 ILLUSTRATED STORYBOOK — AI-illustrated story Río reads for 20 pts
+// Tracks reads per book (via localStorage). After 3 reads of a book,
+// it rotates to the next one in the library.
+// ========================================================
+function getBookReads(){
+  try{return JSON.parse(localStorage.getItem('rio_book_reads')||'{}');}catch(e){return {};}
+}
+function saveBookReads(r){
+  try{localStorage.setItem('rio_book_reads',JSON.stringify(r));}catch(e){}
+}
+function getCurrentBook(){
+  const reads=getBookReads();
+  // find first book with < 3 successful reads
+  for(const b of ILLUSTRATED_BOOKS){
+    if((reads[b.id]||0)<3) return b;
+  }
+  // all read 3x — reset and loop back
+  saveBookReads({});
+  return ILLUSTRATED_BOOKS[0];
+}
+function openBookshelf(){
+  const book=getCurrentBook();
+  const reads=(getBookReads()[book.id])||0;
+  // overlay
+  let ov=document.getElementById('bookOverlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='bookOverlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:10px;overflow-y:auto';
+    document.body.appendChild(ov);
+  }
+  ov.style.display='flex';
+  ov.innerHTML='<div id="bookCard" style="background:#fff;border-radius:24px;max-width:520px;width:100%;max-height:94vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:popIn .3s ease"></div>';
+  const card=ov.querySelector('#bookCard');
+  renderBookCover(card,book,reads);
+}
+function closeBookshelf(){
+  const ov=document.getElementById('bookOverlay');
+  if(ov) ov.style.display='none';
+}
+function renderBookCover(card,book,reads){
+  card.innerHTML=
+    '<div style="position:relative">'+
+      '<button onclick="closeBookshelf()" style="position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:20px;cursor:pointer">✕</button>'+
+      '<img src="'+book.cover+'" style="width:100%;height:320px;object-fit:cover;border-radius:24px 24px 0 0;background:linear-gradient(135deg,#c084fc,#9333ea)" onerror="this.style.display=\'none\'">'+
+    '</div>'+
+    '<div style="padding:20px;text-align:center">'+
+      '<div style="font-family:Fredoka One,cursive;font-size:.75rem;color:var(--accent);letter-spacing:.05em;margin-bottom:4px">STORY TIME!</div>'+
+      '<h2 style="font-family:Fredoka One,cursive;font-size:1.6rem;color:var(--text);margin-bottom:8px">'+book.title+'</h2>'+
+      '<div style="display:flex;justify-content:center;gap:6px;margin:10px 0">'+
+        [0,1,2].map(i=>'<div style="width:18px;height:18px;border-radius:50%;background:'+(i<reads?'var(--accent)':'#e5e7eb')+';display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff">'+(i<reads?'✓':'')+'</div>').join('')+
+      '</div>'+
+      '<div style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Read '+reads+' of 3 times — '+(reads>=2?'last read before new book!':'keep reading to unlock the next book')+'</div>'+
+      '<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:10px;margin-bottom:16px;font-size:.85rem;color:#92400e;font-weight:700">🏆 Pass the test = +20 points!</div>'+
+      '<button id="bookStart" style="font-family:Fredoka One,cursive;font-size:1.15rem;padding:14px 32px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;cursor:pointer;box-shadow:0 6px 16px rgba(147,51,234,.4)">Start Reading →</button>'+
+    '</div>';
+  card.querySelector('#bookStart').addEventListener('click',()=>renderBookPage(card,book,0));
+}
+function renderBookPage(card,book,pageIdx){
+  const page=book.pages[pageIdx];
+  const isLast=pageIdx>=book.pages.length;
+  if(isLast){renderBookQuiz(card,book);return;}
+  card.innerHTML=
+    '<div style="position:relative">'+
+      '<button onclick="closeBookshelf()" style="position:absolute;top:12px;right:12px;z-index:2;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:18px;cursor:pointer">✕</button>'+
+      '<img src="'+page.img+'" style="width:100%;height:300px;object-fit:cover;border-radius:24px 24px 0 0;background:linear-gradient(135deg,#c084fc,#9333ea)" onerror="this.style.display=\'none\'">'+
+    '</div>'+
+    '<div style="padding:18px">'+
+      '<div style="background:#fef3c7;border-radius:12px;padding:6px 12px;text-align:center;font-family:Fredoka One,cursive;font-size:.8rem;color:#92400e;margin-bottom:12px">Page '+(pageIdx+1)+' of '+book.pages.length+'</div>'+
+      '<div style="background:#fff7ed;border:3px solid var(--accent);border-radius:16px;padding:16px;line-height:2.2;text-align:center"><div id="bookText" style="font-family:\'Fredoka One\',cursive;font-size:1.05rem;color:var(--text)">'+G._gatedSentence(page.text,'inherit')+'</div></div>'+
+      '<div id="bookHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word in order to read it!</div>'+
+      '<div style="text-align:center;margin-top:14px"><button id="bookNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:12px 26px;border-radius:14px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">🔒 Read it first</button></div>'+
+      '<div style="background:#f1f5f9;border-radius:8px;height:6px;margin-top:14px;overflow:hidden"><div style="background:var(--accent);height:100%;width:'+Math.round(((pageIdx+1)/book.pages.length)*100)+'%;transition:width .4s"></div></div>'+
+    '</div>';
+  const textEl=card.querySelector('#bookText');
+  G._wireGated(textEl,()=>{
+    const hint=card.querySelector('#bookHint');
+    if(hint){hint.textContent='✅ Now tap Next Page!';hint.style.color='var(--green)';}
+    const btn=card.querySelector('#bookNext');
+    if(btn){
+      btn.disabled=false;
+      btn.style.background='linear-gradient(135deg,var(--accent),var(--accent-dark))';
+      btn.style.cursor='pointer';
+      btn.style.opacity='1';
+      btn.textContent=(pageIdx===book.pages.length-1?'Take the Test →':'Next Page →');
+    }
+  });
+  card.querySelector('#bookNext').addEventListener('click',()=>{
+    if(card.querySelector('#bookNext').disabled) return;
+    SFX.play('click');
+    renderBookPage(card,book,pageIdx+1);
+  });
+}
+function renderBookQuiz(card,book){
+  const shuffled=shuffle(book.choices.map((c,i)=>({c,i})));
+  card.innerHTML=
+    '<div style="padding:24px;text-align:center">'+
+      '<button onclick="closeBookshelf()" style="position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.2);color:#fff;font-size:18px;cursor:pointer">✕</button>'+
+      '<div style="font-size:3rem;margin-bottom:6px">📖</div>'+
+      '<div style="font-family:Fredoka One,cursive;font-size:.85rem;color:var(--accent);letter-spacing:.05em;margin-bottom:8px">STORY TEST!</div>'+
+      '<h3 style="font-family:Fredoka One,cursive;font-size:1.3rem;color:var(--text);margin-bottom:14px">'+book.q+'</h3>'+
+      '<div id="bookChoices" style="display:flex;flex-direction:column;gap:10px">'+
+        shuffled.map(o=>'<button class="bookq-opt" data-idx="'+o.i+'" style="font-family:Fredoka One,cursive;font-size:1.05rem;padding:14px 16px;border-radius:14px;border:2px solid #cbd5e1;background:#fff;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">'+o.c+'</button>').join('')+
+      '</div>'+
+    '</div>';
+  card.querySelectorAll('.bookq-opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      card.querySelectorAll('.bookq-opt').forEach(b=>{
+        b.style.pointerEvents='none';
+        if(parseInt(b.dataset.idx)===book.answer){b.style.borderColor='var(--green)';b.style.background='#dcfce7';}
+      });
+      const isCorrect=parseInt(btn.dataset.idx)===book.answer;
+      if(!isCorrect){
+        btn.style.borderColor='var(--red)';btn.style.background='#fef2f2';
+      }
+      renderBookResult(card,book,isCorrect);
+    });
+  });
+}
+function renderBookResult(card,book,pass){
+  setTimeout(()=>{
+    if(pass){
+      // Award points, increment reads
+      G.score+=20;
+      G.addXP(20);
+      const reads=getBookReads();
+      reads[book.id]=(reads[book.id]||0)+1;
+      saveBookReads(reads);
+      G.updateHUD();
+      G.saveGame();
+      SFX.play('fanfare');
+      G.fireConfetti();
+      const progress=reads[book.id];
+      const done=progress>=3;
+      card.innerHTML=
+        '<div style="padding:30px;text-align:center">'+
+          '<div style="font-size:4rem;margin-bottom:8px">🏆</div>'+
+          '<h2 style="font-family:Fredoka One,cursive;font-size:1.8rem;color:var(--green);margin-bottom:8px">You did it, reader!</h2>'+
+          '<div style="font-size:1.2rem;color:var(--text);font-weight:700;margin-bottom:6px">+20 points</div>'+
+          '<div style="font-size:.95rem;color:var(--text2);margin-bottom:14px">You have read this book '+progress+' of 3 times.</div>'+
+          (done?'<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:14px;padding:12px;margin-bottom:16px;color:#92400e;font-weight:700">🎉 New book unlocked next time!</div>':'')+
+          '<button onclick="closeBookshelf()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:12px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;cursor:pointer">Done!</button>'+
+        '</div>';
+    } else {
+      SFX.play('wrong');
+      card.innerHTML=
+        '<div style="padding:30px;text-align:center">'+
+          '<div style="font-size:3rem;margin-bottom:8px">🤔</div>'+
+          '<h2 style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--text);margin-bottom:10px">Not quite! Read it again?</h2>'+
+          '<div style="font-size:.95rem;color:var(--text2);margin-bottom:16px">The right answer was: <strong>'+book.choices[book.answer]+'</strong></div>'+
+          '<button onclick="closeBookshelf();setTimeout(openBookshelf,200)" style="font-family:Fredoka One,cursive;font-size:1rem;padding:12px 24px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer;margin-right:8px">Read Again</button>'+
+          '<button onclick="closeBookshelf()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:12px 24px;border-radius:14px;border:2px solid #cbd5e1;background:#fff;color:var(--text2);cursor:pointer">Close</button>'+
+        '</div>';
+    }
+  },1200);
+}
+
 function openHouse(){
   document.getElementById('houseOverlay').style.display='block';
   SFX.play('whoosh');
