@@ -4399,13 +4399,23 @@ const G = {
 
   // --- helper: wire up .tap-word click = speak the word ---
   _wireTapWords(root){
+    // First tap = silent visual mark (Río has to read it himself).
+    // Second tap on the same word = speaks it (used as a "stuck?" hint).
     root.querySelectorAll('.tap-word').forEach(el=>{
       el.addEventListener('click',()=>{
         const w=el.dataset.say||el.textContent.trim().replace(/[^a-zA-Z]/g,'');
         if(!w) return;
-        el.style.background='#fef3c7';
-        setTimeout(()=>el.style.background='',400);
-        this._speak(w,0.7);
+        if(el.dataset.read==='1'){
+          // second tap: speak it
+          el.style.background='#fef3c7';
+          setTimeout(()=>el.style.background='',400);
+          this._speak(w,0.7);
+        } else {
+          // first tap: just mark as read silently
+          el.dataset.read='1';
+          el.style.background='#e0f2fe';
+          el.style.transition='background .2s';
+        }
       });
     });
   },
@@ -4424,6 +4434,9 @@ const G = {
     }).join('');
   },
   _wireGated(rootEl,onComplete){
+    // First tap on the next-expected word marks it as read silently — Río
+    // has to actually read it. Second tap on a word ALREADY marked plays
+    // the audio (used as a "stuck?" hint). Out-of-order taps shake.
     const spans=[...rootEl.querySelectorAll('.gw')];
     if(spans.length===0){onComplete&&onComplete();return;}
     let nextIdx=0;
@@ -4433,14 +4446,20 @@ const G = {
     spans.forEach(sp=>{
       sp.addEventListener('click',()=>{
         const i=parseInt(sp.dataset.gi);
+        if(sp.dataset.read==='1'){
+          // already-read word: second tap plays audio as a hint
+          sp.animate([{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:200});
+          this._speak(sp.dataset.say,0.7);
+          return;
+        }
         if(i===nextIdx){
-          // correct order: reveal + speak
+          // correct order: silent reveal (no audio — Río reads it himself)
+          sp.dataset.read='1';
           sp.style.background='#dcfce7';
           sp.style.borderStyle='solid';
           sp.style.borderColor='var(--green)';
           sp.style.color='var(--text)';
           sp.style.boxShadow='';
-          this._speak(sp.dataset.say,0.7);
           nextIdx++;
           if(spans[nextIdx]){
             spans[nextIdx].style.borderColor='var(--accent)';
@@ -4480,7 +4499,7 @@ const G = {
           '<div style="background:#fff;border:3px solid var(--accent);border-radius:16px;padding:22px 18px;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:2.4">'+
             '<div style="font-family:\'Fredoka One\',cursive;color:var(--text);font-size:'+(level<=1?'1.5rem':level===2?'1.3rem':'1.15rem')+'">'+this._gatedSentence(book.pages[pageIdx],'inherit')+'</div>'+
           '</div>'+
-          '<div id="sbHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word in order to read it!</div>'+
+          '<div id="sbHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word as you read it. Tap twice if you need help!</div>'+
           '<div style="display:flex;gap:10px;margin-top:14px;justify-content:center">'+
             '<button id="sbNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">'+(pageIdx===book.pages.length-1?'🔒 Read it first':'🔒 Read it first')+'</button>'+
           '</div>'+
@@ -4577,7 +4596,7 @@ const G = {
         '<div id="cmcNextBox" style="text-align:center;margin-top:10px">'+
           '<button id="cmcNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">🔒 Read the bubble first</button>'+
         '</div>'+
-        '<div id="cmcHint" style="text-align:center;font-size:.8rem;color:var(--accent);font-weight:700;margin-top:8px">👆 Tap each word in order!</div>'+
+        '<div id="cmcHint" style="text-align:center;font-size:.8rem;color:var(--accent);font-weight:700;margin-top:8px">👆 Tap each word as you read it. Tap twice if you need help!</div>'+
         '<div id="jokeArea"></div></div>';
       // Gate only the current (latest) panel's words
       const currentBubble=area.querySelectorAll('[style*="border:2px solid var(--accent)"]')[0];
@@ -5738,7 +5757,7 @@ function renderBookPage(card,book,pageIdx){
     '<div style="padding:18px">'+
       '<div style="background:#fef3c7;border-radius:12px;padding:6px 12px;text-align:center;font-family:Fredoka One,cursive;font-size:.8rem;color:#92400e;margin-bottom:12px">Page '+(pageIdx+1)+' of '+book.pages.length+'</div>'+
       '<div style="background:#fff7ed;border:3px solid var(--accent);border-radius:16px;padding:16px;line-height:2.2;text-align:center"><div id="bookText" style="font-family:\'Fredoka One\',cursive;font-size:1.05rem;color:var(--text)">'+G._gatedSentence(page.text,'inherit')+'</div></div>'+
-      '<div id="bookHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word in order to read it!</div>'+
+      '<div id="bookHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word as you read it. Tap twice if you need help!</div>'+
       '<div style="text-align:center;margin-top:14px"><button id="bookNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:12px 26px;border-radius:14px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">🔒 Read it first</button></div>'+
       '<div style="background:#f1f5f9;border-radius:8px;height:6px;margin-top:14px;overflow:hidden"><div style="background:var(--accent);height:100%;width:'+Math.round(((pageIdx+1)/book.pages.length)*100)+'%;transition:width .4s"></div></div>'+
     '</div>';
