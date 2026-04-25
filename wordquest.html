@@ -368,6 +368,7 @@ h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
       <div class="pill"><img src="sprites/hud_heart.png" class="hud-icon"><span id="livesVal">3</span></div>
       <div class="pill"><img src="sprites/hud_level.png" class="hud-icon"><span id="levelVal">1</span></div>
       <div class="pill" style="background:linear-gradient(180deg,rgba(251,191,36,.3),rgba(251,191,36,.15))"><img src="sprites/hud_coin.png" class="hud-icon"><span id="coinVal">0</span></div>
+      <div class="pill" id="readingStreakBadge" style="display:none;background:linear-gradient(180deg,rgba(236,72,153,.4),rgba(236,72,153,.15));color:#fff;font-family:'Fredoka One',cursive"></div>
     </div>
   </div>
   <div class="xp-wrap">
@@ -1402,6 +1403,28 @@ const WORDS = [
   {w:'dark',sent:'It is ___ outside.',joke:'Are you afraid of the DARK? The DARK is afraid of flashlights!',priority:true},
   {w:'park',sent:'Let\'s go to the ___.',joke:'The PARK is where dogs go to BARK in the DARK! Wait, that\'s scary.',priority:true},
   {w:'spark',sent:'The fire made a ___.',joke:'A tiny SPARK can start a big fire! And a tiny word can start big reading!',priority:true},
+  // ---- TEACHER WORDS (more high-frequency vocab from school) ----
+  {w:'many',sent:'I have ___ toys.',joke:'How MANY jokes does it take? MANY MANY MANY of them!',priority:true},
+  {w:'any',sent:'Do you have ___?',joke:'ANY way you slice it, ANY is a sneaky little word!',priority:true},
+  {w:'been',sent:'I have ___ to the zoo.',joke:'Where have you BEEN? In a book! BEEN reading all day!',priority:true},
+  {w:'being',sent:'Stop ___ silly!',joke:'BEING silly is my JOB! Just kidding, my job is BEING me!',priority:true},
+  {w:'into',sent:'I jumped ___ the pool.',joke:'Why did the chicken jump INTO the pool? To get to the OTHER side... of the pool!',priority:true},
+  {w:'friend',sent:'My ___ is so cool.',joke:'A FRIEND is a person who eats your fries and you do not get mad!',priority:true},
+  {w:'because',sent:'I am happy ___ it is sunny.',joke:'Why? BECAUSE! BECAUSE BECAUSE BECAUSE! That is just what BECAUSE does!',priority:true},
+  {w:'woman',sent:'The ___ is my mom.',joke:'A WOMAN walked into a library. The librarian said "shhh!" Now the WOMAN is a ninja!',priority:true},
+  {w:'women',sent:'Two ___ are friends.',joke:'WOMEN is more than one WOMAN. Just like FEET is more than one FOOT!',priority:true},
+  {w:'move',sent:'Please ___ over.',joke:'MOVE it MOVE it! I like to MOVE it MOVE it!',priority:true},
+  {w:'both',sent:'I want ___ cookies.',joke:'BOTH means TWO! Like both of your eyes... unless you are a cyclops!',priority:true},
+  {w:'four',sent:'I see ___ ducks.',joke:'How many wheels on a car? FOUR! How many tacos can I eat? FOUR! Maybe FIVE.',priority:true},
+  {w:'fourth',sent:'I came in ___ place.',joke:'The FOURTH of July has fireworks! POW POW POW POW — that is FOUR pows for the FOURTH!',priority:true},
+  {w:'forty',sent:'My grandma is ___.',joke:'FORTY winks means a tiny nap. FORTY tacos means a HUGE lunch!',priority:true},
+  {w:'family',sent:'My ___ is the best.',joke:'My FAMILY is silly! My dog is FAMILY too. So is my goldfish... rest in peace, Bob.',priority:true},
+  {w:'people',sent:'Many ___ came.',joke:'PEOPLE come in all sizes! Tiny PEOPLE, big PEOPLE, smelly PEOPLE!',priority:true},
+  {w:'nothing',sent:'I have ___ to do.',joke:'NOTHING is what is in my brain when I cannot find my homework!',priority:true},
+  {w:'other',sent:'I want the ___ one.',joke:'On the OTHER hand, this OTHER hand has FIVE fingers too!',priority:true},
+  {w:'another',sent:'Can I have ___?',joke:'ANOTHER cookie? ANOTHER snack? ANOTHER ANOTHER ANOTHER!',priority:true},
+  {w:'mother',sent:'My ___ loves me.',joke:'MOTHER goose, MOTHER hen, MOTHER bear — all moms are the BEST!',priority:true},
+  {w:'brother',sent:'My ___ is funny.',joke:'A BROTHER is a friend you did not ask for but got for free!',priority:true},
   // ---- FUNNY WORDS (to keep Río engaged!) ----
   {w:'stinky',sent:'My socks are ___!',joke:'STINKY feet, STINKY cheese, STINKY brother! Wait, don\'t tell him I said that!',priority:true},
   {w:'smelly',sent:'That garbage is ___.',joke:'SMELLY dogs, SMELLY farts, SMELLY toots! Reading this made me laugh so hard I tooted!',priority:true},
@@ -1781,6 +1804,76 @@ const ILLUSTRATED_BOOKS = [
     q:'What did Río get for Snowpuff?',
     choices:['A hat','An umbrella','A fan','Ice'],
     answer:1
+  },
+  {
+    id:'book_spookle_party',
+    title:'Spookle\'s Birthday Party',
+    cover:'sprites/book_spookle_cover.png',
+    pages:[
+      {img:'sprites/book_spookle_1.png',text:'It was Spookle\'s birthday but he had no friends and no family there.'},
+      {img:'sprites/book_spookle_2.png',text:'Río walked in with a present and said, "I will be your friend, because nobody should be alone!"'},
+      {img:'sprites/book_spookle_3.png',text:'Many other Wordmons came to the party! Both Sparky and Drakle brought cake.'},
+      {img:'sprites/book_spookle_4.png',text:'Spookle had nothing to be sad about. Now he has a big family of friends.'}
+    ],
+    q:'Who came to the party first?',
+    choices:['Drakle','Sparky','Río','Bubblefin'],
+    answer:2
+  },
+  {
+    id:'book_crunchstone_swim',
+    title:'Crunchstone Goes Swimming',
+    cover:'sprites/book_crunchstone_swim_cover.png',
+    pages:[
+      {img:'sprites/book_crunchstone_swim_1.png',text:'Crunchstone the rock had never been in any pond. He thought rocks could not swim.'},
+      {img:'sprites/book_crunchstone_swim_2.png',text:'His mother said, "just move into the water! It is fun!" But Crunchstone was scared.'},
+      {img:'sprites/book_crunchstone_swim_3.png',text:'On the fourth try he jumped in! SPLASH! The water felt so good.'},
+      {img:'sprites/book_crunchstone_swim_4.png',text:'Now Crunchstone swims with Bubblefin every day. They are pretty good friends!'}
+    ],
+    q:'How many tries did Crunchstone take?',
+    choices:['One','Two','Four','Forty'],
+    answer:2
+  },
+  {
+    id:'book_leafwhisk_garden',
+    title:'Leafwhisk\'s Family Garden',
+    cover:'sprites/book_leafwhisk_garden_cover.png',
+    pages:[
+      {img:'sprites/book_leafwhisk_garden_1.png',text:'Leafwhisk and her family wanted to grow a garden. They had four tiny seeds.'},
+      {img:'sprites/book_leafwhisk_garden_2.png',text:'Her mother and brother helped dig holes. Río brought another bag of seeds.'},
+      {img:'sprites/book_leafwhisk_garden_3.png',text:'Soon they had forty pretty flowers! Many bees came to visit.'},
+      {img:'sprites/book_leafwhisk_garden_4.png',text:'The whole family was so happy. Now other people come to see the garden too!'}
+    ],
+    q:'How many flowers grew in the garden?',
+    choices:['Four','Ten','Forty','One hundred'],
+    answer:2
+  },
+  {
+    id:'book_buzzlet_honey',
+    title:'Buzzlet Finds the Honey',
+    cover:'sprites/book_buzzlet_honey_cover.png',
+    pages:[
+      {img:'sprites/book_buzzlet_honey_1.png',text:'Buzzlet had been looking everywhere for the missing honey. There was nothing in the jars!'},
+      {img:'sprites/book_buzzlet_honey_2.png',text:'Río said, "I will help you, friend! Being a hero is what I do!"'},
+      {img:'sprites/book_buzzlet_honey_3.png',text:'They went into a dark cave. They found the honey because it was glowing!'},
+      {img:'sprites/book_buzzlet_honey_4.png',text:'Buzzlet\'s family of bees buzzed and cheered. The honey jars were full again!'}
+    ],
+    q:'Where was the honey hidden?',
+    choices:['In the hive','In a cave','At Río\'s house','In the sky'],
+    answer:1
+  },
+  {
+    id:'book_drakle_snow',
+    title:'Drakle\'s First Snow Day',
+    cover:'sprites/book_drakle_snow_cover.png',
+    pages:[
+      {img:'sprites/book_drakle_snow_1.png',text:'Drakle had never seen snow. He stared out the window with big eyes.'},
+      {img:'sprites/book_drakle_snow_2.png',text:'He tried to move into the snow but it was so cold! He did not move at all.'},
+      {img:'sprites/book_drakle_snow_3.png',text:'Then Río and Snowpuff played with him. They made a pretty snowman together!'},
+      {img:'sprites/book_drakle_snow_4.png',text:'Soon four dragons came sledding down the hill. Now Drakle loves snow days!'}
+    ],
+    q:'Who played in the snow with Drakle first?',
+    choices:['His mom','Río and Snowpuff','Sparky','Crunchstone'],
+    answer:1
   }
 ];
 
@@ -1822,6 +1915,8 @@ const G = {
     this.updateBackpack();
     this.loadMode(this.mode);
     this.updateModeBar();
+    this.initReadingTracker();
+    this.updateReadingStreak();
     // auto-save every 30s
     setInterval(()=>this.saveGame(),30000);
   },
@@ -1874,10 +1969,10 @@ const G = {
     document.getElementById('bpBadge').textContent=this.coins;
   },
 
-  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next'},
+  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story',writing:'mode_story',speakback:'mode_hear'},
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next',writing:'✍️ Be a Writer',speakback:'🎤 Speak It'},
   // === READING-FOCUSED MODES (active) ===
-  GAME_MODES:['storybook','comicchat','scramble','readfind','finisher','tricky'],
+  GAME_MODES:['storybook','comicchat','scramble','readfind','finisher','writing','speakback','tricky'],
   // === LEGACY MODES (hidden but preserved — restore by moving back into GAME_MODES) ===
   LEGACY_MODES:['fill','spell','hear','flash','decode','story','readalong','sentence'],
   // Reading level progresses with totalCorrect: harder text as Río improves
@@ -2621,6 +2716,8 @@ const G = {
       case'scramble':this.loadScramble();break;
       case'readfind':this.loadReadFind();break;
       case'finisher':this.loadStoryFinisher();break;
+      case'writing':this.loadWriting();break;
+      case'speakback':this.loadSpeakBack();break;
       case'tricky':this.loadTricky();break; // kept active — helps with b/d n/u
       // === LEGACY (hidden but still callable if forced) ===
       case'fill':this.loadFillIn();break;
@@ -4829,6 +4926,223 @@ const G = {
     this.thinkFirst(document.getElementById('qCard'),3);
   },
 
+  // =========================================================
+  // ✍️  WRITING MODE — Río types a few sentences, Claude reviews kindly
+  // =========================================================
+  loadWriting(){
+    const level=this.getReadingLevel();
+    const area=document.getElementById('gameArea');
+    const PROMPTS=[
+      {emoji:'🐶',start:'My dog ran into the park and saw a',hint:'a cat? a friend? a snack?'},
+      {emoji:'🦖',start:'A T-Rex came to my school. He wanted to',hint:'play? eat? learn?'},
+      {emoji:'🍕',start:'I made the BIGGEST pizza ever. On top I put',hint:'cheese? candy? bugs?'},
+      {emoji:'🚀',start:'My rocket flew up to a new planet. It was full of',hint:'aliens? gummies? rocks?'},
+      {emoji:'⚡',start:'Pikachu came to my house and we',hint:'played? ate? danced?'},
+      {emoji:'🦈',start:'I went fishing and caught a giant',hint:'shark? boot? jellybean?'},
+      {emoji:'🎂',start:'For my birthday party, I want',hint:'a cake? a dragon? friends?'},
+      {emoji:'🧙',start:'A wizard gave me a magic',hint:'sword? sandwich? pet?'},
+      {emoji:'🐲',start:'My pet dragon Drakle loves to',hint:'fly? eat? sleep?'},
+      {emoji:'👻',start:'A friendly ghost lives in my closet. His name is',hint:'be silly!'},
+    ];
+    const p=PROMPTS[Math.floor(Math.random()*PROMPTS.length)];
+    this._pendingWord={w:'writing_'+p.start.slice(0,8)};
+    area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:6px">✍️ Be a Writer!</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:14px">Finish the story your own way. Spelling does NOT have to be perfect!</div>'+
+      '<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:3px solid #fbbf24;border-radius:14px;padding:14px;text-align:center;margin-bottom:12px">'+
+        '<div style="font-size:3rem;margin-bottom:4px">'+p.emoji+'</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1.05rem;color:#92400e;line-height:1.5">'+p.start+'<span style="background:#fff;padding:0 6px;border-radius:6px;margin-left:6px">...?</span></div>'+
+        '<div style="font-size:.7rem;color:#a16207;margin-top:6px;font-weight:700">💭 '+p.hint+'</div>'+
+      '</div>'+
+      '<textarea id="writingPad" placeholder="Type your story here! 1 to 3 sentences..." maxlength="500" style="width:100%;min-height:90px;padding:12px;border-radius:14px;border:2px solid #cbd5e1;font-family:\'Fredoka One\',cursive;font-size:1.1rem;line-height:1.5;resize:vertical;background:#fff7ed;color:var(--text)"></textarea>'+
+      '<div style="text-align:right;font-size:.7rem;color:var(--text2);margin-top:4px"><span id="wpCount">0</span> letters</div>'+
+      '<div style="text-align:center;margin-top:10px"><button id="wpSubmit" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:12px 28px;border-radius:14px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">Send to Coach 📨</button></div>'+
+      '<div id="wpFeedback"></div>'+
+      '<div id="jokeArea"></div></div>';
+    const ta=document.getElementById('writingPad');
+    const sb=document.getElementById('wpSubmit');
+    const ct=document.getElementById('wpCount');
+    ta.addEventListener('input',()=>{
+      ct.textContent=ta.value.length;
+      const ok=ta.value.trim().length>=8;
+      sb.disabled=!ok;
+      sb.style.background=ok?'linear-gradient(135deg,var(--accent),var(--accent-dark))':'#cbd5e1';
+      sb.style.cursor=ok?'pointer':'not-allowed';
+      sb.style.opacity=ok?'1':'.6';
+    });
+    setTimeout(()=>ta.focus(),100);
+    sb.addEventListener('click',async()=>{
+      if(sb.disabled||this.answering) return;
+      this.answering=true;
+      sb.disabled=true;sb.textContent='Sending... ⏳';
+      const text=ta.value.trim();
+      // Save to local writing log right away (works even if API fails)
+      this.saveWriting(p.start, text);
+      const fb=document.getElementById('wpFeedback');
+      fb.innerHTML='<div style="text-align:center;margin-top:12px;font-size:.95rem;color:var(--text2)">📝 Coach Claude is reading your story...</div>';
+      try{
+        const r=await fetch('/api/review-writing',{
+          method:'POST',headers:{'content-type':'application/json'},
+          body:JSON.stringify({text,prompt:p.start})
+        });
+        const data=await r.json();
+        const feedback=data.feedback||'You did a great job writing! I love that you shared a story with me.';
+        const cheer=data.encouragement||'You are a writer, Río!';
+        fb.innerHTML='<div style="background:#f0fdf4;border:3px solid var(--green);border-radius:14px;padding:14px;margin-top:12px">'+
+          '<div style="font-family:Fredoka One,cursive;font-size:.85rem;color:var(--green);margin-bottom:6px">📨 Coach says:</div>'+
+          '<div style="font-size:1rem;color:var(--text);line-height:1.5;margin-bottom:8px">'+feedback+'</div>'+
+          '<div style="font-family:Fredoka One,cursive;font-size:1.05rem;color:var(--accent);text-align:center;margin-top:6px">'+cheer+'</div>'+
+        '</div>';
+        // award points for writing — generous since it's high effort
+        SFX.play('correct');
+        this.score+=10;
+        this.streak++;if(this.streak>this.maxStreak)this.maxStreak=this.streak;
+        this.modeWins++;this.totalCorrect++;
+        this.addXP(20);this.addCoins(3);
+        this.updateHUD();this.saveGame();
+        this.fireConfetti();
+        setTimeout(()=>{this.autoNext(this.modeWins>=6?6000:5500, this.modeWins>=6);},6000);
+      } catch(e){
+        // Network/API error — still award points, kid did their job
+        fb.innerHTML='<div style="background:#fef3c7;border:3px solid #fbbf24;border-radius:14px;padding:14px;margin-top:12px">'+
+          '<div style="font-family:Fredoka One,cursive;font-size:.95rem;color:#92400e">📝 Saved! Mom and Dad will read your story later.</div>'+
+        '</div>';
+        SFX.play('correct');
+        this.score+=10;this.totalCorrect++;this.modeWins++;
+        this.addXP(20);this.addCoins(3);
+        this.updateHUD();this.saveGame();
+        setTimeout(()=>this.autoNext(4500,this.modeWins>=6),5000);
+      }
+    });
+  },
+  // Persist Río's writing for parent dashboard review
+  saveWriting(prompt,text){
+    try{
+      const log=JSON.parse(localStorage.getItem('rio_writing_log')||'[]');
+      log.unshift({date:new Date().toISOString(),prompt,text});
+      // Cap at 50 entries
+      localStorage.setItem('rio_writing_log',JSON.stringify(log.slice(0,50)));
+    }catch(e){}
+  },
+
+  // =========================================================
+  // 🎤  SPEAK-IT-BACK — Río says the word, browser checks pronunciation
+  // =========================================================
+  loadSpeakBack(){
+    const area=document.getElementById('gameArea');
+    // Use the existing pickWord so streak/anti-skip work
+    const wd=this.pickWord();
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Recognition){
+      // No mic API — fall back to Hear It mode equivalent
+      area.innerHTML='<div class="card"><div class="question-text">Speak Back is not supported on this browser. Try Chrome on Mac or iOS!</div></div>';
+      setTimeout(()=>this.loadStorybook(),1800);
+      return;
+    }
+    area.innerHTML='<div class="card" id="qCard" style="padding:20px">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:10px">🎤 Read it OUT LOUD!</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:16px">Press the mic, say the word, and I will listen!</div>'+
+      '<div style="background:#fff7ed;border:3px solid var(--accent);border-radius:18px;padding:30px;text-align:center;margin-bottom:14px">'+
+        '<div style="font-family:\'Fredoka One\',cursive;font-size:3rem;color:var(--text)" id="sbWord">'+wd.w+'</div>'+
+      '</div>'+
+      '<div style="text-align:center;margin-bottom:10px"><button id="sbMic" style="width:88px;height:88px;border-radius:50%;border:none;background:linear-gradient(135deg,#ec4899,#db2777);color:#fff;font-size:2.5rem;cursor:pointer;box-shadow:0 6px 20px rgba(236,72,153,.4);transition:all .2s">🎤</button></div>'+
+      '<div id="sbStatus" style="text-align:center;font-size:.95rem;color:var(--text2);font-weight:700;min-height:24px">Tap the mic and say "<span style="color:var(--accent)">'+wd.w+'</span>"</div>'+
+      '<div id="sbHeard" style="text-align:center;font-size:.85rem;color:var(--text2);margin-top:6px;min-height:20px"></div>'+
+      '<div style="text-align:center;margin-top:14px"><button id="sbSkip" style="font-family:Nunito,sans-serif;font-weight:700;font-size:.85rem;padding:8px 18px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">Skip & try another</button></div>'+
+      '<div id="jokeArea"></div></div>';
+    const recog=new Recognition();
+    recog.lang='en-US';recog.continuous=false;recog.interimResults=false;
+    let listening=false,answered=false;
+    const mic=document.getElementById('sbMic');
+    const status=document.getElementById('sbStatus');
+    const heard=document.getElementById('sbHeard');
+    mic.addEventListener('click',()=>{
+      if(listening||answered) return;
+      try{
+        listening=true;
+        mic.style.background='linear-gradient(135deg,#ef4444,#dc2626)';
+        mic.style.animation='pulse 1s infinite';
+        status.innerHTML='👂 Listening... say "<strong>'+wd.w+'</strong>"';
+        recog.start();
+      }catch(e){listening=false;}
+    });
+    document.getElementById('sbSkip').addEventListener('click',()=>{
+      if(answered) return;
+      this.clearPendingWord();
+      this.loadSpeakBack();
+    });
+    recog.onresult=(ev)=>{
+      const result=(ev.results[0][0].transcript||'').toLowerCase().trim();
+      heard.textContent='I heard: "'+result+'"';
+      const target=wd.w.toLowerCase();
+      const ok=result===target||result.includes(target)||target.includes(result.split(/\s+/)[0]);
+      answered=true;listening=false;
+      mic.style.animation='';
+      if(ok){
+        mic.style.background='linear-gradient(135deg,#22c55e,#16a34a)';
+        status.innerHTML='✅ Yes! That is "<strong>'+wd.w+'</strong>"!';
+        this.onCorrect(wd);
+      } else {
+        mic.style.background='linear-gradient(135deg,#f59e0b,#d97706)';
+        status.innerHTML='Hmm, try again! It is "<strong>'+wd.w+'</strong>"';
+        // Speak the correct word as model
+        this._speak(wd.w,0.6);
+        this.onWrong(wd);
+      }
+    };
+    recog.onerror=(ev)=>{
+      listening=false;
+      mic.style.animation='';
+      mic.style.background='linear-gradient(135deg,#ec4899,#db2777)';
+      status.innerHTML='Oops! Tap the mic and try again.';
+    };
+    recog.onend=()=>{listening=false;};
+  },
+
+  // =========================================================
+  // 🔥 READING STREAK + DAILY MINUTES — passive tracking
+  // =========================================================
+  initReadingTracker(){
+    if(this._readingTrackerStarted) return;
+    this._readingTrackerStarted=true;
+    this._sessionStart=Date.now();
+    // Tick every 30s — adds 30s to today's reading log if a reading mode is active
+    const READING_MODES=['storybook','comicchat','scramble','readfind','finisher','writing','speakback'];
+    setInterval(()=>{
+      if(!READING_MODES.includes(this.mode)) return;
+      const log=this.getReadingLog();
+      const today=new Date().toISOString().slice(0,10);
+      log[today]=(log[today]||0)+30;
+      try{localStorage.setItem('rio_reading_log',JSON.stringify(log));}catch(e){}
+      // Update streak count
+      this.updateReadingStreak();
+    },30000);
+  },
+  getReadingLog(){
+    try{return JSON.parse(localStorage.getItem('rio_reading_log')||'{}');}catch(e){return {};}
+  },
+  getTodayMinutes(){
+    const today=new Date().toISOString().slice(0,10);
+    return Math.round(((this.getReadingLog()[today]||0)/60));
+  },
+  updateReadingStreak(){
+    const log=this.getReadingLog();
+    let streak=0;
+    const day=24*60*60*1000;
+    for(let i=0;i<365;i++){
+      const d=new Date(Date.now()-i*day).toISOString().slice(0,10);
+      if((log[d]||0)>=60) streak++; // need at least 1 min to count
+      else if(i>0) break;
+      else if(i===0&&!(log[d]>=60)) break;
+    }
+    this.readingStreak=streak;
+    const el=document.getElementById('readingStreakBadge');
+    if(el){
+      el.textContent=streak>0?'🔥 '+streak+' day'+(streak===1?'':'s'):'';
+      el.style.display=streak>0?'inline-flex':'none';
+    }
+  },
+
   // ---- READ ALONG (TTS reads sentence but pauses for target word) ----
   // ---- SENTENCE BUILDER — tap words in correct order ----
   loadSentenceBuilder(){
@@ -6192,6 +6506,31 @@ function openParentDashboard(){
       '<button onclick="document.getElementById(\'importSaveInput\').click()" style="font-family:Nunito,sans-serif;font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:700">📤 Import Save</button>'+
       '<input type="file" id="importSaveInput" accept=".json" style="display:none" onchange="importSave(this)">'+
     '</div></div>'+
+    // RIO'S WRITING LOG
+    (function(){
+      let log=[];try{log=JSON.parse(localStorage.getItem('rio_writing_log')||'[]');}catch(e){}
+      if(log.length===0) return '';
+      return '<div style="margin-top:14px;border-top:2px dashed #e2e8f0;padding-top:12px"><div style="font-family:Fredoka One,cursive;font-size:.9rem;color:var(--text);margin-bottom:8px;text-align:center">📝 Río\'s Writing ('+log.length+' entries)</div>'+
+        log.slice(0,10).map(e=>{
+          const d=new Date(e.date).toLocaleString();
+          return '<div style="background:#fff7ed;border-left:4px solid var(--accent);border-radius:8px;padding:10px;margin-bottom:6px;font-size:.85rem;line-height:1.4"><div style="font-size:.65rem;color:var(--text2);font-weight:700;margin-bottom:4px">'+d+'</div><div style="color:var(--accent);font-weight:700;font-size:.75rem">Prompt: '+e.prompt.replace(/</g,'&lt;')+'</div><div style="color:var(--text);margin-top:4px;white-space:pre-wrap">'+e.text.replace(/</g,'&lt;')+'</div></div>';
+        }).join('')+
+      '</div>';
+    })()+
+    // READING TIME LOG
+    (function(){
+      let log={};try{log=JSON.parse(localStorage.getItem('rio_reading_log')||'{}');}catch(e){}
+      const days=Object.keys(log).sort().reverse().slice(0,7);
+      if(days.length===0) return '';
+      return '<div style="margin-top:14px;border-top:2px dashed #e2e8f0;padding-top:12px"><div style="font-family:Fredoka One,cursive;font-size:.9rem;color:var(--text);margin-bottom:8px;text-align:center">⏱️ Daily Reading Time (last 7 days)</div>'+
+        '<div style="display:flex;gap:4px;align-items:flex-end;justify-content:center;height:80px;margin-bottom:6px">'+
+        days.reverse().map(d=>{
+          const mins=Math.round((log[d]||0)/60);
+          const h=Math.max(4,mins*4);
+          return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:.65rem;color:var(--text2);font-weight:700">'+mins+'m</div><div style="width:32px;height:'+h+'px;background:linear-gradient(180deg,#ec4899,#9333ea);border-radius:4px"></div><div style="font-size:.55rem;color:var(--text2)">'+d.slice(5)+'</div></div>';
+        }).join('')+
+        '</div></div>';
+    })()+
     '<div style="margin-top:12px;text-align:center;font-size:.7rem;color:var(--text2)">Type "stats" on keyboard to open this panel anytime</div></div>';
   document.body.appendChild(overlay);
 }
