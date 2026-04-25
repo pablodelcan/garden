@@ -147,21 +147,19 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
   <div class="buddies">
     <div class="buddy">
       <img src="rosa-sprites/buddy_pup.png" alt="Puppy" id="buddyLeft" onclick="G.tapBuddy('bingo')" onerror="this.outerHTML='<div style=&quot;font-size:4rem&quot;>🐶</div>'">
-      <div class="buddy-name">Bingo</div>
     </div>
     <div class="buddy">
       <img src="rosa-sprites/buddy_spider.png" alt="Spidey" id="buddyRight" onclick="G.tapBuddy('webby')" onerror="this.outerHTML='<div style=&quot;font-size:4rem&quot;>🦸</div>'">
-      <div class="buddy-name">Webby</div>
     </div>
   </div>
 </div>
 
 <!-- MODE BAR -->
 <div class="mode-bar" id="modeBar">
-  <div class="mode-pill active" id="modeIndicator">🔤 Letters</div>
-  <div style="font-weight:700;font-size:.8rem;color:var(--text2)" id="progressLabel">1 / 10</div>
-  <button class="rosa-shop-btn" onclick="G.loadShop()">🎁 Toys</button>
-  <button class="rosa-awards-btn" onclick="G.loadAwards()">🏆</button>
+  <div class="mode-pill active" id="modeIndicator" style="font-size:1.5rem">🔤</div>
+  <div style="font-weight:700;font-size:1rem;color:var(--text2)" id="progressLabel">⭐<span id="progressDots"></span></div>
+  <button class="rosa-shop-btn" onclick="G.loadShop()" style="font-size:1.4rem">🎁</button>
+  <button class="rosa-awards-btn" onclick="G.loadAwards()" style="font-size:1.4rem">🏆</button>
 </div>
 
 <!-- GAME AREA -->
@@ -169,7 +167,7 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 
 <!-- STICKER COLLECTION -->
 <div class="sticker-section">
-  <div class="sticker-title">🌟 Rosa's Stickers (<span id="stickerCount">0</span> / <span id="stickerTotal">30</span>)</div>
+  <div class="sticker-title" style="font-size:1.5rem">🌟 <span id="stickerCount">0</span>/<span id="stickerTotal">30</span></div>
   <div class="sticker-grid" id="stickerGrid"></div>
 </div>
 
@@ -339,8 +337,12 @@ const G={
   stickers:[], // earned sticker indices
   mode:'letters', answering:false,
   currentSpoken:'', // what to repeat when speaker is tapped
-  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','phrases','smemory','maze'],
-  MODE_NAMES:{letters:'🔤 Letters',numbers:'🔢 Numbers',colors:'🎨 Colors',shapes:'🔷 Shapes',matching:'🃏 Match',spanish:'🇪🇸 Español',phrases:'💬 Phrases',smemory:'🧠 ES Memory',maze:'🌀 Maze'},
+  // Phrases mode disabled — too text-heavy for a 3-year-old who can't read.
+  // It stays in code (LEGACY) so it can be re-enabled later for an older Rosa.
+  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','smemory','maze'],
+  LEGACY_MODES:['phrases'],
+  // Icon-only mode names — Rosa is 3 and can't read words
+  MODE_NAMES:{letters:'🔤',numbers:'🔢',colors:'🎨',shapes:'🔷',matching:'🃏',spanish:'🇪🇸',phrases:'💬',smemory:'🧠🇪🇸',maze:'🌀'},
 
   init(){
     this.loadGame();
@@ -385,7 +387,9 @@ const G={
   updateModeBar(){
     document.getElementById('modeIndicator').textContent=this.MODE_NAMES[this.mode]||this.mode;
     document.getElementById('modeIndicator').className='mode-pill active';
-    document.getElementById('progressLabel').textContent=this.modeWins+' / 10';
+    // Icon-based progress: row of 10 stars filled by modeWins
+    const w=this.modeWins;
+    document.getElementById('progressLabel').innerHTML=Array.from({length:10},(_,i)=>i<w?'⭐':'☆').join('');
   },
 
   changeBackground(){
@@ -499,10 +503,12 @@ const G={
     const word=LETTER_WORDS[target];
 
     this.currentSpoken="What letter is this? "+target+"! "+target+" is for "+word+"!";
+    // Extract the emoji from LETTER_WORDS (e.g. "Apple 🍎" → "🍎")
+    const wordEmoji=(word.match(/[\p{Emoji}]+/u)||['❓'])[0];
     area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text">What letter is this?</div>'+
+      '<div style="text-align:center;font-size:2.5rem;margin:8px 0">👀❓</div>'+
       '<div class="big-letter">'+target+'</div>'+
-      '<div style="text-align:center;font-size:1rem;color:var(--text2);font-weight:700;margin-bottom:12px">'+target+' is for '+word+'</div>'+
+      '<div style="text-align:center;font-size:3rem;margin-bottom:12px">'+wordEmoji+'</div>'+
       '<div class="big-choices">'+
       choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span style="font-size:3rem">'+c+'</span></button>').join('')+
       '</div></div>';
@@ -522,8 +528,8 @@ const G={
 
     this.currentSpoken="How many dots? Count them! "+target+" dots!";
     area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text">How many dots?</div>'+
-      '<div style="text-align:center;font-size:2rem;line-height:1.6;margin:8px 0;letter-spacing:4px">'+emoji+'</div>'+
+      '<div style="text-align:center;font-size:2.5rem;margin:8px 0">🔢❓</div>'+
+      '<div style="text-align:center;font-size:2.5rem;line-height:1.6;margin:8px 0;letter-spacing:6px">'+emoji+'</div>'+
       '<div class="big-choices">'+
       choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span class="big-number" style="font-size:3rem;margin:0">'+c+'</span></button>').join('')+
       '</div></div>';
@@ -541,10 +547,10 @@ const G={
 
     this.currentSpoken="What color is this? "+target.name+"!";
     area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text">What color is this?</div>'+
+      '<div style="text-align:center;font-size:2.5rem;margin:8px 0">🎨❓</div>'+
       '<div class="color-swatch" style="background:'+target.hex+'"></div>'+
       '<div class="big-choices">'+
-      choices.map(c=>'<button class="big-btn" data-val="'+c.name+'"><span style="font-size:2rem">'+c.emoji+'</span><span class="big-btn-label">'+c.name+'</span></button>').join('')+
+      choices.map(c=>'<button class="big-btn" data-val="'+c.name+'" style="background:'+c.hex+';border:4px solid '+c.hex+';"><span style="font-size:3.5rem">'+c.emoji+'</span></button>').join('')+
       '</div></div>';
 
     this.setupChoices(target.name);
@@ -562,10 +568,10 @@ const G={
 
     this.currentSpoken="What shape is this? A "+target.name+"!";
     area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text">What shape is this?</div>'+
+      '<div style="text-align:center;font-size:2.5rem;margin:8px 0">🔷❓</div>'+
       '<div class="shape-display"><svg viewBox="0 0 120 120">'+target.svg.replace('VAR',color)+'</svg></div>'+
       '<div class="big-choices">'+
-      choices.map(c=>'<button class="big-btn" data-val="'+c.name+'"><span style="font-size:2rem">'+c.emoji+'</span><span class="big-btn-label">'+c.name+'</span></button>').join('')+
+      choices.map(c=>'<button class="big-btn" data-val="'+c.name+'"><span style="font-size:4rem">'+c.emoji+'</span></button>').join('')+
       '</div></div>';
 
     this.setupChoices(target.name);
@@ -583,7 +589,7 @@ const G={
     speak("Find the matching pairs! Tap two cards!",0.75,1.1);
 
     const render=()=>{
-      area.innerHTML='<div class="card"><div class="question-text">Find the pairs! 🎴</div>'+
+      area.innerHTML='<div class="card"><div style="text-align:center;font-size:2.5rem;margin:8px 0">🃏 🎴</div>'+
         '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:8px">Flips: '+moves+'</div>'+
         '<div class="match-grid" style="grid-template-columns:repeat(4,1fr)">'+
         cards.map((c,i)=>{
@@ -633,7 +639,7 @@ const G={
     this.updateHUD();this.updateModeBar();
     speak("You did it! Amazing, Rosa!",0.85,1.2);
     const res=document.getElementById('matchResult');
-    if(res) res.innerHTML='<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--green);margin-top:10px">🎉 You did it!</div>';
+    if(res) res.innerHTML='<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--green);margin-top:10px">🎉⭐🌟</div>';
     setTimeout(()=>{
       this.changeBuddyMood('normal');
       this.autoNext();
@@ -765,37 +771,40 @@ const G={
     ];
     // Pick a random type: en→es or es→en
     const target=SPANISH_WORDS[Math.floor(Math.random()*SPANISH_WORDS.length)];
-    const direction=Math.random()<0.5?'en_to_es':'es_to_en';
+    // Picture-only Spanish: play the Spanish word, Rosa picks the matching emoji
+    const wrongs=shuffle(SPANISH_WORDS.filter(w=>w!==target&&w.emoji!==target.emoji)).slice(0,3);
+    const choices=shuffle([target,...wrongs]);
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-size:3rem;margin:10px 0">🇪🇸 🔊</div>'+
+      '<div style="text-align:center;font-size:2rem;margin-bottom:8px">👇</div>'+
+      '<div style="text-align:center;margin-bottom:14px"><button id="esReplay" style="width:80px;height:80px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:2.5rem;cursor:pointer;box-shadow:0 6px 18px rgba(147,51,234,.3)">🔊</button></div>'+
+      '<div class="big-choices" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+      choices.map(c=>'<button class="big-btn" data-val="'+c.es+'" style="font-size:4rem;padding:24px;border-radius:18px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .2s">'+c.emoji+'</button>').join('')+
+      '</div></div>';
+    this._spanishContext={target,direction:'es_to_en'};
+    this.setupChoices(target.es);
+    const playWord=()=>speakSpanish(target.es,0.65,1.1);
+    document.getElementById('esReplay').addEventListener('click',playWord);
+    setTimeout(()=>{
+      const btns=document.querySelectorAll('.big-btn');
+      btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
+      playWord();
+    },300);
+    // Suppress the legacy en_to_es / es_to_en code path below by exiting early
+    if(true) return;
+    // ---- (legacy speak-and-highlight code below, no longer used) ----
+    const direction='es_to_en'; // unused
     const question=direction==='en_to_es'
       ?'How do you say <strong>'+target.en+'</strong> '+target.emoji+' in Spanish?'
       :'How do you say <strong>'+target.es+'</strong> '+target.emoji+' in English?';
     const correctAnswer=direction==='en_to_es'?target.es:target.en;
-    // Get 3 wrong answers from same category
-    const sameCategory=SPANISH_WORDS.filter(w=>w!==target);
-    const wrongs=shuffle(sameCategory).slice(0,3).map(w=>direction==='en_to_es'?w.es:w.en);
-    const choices=shuffle([correctAnswer,...wrongs]);
-    area.innerHTML='<div class="card" id="qCard">'+
-      '<div class="question-text" style="font-size:1.2rem;line-height:1.6">'+question+'</div>'+
-      '<div style="text-align:center;font-size:3.5rem;margin:8px 0">'+target.emoji+'</div>'+
-      '<div class="big-choices" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
-      choices.map(c=>'<button class="big-btn" data-val="'+c+'" style="font-size:1.4rem;padding:16px;border-radius:16px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:700;transition:all .2s">'+
-        '<div class="big-btn-label">'+c+'</div></button>').join('')+
-      '</div></div>';
-    // Wire up choices
-    // Store Spanish context for the onCorrect celebration
-    this._spanishContext={target, direction};
-    this.setupChoices(correctAnswer);
-    // Speak question - use Spanish voice for Spanish parts
     if(direction==='en_to_es'){
       speak('How do you say '+target.en+' in Spanish?', 0.75, 1.1, ()=>{
-        // Read each Spanish choice with Spanish voice
         const btns=document.querySelectorAll('.big-btn');
         btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
-        // Read the correct answer in Spanish
         setTimeout(()=>speakSpanish(target.es, 0.7, 1.1),500);
       });
     } else {
-      // Read the question in Spanish first
       speakSpanish('Cómo se dice '+target.es, 0.7, 1.1, ()=>{
         speak(' in English?', 0.75, 1.1, ()=>{
           const btns=document.querySelectorAll('.big-btn');
@@ -890,15 +899,17 @@ const G={
     this.currentSpoken='Match each English word to its Spanish word!';
     speak('Match each English word to its Spanish word!',0.8,1.15);
     const render=()=>{
-      area.innerHTML='<div class="card"><div class="question-text">Match the pairs! 🇪🇸</div>'+
-        '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:8px">English ↔ Spanish — Flips: '+moves+'</div>'+
+      area.innerHTML='<div class="card"><div style="text-align:center;font-size:2.5rem;margin:8px 0">🃏 🇪🇸</div>'+
+        '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:8px">Flips: '+moves+'</div>'+
         '<div class="match-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
         cards.map((c,i)=>{
           const isFlip=flipped.includes(i)||matched.includes(i);
           const isMat=matched.includes(i);
+          // Different border color per language so kid learns the visual cue without reading
+          const border=c.lang==='es'?'#3b82f6':'#fbbf24'; // blue=Spanish, gold=English
           const bg=isFlip?(c.lang==='es'?'#dbeafe':'#fef3c7'):'';
-          return '<button class="match-card'+(isFlip?' flipped':'')+(isMat?' matched':'')+'" data-i="'+i+'" style="font-size:.85rem;line-height:1.2;padding:8px 4px;'+(isFlip?'background:'+bg+';color:var(--text)':'')+'">'+
-            (isFlip?'<div style="font-size:1.5rem">'+c.emoji+'</div><div style="font-size:.75rem;font-weight:800">'+c.text+'</div><div style="font-size:.55rem;color:var(--text2);margin-top:2px">'+(c.lang==='es'?'🇪🇸':'🇺🇸')+'</div>':'?')+
+          return '<button class="match-card'+(isFlip?' flipped':'')+(isMat?' matched':'')+'" data-i="'+i+'" style="font-size:.85rem;line-height:1.2;padding:8px 4px;'+(isFlip?'background:'+bg+';color:var(--text);border:4px solid '+border+';':'')+'">'+
+            (isFlip?'<div style="font-size:2.2rem">'+c.emoji+'</div><div style="font-size:1.5rem;margin-top:2px">'+(c.lang==='es'?'🇪🇸':'🇺🇸')+'</div>':'?')+
           '</button>';
         }).join('')+
         '</div><div id="matchResult"></div></div>';
@@ -957,7 +968,7 @@ const G={
     speak('Help Rosa find the star! Use the arrow buttons!',0.8,1.15);
     const render=()=>{
       const reached=pos.r===goal.r&&pos.c===goal.c;
-      area.innerHTML='<div class="card"><div class="question-text">🌀 Find the Star!</div>'+
+      area.innerHTML='<div class="card"><div style="text-align:center;font-size:2.8rem;margin:8px 0">👧 ➡️ ⭐</div>'+
         '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:8px">Moves: '+moves+'</div>'+
         '<div id="mazeGrid" style="display:grid;grid-template-columns:repeat('+COLS+',1fr);gap:3px;max-width:320px;margin:0 auto;background:#1e293b;padding:6px;border-radius:14px">'+
           maze.flatMap((row,r)=>row.map((cell,c)=>{
@@ -970,7 +981,7 @@ const G={
           })).join('')+
         '</div>'+
         (reached?
-          '<div style="text-align:center;margin-top:14px"><div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--green)">🎉 You did it!</div></div>':
+          '<div style="text-align:center;margin-top:14px"><div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--green)">🎉⭐🌟</div></div>':
           '<div id="mazeControls" style="display:grid;grid-template-columns:repeat(3,72px);gap:6px;justify-content:center;margin-top:14px">'+
             '<div></div>'+
             '<button class="maze-btn" data-dir="up" style="font-size:2rem;padding:10px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 0 #6d28d9">⬆️</button>'+
@@ -1035,9 +1046,12 @@ const G={
     this.checkSticker();
     this.updateHUD();this.updateModeBar();this.saveGame();
 
-    // BIG praise every time!
-    const praises=["YAY ROSA! 🎉","SUPER JOB! ⭐","AMAZING! 🌟","SO SMART! 🧠","WONDERFUL! 🌈","WOOHOO! 🎊","PERFECT! 💖","YOU DID IT! 🥳","GREAT! 👏","AWESOME! 🦋","WOOHOO! I PEED IN MY SHOE! 👟💦","WOOHOO! I PEED IN MY SHOE! 👟💦","SILLY ROSA! 🤪","STINKY FEET! 🦶😂"];
-    const praise=praises[Math.floor(Math.random()*praises.length)];
+    // BIG icon-only celebration (Rosa can't read words). Audio still says praise.
+    const visuals=['🎉⭐🌟','🌈✨💖','🎊🥳🎈','👏💪🌟','🦋💗✨','🌸🌟💫','🚀⭐🎉'];
+    const praise=visuals[Math.floor(Math.random()*visuals.length)];
+    // Spoken praise — said aloud, not shown
+    const audioP=["Yay Rosa!","Super job!","Amazing!","So smart!","Wonderful!","Woohoo!","Perfect!","You did it!","Great!","Awesome!"];
+    const audioPraise=audioP[Math.floor(Math.random()*audioP.length)];
 
     // Show big floating praise text
     const praiseEl=document.createElement('div');
@@ -1051,12 +1065,12 @@ const G={
     // If in Spanish mode, reinforce the Spanish word with proper accent
     if(this._spanishContext){
       const ctx=this._spanishContext;
-      speak(praise.replace(/[^a-zA-Z! ]/g,''),0.9,1.2,()=>{
+      speak(audioPraise,0.9,1.2,()=>{
         speakSpanish(ctx.target.es+'!', 0.7, 1.1);
       });
       this._spanishContext=null;
     } else {
-      speak(praise.replace(/[^a-zA-Z! ]/g,''),0.9,1.2);
+      speak(audioPraise,0.9,1.2);
     }
 
     // Mini confetti on every correct!
@@ -1151,11 +1165,13 @@ const G={
     const overlay=document.createElement('div');
     overlay.className='celebration-overlay';
     overlay.innerHTML='<div class="celebration-modal">'+
-      '<div style="font-family:Fredoka One,cursive;font-size:1.5rem;color:var(--pink);margin-bottom:8px">New Sticker! 🌟</div>'+
-      '<div style="font-size:4rem;margin:10px 0">'+sticker.fallback+'</div>'+
-      '<div style="font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--text);margin-bottom:12px">You earned a '+sticker.name+' sticker!</div>'+
-      '<button onclick="this.closest(\'.celebration-overlay\').remove()" style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 24px;border-radius:14px;border:none;background:var(--pink);color:#fff;cursor:pointer">Yay! 🎉</button>'+
+      '<div style="font-size:3rem;margin-bottom:8px">🎁⭐</div>'+
+      '<div style="font-size:6rem;margin:10px 0">'+sticker.fallback+'</div>'+
+      '<div style="font-size:2.5rem;margin-bottom:12px">🌟✨🎉</div>'+
+      '<button onclick="this.closest(\'.celebration-overlay\').remove()" style="font-family:Fredoka One,cursive;font-size:1.5rem;padding:14px 28px;border-radius:14px;border:none;background:var(--pink);color:#fff;cursor:pointer">😊👍</button>'+
       '</div>';
+    // Spoken-only celebration
+    speak('New sticker! You earned a '+sticker.name+'!',0.85,1.2);
     document.body.appendChild(overlay);
     speak("You earned a "+sticker.name+" sticker!",0.85,1.2);
   },
@@ -1220,11 +1236,9 @@ const G={
       {id:'magna_tiles',name:'Magna-Tiles Set',price:800,desc:'Magnetic building tiles!',realPrice:'~$50',url:'https://www.amazon.com/s?k=magna+tiles+toddler',img:null,emoji:'🔺'},
     ];
     let html='<div style="text-align:center;padding:12px">'+
-      '<button onclick="G.backToGame()" style="display:block;margin:0 auto 10px;font-family:Fredoka One,cursive;font-size:.9rem;padding:8px 20px;border-radius:12px;border:none;background:var(--pink);color:#fff;cursor:pointer">← Back to Game</button>'+
-      '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--pink);margin-bottom:4px">🎁 Rosa\'s Toy Shop!</div>'+
-      '<div style="font-size:.85rem;color:var(--text2);font-weight:600;margin-bottom:4px">Every correct answer earns coins!</div>'+
-      '<div style="font-size:.75rem;color:#be185d;font-weight:700;margin-bottom:8px">When you earn enough, Mom or Dad will get the real toy!</div>'+
-      '<div style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-radius:14px;padding:10px;margin-bottom:12px;font-family:Fredoka One,cursive;font-size:1.1rem;color:#be185d;border:2px solid #f9a8d4">🪙 Your coins: '+this.gems+'</div>'+
+      '<button onclick="G.backToGame()" style="display:block;margin:0 auto 10px;font-family:Fredoka One,cursive;font-size:1.5rem;padding:10px 22px;border-radius:14px;border:none;background:var(--pink);color:#fff;cursor:pointer">⬅️</button>'+
+      '<div style="font-size:3rem;margin-bottom:8px">🎁🛒</div>'+
+      '<div style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-radius:14px;padding:10px;margin-bottom:12px;font-family:Fredoka One,cursive;font-size:1.4rem;color:#be185d;border:2px solid #f9a8d4">🪙 '+this.gems+'</div>'+
       '<div class="shop-grid">';
     SHOP.forEach(item=>{
       const bought=this.purchased.includes(item.id);
