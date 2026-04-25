@@ -339,8 +339,8 @@ const G={
   stickers:[], // earned sticker indices
   mode:'letters', answering:false,
   currentSpoken:'', // what to repeat when speaker is tapped
-  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish'],
-  MODE_NAMES:{letters:'🔤 Letters',numbers:'🔢 Numbers',colors:'🎨 Colors',shapes:'🔷 Shapes',matching:'🃏 Match',spanish:'🇪🇸 Español'},
+  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','phrases','smemory','maze'],
+  MODE_NAMES:{letters:'🔤 Letters',numbers:'🔢 Numbers',colors:'🎨 Colors',shapes:'🔷 Shapes',matching:'🃏 Match',spanish:'🇪🇸 Español',phrases:'💬 Phrases',smemory:'🧠 ES Memory',maze:'🌀 Maze'},
 
   init(){
     this.loadGame();
@@ -419,6 +419,9 @@ const G={
       case'shapes':this.loadShapes();break;
       case'matching':this.loadMatching();break;
       case'spanish':this.loadSpanish();break;
+      case'phrases':this.loadSpanishPhrases();break;
+      case'smemory':this.loadSpanishMemory();break;
+      case'maze':this.loadMaze();break;
     }
   },
 
@@ -698,6 +701,67 @@ const G={
       {en:'Eye',es:'Ojo',emoji:'👁️',category:'body'},
       {en:'Mouth',es:'Boca',emoji:'👄',category:'body'},
       {en:'Nose',es:'Nariz',emoji:'👃',category:'body'},
+      {en:'Foot',es:'Pie',emoji:'🦶',category:'body'},
+      {en:'Hair',es:'Pelo',emoji:'💇',category:'body'},
+      {en:'Tooth',es:'Diente',emoji:'🦷',category:'body'},
+      // More animals
+      {en:'Horse',es:'Caballo',emoji:'🐴',category:'animals'},
+      {en:'Cow',es:'Vaca',emoji:'🐄',category:'animals'},
+      {en:'Pig',es:'Cerdo',emoji:'🐷',category:'animals'},
+      {en:'Lion',es:'León',emoji:'🦁',category:'animals'},
+      {en:'Frog',es:'Rana',emoji:'🐸',category:'animals'},
+      {en:'Mouse',es:'Ratón',emoji:'🐭',category:'animals'},
+      {en:'Duck',es:'Pato',emoji:'🦆',category:'animals'},
+      {en:'Turtle',es:'Tortuga',emoji:'🐢',category:'animals'},
+      // More numbers
+      {en:'Six',es:'Seis',emoji:'6️⃣',category:'numbers'},
+      {en:'Seven',es:'Siete',emoji:'7️⃣',category:'numbers'},
+      {en:'Eight',es:'Ocho',emoji:'8️⃣',category:'numbers'},
+      {en:'Nine',es:'Nueve',emoji:'9️⃣',category:'numbers'},
+      {en:'Ten',es:'Diez',emoji:'🔟',category:'numbers'},
+      // More food
+      {en:'Bread',es:'Pan',emoji:'🍞',category:'food'},
+      {en:'Cheese',es:'Queso',emoji:'🧀',category:'food'},
+      {en:'Egg',es:'Huevo',emoji:'🥚',category:'food'},
+      {en:'Cookie',es:'Galleta',emoji:'🍪',category:'food'},
+      {en:'Cake',es:'Pastel',emoji:'🍰',category:'food'},
+      {en:'Strawberry',es:'Fresa',emoji:'🍓',category:'food'},
+      {en:'Orange',es:'Naranja',emoji:'🍊',category:'food'},
+      {en:'Grape',es:'Uva',emoji:'🍇',category:'food'},
+      {en:'Ice cream',es:'Helado',emoji:'🍦',category:'food'},
+      // Weather & nature
+      {en:'Sun',es:'Sol',emoji:'☀️',category:'nature'},
+      {en:'Moon',es:'Luna',emoji:'🌙',category:'nature'},
+      {en:'Star',es:'Estrella',emoji:'⭐',category:'nature'},
+      {en:'Cloud',es:'Nube',emoji:'☁️',category:'nature'},
+      {en:'Rain',es:'Lluvia',emoji:'🌧️',category:'nature'},
+      {en:'Snow',es:'Nieve',emoji:'❄️',category:'nature'},
+      {en:'Tree',es:'Árbol',emoji:'🌳',category:'nature'},
+      {en:'Flower',es:'Flor',emoji:'🌸',category:'nature'},
+      {en:'Sea',es:'Mar',emoji:'🌊',category:'nature'},
+      // Common things
+      {en:'House',es:'Casa',emoji:'🏠',category:'things'},
+      {en:'School',es:'Escuela',emoji:'🏫',category:'things'},
+      {en:'Car',es:'Coche',emoji:'🚗',category:'things'},
+      {en:'Book',es:'Libro',emoji:'📖',category:'things'},
+      {en:'Ball',es:'Pelota',emoji:'⚽',category:'things'},
+      {en:'Bed',es:'Cama',emoji:'🛏️',category:'things'},
+      {en:'Chair',es:'Silla',emoji:'🪑',category:'things'},
+      {en:'Door',es:'Puerta',emoji:'🚪',category:'things'},
+      // Greetings & feelings
+      {en:'Hello',es:'Hola',emoji:'👋',category:'greetings'},
+      {en:'Goodbye',es:'Adiós',emoji:'👋',category:'greetings'},
+      {en:'Thank you',es:'Gracias',emoji:'🙏',category:'greetings'},
+      {en:'Please',es:'Por favor',emoji:'🥺',category:'greetings'},
+      {en:'Yes',es:'Sí',emoji:'✅',category:'greetings'},
+      {en:'No',es:'No',emoji:'❌',category:'greetings'},
+      {en:'Happy',es:'Feliz',emoji:'😊',category:'feelings'},
+      {en:'Sad',es:'Triste',emoji:'😢',category:'feelings'},
+      {en:'Tired',es:'Cansado',emoji:'😴',category:'feelings'},
+      {en:'Big',es:'Grande',emoji:'🐘',category:'descriptors'},
+      {en:'Small',es:'Pequeño',emoji:'🐭',category:'descriptors'},
+      {en:'Hot',es:'Caliente',emoji:'🔥',category:'descriptors'},
+      {en:'Cold',es:'Frío',emoji:'🥶',category:'descriptors'},
     ];
     // Pick a random type: en→es or es→en
     const target=SPANISH_WORDS[Math.floor(Math.random()*SPANISH_WORDS.length)];
@@ -739,6 +803,218 @@ const G={
         });
       });
     }
+  },
+
+  // ==============================================================
+  // 🇪🇸 SPANISH PHRASES — full sentences and greetings
+  // ==============================================================
+  loadSpanishPhrases(){
+    const area=document.getElementById('gameArea');
+    const PHRASES=[
+      {en:'Hello, my name is Rosa',es:'Hola, me llamo Rosa',emoji:'👋'},
+      {en:'How are you?',es:'¿Cómo estás?',emoji:'🤔'},
+      {en:'I am happy',es:'Estoy feliz',emoji:'😊'},
+      {en:'I love you',es:'Te quiero',emoji:'❤️'},
+      {en:'Good morning',es:'Buenos días',emoji:'🌅'},
+      {en:'Good night',es:'Buenas noches',emoji:'🌙'},
+      {en:'I am hungry',es:'Tengo hambre',emoji:'🍽️'},
+      {en:'I am thirsty',es:'Tengo sed',emoji:'🥤'},
+      {en:'I want to play',es:'Quiero jugar',emoji:'🎮'},
+      {en:'See you later',es:'Hasta luego',emoji:'👋'},
+      {en:'I have a cat',es:'Tengo un gato',emoji:'🐱'},
+      {en:'The dog is big',es:'El perro es grande',emoji:'🐶'},
+      {en:'I like ice cream',es:'Me gusta el helado',emoji:'🍦'},
+      {en:'It is raining',es:'Está lloviendo',emoji:'🌧️'},
+      {en:'The sun is hot',es:'El sol es caliente',emoji:'☀️'},
+      {en:'I am five years old',es:'Tengo cinco años',emoji:'5️⃣'},
+      {en:'My family',es:'Mi familia',emoji:'👨‍👩‍👧'},
+      {en:'I love my mom',es:'Quiero a mi mamá',emoji:'👩'},
+      {en:'I am sleepy',es:'Tengo sueño',emoji:'😴'},
+      {en:'Where is the bathroom?',es:'¿Dónde está el baño?',emoji:'🚽'},
+    ];
+    const target=PHRASES[Math.floor(Math.random()*PHRASES.length)];
+    const direction=Math.random()<0.5?'en_to_es':'es_to_en';
+    const correctAnswer=direction==='en_to_es'?target.es:target.en;
+    const question=direction==='en_to_es'
+      ?'How do you say <strong>"'+target.en+'"</strong> in Spanish?'
+      :'What does <strong>"'+target.es+'"</strong> mean?';
+    const wrongs=shuffle(PHRASES.filter(p=>p!==target)).slice(0,3).map(p=>direction==='en_to_es'?p.es:p.en);
+    const choices=shuffle([correctAnswer,...wrongs]);
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div class="question-text" style="font-size:1.05rem;line-height:1.6">'+question+'</div>'+
+      '<div style="text-align:center;font-size:3rem;margin:8px 0">'+target.emoji+'</div>'+
+      '<div class="big-choices" style="display:flex;flex-direction:column;gap:8px">'+
+      choices.map(c=>'<button class="big-btn" data-val="'+c.replace(/"/g,'&quot;')+'" style="font-size:1rem;padding:14px 12px;border-radius:14px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;font-weight:700;transition:all .2s;text-align:left;line-height:1.4">'+
+        '<div class="big-btn-label">'+c+'</div></button>').join('')+
+      '</div></div>';
+    this._spanishContext={target, direction, isPhrase:true};
+    this.setupChoices(correctAnswer);
+    if(direction==='en_to_es'){
+      speak('How do you say: '+target.en, 0.75, 1.1, ()=>{
+        const btns=document.querySelectorAll('.big-btn');
+        btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
+        setTimeout(()=>speakSpanish(target.es,0.7,1.1),400);
+      });
+    } else {
+      speakSpanish(target.es, 0.7, 1.1, ()=>{
+        speak('What does that mean?', 0.75, 1.1, ()=>{
+          const btns=document.querySelectorAll('.big-btn');
+          btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
+        });
+      });
+    }
+  },
+
+  // ==============================================================
+  // 🃏 SPANISH MEMORY — match Spanish word to its English meaning
+  // ==============================================================
+  loadSpanishMemory(){
+    const area=document.getElementById('gameArea');
+    // Use a curated subset of high-frequency words for memory
+    const POOL=[
+      {en:'Cat',es:'Gato',emoji:'🐱'},{en:'Dog',es:'Perro',emoji:'🐶'},
+      {en:'Sun',es:'Sol',emoji:'☀️'},{en:'Moon',es:'Luna',emoji:'🌙'},
+      {en:'Apple',es:'Manzana',emoji:'🍎'},{en:'Water',es:'Agua',emoji:'💧'},
+      {en:'House',es:'Casa',emoji:'🏠'},{en:'Tree',es:'Árbol',emoji:'🌳'},
+      {en:'Car',es:'Coche',emoji:'🚗'},{en:'Star',es:'Estrella',emoji:'⭐'},
+      {en:'Book',es:'Libro',emoji:'📖'},{en:'Bird',es:'Pájaro',emoji:'🐦'},
+    ];
+    // Pick 4 pairs (8 cards total)
+    const pairs=shuffle(POOL).slice(0,4);
+    // Build cards: each pair becomes 2 cards (en label and es label, both share pairId)
+    const cards=shuffle(pairs.flatMap(p=>[
+      {pairId:p.en,lang:'en',text:p.en,emoji:p.emoji,ref:p},
+      {pairId:p.en,lang:'es',text:p.es,emoji:p.emoji,ref:p}
+    ]));
+    let flipped=[],matched=[],moves=0,busy=false;
+    this.currentSpoken='Match each English word to its Spanish word!';
+    speak('Match each English word to its Spanish word!',0.8,1.15);
+    const render=()=>{
+      area.innerHTML='<div class="card"><div class="question-text">Match the pairs! 🇪🇸</div>'+
+        '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:8px">English ↔ Spanish — Flips: '+moves+'</div>'+
+        '<div class="match-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
+        cards.map((c,i)=>{
+          const isFlip=flipped.includes(i)||matched.includes(i);
+          const isMat=matched.includes(i);
+          const bg=isFlip?(c.lang==='es'?'#dbeafe':'#fef3c7'):'';
+          return '<button class="match-card'+(isFlip?' flipped':'')+(isMat?' matched':'')+'" data-i="'+i+'" style="font-size:.85rem;line-height:1.2;padding:8px 4px;'+(isFlip?'background:'+bg+';color:var(--text)':'')+'">'+
+            (isFlip?'<div style="font-size:1.5rem">'+c.emoji+'</div><div style="font-size:.75rem;font-weight:800">'+c.text+'</div><div style="font-size:.55rem;color:var(--text2);margin-top:2px">'+(c.lang==='es'?'🇪🇸':'🇺🇸')+'</div>':'?')+
+          '</button>';
+        }).join('')+
+        '</div><div id="matchResult"></div></div>';
+      if(matched.length<cards.length){
+        area.querySelectorAll('.match-card:not(.matched)').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const idx=parseInt(btn.dataset.i);
+            if(busy||flipped.includes(idx)||matched.includes(idx)||flipped.length>=2)return;
+            flipped.push(idx);SFX.play('click');
+            const card=cards[idx];
+            // Speak the word in its language
+            if(card.lang==='es') speakSpanish(card.text,0.7,1.1);
+            else speak(card.text,0.85,1.15);
+            render();
+            if(flipped.length===2){
+              moves++;busy=true;
+              setTimeout(()=>{
+                if(cards[flipped[0]].pairId===cards[flipped[1]].pairId && cards[flipped[0]].lang!==cards[flipped[1]].lang){
+                  matched.push(flipped[0],flipped[1]);
+                  SFX.play('correct');
+                  speak('Match! '+cards[flipped[0]].ref.en+' is '+cards[flipped[0]].ref.es,0.8,1.2);
+                  flipped=[];busy=false;render();
+                  if(matched.length===cards.length) this.onMatchWin(moves);
+                } else {
+                  SFX.play('wrong');
+                  flipped=[];busy=false;render();
+                }
+              },1500);
+            }
+          });
+        });
+      }
+    };
+    render();
+  },
+
+  // ==============================================================
+  // 🌀 MAZE — navigate Rosa from start to the star using arrow buttons
+  // ==============================================================
+  loadMaze(){
+    const area=document.getElementById('gameArea');
+    // Pre-built mazes (1=wall, 0=path, 2=goal). Rosa starts top-left.
+    const MAZES=[
+      [[0,0,1,0,0,0],[0,1,1,0,1,0],[0,0,0,0,1,0],[1,1,0,1,1,0],[0,0,0,0,0,0],[0,1,1,1,1,2]],
+      [[0,0,0,0,1,0],[1,1,1,0,1,0],[0,0,0,0,0,0],[0,1,1,1,1,1],[0,0,0,0,0,0],[1,1,1,1,1,2]],
+      [[0,1,0,0,0,2],[0,1,0,1,1,1],[0,1,0,0,0,0],[0,1,1,1,1,0],[0,0,0,0,0,0],[1,1,1,1,1,0]],
+      [[0,0,0,1,0,2],[1,1,0,1,0,1],[0,0,0,0,0,1],[0,1,1,1,0,0],[0,0,0,1,0,1],[1,1,0,0,0,0]],
+    ];
+    const maze=MAZES[Math.floor(Math.random()*MAZES.length)];
+    const ROWS=maze.length,COLS=maze[0].length;
+    let pos={r:0,c:0};
+    let goal={r:-1,c:-1};
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(maze[r][c]===2) goal={r,c};
+    let moves=0;
+    this.currentSpoken='Help Rosa find the star! Use the arrow buttons.';
+    speak('Help Rosa find the star! Use the arrow buttons!',0.8,1.15);
+    const render=()=>{
+      const reached=pos.r===goal.r&&pos.c===goal.c;
+      area.innerHTML='<div class="card"><div class="question-text">🌀 Find the Star!</div>'+
+        '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:8px">Moves: '+moves+'</div>'+
+        '<div id="mazeGrid" style="display:grid;grid-template-columns:repeat('+COLS+',1fr);gap:3px;max-width:320px;margin:0 auto;background:#1e293b;padding:6px;border-radius:14px">'+
+          maze.flatMap((row,r)=>row.map((cell,c)=>{
+            let bg='#fff',content='';
+            if(cell===1) bg='#475569'; // wall
+            else if(cell===2) {bg='#fde047';content='⭐';}
+            else bg='#fff7ed';
+            if(pos.r===r&&pos.c===c){bg='#fbcfe8';content='👧';}
+            return '<div style="aspect-ratio:1;background:'+bg+';border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;transition:all .2s">'+content+'</div>';
+          })).join('')+
+        '</div>'+
+        (reached?
+          '<div style="text-align:center;margin-top:14px"><div style="font-family:Fredoka One,cursive;font-size:1.4rem;color:var(--green)">🎉 You did it!</div></div>':
+          '<div id="mazeControls" style="display:grid;grid-template-columns:repeat(3,72px);gap:6px;justify-content:center;margin-top:14px">'+
+            '<div></div>'+
+            '<button class="maze-btn" data-dir="up" style="font-size:2rem;padding:10px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 0 #6d28d9">⬆️</button>'+
+            '<div></div>'+
+            '<button class="maze-btn" data-dir="left" style="font-size:2rem;padding:10px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 0 #6d28d9">⬅️</button>'+
+            '<div></div>'+
+            '<button class="maze-btn" data-dir="right" style="font-size:2rem;padding:10px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 0 #6d28d9">➡️</button>'+
+            '<div></div>'+
+            '<button class="maze-btn" data-dir="down" style="font-size:2rem;padding:10px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 0 #6d28d9">⬇️</button>'+
+            '<div></div>'+
+          '</div>')+
+        '<div id="mazeResult"></div></div>';
+      if(reached){
+        // Win!
+        SFX.play('star');
+        this.changeBuddyMood('happy');
+        this.score+=5;this.streak++;this.totalCorrect++;this.modeWins++;
+        if(this.streak>(this.maxStreak||0)) this.maxStreak=this.streak;
+        this.xp+=4;this.gems+=3;
+        this.checkLevelUp();this.checkSticker();
+        this.updateHUD();this.updateModeBar();this.saveGame();
+        speak('You found the star! Amazing, Rosa!',0.85,1.2);
+        setTimeout(()=>{
+          this.changeBuddyMood('normal');
+          this.autoNext();
+        },2200);
+        return;
+      }
+      area.querySelectorAll('.maze-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const d=btn.dataset.dir;
+          let nr=pos.r,nc=pos.c;
+          if(d==='up') nr--; else if(d==='down') nr++;
+          else if(d==='left') nc--; else if(d==='right') nc++;
+          if(nr<0||nr>=ROWS||nc<0||nc>=COLS||maze[nr][nc]===1){
+            SFX.play('wrong'); btn.animate([{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:200});
+            return;
+          }
+          pos={r:nr,c:nc};moves++;SFX.play('click');
+          render();
+        });
+      });
+    };
+    render();
   },
 
   onCorrect(){
