@@ -348,21 +348,20 @@ const LEVELS = [
   {
     name: 'CANOPY',
     theme: 'amazon',
-    hint: 'a chasm in the rainforest. build, or float.',
+    hint: 'a chasm in the canopy. send a builder first.',
     spawn: { x: 60, y: 230 },
-    exit:  { x: 560, y: 285 },
-    total: 10, needed: 0.6, time: 180,
-    skills: { digger: 0, blocker: 2, basher: 0, builder: 4, floater: 3, bomber: 1 },
+    exit:  { x: 580, y: 285 },
+    total: 10, needed: 0.5, time: 180,
+    skills: { digger: 0, blocker: 3, basher: 0, builder: 5, floater: 0, bomber: 0 },
     build() {
       const g = pat('ground'), gr = pat('grass');
       // Left ground
-      fillRectTerrain(0, 290, 230, 70, g);
-      fillRectTerrain(0, 286, 230, 4, gr);
-      // Right ground (same height)
-      fillRectTerrain(420, 290, W - 420, 70, g);
-      fillRectTerrain(420, 286, W - 420, 4, gr);
-      // Catch floor below the chasm
-      fillRectTerrain(0, 350, W, 10, g);
+      fillRectTerrain(0, 290, 240, 70, g);
+      fillRectTerrain(0, 286, 240, 4, gr);
+      // Right ground — 40px gap, well within a 12×6 builder span (72px)
+      fillRectTerrain(280, 290, W - 280, 70, g);
+      fillRectTerrain(280, 286, W - 280, 4, gr);
+      // Left lip
       fillRectTerrain(0, 270, 4, 20, g);
     },
   },
@@ -394,53 +393,42 @@ const LEVELS = [
   {
     name: 'CALDERA',
     theme: 'iceland',
-    hint: 'islands of stone over the void. floaters help.',
-    spawn: { x: 50, y: 220 },
-    exit:  { x: 590, y: 235 },
-    total: 12, needed: 0.5, time: 220,
-    skills: { digger: 0, blocker: 3, basher: 0, builder: 5, floater: 5, bomber: 2 },
+    hint: 'long drop. give each one a parachute first.',
+    spawn: { x: 50, y: 100 },
+    exit:  { x: 580, y: 285 },
+    total: 12, needed: 0.5, time: 200,
+    skills: { digger: 0, blocker: 0, basher: 0, builder: 0, floater: 6, bomber: 0 },
     build() {
       const g = pat('ground'), gr = pat('grass');
-      // Spawn ledge (left)
-      fillRectTerrain(0, 250, 130, 110, g);
-      fillRectTerrain(0, 246, 130, 4, gr);
-      // Floating island 1
-      fillRectTerrain(190, 260, 70, 18, g);
-      fillRectTerrain(190, 256, 70, 4, gr);
-      // Floating island 2 (smaller, higher)
-      fillRectTerrain(310, 230, 60, 16, g);
-      fillRectTerrain(310, 226, 60, 4, gr);
-      // Floating island 3 (lower)
-      fillRectTerrain(420, 280, 60, 16, g);
-      fillRectTerrain(420, 276, 60, 4, gr);
-      // Exit ledge (right, higher)
-      fillRectTerrain(530, 240, W - 530, 120, g);
-      fillRectTerrain(530, 236, W - 530, 4, gr);
-      // Floor far below catches falls (no return)
-      fillRectTerrain(0, 358, W, 2, g);
+      // Tiny spawn ledge way up high — drop from here is fatal w/o floater
+      fillRectTerrain(0, 130, 110, 8, g);
+      fillRectTerrain(0, 126, 110, 4, gr);
+      // Main ground far below — landing zone
+      fillRectTerrain(0, 290, W, 70, g);
+      fillRectTerrain(0, 286, W, 4, gr);
+      // Left lip on the spawn ledge
+      fillRectTerrain(0, 110, 4, 20, g);
     },
   },
   {
     name: 'TUNNEL',
     theme: 'metro',
-    hint: 'two levels. dig or bomb to drop down.',
-    spawn: { x: 60, y: 80 },
-    exit:  { x: 560, y: 285 },
-    total: 14, needed: 0.5, time: 220,
-    skills: { digger: 4, blocker: 3, basher: 3, builder: 0, floater: 3, bomber: 2 },
+    hint: 'two thick columns. line up your bashers.',
+    spawn: { x: 50, y: 230 },
+    exit:  { x: 580, y: 285 },
+    total: 12, needed: 0.5, time: 200,
+    skills: { digger: 1, blocker: 3, basher: 5, builder: 0, floater: 0, bomber: 1 },
     build() {
       const g = pat('ground'), gr = pat('grass');
-      // Lower main ground
+      // Main ground
       fillRectTerrain(0, 290, W, 70, g);
       fillRectTerrain(0, 286, W, 4, gr);
-      // Upper concourse — wide platform, dead ends on both sides
-      fillRectTerrain(0, 130, W, 18, g);
-      fillRectTerrain(0, 126, W, 4, gr);
-      // Pillars from upper to lower (force bashing or dropping)
-      fillRectTerrain(160, 148, 30, 142, g);
-      fillRectTerrain(380, 148, 30, 142, g);
-      // Right wall on upper concourse so they can't just stroll right
-      fillRectTerrain(W - 30, 100, 30, 30, g);
+      // Two concrete columns — must bash both
+      fillRectTerrain(180, 180, 50, 110, g);
+      fillRectTerrain(180, 176, 50, 4, gr);
+      fillRectTerrain(380, 180, 50, 110, g);
+      fillRectTerrain(380, 176, 50, 4, gr);
+      // Left lip
       fillRectTerrain(0, 270, 4, 20, g);
     },
   },
@@ -735,50 +723,62 @@ function digTick(bh) {
 
 function bashTick(bh) {
   bh.stateTimer++;
-  // every 4 frames carve a 5x12 patch in front and step forward
+  // every 4 frames carve a patch in front and step forward
   if (bh.stateTimer % 4 === 0) {
     const fx = (bh.x | 0) + bh.dir * 1;
-    eraseRect(fx + (bh.dir > 0 ? 0 : -6), (bh.y | 0) - 12, 7, 14);
+    // Erase a corridor from head level down to (and including) feet level
+    // — this leaves the floor (bh.y + 1) intact so we can walk through.
+    eraseRect(fx + (bh.dir > 0 ? 0 : -6), (bh.y | 0) - 14, 7, 15);
     bh.x += bh.dir;
   }
-  // Look ahead — if no dirt for 8 pixels in front, stop bashing
+  // Look ahead for dirt
   let dirtAhead = 0;
   for (let i = 1; i <= 8; i++) {
     if (solid((bh.x | 0) + bh.dir * i, (bh.y | 0) - 4)) dirtAhead++;
   }
-  if (dirtAhead === 0 && bh.stateTimer > 10) {
+  // Once we've encountered dirt, end basher only after we've cleared past it
+  if (dirtAhead > 0) bh.bashFoundDirt = true;
+  if (bh.bashFoundDirt && dirtAhead === 0 && bh.stateTimer > 16) {
     bh.state = 'walk';
     bh.stateTimer = 0;
+    bh.bashFoundDirt = false;
+  }
+  // Hit edge of world — give up
+  if (bh.x <= 1 || bh.x >= W - 2) {
+    bh.dir *= -1;
+    bh.state = 'walk';
+    bh.bashFoundDirt = false;
   }
   // Floor vanished → fall
   if (!solid(bh.x | 0, (bh.y | 0) + 1)) {
     bh.state = 'fall';
     bh.fallStartY = bh.y | 0;
     bh.vy = 0;
+    bh.bashFoundDirt = false;
   }
 }
 
 function buildTick(bh) {
+  const STAIR_W = 6, STAIR_RISE = 2, MAX_STAIRS = 12;
   bh.stateTimer++;
-  // every 12 frames, lay down a stair block in front and step up
-  if (bh.stateTimer % 12 === 0) {
-    if (bh.buildSteps >= 12) {
+  if (bh.stateTimer % 14 === 0) {
+    if (bh.buildSteps >= MAX_STAIRS) {
       bh.state = 'walk';
       bh.dir *= -1;
       return;
     }
-    const blockX = (bh.x | 0) + (bh.dir > 0 ? 1 : -6);
-    const blockY = (bh.y | 0);
+    const blockX = (bh.x | 0) + (bh.dir > 0 ? 1 : -STAIR_W);
+    // Stair occupies y=bh.y-1..bh.y; new feet sit at bh.y-2 with stair top at bh.y-1
+    const blockY = (bh.y | 0) - 1;
     // Ceiling check
-    if (solid((bh.x | 0) + bh.dir, (bh.y | 0) - 10)) {
+    if (solid((bh.x | 0) + bh.dir * STAIR_W, (bh.y | 0) - 12)) {
       bh.state = 'walk';
       bh.dir *= -1;
       return;
     }
-    fillRectTerrain(blockX, blockY, 6, 2, COLOR.built);
-    fillRectTerrain(blockX, blockY + 2, 6, 1, COLOR.builtDark);
-    bh.x += bh.dir;
-    bh.y -= 2;
+    fillRectTerrain(blockX, blockY, STAIR_W, 2, COLOR.built);
+    bh.x += bh.dir * STAIR_W;
+    bh.y -= STAIR_RISE;
     bh.buildSteps++;
   }
 }
@@ -1275,6 +1275,13 @@ function beep(freq, dur, type = 'square', vol = 0.05) {
     ctx.fillText('asset load failed: ' + e.message, W / 2, H / 2 + 20);
     return;
   }
+  // Expose for debugging / scripted testing
+  window.__bh = {
+    state, IMG, LEVELS, SKILLS,
+    loadLevel, applySkill, boxheadAt,
+    tick, draw, loop,
+    pump(n = 1) { for (let i = 0; i < n; i++) tick(); draw(); },
+  };
   loadLevel(0);
   loop();
 })();
