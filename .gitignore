@@ -1,1 +1,8 @@
 .api_key
+.env
+node_modules/
+scripts/out/
+
+# Boxhead: only ship processed assets to the web; keep raw renders local
+boxhead_assets/*.png
+!boxhead_assets/processed/

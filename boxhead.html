@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BOXHEAD — a lemmings riff</title>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --panel: #1a1a1f;
+    --line: #2a2a31;
+    --ink: #ececec;
+    --dim: #8a8a92;
+    --accent: #f4c14a;
+    --good: #6cd06b;
+    --bad:  #e26060;
+  }
+  html, body {
+    margin: 0; padding: 0; min-height: 100vh;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .root { display: flex; flex-direction: column; align-items: center; padding: 18px 12px 28px; }
+  h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 1.5px; }
+  .sub { color: var(--dim); font-size: 12px; margin: 2px 0 14px; }
+  .stage {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 14px; padding: 4px 6px 10px;
+    font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+    color: var(--dim);
+  }
+  .hud b { color: var(--ink); font-weight: 600; }
+  .hud .good { color: var(--good); }
+  .hud .bad  { color: var(--bad); }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #74b3dc;
+    border: 1px solid #000;
+    cursor: crosshair;
+    width: 1280px; height: 720px;     /* 2x scale */
+  }
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .skill {
+    background: #15151a;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font: 600 12px/1 ui-sans-serif, system-ui;
+    letter-spacing: 0.5px;
+    text-align: center;
+    padding: 10px 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: transform .05s ease, background .1s ease, border-color .1s ease;
+  }
+  .skill svg { width: 30px; height: 30px; display: block; }
+  .skill .count {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 14px; color: var(--accent);
+  }
+  .skill:hover { background: #1d1d24; }
+  .skill.active { background: #2a230d; border-color: var(--accent); }
+  .skill.active svg { color: var(--accent); }
+  .skill.empty { opacity: 0.35; cursor: not-allowed; }
+  .levels {
+    display: flex; gap: 8px; margin-top: 12px; align-items: center;
+    font-size: 12px; color: var(--dim);
+  }
+  .levels button {
+    background: #15151a; border: 1px solid var(--line); color: var(--ink);
+    font: 600 11px ui-sans-serif; letter-spacing: 0.5px;
+    padding: 6px 10px; border-radius: 5px; cursor: pointer;
+  }
+  .levels button:hover { background: #1d1d24; }
+  .levels button.current { background: #2a230d; border-color: var(--accent); color: var(--accent); }
+  .overlay {
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    color: var(--ink);
+    font: 600 16px ui-sans-serif;
+    text-align: center;
+    pointer-events: none;
+  }
+  .overlay.show { display: flex; }
+  .overlay .box {
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 22px 28px; border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    pointer-events: auto;
+  }
+  .overlay .big { font-size: 22px; letter-spacing: 1.2px; margin-bottom: 6px; }
+  .overlay .small { color: var(--dim); font-weight: 400; font-size: 13px; }
+  .overlay .row { margin-top: 14px; display: flex; gap: 8px; justify-content: center; }
+  .overlay button {
+    background: #15151a; border: 1px solid var(--line); color: var(--ink);
+    font: 600 12px ui-sans-serif; letter-spacing: 0.5px;
+    padding: 8px 14px; border-radius: 5px; cursor: pointer;
+  }
+  .overlay button.primary { background: var(--accent); color: #1a1a1f; border-color: var(--accent); }
+  .stagewrap { position: relative; }
+</style>
+</head>
+<body>
+<div class="root">
+  <h1>BOXHEAD</h1>
+  <div class="sub">a tiny lemmings, but the heads are cardboard</div>
+
+  <div class="stagewrap">
+    <div class="stage">
+      <div class="hud">
+        <span>OUT <b id="hud-out">0</b>/<b id="hud-total">0</b></span>
+        <span>IN <b id="hud-in">0</b></span>
+        <span>SAVED <b id="hud-saved" class="good">0</b></span>
+        <span>GOAL <b id="hud-goal">0%</b></span>
+        <span>TIME <b id="hud-time">2:00</b></span>
+      </div>
+      <canvas id="game" width="640" height="360"></canvas>
+      <div class="skills" id="skills"></div>
+      <div class="levels">
+        <span>level</span>
+        <span id="level-buttons"></span>
+        <button id="reset-btn">restart</button>
+        <span style="margin-left:auto" id="hint"></span>
+      </div>
+    </div>
+    <div class="overlay" id="overlay">
+      <div class="box">
+        <div class="big" id="overlay-title">—</div>
+        <div class="small" id="overlay-sub">—</div>
+        <div class="row">
+          <button id="overlay-retry">restart</button>
+          <button class="primary" id="overlay-next">next level</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+
+// ===========================================================================
+// Constants
+// ===========================================================================
+const W = 640, H = 360;
+const GRAVITY = 0.28;
+const MAX_FALL = 7;
+const FLOAT_FALL = 1.6;
+const FATAL_FALL_DIST = 90;    // drop > this pixels = splat (no floater)
+const WALK_SPEED = 0.55;
+const STEP_UP_MAX = 5;
+const STEP_DOWN_MAX = 3;
+
+const COLOR = {
+  sky1: '#74b3dc', sky2: '#cfe3ef',
+  cloud: 'rgba(255,255,255,0.85)',
+  dirt: '#7a4a2a', dirtDark: '#5c3620', dirtLight: '#8d5a36',
+  grass: '#5aa84b', grassDark: '#3f7a36',
+  built: '#d8a85a', builtDark: '#a07a3a',
+  wood: '#6b3f1f', wood2: '#4a2a14',
+  pants: '#2e3a5c',
+  shirt: '#c74b3a', shirtShade: '#9d3a2c',
+  shirtDig: '#e4a23e', shirtBuild: '#f4c14a', shirtBash: '#888a92', shirtBlock: '#e26060', shirtFloat: '#6cd06b', shirtBomb: '#1a1a1a',
+  skin: '#e8b890',
+  card: '#cfa86c', cardLight: '#e3c48a', cardDark: '#9b7a46', cardSide: '#b38e56',
+  tape: '#efe1b6',
+  ink: '#0a0a0a',
+};
+
+// ===========================================================================
+// Asset loading
+// ===========================================================================
+const ASSET_PATH = 'boxhead_assets/processed/';
+const THEMES = ['tokyo', 'sahara', 'patagonia', 'amazon', 'marrakech', 'iceland', 'metro'];
+const IMG = {
+  bhIdle: null,
+  bhWalkA: null,
+  exit: null,
+  spawner: null,
+  themes: {}, // each theme: { bg, ground, grass }
+};
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('failed to load ' + src));
+    im.src = src;
+  });
+}
+async function loadAssets() {
+  IMG.bhIdle  = await loadImage(ASSET_PATH + 'boxhead_idle.png');
+  IMG.bhWalkA = await loadImage(ASSET_PATH + 'boxhead_walk_a.png');
+  IMG.exit    = await loadImage(ASSET_PATH + 'prop_exit_door.png');
+  IMG.spawner = await loadImage(ASSET_PATH + 'prop_spawner.png');
+  for (const t of THEMES) {
+    IMG.themes[t] = {
+      bg:     await loadImage(`${ASSET_PATH}${t}_bg.png`),
+      ground: await loadImage(`${ASSET_PATH}${t}_ground.png`),
+      grass:  await loadImage(`${ASSET_PATH}${t}_grass.png`),
+    };
+  }
+}
+
+// Build a tiled pattern from an image, resampled to a manageable tile size.
+function makePattern(image, tileSize = 80) {
+  const c = document.createElement('canvas');
+  c.width = c.height = tileSize;
+  c.getContext('2d').drawImage(image, 0, 0, tileSize, tileSize);
+  return tctx.createPattern(c, 'repeat');
+}
+
+// ===========================================================================
+// Canvas + offscreen terrain
+// ===========================================================================
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const terrainCanvas = document.createElement('canvas');
+terrainCanvas.width = W; terrainCanvas.height = H;
+const tctx = terrainCanvas.getContext('2d');
+
+// Collision mask: 1 = solid, 0 = empty
+let mask = new Uint8Array(W * H);
+
+function rebuildMaskFromTerrain() {
+  const data = tctx.getImageData(0, 0, W, H).data;
+  for (let i = 0, j = 3; i < mask.length; i++, j += 4) {
+    mask[i] = data[j] > 128 ? 1 : 0;
+  }
+}
+function solid(x, y) {
+  x = x | 0; y = y | 0;
+  if (x < 0 || x >= W || y < 0 || y >= H) return false;
+  return mask[y * W + x] === 1;
+}
+function eraseRect(x, y, w, h) {
+  x = x | 0; y = y | 0; w = w | 0; h = h | 0;
+  tctx.clearRect(x, y, w, h);
+  const x0 = Math.max(0, x), y0 = Math.max(0, y);
+  const x1 = Math.min(W, x + w), y1 = Math.min(H, y + h);
+  for (let yy = y0; yy < y1; yy++) {
+    const row = yy * W;
+    for (let xx = x0; xx < x1; xx++) mask[row + xx] = 0;
+  }
+}
+function fillRectTerrain(x, y, w, h, color) {
+  tctx.fillStyle = color;
+  tctx.fillRect(x | 0, y | 0, w | 0, h | 0);
+  const x0 = Math.max(0, x | 0), y0 = Math.max(0, y | 0);
+  const x1 = Math.min(W, (x + w) | 0), y1 = Math.min(H, (y + h) | 0);
+  for (let yy = y0; yy < y1; yy++) {
+    const row = yy * W;
+    for (let xx = x0; xx < x1; xx++) mask[row + xx] = 1;
+  }
+}
+function eraseCircle(cx, cy, r) {
+  cx |= 0; cy |= 0; r |= 0;
+  tctx.save();
+  tctx.globalCompositeOperation = 'destination-out';
+  tctx.beginPath(); tctx.arc(cx, cy, r, 0, Math.PI * 2); tctx.fill();
+  tctx.restore();
+  const r2 = r * r;
+  for (let dy = -r; dy <= r; dy++) {
+    const yy = cy + dy; if (yy < 0 || yy >= H) continue;
+    const row = yy * W;
+    for (let dx = -r; dx <= r; dx++) {
+      if (dx * dx + dy * dy > r2) continue;
+      const xx = cx + dx; if (xx < 0 || xx >= W) continue;
+      mask[row + xx] = 0;
+    }
+  }
+}
+
+// ===========================================================================
+// Levels
+// ===========================================================================
+// Each level returns terrain via a function that draws onto tctx.
+// `draws` decorations (non-collision visuals) drawn each frame on top of terrain.
+const LEVELS = [
+  {
+    name: 'SHIBUYA',
+    theme: 'tokyo',
+    hint: 'rush hour. walk to the door, blocker if needed.',
+    spawn: { x: 60, y: 230 },
+    exit:  { x: 560, y: 285 },
+    total: 8, needed: 0.75, time: 90,
+    skills: { digger: 0, blocker: 2, basher: 0, builder: 0, floater: 0, bomber: 0 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      fillRectTerrain(0, 290, W, 70, g);
+      fillRectTerrain(0, 286, W, 4, gr);
+      // Left curb
+      fillRectTerrain(0, 270, 4, 20, g);
+    },
+  },
+  {
+    name: 'BURIED',
+    theme: 'sahara',
+    hint: 'sand traps the spawn. dig down through the dune.',
+    spawn: { x: 80, y: 150 },
+    exit:  { x: 540, y: 285 },
+    total: 10, needed: 0.6, time: 120,
+    skills: { digger: 4, blocker: 2, basher: 0, builder: 0, floater: 2, bomber: 0 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      fillRectTerrain(0, 290, W, 70, g);
+      fillRectTerrain(0, 286, W, 4, gr);
+      // Sand shelf trapping spawn
+      fillRectTerrain(0, 210, 240, 18, g);
+      fillRectTerrain(0, 206, 240, 4, gr);
+      // Right wall of shelf
+      fillRectTerrain(220, 180, 20, 30, g);
+    },
+  },
+  {
+    name: 'STEPPE',
+    theme: 'patagonia',
+    hint: 'a wall of cold rock. bash through.',
+    spawn: { x: 50, y: 230 },
+    exit:  { x: 580, y: 285 },
+    total: 12, needed: 0.6, time: 150,
+    skills: { digger: 1, blocker: 3, basher: 3, builder: 0, floater: 0, bomber: 1 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      fillRectTerrain(0, 290, W, 70, g);
+      fillRectTerrain(0, 286, W, 4, gr);
+      // Wall in the middle
+      fillRectTerrain(280, 180, 80, 110, g);
+      fillRectTerrain(280, 176, 80, 4, gr);
+      fillRectTerrain(0, 270, 4, 20, g);
+    },
+  },
+  {
+    name: 'CANOPY',
+    theme: 'amazon',
+    hint: 'a chasm in the rainforest. build, or float.',
+    spawn: { x: 60, y: 230 },
+    exit:  { x: 560, y: 285 },
+    total: 10, needed: 0.6, time: 180,
+    skills: { digger: 0, blocker: 2, basher: 0, builder: 4, floater: 3, bomber: 1 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      // Left ground
+      fillRectTerrain(0, 290, 230, 70, g);
+      fillRectTerrain(0, 286, 230, 4, gr);
+      // Right ground (same height)
+      fillRectTerrain(420, 290, W - 420, 70, g);
+      fillRectTerrain(420, 286, W - 420, 4, gr);
+      // Catch floor below the chasm
+      fillRectTerrain(0, 350, W, 10, g);
+      fillRectTerrain(0, 270, 4, 20, g);
+    },
+  },
+  {
+    name: 'SOUK',
+    theme: 'marrakech',
+    hint: 'three clay walls between you and the door.',
+    spawn: { x: 50, y: 200 },
+    exit:  { x: 590, y: 285 },
+    total: 12, needed: 0.5, time: 200,
+    skills: { digger: 1, blocker: 4, basher: 4, builder: 2, floater: 0, bomber: 2 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      // Main ground with three thick clay walls
+      fillRectTerrain(0, 290, W, 70, g);
+      fillRectTerrain(0, 286, W, 4, gr);
+      // Wall 1 — short, can step or bash
+      fillRectTerrain(180, 250, 30, 40, g);
+      fillRectTerrain(180, 246, 30, 4, gr);
+      // Wall 2 — taller, must bash
+      fillRectTerrain(320, 200, 50, 90, g);
+      fillRectTerrain(320, 196, 50, 4, gr);
+      // Wall 3 — overhang creating a tunnel under it
+      fillRectTerrain(460, 220, 60, 14, g);
+      fillRectTerrain(460, 216, 60, 4, gr);
+      fillRectTerrain(0, 270, 4, 20, g);
+    },
+  },
+  {
+    name: 'CALDERA',
+    theme: 'iceland',
+    hint: 'islands of stone over the void. floaters help.',
+    spawn: { x: 50, y: 220 },
+    exit:  { x: 590, y: 235 },
+    total: 12, needed: 0.5, time: 220,
+    skills: { digger: 0, blocker: 3, basher: 0, builder: 5, floater: 5, bomber: 2 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      // Spawn ledge (left)
+      fillRectTerrain(0, 250, 130, 110, g);
+      fillRectTerrain(0, 246, 130, 4, gr);
+      // Floating island 1
+      fillRectTerrain(190, 260, 70, 18, g);
+      fillRectTerrain(190, 256, 70, 4, gr);
+      // Floating island 2 (smaller, higher)
+      fillRectTerrain(310, 230, 60, 16, g);
+      fillRectTerrain(310, 226, 60, 4, gr);
+      // Floating island 3 (lower)
+      fillRectTerrain(420, 280, 60, 16, g);
+      fillRectTerrain(420, 276, 60, 4, gr);
+      // Exit ledge (right, higher)
+      fillRectTerrain(530, 240, W - 530, 120, g);
+      fillRectTerrain(530, 236, W - 530, 4, gr);
+      // Floor far below catches falls (no return)
+      fillRectTerrain(0, 358, W, 2, g);
+    },
+  },
+  {
+    name: 'TUNNEL',
+    theme: 'metro',
+    hint: 'two levels. dig or bomb to drop down.',
+    spawn: { x: 60, y: 80 },
+    exit:  { x: 560, y: 285 },
+    total: 14, needed: 0.5, time: 220,
+    skills: { digger: 4, blocker: 3, basher: 3, builder: 0, floater: 3, bomber: 2 },
+    build() {
+      const g = pat('ground'), gr = pat('grass');
+      // Lower main ground
+      fillRectTerrain(0, 290, W, 70, g);
+      fillRectTerrain(0, 286, W, 4, gr);
+      // Upper concourse — wide platform, dead ends on both sides
+      fillRectTerrain(0, 130, W, 18, g);
+      fillRectTerrain(0, 126, W, 4, gr);
+      // Pillars from upper to lower (force bashing or dropping)
+      fillRectTerrain(160, 148, 30, 142, g);
+      fillRectTerrain(380, 148, 30, 142, g);
+      // Right wall on upper concourse so they can't just stroll right
+      fillRectTerrain(W - 30, 100, 30, 30, g);
+      fillRectTerrain(0, 270, 4, 20, g);
+    },
+  },
+];
+
+// Per-level pattern shortcut. `kind` is 'ground' or 'grass'.
+let _patCache = {};
+function pat(kind) {
+  const lvl = LEVELS[state.levelIndex];
+  const key = `${lvl.theme}_${kind}`;
+  if (!_patCache[key]) {
+    const t = IMG.themes[lvl.theme];
+    _patCache[key] = makePattern(kind === 'grass' ? t.grass : t.ground, 64);
+  }
+  return _patCache[key];
+}
+
+function decorateDirt(x, y, w, h) {
+  const seed = x * 31 + y * 17 + w + h;
+  let s = seed;
+  function rnd() { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }
+  const n = (w * h) / 30 | 0;
+  for (let i = 0; i < n; i++) {
+    tctx.fillStyle = rnd() < 0.5 ? COLOR.dirtDark : COLOR.dirtLight;
+    tctx.fillRect((x + rnd() * w) | 0, (y + 4 + rnd() * (h - 4)) | 0, 2, 2);
+  }
+}
+
+// ===========================================================================
+// Skills config
+// ===========================================================================
+const ICONS = {
+  digger: `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="1.2">
+    <rect x="11" y="2" width="2" height="11" rx="1"/>
+    <path d="M5 13h14l-7 8z"/>
+  </svg>`,
+  blocker: `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="1.2">
+    <path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z"/>
+    <path d="M8 8l8 8M16 8l-8 8" stroke="#15151a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  </svg>`,
+  basher: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12h12"/>
+    <path d="M11 7l5 5-5 5"/>
+    <path d="M19 4v16" stroke-width="2.6"/>
+  </svg>`,
+  builder: `<svg viewBox="0 0 24 24" fill="currentColor">
+    <rect x="2" y="18" width="6" height="3"/>
+    <rect x="8" y="14" width="6" height="3"/>
+    <rect x="14" y="10" width="6" height="3"/>
+    <rect x="20" y="6" width="2" height="3"/>
+  </svg>`,
+  floater: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 11 A9 7 0 0 1 21 11 Z" fill="currentColor"/>
+    <line x1="6" y1="11" x2="11" y2="18"/>
+    <line x1="18" y1="11" x2="13" y2="18"/>
+    <rect x="10" y="18" width="4" height="4" fill="currentColor" stroke="none"/>
+  </svg>`,
+  bomber: `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="10" cy="15" r="6.5"/>
+    <rect x="9" y="6" width="2" height="3" rx="0.5"/>
+    <path d="M11 7 Q15 4 17 6" fill="none" stroke-width="1.6"/>
+    <circle cx="18" cy="5.5" r="1.3" fill="#f4c14a" stroke="#f4c14a"/>
+  </svg>`,
+};
+
+const SKILLS = [
+  { id: 'digger',  label: 'DIGGER',  short: 'dig down',      applies: bh => bh.state === 'walk' || bh.state === 'fall' },
+  { id: 'blocker', label: 'BLOCKER', short: 'stand & block', applies: bh => bh.state === 'walk' },
+  { id: 'basher',  label: 'BASHER',  short: 'bash sideways', applies: bh => bh.state === 'walk' },
+  { id: 'builder', label: 'BUILDER', short: 'stair upward',  applies: bh => bh.state === 'walk' },
+  { id: 'floater', label: 'FLOATER', short: 'fall slow',     applies: bh => !bh.isFloater && bh.state !== 'dead' && bh.state !== 'exit' },
+  { id: 'bomber',  label: 'BOMBER',  short: '5,4,3,2,1...',  applies: bh => bh.bombTimer < 0 && bh.state !== 'dead' && bh.state !== 'exit' },
+];
+
+// ===========================================================================
+// Game state
+// ===========================================================================
+const state = {
+  levelIndex: 0,
+  boxheads: [],
+  particles: [],
+  skills: {},
+  selectedSkill: null,
+  saved: 0,
+  spawned: 0,
+  spawnCooldown: 0,
+  spawnInterval: 90,        // frames between spawns
+  timeFrames: 0,            // frames remaining
+  status: 'playing',        // 'playing' | 'won' | 'lost'
+  spawnEffect: 0,
+  exitEffect: 0,
+  frame: 0,
+};
+
+let nextId = 1;
+
+function newBoxhead(x, y) {
+  return {
+    id: nextId++,
+    x, y,
+    dir: 1,
+    vy: 0,
+    state: 'fall',           // walk | fall | block | dig | bash | build | exit | dead
+    stateTimer: 0,
+    walkPhase: 0,
+    fallStartY: y,
+    isFloater: false,
+    bombTimer: -1,
+    buildSteps: 0,
+    splatTimer: 0,
+  };
+}
+
+// ===========================================================================
+// Level loading
+// ===========================================================================
+function loadLevel(idx) {
+  state.levelIndex = idx;
+  const lvl = LEVELS[idx];
+  // reset terrain
+  tctx.clearRect(0, 0, W, H);
+  mask.fill(0);
+  lvl.build();
+  rebuildMaskFromTerrain();
+
+  state.boxheads = [];
+  state.particles = [];
+  state.skills = Object.assign({}, lvl.skills);
+  state.selectedSkill = null;
+  state.saved = 0;
+  state.spawned = 0;
+  state.spawnCooldown = 60;
+  state.timeFrames = lvl.time * 60;
+  state.status = 'playing';
+  state.spawnEffect = 0;
+  state.exitEffect = 0;
+  state.frame = 0;
+
+  document.getElementById('hud-total').textContent = lvl.total;
+  document.getElementById('hud-goal').textContent = (lvl.needed * 100 | 0) + '%';
+  document.getElementById('hint').textContent = lvl.hint;
+
+  hideOverlay();
+  rebuildSkillBar();
+  rebuildLevelButtons();
+}
+
+// ===========================================================================
+// Boxhead state machine
+// ===========================================================================
+function tickBoxhead(bh) {
+  if (bh.state === 'dead' || bh.state === 'exit') return;
+
+  // Bomb timer ticks for any non-dead non-exit boxhead
+  if (bh.bombTimer >= 0) {
+    bh.bombTimer -= 1 / 60;
+    if (bh.bombTimer <= 0) {
+      detonate(bh);
+      return;
+    }
+  }
+
+  // Out-of-bounds
+  if (bh.y > H + 4) { bh.state = 'dead'; return; }
+
+  // Reach exit?
+  const lvl = LEVELS[state.levelIndex];
+  const ex = lvl.exit.x, ey = lvl.exit.y;
+  if (bh.x > ex - 8 && bh.x < ex + 14 && bh.y > ey - 4 && bh.y < ey + 6 && bh.state !== 'fall') {
+    bh.state = 'exit';
+    state.saved++;
+    state.exitEffect = 12;
+    beep(880, 0.08, 'square', 0.06);
+    return;
+  }
+
+  switch (bh.state) {
+    case 'walk':  return walkTick(bh);
+    case 'fall':  return fallTick(bh);
+    case 'block': return blockTick(bh);
+    case 'dig':   return digTick(bh);
+    case 'bash':  return bashTick(bh);
+    case 'build': return buildTick(bh);
+  }
+}
+
+function fallTick(bh) {
+  const cap = bh.isFloater ? FLOAT_FALL : MAX_FALL;
+  bh.vy = Math.min(cap, bh.vy + (bh.isFloater ? 0.12 : GRAVITY));
+  const steps = Math.max(1, Math.ceil(bh.vy));
+  for (let i = 0; i < steps; i++) {
+    if (solid(bh.x | 0, (bh.y | 0) + 1)) {
+      // Landed
+      const dropDist = (bh.y | 0) - bh.fallStartY;
+      const fatal = !bh.isFloater && dropDist > FATAL_FALL_DIST;
+      if (fatal) {
+        bh.state = 'dead';
+        bh.splatTimer = 30;
+        spawnParticles(bh.x, bh.y, '#9d3a2c', 6);
+        beep(180, 0.15, 'sawtooth', 0.08);
+      } else {
+        bh.state = 'walk';
+        bh.vy = 0;
+      }
+      return;
+    }
+    bh.y += 1;
+    if (bh.y > H) { bh.state = 'dead'; return; }
+  }
+}
+
+let walkAccum = new Map();   // per-boxhead subpixel accumulator
+function walkTick(bh) {
+  // Bouncing off blockers
+  for (const other of state.boxheads) {
+    if (other === bh || other.state !== 'block') continue;
+    const dx = other.x - bh.x;
+    if (Math.abs(dx) < 5 && Math.abs(other.y - bh.y) < 14) {
+      if ((dx > 0 && bh.dir > 0) || (dx < 0 && bh.dir < 0)) {
+        bh.dir *= -1;
+      }
+    }
+  }
+
+  let acc = walkAccum.get(bh.id) || 0;
+  acc += WALK_SPEED;
+  while (acc >= 1) {
+    acc -= 1;
+    const nx = (bh.x | 0) + bh.dir;
+    if (nx < 0 || nx >= W) { bh.dir *= -1; break; }
+    let moved = false;
+    // try same-level or step up
+    for (let up = 0; up <= STEP_UP_MAX; up++) {
+      const ny = (bh.y | 0) - up;
+      if (solid(nx, ny + 1) && !solid(nx, ny) && !solid(nx, ny - 12)) {
+        bh.x = nx; bh.y = ny; moved = true; break;
+      }
+    }
+    // step down
+    if (!moved) {
+      for (let dn = 1; dn <= STEP_DOWN_MAX; dn++) {
+        const ny = (bh.y | 0) + dn;
+        if (solid(nx, ny + 1) && !solid(nx, ny)) {
+          bh.x = nx; bh.y = ny; moved = true; break;
+        }
+      }
+    }
+    // walk off edge
+    if (!moved && !solid(nx, bh.y) && !solid(nx, bh.y + 1)) {
+      bh.x = nx;
+      bh.state = 'fall';
+      bh.fallStartY = bh.y | 0;
+      bh.vy = 0;
+      moved = true;
+      break;
+    }
+    if (!moved) { bh.dir *= -1; break; }
+  }
+  walkAccum.set(bh.id, acc);
+  bh.walkPhase += 0.25;
+  // Did we walk off ground in middle of walking?
+  if (bh.state === 'walk' && !solid(bh.x | 0, (bh.y | 0) + 1)) {
+    bh.state = 'fall';
+    bh.fallStartY = bh.y | 0;
+    bh.vy = 0;
+  }
+}
+
+function blockTick(bh) {
+  // Just stand. But check feet — if ground vanishes (e.g. bashed away), fall.
+  if (!solid(bh.x | 0, (bh.y | 0) + 1)) {
+    bh.state = 'fall';
+    bh.fallStartY = bh.y | 0;
+    bh.vy = 0;
+  }
+}
+
+function digTick(bh) {
+  bh.stateTimer++;
+  if (bh.stateTimer % 10 === 0) {
+    // Erase a 10x3 swath under feet
+    eraseRect((bh.x | 0) - 5, (bh.y | 0) + 1, 10, 3);
+    bh.y += 2;
+  }
+  // If nothing solid below at all, drop and become faller
+  if (!solid(bh.x | 0, (bh.y | 0) + 1) && !solid(bh.x | 0, (bh.y | 0) + 2)) {
+    bh.state = 'fall';
+    bh.fallStartY = bh.y | 0;
+    bh.vy = 0;
+  }
+}
+
+function bashTick(bh) {
+  bh.stateTimer++;
+  // every 4 frames carve a 5x12 patch in front and step forward
+  if (bh.stateTimer % 4 === 0) {
+    const fx = (bh.x | 0) + bh.dir * 1;
+    eraseRect(fx + (bh.dir > 0 ? 0 : -6), (bh.y | 0) - 12, 7, 14);
+    bh.x += bh.dir;
+  }
+  // Look ahead — if no dirt for 8 pixels in front, stop bashing
+  let dirtAhead = 0;
+  for (let i = 1; i <= 8; i++) {
+    if (solid((bh.x | 0) + bh.dir * i, (bh.y | 0) - 4)) dirtAhead++;
+  }
+  if (dirtAhead === 0 && bh.stateTimer > 10) {
+    bh.state = 'walk';
+    bh.stateTimer = 0;
+  }
+  // Floor vanished → fall
+  if (!solid(bh.x | 0, (bh.y | 0) + 1)) {
+    bh.state = 'fall';
+    bh.fallStartY = bh.y | 0;
+    bh.vy = 0;
+  }
+}
+
+function buildTick(bh) {
+  bh.stateTimer++;
+  // every 12 frames, lay down a stair block in front and step up
+  if (bh.stateTimer % 12 === 0) {
+    if (bh.buildSteps >= 12) {
+      bh.state = 'walk';
+      bh.dir *= -1;
+      return;
+    }
+    const blockX = (bh.x | 0) + (bh.dir > 0 ? 1 : -6);
+    const blockY = (bh.y | 0);
+    // Ceiling check
+    if (solid((bh.x | 0) + bh.dir, (bh.y | 0) - 10)) {
+      bh.state = 'walk';
+      bh.dir *= -1;
+      return;
+    }
+    fillRectTerrain(blockX, blockY, 6, 2, COLOR.built);
+    fillRectTerrain(blockX, blockY + 2, 6, 1, COLOR.builtDark);
+    bh.x += bh.dir;
+    bh.y -= 2;
+    bh.buildSteps++;
+  }
+}
+
+function detonate(bh) {
+  eraseCircle(bh.x | 0, (bh.y | 0) - 8, 14);
+  spawnParticles(bh.x, bh.y - 8, '#f4c14a', 14);
+  spawnParticles(bh.x, bh.y - 8, '#c74b3a', 8);
+  beep(120, 0.2, 'sawtooth', 0.12);
+  bh.state = 'dead';
+}
+
+// ===========================================================================
+// Particles
+// ===========================================================================
+function spawnParticles(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    state.particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.8) * 4,
+      life: 30 + (Math.random() * 20 | 0),
+      color,
+      size: 1 + (Math.random() * 2 | 0),
+    });
+  }
+}
+function tickParticles() {
+  for (const p of state.particles) {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.18;
+    p.life--;
+  }
+  state.particles = state.particles.filter(p => p.life > 0);
+}
+
+// ===========================================================================
+// Spawning
+// ===========================================================================
+function tickSpawn() {
+  const lvl = LEVELS[state.levelIndex];
+  if (state.spawned >= lvl.total) return;
+  if (state.spawnCooldown > 0) { state.spawnCooldown--; return; }
+  // Spawn
+  const bh = newBoxhead(lvl.spawn.x, lvl.spawn.y);
+  state.boxheads.push(bh);
+  state.spawned++;
+  state.spawnCooldown = state.spawnInterval;
+  state.spawnEffect = 10;
+  beep(440, 0.04, 'triangle', 0.04);
+}
+
+// ===========================================================================
+// Rendering — character (uses photo sprite, native size, no smoothing)
+// ===========================================================================
+// Native sprite size will be read from IMG.bhIdle once loaded; keep these
+// in sync with the processed PNG (see process_boxhead_assets.py).
+const BH_H = 48;     // on-screen height (px)
+
+function bhDrawSize(img) {
+  // preserve native aspect ratio
+  const w = Math.round(BH_H * img.width / img.height);
+  return [w, BH_H];
+}
+
+function drawBoxhead(bh) {
+  const fx = bh.x | 0, fy = bh.y | 0;
+  const dir = bh.dir;
+  if (!IMG.bhIdle || !IMG.bhWalkA) return;
+
+  // Pick the right frame
+  const isWalking = bh.state === 'walk' || bh.state === 'bash' || bh.state === 'build' || bh.state === 'dig';
+  let img = IMG.bhIdle;
+  if (isWalking) {
+    // Alternate between idle (feet together) and walk_a every ~10 frames
+    const t = (bh.walkPhase * 1.4) | 0;
+    img = (t & 1) ? IMG.bhWalkA : IMG.bhIdle;
+  }
+  const [w, h] = bhDrawSize(img);
+
+  // Splat
+  if (bh.state === 'dead') {
+    ctx.save();
+    ctx.translate(fx, fy);
+    if (dir < 0) ctx.scale(-1, 1);
+    ctx.imageSmoothingEnabled = false;
+    // squashed: stretch wide, very short
+    ctx.drawImage(img, -w / 2 - 3, -7, w + 6, 7);
+    ctx.restore();
+    return;
+  }
+
+  // Subtle bob — only on idle frames during walking
+  let bob = 0;
+  if (isWalking) bob = (((bh.walkPhase * 1.4) | 0) & 1) ? 0 : -1;
+
+  // Soft contact shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(fx, fy + 1, w * 0.55, 1.6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(fx, fy + bob);
+  if (dir < 0) ctx.scale(-1, 1);
+  ctx.imageSmoothingEnabled = false;     // crisp pixels
+  ctx.drawImage(img, -w / 2, -h, w, h);
+  ctx.restore();
+
+  // ---- State overlays (drawn unflipped, world space) ----
+  ctx.save();
+  ctx.translate(fx, fy + bob);
+
+  const yTop = -BH_H - 2;     // just above head
+
+  // Hat / band marker
+  if (bh.state === 'block') {
+    paperBand('#e26060', yTop, 'STOP');
+  } else if (bh.state === 'dig') {
+    paperBand('#e4a23e', yTop, 'DIG');
+  } else if (bh.state === 'bash') {
+    paperBand('#9aa1ad', yTop, 'BASH');
+  } else if (bh.state === 'build') {
+    paperBand('#f4c14a', yTop, 'BLD');
+  }
+
+  // Floater parachute when falling
+  if (bh.isFloater && bh.state === 'fall') {
+    ctx.fillStyle = '#6cd06b';
+    ctx.fillRect(-9, yTop - 3, 18, 2);
+    ctx.fillStyle = '#3f8a3a';
+    ctx.fillRect(-10, yTop - 1, 1, 5);
+    ctx.fillRect(9, yTop - 1, 1, 5);
+  } else if (bh.isFloater) {
+    // small green ribbon when on ground (subtle marker)
+    ctx.fillStyle = '#6cd06b';
+    ctx.fillRect(-2, yTop + 1, 4, 1);
+  }
+
+  // Bomber: fuse + countdown number
+  if (bh.bombTimer >= 0) {
+    ctx.fillStyle = '#222';
+    ctx.fillRect(-1, yTop - 3, 2, 3);
+    ctx.fillStyle = ((state.frame >> 2) % 2) ? '#ff3030' : '#ffaa00';
+    ctx.fillRect(-2, yTop - 5, 4, 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 7px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.ceil(bh.bombTimer).toString(), 0, yTop - 7);
+  }
+
+  ctx.restore();
+}
+
+// Tiny paper-band label drawn above head — colored strip + small label.
+function paperBand(color, y, label) {
+  const w = 18, h = 4;
+  ctx.fillStyle = color;
+  ctx.fillRect(-w / 2, y, w, h);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(-w / 2, y + h - 1, w, 1);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 4px ui-sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, 0, y + h / 2);
+}
+
+function darken(hex, factor) {
+  if (hex.startsWith('#') && hex.length === 7) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const dr = (r * factor) | 0, dg = (g * factor) | 0, db = (b * factor) | 0;
+    return `rgb(${dr},${dg},${db})`;
+  }
+  return hex;
+}
+
+// ===========================================================================
+// Rendering — world
+// ===========================================================================
+function drawSky() {
+  const lvl = LEVELS[state.levelIndex];
+  const bg = IMG.themes[lvl.theme] && IMG.themes[lvl.theme].bg;
+  if (bg) {
+    // Keep crunchy pixel feel — no smoothing
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(bg, 0, 0, W, H);
+  } else {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, COLOR.sky1); g.addColorStop(1, COLOR.sky2);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function drawSpawnerAndExit() {
+  const lvl = LEVELS[state.levelIndex];
+  const sx = lvl.spawn.x, sy = lvl.spawn.y;
+  const ex = lvl.exit.x, ey = lvl.exit.y;
+
+  // Spawner — string from sky + cardboard hatch sprite
+  ctx.strokeStyle = '#3a2a1a';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, sy - 12); ctx.stroke();
+  if (IMG.spawner) {
+    const sw = 28, sh = 28;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(IMG.spawner, sx - sw / 2, sy - sh, sw, sh);
+    ctx.imageSmoothingEnabled = false;
+    // small drop animation: a black slot pulses just under the hatch
+    if (state.spawnEffect > 0) {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(sx - 3, sy - 4, 6, 2 + state.spawnEffect);
+      state.spawnEffect--;
+    }
+  }
+
+  // Soft contact shadow under exit
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(ex, ey + 1, 18, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Exit door sprite
+  if (IMG.exit) {
+    const ew = 36, eh = 36;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(IMG.exit, ex - ew / 2, ey - eh, ew, eh);
+    ctx.imageSmoothingEnabled = false;
+    // Pulsing glow over the doorway
+    const glow = 0.18 + 0.18 * Math.sin(state.frame * 0.1);
+    ctx.fillStyle = `rgba(244,193,74,${glow})`;
+    ctx.fillRect(ex - 5, ey - eh + 12, 10, eh - 14);
+  }
+
+  if (state.exitEffect > 0) state.exitEffect--;
+}
+
+function drawParticles() {
+  for (const p of state.particles) {
+    ctx.globalAlpha = Math.max(0, p.life / 50);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x | 0, p.y | 0, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ===========================================================================
+// Main loop
+// ===========================================================================
+function tick() {
+  if (state.status !== 'playing') return;
+  state.frame++;
+  state.timeFrames--;
+  if (state.timeFrames <= 0) {
+    state.timeFrames = 0;
+    finishLevel();
+    return;
+  }
+  tickSpawn();
+  for (const bh of state.boxheads) tickBoxhead(bh);
+  // remove exited/dead corpses after a while
+  state.boxheads = state.boxheads.filter(bh => {
+    if (bh.state === 'exit') return false;
+    if (bh.state === 'dead') {
+      bh.splatTimer--;
+      if (bh.splatTimer < -60) return false;
+    }
+    return true;
+  });
+  tickParticles();
+
+  // win/lose check after all are accounted for
+  const lvl = LEVELS[state.levelIndex];
+  if (state.spawned >= lvl.total && state.boxheads.every(bh => bh.state === 'dead')) {
+    finishLevel();
+  }
+}
+
+function finishLevel() {
+  if (state.status !== 'playing') return;
+  const lvl = LEVELS[state.levelIndex];
+  const need = Math.ceil(lvl.total * lvl.needed);
+  if (state.saved >= need) {
+    state.status = 'won';
+    showOverlay('LEVEL COMPLETE',
+      `saved ${state.saved} of ${lvl.total} (needed ${need}). nice cardboard.`);
+    beep(660, 0.2, 'square', 0.08);
+    setTimeout(() => beep(880, 0.3, 'square', 0.08), 150);
+  } else {
+    state.status = 'lost';
+    showOverlay('LEVEL FAILED',
+      `saved ${state.saved} of ${lvl.total}. needed ${need}.`);
+    beep(220, 0.3, 'sawtooth', 0.1);
+  }
+}
+
+function draw() {
+  drawSky();
+  drawSpawnerAndExit();
+  ctx.drawImage(terrainCanvas, 0, 0);
+  // sort: dead behind, others in front
+  const ordered = state.boxheads.slice().sort((a, b) => {
+    if (a.state === 'dead' && b.state !== 'dead') return -1;
+    if (b.state === 'dead' && a.state !== 'dead') return  1;
+    return a.y - b.y;
+  });
+  for (const bh of ordered) drawBoxhead(bh);
+  drawParticles();
+
+  // hover highlight
+  if (mouseInCanvas && state.selectedSkill) {
+    const target = boxheadAt(mouseX, mouseY);
+    if (target) {
+      ctx.strokeStyle = '#f4c14a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect((target.x | 0) - 9, (target.y | 0) - 30, 18, 30);
+    }
+  }
+}
+
+function loop() {
+  tick();
+  draw();
+  updateHUD();
+  requestAnimationFrame(loop);
+}
+
+function updateHUD() {
+  const lvl = LEVELS[state.levelIndex];
+  document.getElementById('hud-out').textContent = state.spawned;
+  document.getElementById('hud-in').textContent = state.boxheads.filter(b => b.state !== 'dead' && b.state !== 'exit').length;
+  document.getElementById('hud-saved').textContent = state.saved;
+  const t = Math.max(0, state.timeFrames / 60 | 0);
+  const mm = (t / 60) | 0;
+  const ss = (t % 60).toString().padStart(2, '0');
+  const timeEl = document.getElementById('hud-time');
+  timeEl.textContent = `${mm}:${ss}`;
+  timeEl.className = (state.timeFrames < 60 * 15) ? 'bad' : '';
+  // skill counts
+  for (const s of SKILLS) {
+    const el = document.getElementById('skill-' + s.id);
+    if (!el) continue;
+    const count = state.skills[s.id] || 0;
+    el.querySelector('.count').textContent = count;
+    el.classList.toggle('empty', count === 0);
+    el.classList.toggle('active', state.selectedSkill === s.id);
+  }
+}
+
+// ===========================================================================
+// Input
+// ===========================================================================
+let mouseX = 0, mouseY = 0, mouseInCanvas = false;
+
+function canvasCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (W / rect.width),
+    y: (e.clientY - rect.top)  * (H / rect.height),
+  };
+}
+canvas.addEventListener('mousemove', e => {
+  const c = canvasCoords(e);
+  mouseX = c.x; mouseY = c.y; mouseInCanvas = true;
+});
+canvas.addEventListener('mouseleave', () => mouseInCanvas = false);
+canvas.addEventListener('click', e => {
+  const c = canvasCoords(e);
+  if (state.status !== 'playing') return;
+  if (!state.selectedSkill) return;
+  const bh = boxheadAt(c.x, c.y);
+  if (!bh) return;
+  applySkill(bh, state.selectedSkill);
+});
+
+function boxheadAt(x, y) {
+  let best = null, bestDist = 14;
+  for (const bh of state.boxheads) {
+    if (bh.state === 'dead' || bh.state === 'exit') continue;
+    const cx = bh.x, cy = bh.y - 14;
+    const d = Math.abs(cx - x) + Math.abs(cy - y) * 0.6;
+    if (d < bestDist) { bestDist = d; best = bh; }
+  }
+  return best;
+}
+
+function applySkill(bh, skillId) {
+  const s = SKILLS.find(k => k.id === skillId);
+  if (!s) return;
+  if ((state.skills[skillId] || 0) <= 0) return;
+  if (!s.applies(bh)) return;
+  state.skills[skillId]--;
+  beep(540, 0.05, 'square', 0.05);
+  switch (skillId) {
+    case 'digger':  bh.state = 'dig';   bh.stateTimer = 0; break;
+    case 'blocker': bh.state = 'block'; bh.stateTimer = 0; break;
+    case 'basher':  bh.state = 'bash';  bh.stateTimer = 0; break;
+    case 'builder': bh.state = 'build'; bh.stateTimer = 0; bh.buildSteps = 0; break;
+    case 'floater': bh.isFloater = true; break;
+    case 'bomber':  bh.bombTimer = 5; break;
+  }
+}
+
+// ===========================================================================
+// UI: skill bar, level select, overlay
+// ===========================================================================
+function rebuildSkillBar() {
+  const root = document.getElementById('skills');
+  root.innerHTML = '';
+  for (const s of SKILLS) {
+    const el = document.createElement('div');
+    el.className = 'skill';
+    el.id = 'skill-' + s.id;
+    el.innerHTML = `${ICONS[s.id] || ''}<span class="count">0</span>`;
+    el.title = `${s.label} — ${s.short}`;
+    el.addEventListener('click', () => {
+      if ((state.skills[s.id] || 0) <= 0) return;
+      state.selectedSkill = state.selectedSkill === s.id ? null : s.id;
+    });
+    root.appendChild(el);
+  }
+}
+function rebuildLevelButtons() {
+  const root = document.getElementById('level-buttons');
+  root.innerHTML = '';
+  LEVELS.forEach((lvl, i) => {
+    const b = document.createElement('button');
+    b.textContent = `${i + 1}. ${lvl.name}`;
+    if (i === state.levelIndex) b.className = 'current';
+    b.addEventListener('click', () => loadLevel(i));
+    root.appendChild(b);
+  });
+}
+document.getElementById('reset-btn').addEventListener('click', () => loadLevel(state.levelIndex));
+
+function showOverlay(title, sub) {
+  document.getElementById('overlay-title').textContent = title;
+  document.getElementById('overlay-sub').textContent = sub;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+document.getElementById('overlay-retry').addEventListener('click', () => loadLevel(state.levelIndex));
+document.getElementById('overlay-next').addEventListener('click', () => {
+  const next = (state.levelIndex + 1) % LEVELS.length;
+  loadLevel(next);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') state.selectedSkill = null;
+  if (e.key === 'r' || e.key === 'R') loadLevel(state.levelIndex);
+  const nKey = parseInt(e.key, 10);
+  if (nKey >= 1 && nKey <= 6) {
+    const id = SKILLS[nKey - 1].id;
+    if ((state.skills[id] || 0) > 0) state.selectedSkill = id;
+  }
+});
+
+// ===========================================================================
+// Audio (tiny, lazy)
+// ===========================================================================
+let audioCtx = null;
+function beep(freq, dur, type = 'square', vol = 0.05) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = vol;
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur);
+  } catch (e) { /* no audio */ }
+}
+
+// ===========================================================================
+// Boot
+// ===========================================================================
+(async () => {
+  // Show simple loading state
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ececec';
+  ctx.font = 'bold 16px ui-sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('loading diorama…', W / 2, H / 2);
+
+  try {
+    await loadAssets();
+  } catch (e) {
+    console.error(e);
+    ctx.fillStyle = '#e26060';
+    ctx.fillText('asset load failed: ' + e.message, W / 2, H / 2 + 20);
+    return;
+  }
+  loadLevel(0);
+  loop();
+})();
+
+})();
+</script>
+</body>
+</html>
