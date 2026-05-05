@@ -1208,7 +1208,7 @@ const G = {
   currentEnemy:null, enemyHp:0, enemyMaxHp:0, playerHp:0, playerMaxHp:0,
   answering:false, enemyIdx:0, modeWins:0, totalCorrect:0,
   usedWords:[], usedStories:[],
-  purchased:[],
+  purchased:[], purchaseCounts:{},
   // new features
   maxStreak:0, bossesDefeated:0, secretsCaught:0, popQuizWins:0,
   wordmonHpMap:{}, // persistent HP tracking: {wordmonIdx: currentHp}
@@ -1248,7 +1248,7 @@ const G = {
       mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0,
       maxStreak:this.maxStreak||0,bossesDefeated:this.bossesDefeated||0,
       secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
-      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{}};
+      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{},purchaseCounts:this.purchaseCounts||{}};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
   },
   loadGame(){
@@ -1278,6 +1278,7 @@ const G = {
       if(d.wordStats) this.wordStats=d.wordStats;
       if(d.popQuizWins!==undefined) this.popQuizWins=d.popQuizWins;
       if(d.wordmonHpMap) this.wordmonHpMap=d.wordmonHpMap;
+      if(d.purchaseCounts) this.purchaseCounts=d.purchaseCounts;
     }catch(e){}
   },
 
@@ -1892,14 +1893,17 @@ const G = {
   },
 
   buyItem(item){
-    if(this.coins<item.price || this.purchased.includes(item.id)) return;
+    if(this.coins<item.price) return;
     SFX.play('buy');
     this.coins-=item.price;
-    this.purchased.push(item.id);
+    if(!this.purchased.includes(item.id)) this.purchased.push(item.id);
+    if(!this.purchaseCounts) this.purchaseCounts={};
+    this.purchaseCounts[item.id]=(this.purchaseCounts[item.id]||0)+1;
     this.fireConfetti();
     this.showMoneyAnimation(0);
+    const count=this.purchaseCounts[item.id];
     document.getElementById('catchTitle').textContent='🎉 You earned a toy!';
-    document.getElementById('catchDesc').textContent='You unlocked: '+item.name+'! Show this to Mom or Dad — they\'ll get you the real one!';
+    document.getElementById('catchDesc').textContent='You unlocked: '+item.name+'!'+(count>1?' (x'+count+')':'')+' Show this to Mom or Dad — they\'ll get you the real one!';
     document.getElementById('catchSprite').innerHTML=item.svg;
     document.getElementById('catchName').textContent=item.name+(item.realPrice?' ('+item.realPrice+' on Amazon)':'');
     document.getElementById('catchModal').classList.add('show');
@@ -2005,26 +2009,29 @@ const G = {
       '<div class="shop-grid" id="inlineShopGrid"></div>';
     area.innerHTML=html;
     const grid=document.getElementById('inlineShopGrid');
+    if(!this.purchaseCounts) this.purchaseCounts={};
     SHOP_ITEMS.forEach(item=>{
       const bought=this.purchased.includes(item.id);
-      const canBuy=this.coins>=item.price && !bought;
+      const canBuy=this.coins>=item.price;
       const locked=!canBuy && !bought;
-      const pct=bought?100:Math.min(100,Math.floor((this.coins/item.price)*100));
+      const count=this.purchaseCounts[item.id]||0;
+      const pct=canBuy?100:Math.min(100,Math.floor((this.coins/item.price)*100));
       const div=document.createElement('div');
       div.className='shop-item'+(bought?' purchased':'')+(locked?' locked':'');
       const imgHtml=item.img?'<img src="'+item.img+'" alt="'+item.name+'" style="width:90px;height:90px;object-fit:contain;border-radius:8px" onerror="this.outerHTML=\''+item.svg.replace(/'/g,"\\'")+'\'">':item.svg;
       div.innerHTML='<div style="'+(locked?'filter:grayscale(.8) opacity:.5;':'')+'">'+imgHtml+'</div>'+
-        '<div class="item-name">'+item.name+'</div>'+
+        '<div class="item-name">'+item.name+(count>1?' <span style="font-size:.65rem;color:var(--accent)">(x'+count+')</span>':'')+'</div>'+
         '<div class="item-desc">'+item.desc+'</div>'+
         (item.realPrice?'<div style="font-size:.6rem;color:var(--green);font-weight:800">Real price: '+item.realPrice+'</div>':'')+
         '<div class="item-price"><span class="coin-icon">$</span>'+item.price+' coins</div>'+
-        (bought?'':'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
-        '<div class="progress-text">'+(locked?'Need '+(item.price-this.coins)+' more coins!':this.coins+' / '+item.price)+'</div>')+
-        (bought?'<button class="shop-buy bought" disabled>Earned! ✅</button>'+
-          (item.url?'<a href="'+item.url+'" target="_blank" rel="noopener" style="display:block;margin-top:4px;font-size:.65rem;font-weight:700;color:var(--blue);text-decoration:none">📦 View on Amazon</a>':'')
-        :canBuy?'<button class="shop-buy">Buy Now! 🎉</button>'
-        :'<button class="shop-buy" disabled>🔒 Keep playing!</button>');
-      if(!bought && canBuy){
+        (!canBuy&&!bought?'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
+        '<div class="progress-text">Need '+(item.price-this.coins)+' more coins!</div>':
+        !canBuy&&bought?'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
+        '<div class="progress-text">Need '+(item.price-this.coins)+' more coins to buy again!</div>':'')+
+        (canBuy?(bought?'<button class="shop-buy">Buy Again! 🎉</button>':'<button class="shop-buy">Buy Now! 🎉</button>')
+        :'<button class="shop-buy" disabled>🔒 Keep playing!</button>')+
+        (bought&&item.url?'<a href="'+item.url+'" target="_blank" rel="noopener" style="display:block;margin-top:4px;font-size:.65rem;font-weight:700;color:var(--blue);text-decoration:none">📦 View on Amazon</a>':'');
+      if(canBuy){
         div.querySelector('.shop-buy').addEventListener('click',()=>{SFX.play('click');this.buyItem(item);});
       }
       grid.appendChild(div);
