@@ -4612,33 +4612,11 @@ function renderAchievements(){
   });
 })();
 
+const PARENT_PIN='0704';
 function openParentDashboard(){
-  const PARENT_PIN='1234';
-  const gate=document.createElement('div');
-  gate.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
-  gate.onclick=e=>{if(e.target===gate)gate.remove();};
-  gate.innerHTML='<div style="background:#fff;border-radius:20px;padding:28px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">'+
-    '<div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:var(--accent);margin-bottom:6px">🔒 Parent Area</div>'+
-    '<div style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Enter the 4-digit PIN to continue</div>'+
-    '<input id="parentPinInput" type="tel" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="● ● ● ●" style="font-family:Fredoka One,cursive;font-size:1.8rem;text-align:center;width:160px;padding:10px;border:3px solid #e2e8f0;border-radius:12px;outline:none;letter-spacing:8px" autocomplete="off">'+
-    '<div id="parentPinError" style="color:#ef4444;font-size:.8rem;margin-top:8px;min-height:1.2em"></div>'+
-    '<div style="display:flex;gap:8px;margin-top:12px;justify-content:center">'+
-    '<button id="parentPinCancel" style="font-family:Fredoka One,cursive;font-size:.85rem;padding:10px 20px;border-radius:12px;border:2px solid #e2e8f0;background:#fff;color:var(--text2);cursor:pointer">Cancel</button>'+
-    '<button id="parentPinSubmit" style="font-family:Fredoka One,cursive;font-size:.85rem;padding:10px 20px;border-radius:12px;border:none;background:var(--accent);color:#fff;cursor:pointer">Enter</button></div></div>';
-  document.body.appendChild(gate);
-  const pinInput=document.getElementById('parentPinInput');
-  const pinError=document.getElementById('parentPinError');
-  pinInput.focus();
-  function tryPin(){
-    if(pinInput.value===PARENT_PIN){gate.remove();showParentDashboard();}
-    else{pinError.textContent='Wrong PIN — try again';pinInput.value='';pinInput.focus();}
-  }
-  document.getElementById('parentPinSubmit').addEventListener('click',tryPin);
-  pinInput.addEventListener('keydown',e=>{if(e.key==='Enter')tryPin();});
-  document.getElementById('parentPinCancel').addEventListener('click',()=>gate.remove());
-}
+  const pin=prompt('Parent PIN:');
+  if(pin!==PARENT_PIN){if(pin!==null)alert('Wrong PIN!');return;}
 
-function showParentDashboard(){
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
