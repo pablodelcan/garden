@@ -1075,6 +1075,32 @@ const WORDMONS = [
     {name:'Doodledoo',hp:28,bio:'Doodledoo is a silly chicken. He forgets stuff a lot.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="62" rx="20" ry="18" fill="#fed7aa"/><ellipse cx="50" cy="64" rx="14" ry="12" fill="#fef3c7"/><circle cx="50" cy="42" r="12" fill="#fed7aa"/><path d="M46 30 Q50 22 54 30" fill="#ef4444"/><circle cx="46" cy="40" r="2" fill="#1e293b"/><circle cx="54" cy="40" r="2" fill="#1e293b"/><polygon points="48,44 52,44 50,50" fill="#fbbf24"/></svg>`},
     {name:'Featherbrain',hp:42,bio:'Featherbrain is a fluffy chicken with a LOT of feathers! He said "I can ALMOST fly!" He runs around in silly circles.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="28" ry="24" fill="#fb923c"/><ellipse cx="50" cy="60" rx="22" ry="18" fill="#fed7aa"/><circle cx="50" cy="34" r="15" fill="#fb923c"/><circle cx="50" cy="36" r="10" fill="#fed7aa"/><path d="M40 20 Q50 10 60 20 L58 26 L50 22 L42 26Z" fill="#ef4444"/><circle cx="45" cy="34" r="3" fill="#1e293b"/><circle cx="55" cy="34" r="3" fill="#1e293b"/><polygon points="47,38 53,38 50,44" fill="#fbbf24"/><path d="M20 50 L8 58 L20 60" stroke="#fb923c" stroke-width="4" fill="none"/><path d="M80 50 L92 58 L80 60" stroke="#fb923c" stroke-width="4" fill="none"/></svg>`},
     {name:'Roosterific',hp:58,bio:'Roosterific is the king of the farm! He said "COCK-A-DOODLE-DOO!" He has a golden comb and a tail of rainbow feathers.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="32" ry="28" fill="#ea580c"/><ellipse cx="50" cy="58" rx="26" ry="22" fill="#fb923c"/><circle cx="50" cy="30" r="18" fill="#ea580c"/><circle cx="50" cy="32" r="13" fill="#fb923c"/><path d="M36 12 Q44 4 50 10 Q56 4 64 12 L62 20 L56 16 L50 18 L44 16 L38 20Z" fill="#ef4444"/><circle cx="44" cy="30" r="3.5" fill="#fde047"/><circle cx="56" cy="30" r="3.5" fill="#fde047"/><circle cx="44" cy="30" r="1.5" fill="#1e293b"/><circle cx="56" cy="30" r="1.5" fill="#1e293b"/><polygon points="46,36 54,36 50,46" fill="#fbbf24"/><path d="M78 40 Q98 30 94 56 Q86 48 78 46Z" fill="#ef4444"/><path d="M82 46 Q100 40 96 60 Q88 52 82 50Z" fill="#3b82f6"/><path d="M86 52 Q102 50 96 64 Q90 56 86 54Z" fill="#22c55e"/></svg>`}
+  ]},
+  // ===== NEW WORDMONS — cooler/edgier vibe (May 2026) =====
+  {id:'goopling',type:'Slime',color:'#22c55e',bio:'Goopling is a Minecraft-style green slime cube. He said "blop blop blop!" He can stick to anything and he likes to jump around.',stages:[
+    {name:'Goopling',hp:30,bio:'A tiny green slime cube. Bouncy and friendly.'},
+    {name:'Drippler',hp:46,bio:'A bigger slime with multiple cubes stuck together. Drips green goo.'},
+    {name:'Slimeking',hp:64,bio:'The KING of slimes. Wears a golden crown made of cubes!'}
+  ]},
+  {id:'roboraptor',type:'Steel',color:'#94a3b8',bio:'Roboraptor is a robot velociraptor with chrome plates! He said "BEEP BEEP RAWR!" His eyes glow blue and his claws are made of titanium.',stages:[
+    {name:'Roboraptor',hp:32,bio:'A tiny chrome robot raptor with glowing blue eyes.'},
+    {name:'Cybertrex',hp:50,bio:'Bigger! Has armor plates and a red glowing core.'},
+    {name:'Megatron-Rex',hp:72,bio:'The ULTIMATE cyber T-Rex with plasma cannons. Run!'}
+  ]},
+  {id:'voltwing',type:'Electric',color:'#fde047',bio:'Voltwing is a baby lightning bird! She said "TWEET ZAP!" She crackles with electricity and her wings glow yellow.',stages:[
+    {name:'Voltwing',hp:30,bio:'A tiny yellow bird crackling with electricity.'},
+    {name:'Stormhawk',hp:46,bio:'A medium eagle with wings of pure lightning.'},
+    {name:'Thunderphoenix',hp:66,bio:'A colossal thunder phoenix. Her wings light up the sky!'}
+  ]},
+  {id:'frostmaw',type:'Ice',color:'#a5f3fc',bio:'Frostmaw is a tiny snow cub with crystal blue eyes! He said "grrr brrr!" His fur is fluffy and his ice horns are sharp.',stages:[
+    {name:'Frostmaw',hp:32,bio:'A tiny snow cub with ice horns. Fluffy white fur.'},
+    {name:'Glacierfang',hp:48,bio:'A medium ice wolf with ice fangs and frost mist.'},
+    {name:'Blizzardbear',hp:70,bio:'A massive arctic beast with huge ice tusks. He IS the blizzard.'}
+  ]},
+  {id:'phazoroid',type:'Cosmic',color:'#c084fc',bio:'Phazoroid is a tiny floating purple UFO orb! It said "BEEP BOOP from space!" It has one big eye that watches everything.',stages:[
+    {name:'Phazoroid',hp:32,bio:'A tiny floating purple UFO with one cute eye.'},
+    {name:'Saucerlord',hp:48,bio:'A medium UFO disc with three eyes and beam lights.'},
+    {name:'Mothership',hp:74,bio:'The colossal alien mothership orb. From the stars.'}
   ]}
 ];
 
@@ -1248,6 +1274,21 @@ const SHOP_ITEMS = [
   {id:'minecoins_small',name:'1,720 Minecoins',price:670,desc:'Spend in Minecraft on skins, packs, and adventures! 6$=400 coins.',realPrice:'~$10',url:'https://www.amazon.com/Minecraft-Minecoins-Pack-Coins-Digital/dp/B07FYN4SBM',img:'https://m.media-amazon.com/images/I/61UFVjQHejL._AC_SL500_.jpg',svg:PH},
   {id:'minecoins_med',name:'3,500 Minecoins',price:1330,desc:'A big stack of Minecoins for Minecraft! Get tons of skins and worlds.',realPrice:'~$20',url:'https://www.amazon.com/s?k=minecraft+3500+minecoins',img:'https://m.media-amazon.com/images/I/61HHrR-Q8cL._AC_SL500_.jpg',svg:PH},
   {id:'minecoins_huge',name:'8,800 Minecoins',price:1500,desc:'MAX stack of Minecoins! Buy any Minecraft DLC you want!',realPrice:'~$45',url:'https://www.amazon.com/Minecraft-Minecoins-Digital-AMAZON-EXCLUSIVE/dp/B0FTZZ13PF',img:'https://m.media-amazon.com/images/I/71FH5DSGm3L._AC_SL500_.jpg',svg:PH},
+  // --- LEGO SETS ---
+  {id:'lego_mc_bee',name:'LEGO Minecraft: The Bee Cottage',price:725,desc:'254 piece set! Build a cottage with sheep, beekeeper, and bees!',realPrice:'~$25',url:'https://www.amazon.com/dp/B0BBSNZ1KG',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#dcfce7"/><rect x="22" y="40" width="56" height="40" fill="#fbbf24" stroke="#92400e" stroke-width="2"/><polygon points="22,40 50,18 78,40" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/><rect x="44" y="60" width="12" height="20" fill="#7f1d1d"/><circle cx="68" cy="32" r="6" fill="#fde047" stroke="#1e293b" stroke-width="1.5"/><rect x="65" y="29" width="6" height="2" fill="#1e293b"/><rect x="65" y="33" width="6" height="2" fill="#1e293b"/><text x="50" y="92" text-anchor="middle" fill="#15803d" font-size="8" font-weight="bold" font-family="sans-serif">LEGO MINECRAFT</text></svg>`},
+  {id:'lego_mc_sword',name:'LEGO Minecraft: The Sword Outpost',price:850,desc:'Battle minifigures! Build a giant diamond sword fortress!',realPrice:'~$35',url:'https://www.amazon.com/dp/B0BBSKXWZF',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#e0f2fe"/><rect x="44" y="20" width="12" height="50" fill="#06b6d4" stroke="#0e7490" stroke-width="2"/><polygon points="40,68 60,68 50,80" fill="#06b6d4" stroke="#0e7490" stroke-width="2"/><rect x="46" y="68" width="8" height="14" fill="#78350f" stroke="#451a03" stroke-width="2"/><rect x="42" y="22" width="2" height="46" fill="#a5f3fc"/><text x="50" y="95" text-anchor="middle" fill="#0e7490" font-size="7" font-weight="bold" font-family="sans-serif">SWORD OUTPOST</text></svg>`},
+  {id:'lego_mc_crafting',name:'LEGO Minecraft: Crafting Box 4.0',price:1000,desc:'BUILD ANYTHING! Endless modular Minecraft set with mobs and tools!',realPrice:'~$45',url:'https://www.amazon.com/dp/B0BSRF435P',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#f0fdf4"/><rect x="14" y="14" width="24" height="24" fill="#84cc16" stroke="#3f6212" stroke-width="2"/><rect x="38" y="14" width="24" height="24" fill="#a16207" stroke="#451a03" stroke-width="2"/><rect x="62" y="14" width="24" height="24" fill="#06b6d4" stroke="#155e75" stroke-width="2"/><rect x="14" y="38" width="24" height="24" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/><rect x="38" y="38" width="24" height="24" fill="#facc15" stroke="#854d0e" stroke-width="2"/><rect x="62" y="38" width="24" height="24" fill="#22c55e" stroke="#14532d" stroke-width="2"/><rect x="14" y="62" width="24" height="24" fill="#a855f7" stroke="#581c87" stroke-width="2"/><rect x="38" y="62" width="24" height="24" fill="#94a3b8" stroke="#1e293b" stroke-width="2"/><rect x="62" y="62" width="24" height="24" fill="#fb923c" stroke="#9a3412" stroke-width="2"/></svg>`},
+  {id:'lego_classic',name:'LEGO Classic Brick Box (484 pcs)',price:850,desc:'Hundreds of colorful bricks! Build whatever you can imagine.',realPrice:'~$32',url:'https://www.amazon.com/dp/B00NHQFA1I',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#fef3c7"/><rect x="18" y="28" width="64" height="48" rx="6" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/><rect x="22" y="32" width="56" height="14" fill="#fff" opacity=".15"/><circle cx="32" cy="42" r="4" fill="#fff" opacity=".4"/><circle cx="50" cy="42" r="4" fill="#fff" opacity=".4"/><circle cx="68" cy="42" r="4" fill="#fff" opacity=".4"/><text x="50" y="62" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold" font-family="sans-serif">LEGO</text><text x="50" y="92" text-anchor="middle" fill="#92400e" font-size="7" font-weight="bold" font-family="sans-serif">CLASSIC 484 PCS</text></svg>`},
+  {id:'lego_mario',name:'LEGO Super Mario Starter Course',price:1150,desc:'231 piece electronic Mario set! Real sound effects and screen!',realPrice:'~$55',url:'https://www.amazon.com/dp/B085878WLK',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#fef2f2"/><circle cx="50" cy="40" r="22" fill="#dc2626"/><rect x="36" y="50" width="28" height="22" fill="#1e40af"/><circle cx="50" cy="30" r="6" fill="#fbbf24"/><text x="50" y="34" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="bold" font-family="sans-serif">M</text><circle cx="42" cy="40" r="3" fill="#1e293b"/><circle cx="58" cy="40" r="3" fill="#1e293b"/><circle cx="50" cy="48" r="3" fill="#fef3c7"/><text x="50" y="86" text-anchor="middle" fill="#dc2626" font-size="7" font-weight="bold" font-family="sans-serif">SUPER MARIO</text><text x="50" y="95" text-anchor="middle" fill="#dc2626" font-size="6" font-weight="bold" font-family="sans-serif">STARTER COURSE</text></svg>`},
+  {id:'lego_city_helo',name:'LEGO City Police Helicopter',price:500,desc:'51 piece chopper with cop minifig! Spinning rotor.',realPrice:'~$15',url:'https://www.amazon.com/dp/B08G4HRF6D',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#e0e7ff"/><rect x="30" y="48" width="44" height="20" rx="10" fill="#1e40af" stroke="#1e293b" stroke-width="2"/><rect x="40" y="52" width="20" height="12" fill="#93c5fd"/><rect x="48" y="30" width="4" height="20" fill="#1e293b"/><line x1="20" y1="30" x2="80" y2="30" stroke="#1e293b" stroke-width="3"/><line x1="22" y1="28" x2="78" y2="32" stroke="#1e293b" stroke-width="1.5"/><rect x="74" y="58" width="12" height="3" fill="#1e293b"/><polygon points="86,57 92,60 86,63" fill="#1e293b"/><text x="50" y="92" text-anchor="middle" fill="#1e40af" font-size="7" font-weight="bold" font-family="sans-serif">POLICE HELO</text></svg>`},
+  {id:'lego_ninjago',name:'LEGO NINJAGO: Lloyd\'s Mech EVO',price:850,desc:'Build Lloyd\'s green ninja mech! Posable arms and legs.',realPrice:'~$30',url:'https://www.amazon.com/dp/B0BBZ11JVK',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#f0fdf4"/><rect x="32" y="32" width="36" height="40" fill="#22c55e" stroke="#14532d" stroke-width="2" rx="4"/><circle cx="42" cy="44" r="4" fill="#fef3c7" stroke="#14532d" stroke-width="1.5"/><circle cx="58" cy="44" r="4" fill="#fef3c7" stroke="#14532d" stroke-width="1.5"/><rect x="14" y="44" width="14" height="22" fill="#16a34a" stroke="#14532d" stroke-width="2" rx="4"/><rect x="72" y="44" width="14" height="22" fill="#16a34a" stroke="#14532d" stroke-width="2" rx="4"/><rect x="30" y="72" width="14" height="22" fill="#16a34a" stroke="#14532d" stroke-width="2" rx="3"/><rect x="56" y="72" width="14" height="22" fill="#16a34a" stroke="#14532d" stroke-width="2" rx="3"/><polygon points="50,16 44,30 56,30" fill="#fbbf24"/></svg>`},
+  // --- MORE HOT WHEELS ---
+  {id:'hw_20pack',name:'Hot Wheels 20-Car Pack',price:725,desc:'20 random die-cast cars! Builds your collection fast.',realPrice:'~$25',url:'https://www.amazon.com/dp/B01BMW645O',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#fef3c7"/><g><rect x="8" y="14" width="20" height="10" rx="3" fill="#ef4444"/><circle cx="12" cy="25" r="2.5" fill="#1e293b"/><circle cx="24" cy="25" r="2.5" fill="#1e293b"/></g><g><rect x="34" y="14" width="20" height="10" rx="3" fill="#3b82f6"/><circle cx="38" cy="25" r="2.5" fill="#1e293b"/><circle cx="50" cy="25" r="2.5" fill="#1e293b"/></g><g><rect x="60" y="14" width="20" height="10" rx="3" fill="#22c55e"/><circle cx="64" cy="25" r="2.5" fill="#1e293b"/><circle cx="76" cy="25" r="2.5" fill="#1e293b"/></g><g><rect x="8" y="38" width="20" height="10" rx="3" fill="#fbbf24"/><circle cx="12" cy="49" r="2.5" fill="#1e293b"/><circle cx="24" cy="49" r="2.5" fill="#1e293b"/></g><g><rect x="34" y="38" width="20" height="10" rx="3" fill="#a855f7"/><circle cx="38" cy="49" r="2.5" fill="#1e293b"/><circle cx="50" cy="49" r="2.5" fill="#1e293b"/></g><g><rect x="60" y="38" width="20" height="10" rx="3" fill="#f97316"/><circle cx="64" cy="49" r="2.5" fill="#1e293b"/><circle cx="76" cy="49" r="2.5" fill="#1e293b"/></g><g><rect x="8" y="62" width="20" height="10" rx="3" fill="#ec4899"/><circle cx="12" cy="73" r="2.5" fill="#1e293b"/><circle cx="24" cy="73" r="2.5" fill="#1e293b"/></g><g><rect x="34" y="62" width="20" height="10" rx="3" fill="#06b6d4"/><circle cx="38" cy="73" r="2.5" fill="#1e293b"/><circle cx="50" cy="73" r="2.5" fill="#1e293b"/></g><g><rect x="60" y="62" width="20" height="10" rx="3" fill="#84cc16"/><circle cx="64" cy="73" r="2.5" fill="#1e293b"/><circle cx="76" cy="73" r="2.5" fill="#1e293b"/></g><text x="50" y="92" text-anchor="middle" fill="#92400e" font-size="7" font-weight="bold" font-family="sans-serif">20-CAR PACK</text></svg>`},
+  {id:'hw_skate',name:'Hot Wheels Skate Fingerboard 4-Pack',price:550,desc:'Real working fingerboards by Tony Hawk! Do tricks with your fingers!',realPrice:'~$18',url:'https://www.amazon.com/dp/B0B9Q9CD64',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#fef9c3"/><ellipse cx="30" cy="50" rx="14" ry="4" fill="#1e293b"/><circle cx="22" cy="52" r="3" fill="#71717a"/><circle cx="38" cy="52" r="3" fill="#71717a"/><ellipse cx="65" cy="50" rx="14" ry="4" fill="#ef4444"/><circle cx="57" cy="52" r="3" fill="#71717a"/><circle cx="73" cy="52" r="3" fill="#71717a"/><ellipse cx="30" cy="78" rx="14" ry="4" fill="#a855f7"/><circle cx="22" cy="80" r="3" fill="#71717a"/><circle cx="38" cy="80" r="3" fill="#71717a"/><ellipse cx="65" cy="78" rx="14" ry="4" fill="#22c55e"/><circle cx="57" cy="80" r="3" fill="#71717a"/><circle cx="73" cy="80" r="3" fill="#71717a"/><text x="50" y="24" text-anchor="middle" fill="#92400e" font-size="8" font-weight="bold" font-family="sans-serif">SKATE 4-PACK</text></svg>`},
+  {id:'hw_colorshifters',name:'Hot Wheels Color Shifters Car Wash',price:850,desc:'Cars that CHANGE COLOR in water! With car wash playset.',realPrice:'~$30',url:'https://www.amazon.com/dp/B09QLGY9XB',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#cffafe"/><rect x="14" y="38" width="72" height="32" rx="4" fill="#06b6d4" stroke="#155e75" stroke-width="2"/><rect x="18" y="42" width="64" height="24" fill="#a5f3fc"/><line x1="22" y1="42" x2="22" y2="66" stroke="#06b6d4" stroke-width="3"/><line x1="34" y1="42" x2="34" y2="66" stroke="#3b82f6" stroke-width="3"/><line x1="46" y1="42" x2="46" y2="66" stroke="#a855f7" stroke-width="3"/><line x1="58" y1="42" x2="58" y2="66" stroke="#ec4899" stroke-width="3"/><line x1="70" y1="42" x2="70" y2="66" stroke="#22c55e" stroke-width="3"/><rect x="38" y="70" width="24" height="10" rx="2" fill="#ef4444"/><circle cx="44" cy="82" r="2.5" fill="#1e293b"/><circle cx="56" cy="82" r="2.5" fill="#1e293b"/><text x="50" y="28" text-anchor="middle" fill="#155e75" font-size="7" font-weight="bold" font-family="sans-serif">COLOR SHIFTERS</text></svg>`},
+  {id:'hw_garage_big',name:'Hot Wheels Super Ultimate Garage',price:1500,desc:'Holds 140 cars! 3 feet tall with spiral ramp and shark zone!',realPrice:'~$120',url:'https://www.amazon.com/dp/B01N7XH9UU',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#fef3c7"/><rect x="14" y="10" width="72" height="80" rx="4" fill="#78716c" stroke="#1e293b" stroke-width="2"/><rect x="18" y="14" width="64" height="12" fill="#fbbf24"/><text x="50" y="22" text-anchor="middle" fill="#1e293b" font-size="6" font-weight="bold" font-family="sans-serif">SUPER GARAGE</text><rect x="18" y="30" width="64" height="14" fill="#fde047"/><line x1="22" y1="33" x2="78" y2="33" stroke="#1e293b" stroke-width=".5"/><line x1="22" y1="40" x2="78" y2="40" stroke="#1e293b" stroke-width=".5"/><rect x="18" y="48" width="64" height="14" fill="#fbbf24"/><rect x="18" y="66" width="64" height="20" fill="#1e293b"/><circle cx="30" cy="76" r="3.5" fill="#ef4444"/><circle cx="50" cy="76" r="3.5" fill="#3b82f6"/><circle cx="70" cy="76" r="3.5" fill="#22c55e"/><polygon points="14,40 8,50 14,60" fill="#ef4444"/></svg>`},
+  // --- BONUS: A few more themed items ---
+  {id:'lego_mc_creeper',name:'LEGO Minecraft Creeper BigFig',price:625,desc:'Build a giant Creeper! Posable, with ocelot minifig.',realPrice:'~$22',url:'https://www.amazon.com/s?k=lego+minecraft+creeper+bigfig',img:null,svg:`<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#f0fdf4"/><rect x="36" y="14" width="28" height="28" fill="#22c55e" stroke="#14532d" stroke-width="2"/><rect x="42" y="22" width="6" height="8" fill="#1e293b"/><rect x="52" y="22" width="6" height="8" fill="#1e293b"/><polygon points="42,32 46,38 50,32" fill="#1e293b"/><polygon points="50,32 54,38 58,32" fill="#1e293b"/><rect x="30" y="42" width="40" height="32" fill="#16a34a" stroke="#14532d" stroke-width="2"/><rect x="22" y="74" width="18" height="20" fill="#15803d" stroke="#14532d" stroke-width="2"/><rect x="60" y="74" width="18" height="20" fill="#15803d" stroke="#14532d" stroke-width="2"/></svg>`},
 ];
 
 // ========================================================
@@ -1551,6 +1592,13 @@ const STORYBOOKS = {
     {pages:['A Creeper and a zombie opened up a taco food truck.','They put up a big sign that said "scary good tacos!"','All the kids in town lined up around the block.','The zombie served the tacos and the Creeper took the money.','One kid asked "why do your tacos taste so weird?"','The zombie just smiled and said "it is a family recipe!"'],q:'What did they sell?',choices:['Pizza','Tacos','Burgers','Ice cream'],answer:1,emoji:'🌮'},
     {pages:['Rio built a rocket out of a big cardboard box.','He drew stars and planets all over the sides with markers.','His dog Bubble climbed right in and put on a space helmet.','Rio counted "3, 2, 1, BLAST OFF!" and pushed the box.','They zoomed all the way across the living room floor.','Mom said "welcome back astronauts, it is time for lunch!"'],q:'What did Rio build?',choices:['A boat','A rocket','A house','A car'],answer:1,emoji:'🚀'},
     {pages:['Mario jumped on a Goomba and a little "bonk!" sound popped out.','Then Luigi tripped on a banana and fell right on his face!','Bowser was laughing so hard that he snorted out fire!','The fire made all the Koopas hop up and down like popcorn.','Princess Peach rolled her eyes and fixed her crown.','She said "boys, will you please just eat your cake?"'],q:'Who tripped on a banana?',choices:['Mario','Luigi','Bowser','Peach'],answer:1,emoji:'🍌'},
+    // ===== HARDER 1st-grade stories (longer, more compound words) =====
+    {pages:['Rio woke up early because today was the big school field trip.','He packed his backpack with a sandwich, an apple, and his lucky pencil.','When the bus pulled up at the museum, he could not believe his eyes.','A giant T-Rex skeleton stood right inside the front lobby!','Rio counted thirty-two teeth and each one was bigger than his hand.','He decided right then that he wanted to be a paleontologist when he grew up.'],q:'Where did the field trip go?',choices:['The zoo','The museum','A farm','The library'],answer:1,emoji:'🦴'},
+    {pages:['One stormy afternoon, Rio and his sister Rosa were stuck inside the house.','They built the biggest blanket fort in living-room history under the kitchen table.','Lightning flashed across the sky and made the windows light up bright white.','Rosa was scared so Rio told her a story about a brave little dragon who loved storms.','By the end of the story, Rosa was giggling and the rain was already stopping.','They both fell asleep right there in the fort, surrounded by pillows and snacks.'],q:'Why was Rosa scared?',choices:['It was dark','The lightning','A spider','She was hungry'],answer:1,emoji:'⛈️'},
+    {pages:['Sparky and Drakle were having a friendly race down the long winding hill.','Sparky shot out in front with a trail of bright blue sparks behind him.','But Drakle flapped his wings hard and started flying instead of running.','He soared right over Sparky and landed gently at the bottom of the hill.','Sparky panted up to the finish line, laughing about his clever friend.','They both agreed that flying was definitely cheating, but it was also pretty awesome.'],q:'How did Drakle win?',choices:['He ran faster','He flew over Sparky','He took a shortcut','He started early'],answer:1,emoji:'🏁'},
+    {pages:['Río\'s grandma sent him a mystery package wrapped in shiny gold paper.','Inside was an old leather book that smelled like a library and a dusty attic.','When he opened it, tiny sparkles puffed out and landed all over the floor.','Each page had pictures of strange creatures Rio had never seen before.','At the very bottom of the last page, there was a key taped to the spine.','Grandma\'s note said: "Find the door that fits this key. The adventure starts there."'],q:'What did the package have inside?',choices:['Cookies','A book and a key','A toy car','A new phone'],answer:1,emoji:'📜'},
+    {pages:['Río\'s class was learning about ocean animals and each kid had to pick a favorite.','Most kids picked dolphins or sharks, but Rio picked the giant Pacific octopus.','He learned that an octopus has THREE hearts and BLUE blood and NINE brains.','He drew one on the chalkboard with all eight tentacles wiggling in different ways.','His teacher laughed and said it was the best octopus drawing she had ever seen.','Rio glowed with pride and decided octopuses were his new favorite animal forever.'],q:'How many hearts does an octopus have?',choices:['One','Two','Three','Nine'],answer:2,emoji:'🐙'},
+    {pages:['It was the night before Rio\'s big birthday party and he could not fall asleep.','He kept imagining the giant chocolate cake with seven candles on top.','He pictured all his friends crowded into the backyard laughing and running around.','Suddenly his window rattled and a tiny voice whispered "psst, Rio, look outside!"','It was Sparky, his Wordmon friend, holding a wrapped present with his electric tail.','"I could not wait until tomorrow," Sparky said. "Open it now, just you and me."'],q:'Who came to Rio\'s window?',choices:['Mom','Sparky','A bird','Drakle'],answer:1,emoji:'🎁'},
   ],
 };
 
@@ -2224,13 +2272,13 @@ const G = {
     document.getElementById('bpBadge').textContent=this.coins;
   },
 
-  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story',writing:'mode_story',speakback:'mode_hear'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next',writing:'✍️ Be a Writer',speakback:'🎤 Speak It'},
+  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story',writing:'mode_story',speakback:'mode_hear',math:'mode_decode',art:'mode_story'},
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next',writing:'✍️ Be a Writer',speakback:'🎤 Speak It',math:'🧮 Math Quest',art:'🎨 Art Studio'},
   // === HARD READING MODES (active) — Río only sees these ===
   // scramble/tricky moved to LEGACY because they're easier and let Río
   // get points without doing real reading. Only the harder modes that
   // force real comprehension are in rotation.
-  GAME_MODES:['storybook','comicchat','readfind','finisher','writing','speakback'],
+  GAME_MODES:['storybook','comicchat','readfind','finisher','writing','speakback','math','art'],
   // === LEGACY MODES (hidden but preserved — restore by moving back into GAME_MODES) ===
   LEGACY_MODES:['fill','spell','hear','flash','decode','story','readalong','sentence','scramble','tricky'],
   // Reading level progresses with totalCorrect: harder text as Río improves
@@ -2976,6 +3024,8 @@ const G = {
       case'finisher':this.loadStoryFinisher();break;
       case'writing':this.loadWriting();break;
       case'speakback':this.loadSpeakBack();break;
+      case'math':this.loadMath();break;
+      case'art':this.loadArt();break;
       case'tricky':this.loadTricky();break; // kept active — helps with b/d n/u
       // === LEGACY (hidden but still callable if forced) ===
       case'fill':this.loadFillIn();break;
@@ -5469,6 +5519,235 @@ const G = {
     }
   },
 
+  // =========================================================
+  // 🧮 MATH QUEST — 1st-grade math with rotating question types
+  // =========================================================
+  loadMath(){
+    const area=document.getElementById('gameArea');
+    // Pick a question type at random from a 1st-grade-appropriate mix
+    const types=['add','sub','count','compare','wordprob','skip','bond','time','money'];
+    const type=types[Math.floor(Math.random()*types.length)];
+    const q=this._makeMathQ(type);
+    this._pendingWord={w:'math_'+type+'_'+q.answer};
+    const choicesShuffled=shuffle([q.answer,...q.distractors]);
+    const isStringAns=isNaN(parseFloat(q.answer));
+    area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:6px">🧮 Math Quest!</div>'+
+      '<div style="text-align:center;font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:14px">'+(q.hint||'Pick the right answer!')+'</div>'+
+      '<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:3px solid #fbbf24;border-radius:18px;padding:22px 14px;text-align:center;margin-bottom:14px">'+
+        (q.emoji?'<div style="font-size:3rem;margin-bottom:6px">'+q.emoji+'</div>':'')+
+        (q.visual?'<div style="font-size:1.6rem;letter-spacing:8px;margin:6px 0;line-height:1.4">'+q.visual+'</div>':'')+
+        '<div style="font-family:Fredoka One,cursive;font-size:'+(q.question.length>40?'1.2rem':'1.6rem')+';color:var(--text);line-height:1.3">'+q.question+'</div>'+
+      '</div>'+
+      '<div class="big-choices" style="display:grid;grid-template-columns:'+(isStringAns?'1fr':'1fr 1fr')+';gap:10px">'+
+        choicesShuffled.map(c=>'<button class="big-btn math-btn" data-val="'+String(c).replace(/"/g,'&quot;')+'" style="font-family:Fredoka One,cursive;font-size:'+(isStringAns?'1.05rem':'1.6rem')+';padding:18px;border-radius:16px;border:3px solid #e2e8f0;background:#fff;cursor:pointer;color:var(--text);transition:all .15s">'+c+'</button>').join('')+
+      '</div>'+
+      '<div id="jokeArea"></div></div>';
+    area.querySelectorAll('.math-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        area.querySelectorAll('.math-btn').forEach(b=>b.style.pointerEvents='none');
+        if(String(btn.dataset.val)===String(q.answer)){
+          btn.style.background='#dcfce7';btn.style.borderColor='var(--green)';
+          this.onCorrect({w:'math',joke:q.celebrate||'Numbers ROCK! 🧮'});
+        } else {
+          btn.style.background='#fef2f2';btn.style.borderColor='var(--red)';
+          area.querySelectorAll('.math-btn').forEach(b=>{if(String(b.dataset.val)===String(q.answer)){b.style.background='#dcfce7';b.style.borderColor='var(--green)';}});
+          card.classList.add('wrong-shake');
+          this._speak('The answer is '+q.answer,0.7);
+          this.onWrong({w:'math',joke:q.tip||'Almost! Math is just practice. 💪'});
+        }
+      });
+    });
+  },
+  _makeMathQ(type){
+    const r=(n)=>Math.floor(Math.random()*n);
+    const pickDistract=(answer,range,count=3)=>{
+      const set=new Set();
+      while(set.size<count){const v=r(range);if(v!==answer && v>=0) set.add(v);}
+      return [...set];
+    };
+    if(type==='add'){
+      // Within 20
+      const a=2+r(10), b=2+r(Math.min(10,20-a));
+      const ans=a+b;
+      return {question:a+' + '+b+' = ?',answer:ans,distractors:pickDistract(ans,20),emoji:'➕',hint:'What is the sum?'};
+    }
+    if(type==='sub'){
+      const a=10+r(11), b=2+r(a-1);
+      const ans=a-b;
+      return {question:a+' − '+b+' = ?',answer:ans,distractors:pickDistract(ans,20),emoji:'➖',hint:'What is left?'};
+    }
+    if(type==='count'){
+      const n=4+r(13);
+      const emojis=['🍎','⭐','🐶','🍌','⚡','🔥','🐱','🦋','🌟','🎈','🧊','🐸'];
+      const e=emojis[r(emojis.length)];
+      return {question:'How many '+e+'?',answer:n,distractors:pickDistract(n,20),visual:e.repeat(n),hint:'Count them all!'};
+    }
+    if(type==='compare'){
+      let a=r(20),b=r(20);
+      while(a===b){b=r(20);}
+      const bigger=a>b?a:b;
+      return {question:'Which is BIGGER?',answer:bigger,distractors:[a===bigger?b:a],hint:'Pick the larger number!',emoji:'⚖️'};
+    }
+    if(type==='wordprob'){
+      const a=2+r(6),b=1+r(5);
+      const stories=[
+        {q:'Rio has '+a+' Pokémon cards. His friend gives him '+b+' more. How many now?',ans:a+b,emoji:'🎴'},
+        {q:'Sparky ate '+a+' berries. Drakle ate '+b+'. How many altogether?',ans:a+b,emoji:'🫐'},
+        {q:'Mom baked '+(a+b)+' cookies. Rio ate '+b+'. How many left?',ans:a,emoji:'🍪'},
+        {q:'Rio had '+(a+b)+' Hot Wheels. He gave '+b+' to his friend. How many now?',ans:a,emoji:'🏎️'},
+        {q:'A creeper has '+a+' legs. A spider has '+(a+4)+'. How many MORE legs does the spider have?',ans:4,emoji:'🕷️'},
+      ];
+      const pick=stories[r(stories.length)];
+      return {question:pick.q,answer:pick.ans,distractors:pickDistract(pick.ans,20),emoji:pick.emoji,hint:'Read it carefully!'};
+    }
+    if(type==='skip'){
+      const start=2+r(5)*2;
+      // skip-count by 2s: start, start+2, start+4, ?, start+8
+      return {question:start+', '+(start+2)+', '+(start+4)+', ?, '+(start+8),answer:start+6,distractors:pickDistract(start+6,20),emoji:'🔢',hint:'Count by 2s. What is missing?'};
+    }
+    if(type==='bond'){
+      const target=10;
+      const a=2+r(8);
+      const ans=target-a;
+      return {question:a+' + ? = '+target,answer:ans,distractors:pickDistract(ans,12),emoji:'🤝',hint:'What plus '+a+' makes '+target+'?'};
+    }
+    if(type==='time'){
+      const hour=1+r(12);
+      const hourEmojis=['🕐','🕑','🕒','🕓','🕔','🕕','🕖','🕗','🕘','🕙','🕚','🕛'];
+      return {question:'What time is it?',answer:hour+":00",distractors:[(hour===12?1:hour+1)+":00",(hour===1?12:hour-1)+":00",(hour+3>12?hour-9:hour+3)+":00"],emoji:hourEmojis[hour-1],hint:'Look at the clock!'};
+    }
+    if(type==='money'){
+      // count coins, each = 5¢
+      const n=2+r(5);
+      return {question:'How much money?',answer:(n*5)+'¢',distractors:[((n-1)*5)+'¢',((n+1)*5)+'¢',(n*10)+'¢'],visual:'🪙'.repeat(n),hint:'Each coin is 5 cents.',emoji:'💰'};
+    }
+    return {question:'1 + 1 = ?',answer:2,distractors:[1,3,4]};
+  },
+
+  // =========================================================
+  // 🎨 ART STUDIO — Río draws on canvas, sends to parent by email
+  // =========================================================
+  loadArt(){
+    const area=document.getElementById('gameArea');
+    const PROMPTS=[
+      {emoji:'🐉',text:'Draw your favorite Wordmon!'},
+      {emoji:'🏰',text:'Draw a castle with a dragon flying over it.'},
+      {emoji:'🚀',text:'Draw a rocket going to Mars.'},
+      {emoji:'🦖',text:'Draw a T-Rex eating a pizza.'},
+      {emoji:'⚡',text:'Draw Sparky shooting lightning.'},
+      {emoji:'🏎️',text:'Draw your dream Hot Wheels car.'},
+      {emoji:'🧟',text:'Draw a friendly zombie.'},
+      {emoji:'🌈',text:'Draw a rainbow over a Minecraft house.'},
+      {emoji:'🤖',text:'Draw a giant robot.'},
+      {emoji:'🐙',text:'Draw an octopus in space.'},
+    ];
+    const p=PROMPTS[Math.floor(Math.random()*PROMPTS.length)];
+    this._pendingWord={w:'art_'+p.text.slice(0,10)};
+    const COLORS=['#000000','#ef4444','#f97316','#fbbf24','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#92400e','#ffffff'];
+    area.innerHTML='<div class="card" id="qCard" style="padding:16px">'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1.05rem;color:var(--accent);margin-bottom:4px">🎨 Art Studio</div>'+
+      '<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:3px solid #fbbf24;border-radius:14px;padding:10px;text-align:center;margin-bottom:12px">'+
+        '<div style="font-size:2.4rem;line-height:1">'+p.emoji+'</div>'+
+        '<div style="font-family:Fredoka One,cursive;font-size:1rem;color:#92400e;line-height:1.3">'+p.text+'</div>'+
+      '</div>'+
+      '<canvas id="artCanvas" width="640" height="640" style="width:100%;aspect-ratio:1/1;background:#fff;border:3px solid var(--accent);border-radius:14px;touch-action:none;cursor:crosshair;display:block"></canvas>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:10px 0">'+
+        COLORS.map((c,i)=>'<button class="art-color" data-c="'+c+'" style="width:30px;height:30px;border-radius:50%;border:2px solid '+(i===0?'var(--accent)':'#cbd5e1')+';background:'+c+';cursor:pointer;padding:0"></button>').join('')+
+      '</div>'+
+      '<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">'+
+        '<button id="artBrushS" class="art-brush" style="font-family:Fredoka One,cursive;font-size:.8rem;padding:6px 14px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;cursor:pointer">·</button>'+
+        '<button id="artBrushM" class="art-brush" style="font-family:Fredoka One,cursive;font-size:1rem;padding:6px 14px;border-radius:10px;border:2px solid var(--accent);background:#fff;cursor:pointer">●</button>'+
+        '<button id="artBrushL" class="art-brush" style="font-family:Fredoka One,cursive;font-size:1.3rem;padding:6px 14px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;cursor:pointer">⬤</button>'+
+        '<button id="artEraser" class="art-brush" style="font-family:Fredoka One,cursive;font-size:.85rem;padding:6px 12px;border-radius:10px;border:2px solid #cbd5e1;background:#fff;cursor:pointer">🧽</button>'+
+        '<button id="artClear" style="font-family:Fredoka One,cursive;font-size:.85rem;padding:6px 12px;border-radius:10px;border:2px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer">🗑 Clear</button>'+
+      '</div>'+
+      '<button id="artSend" style="width:100%;font-family:Fredoka One,cursive;font-size:1.1rem;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;cursor:pointer;box-shadow:0 6px 16px rgba(124,58,237,.4)">📨 Send to Mom &amp; Dad</button>'+
+      '<div id="artStatus" style="text-align:center;margin-top:8px;font-size:.85rem;color:var(--text2);font-weight:700;min-height:20px"></div>'+
+      '</div>';
+    const cv=document.getElementById('artCanvas');
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+    let drawing=false,lastX=0,lastY=0;
+    let color='#000000',size=10,erasing=false;
+    const setActiveColor=(c)=>{color=c;erasing=false;
+      document.querySelectorAll('.art-color').forEach(b=>{b.style.borderColor=b.dataset.c===c?'var(--accent)':'#cbd5e1';b.style.transform=b.dataset.c===c?'scale(1.15)':'';});
+    };
+    document.querySelectorAll('.art-color').forEach(b=>b.addEventListener('click',()=>setActiveColor(b.dataset.c)));
+    const setActiveBrush=(s,id)=>{size=s;erasing=false;
+      ['artBrushS','artBrushM','artBrushL','artEraser'].forEach(x=>document.getElementById(x).style.borderColor=x===id?'var(--accent)':'#cbd5e1');
+    };
+    document.getElementById('artBrushS').addEventListener('click',()=>setActiveBrush(4,'artBrushS'));
+    document.getElementById('artBrushM').addEventListener('click',()=>setActiveBrush(10,'artBrushM'));
+    document.getElementById('artBrushL').addEventListener('click',()=>setActiveBrush(22,'artBrushL'));
+    document.getElementById('artEraser').addEventListener('click',()=>{erasing=true;size=30;
+      ['artBrushS','artBrushM','artBrushL','artEraser'].forEach(x=>document.getElementById(x).style.borderColor=x==='artEraser'?'var(--accent)':'#cbd5e1');
+    });
+    document.getElementById('artClear').addEventListener('click',()=>{if(confirm('Clear the drawing?')){ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);}});
+    const pos=(e)=>{
+      const r=cv.getBoundingClientRect();
+      const t=e.touches?e.touches[0]:e;
+      return [(t.clientX-r.left)*(cv.width/r.width),(t.clientY-r.top)*(cv.height/r.height)];
+    };
+    const start=(e)=>{e.preventDefault();drawing=true;[lastX,lastY]=pos(e);};
+    const move=(e)=>{
+      if(!drawing) return;e.preventDefault();
+      const [x,y]=pos(e);
+      ctx.strokeStyle=erasing?'#fff':color;
+      ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();
+      [lastX,lastY]=[x,y];
+    };
+    const end=()=>{drawing=false;};
+    cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',move);cv.addEventListener('mouseup',end);cv.addEventListener('mouseleave',end);
+    cv.addEventListener('touchstart',start);cv.addEventListener('touchmove',move);cv.addEventListener('touchend',end);
+    document.getElementById('artSend').addEventListener('click',async()=>{
+      const send=document.getElementById('artSend');
+      const status=document.getElementById('artStatus');
+      send.disabled=true;send.textContent='Sending... ⏳';
+      const dataUrl=cv.toDataURL('image/png');
+      // Always save to localStorage so parents can view in dashboard
+      this.saveDrawing(p.text,dataUrl);
+      try{
+        const r=await fetch('/api/email-drawing',{
+          method:'POST',headers:{'content-type':'application/json'},
+          body:JSON.stringify({prompt:p.text,imageDataUrl:dataUrl,artist:'Río'})
+        });
+        if(r.ok){
+          status.style.color='var(--green)';
+          status.textContent='✅ Sent to Mom & Dad!';
+        } else {
+          status.style.color='var(--accent)';
+          status.textContent='💾 Saved! Mom & Dad will see it in the parent dashboard.';
+        }
+      } catch(e){
+        status.style.color='var(--accent)';
+        status.textContent='💾 Saved! Mom & Dad will see it in the parent dashboard.';
+      }
+      // Reward
+      SFX.play('correct');
+      this.score+=10;this.totalCorrect++;this.modeWins++;
+      this.addXP(20);this.addCoins(3);
+      this.updateHUD();this.saveGame();
+      this.fireConfetti();
+      setTimeout(()=>{
+        send.disabled=false;send.textContent='📨 Send to Mom & Dad';
+        this.autoNext(this.modeWins>=6?4000:3500,this.modeWins>=6);
+      },3500);
+    });
+  },
+  saveDrawing(prompt,dataUrl){
+    try{
+      const log=JSON.parse(localStorage.getItem('rio_drawing_log')||'[]');
+      log.unshift({date:new Date().toISOString(),prompt,dataUrl});
+      // Cap at 30 to avoid blowing past localStorage limits
+      localStorage.setItem('rio_drawing_log',JSON.stringify(log.slice(0,30)));
+    }catch(e){console.warn('save drawing failed',e);}
+  },
+
   // ---- READ ALONG (TTS reads sentence but pauses for target word) ----
   // ---- SENTENCE BUILDER — tap words in correct order ----
   loadSentenceBuilder(){
@@ -6952,6 +7231,18 @@ function openParentDashboard(){
           return '<div style="background:#fff7ed;border-left:4px solid var(--accent);border-radius:8px;padding:10px;margin-bottom:6px;font-size:.85rem;line-height:1.4"><div style="font-size:.65rem;color:var(--text2);font-weight:700;margin-bottom:4px">'+d+'</div><div style="color:var(--accent);font-weight:700;font-size:.75rem">Prompt: '+e.prompt.replace(/</g,'&lt;')+'</div><div style="color:var(--text);margin-top:4px;white-space:pre-wrap">'+e.text.replace(/</g,'&lt;')+'</div></div>';
         }).join('')+
       '</div>';
+    })()+
+    // RIO'S DRAWING GALLERY
+    (function(){
+      let log=[];try{log=JSON.parse(localStorage.getItem('rio_drawing_log')||'[]');}catch(e){}
+      if(log.length===0) return '';
+      return '<div style="margin-top:14px;border-top:2px dashed #e2e8f0;padding-top:12px"><div style="font-family:Fredoka One,cursive;font-size:.9rem;color:var(--text);margin-bottom:8px;text-align:center">🎨 Río\'s Drawings ('+log.length+' artworks)</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+        log.slice(0,8).map(e=>{
+          const d=new Date(e.date).toLocaleDateString();
+          return '<div style="background:#fff;border:2px solid var(--accent-pale,#ede9fe);border-radius:10px;padding:6px;font-size:.7rem"><img src="'+e.dataUrl+'" style="width:100%;aspect-ratio:1/1;object-fit:contain;background:#fff;border-radius:6px;display:block"><div style="color:var(--accent);font-weight:700;font-size:.65rem;margin-top:4px;line-height:1.2">'+e.prompt.replace(/</g,'&lt;')+'</div><div style="color:var(--text2);font-size:.6rem;margin-top:2px">'+d+'</div></div>';
+        }).join('')+
+        '</div></div>';
     })()+
     // READING TIME LOG
     (function(){
