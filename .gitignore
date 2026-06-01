@@ -6,3 +6,7 @@ scripts/out/
 # Boxhead: only ship processed assets to the web; keep raw renders local
 boxhead_assets/*.png
 !boxhead_assets/processed/
+
+# Local backups (too large for git — 300MB+). The git tag v1.0-initial-release
+# is the canonical version checkpoint.
+backups/
