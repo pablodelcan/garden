@@ -4,31 +4,47 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Río Reads</title>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Recoleta&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  /* ===== NEW PALETTE: "Arcade Purple" (refreshed April 2026) ===== */
-  --bg:#f8f5ff;
-  --accent:#9333ea;      /* primary violet */
-  --accent2:#a855f7;     /* lighter violet for gradients */
-  --accent-dark:#7c3aed; /* deeper violet (replaces old #7c3aed) */
-  --accent-light:#c084fc;/* softer violet (replaces old #a855f7) */
-  --hot:#ec4899;         /* hot pink highlights */
-  --aqua:#06b6d4;        /* cyan for variety */
+  /* ===== PALETTE: "Twilight Mauve" (refreshed May 2026) =====
+     Deep violet primary, butter yellow accent for highlights, warm cream-
+     mauve background, plum text. More refined / bookish than the prior
+     Arcade Purple. Existing layout + components untouched. */
+  --bg:#f8f4f5;             /* warm cream-mauve */
+  --accent:#5b21b6;          /* deeper violet primary */
+  --accent2:#7c3aed;         /* lighter violet for gradients */
+  --accent-dark:#3b1b5a;     /* deep violet (for headers + shadows) */
+  --accent-light:#a78bfa;    /* soft violet */
+  --accent-pale:#ede9fe;     /* pale violet for backgrounds */
+  --hot:#ec4899;             /* pink kept for streak only */
+  --aqua:#06b6d4;            /* cyan kept for water Wordmons */
+  --gold-yellow:#fde047;     /* butter yellow highlight */
+  --gold:#d4a548;            /* warm gold accent (eyebrow / trim) */
+  --gold-pale:#fef3c7;
   --green:#10b981;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;
-  --text:#0f172a;--text2:#64748b;--card:#fff;--shadow:0 4px 20px rgba(147,51,234,.12);
-  --coin:#fbbf24;--navy:#1a1033;--gold:#fbbf24;
-  --glow:0 0 20px rgba(147,51,234,.15);
+  --text:#2a1f3d;            /* deep plum, replaces near-black */
+  --text2:#6b5b8a;           /* dusty plum, replaces gray */
+  --card:#ffffff;
+  --shadow:0 4px 20px rgba(91,33,182,.14);
+  --coin:#fbbf24;--navy:#1a1033;
+  --glow:0 0 20px rgba(91,33,182,.18);
 }
 html{font-size:16px}
-body{font-family:'Nunito',sans-serif;background:#e2e0dc;color:var(--text);min-height:100vh;overflow-x:hidden}
-.game-shell{max-width:600px;margin:0 auto;background:linear-gradient(180deg,var(--bg) 0%,#f0ebe3 100%);min-height:100vh;position:relative;overflow-x:hidden}
+/* Body uses Plus Jakarta Sans (cleaner, more refined than Nunito) */
+body{font-family:'Plus Jakarta Sans','Nunito',sans-serif;background:#dcd5e1;color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.game-shell{max-width:600px;margin:0 auto;background:linear-gradient(180deg,var(--bg) 0%,#ede5e8 100%);min-height:100vh;position:relative;overflow-x:hidden}
 @media(min-width:601px){.game-shell{box-shadow:0 0 60px rgba(0,0,0,.15);border-left:1px solid #d6d3d1;border-right:1px solid #d6d3d1}}
-h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
+/* Display headings get Recoleta (warm bookish serif). Fredoka One stays
+   on small playful labels for visual continuity with existing screenshots. */
+h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;letter-spacing:-.01em}
+.fredoka{font-family:'Fredoka One',cursive}
 
-/* HEADER */
-.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:4px 10px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+/* HEADER — deep violet gradient instead of dark navy. Same height/shape. */
+.header{background:linear-gradient(135deg,#3b1b5a 0%,#5b21b6 50%,#7c3aed 100%);padding:4px 10px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(91,33,182,.4)}
 .header::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
 .header-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0}
 .header-logo{height:52px;width:auto;max-width:50%;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.5));object-fit:contain;object-position:left}
