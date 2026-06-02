@@ -6,7 +6,7 @@
 <title>Río Reads</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Recoleta&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Press+Start+2P&family=Recoleta&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -75,34 +75,65 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 /* Battle scene uses AI-generated PNG backgrounds via JS (changeBattleBg) */
 /* Subtle sparkle particle overlay for magical feel */
 .battle::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 15% 85%,rgba(255,255,255,.4) 1px,transparent 2px),radial-gradient(circle at 85% 75%,rgba(255,255,255,.3) 1px,transparent 2px),radial-gradient(circle at 60% 90%,rgba(255,255,255,.25) 1px,transparent 2px);pointer-events:none;z-index:1}
-.battle-ground{display:flex;justify-content:space-between;align-items:flex-end;min-height:180px;position:relative;padding:0 10px}
-.fighter{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:2}
-.sprite-box{transition:transform .5s ease}
-.sprite-box svg,.sprite-box img{width:110px;height:110px;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.25))}
+/* ===== BATTLE — bigger sprites, more drama (May 2026) ===== */
+.battle-ground{display:flex;justify-content:space-between;align-items:flex-end;min-height:200px;position:relative;padding:0 4px 6px}
+.fighter{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:2;flex:0 0 auto}
+.sprite-box{transition:transform .5s ease;position:relative}
+/* MUCH BIGGER sprites — was 110px, now 160px on mobile, 200px desktop */
+.sprite-box svg,.sprite-box img{width:160px;height:160px;image-rendering:pixelated;filter:drop-shadow(3px 6px 10px rgba(0,0,0,.35))}
+@media(min-width:500px){.sprite-box svg,.sprite-box img{width:200px;height:200px}}
+/* Shadow disc under each fighter */
+.sprite-box::before{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:80%;height:14px;background:radial-gradient(ellipse,rgba(0,0,0,.4) 0%,transparent 70%);z-index:-1;filter:blur(2px)}
 .fighter.player .sprite-box{animation:bouncePl 2s ease-in-out infinite}
 .fighter.enemy .sprite-box{animation:bounceEn 2s ease-in-out infinite .4s}
-@keyframes bouncePl{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
-@keyframes bounceEn{0%,100%{transform:translateY(0) rotate(1deg)}50%{transform:translateY(-10px) rotate(-1deg)}}
-.hp-bar-wrap{width:130px;text-align:center}
-.hp-name{font-family:'Fredoka One',cursive;font-size:.8rem;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,.7);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hp-bar{background:rgba(0,0,0,.3);border-radius:6px;height:10px;overflow:hidden;border:2px solid rgba(255,255,255,.3)}
-.hp-fill{height:100%;border-radius:4px;transition:width .4s ease}
-.hp-fill.green{background:repeating-linear-gradient(90deg,#22c55e 0px,#4ade80 8px,#16a34a 8px,#22c55e 10px)}
-.hp-fill.yellow{background:repeating-linear-gradient(90deg,#eab308 0px,#facc15 8px,#ca8a04 8px,#eab308 10px)}
-.hp-fill.red{background:repeating-linear-gradient(90deg,#ef4444 0px,#f87171 8px,#dc2626 8px,#ef4444 10px)}
-.hp-text{font-size:.6rem;font-weight:700;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.6)}
-.battle-msg{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:1.3rem;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.3);opacity:0;pointer-events:none;z-index:10;white-space:nowrap}
-.battle-msg.show{animation:msgPop .8s ease forwards}
-@keyframes msgPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}40%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
-.hit-flash{position:absolute;inset:0;background:rgba(255,255,255,.7);opacity:0;pointer-events:none;z-index:5;border-radius:20px}
-.hit-flash.show{animation:flash .3s ease}
-@keyframes flash{0%{opacity:.7}100%{opacity:0}}
-@keyframes attackRight{0%{transform:translateX(0)}30%{transform:translateX(50px)}60%{transform:translateX(50px) scale(1.1)}100%{transform:translateX(0)}}
-@keyframes attackLeft{0%{transform:translateX(0)}30%{transform:translateX(-50px)}60%{transform:translateX(-50px) scale(1.1)}100%{transform:translateX(0)}}
-@keyframes hurt{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}100%{transform:translateX(0)}}
-.shake .sprite-box{animation:hurt .4s ease!important}
-.atk-right .sprite-box{animation:attackRight .5s ease!important}
-.atk-left .sprite-box{animation:attackLeft .5s ease!important}
+@keyframes bouncePl{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+@keyframes bounceEn{0%,100%{transform:translateY(0) rotate(1deg)}50%{transform:translateY(-12px) rotate(-1deg)}}
+/* HP bar styled like authentic Pokemon Ruby/Emerald GBA HUD */
+.hp-bar-wrap{width:152px;background:#f8f0d8;padding:5px 8px 6px;border:3px solid #1a1a2e;border-radius:0;box-shadow:0 0 0 2px #f8f0d8,3px 3px 0 #1a1a2e,inset -2px -2px 0 rgba(0,0,0,.08),inset 1px 1px 0 rgba(255,255,255,.6);position:relative;image-rendering:pixelated}
+.hp-bar-wrap::before{content:'';position:absolute;top:-3px;left:-3px;right:-3px;bottom:-3px;border:1px solid #1a1a2e;pointer-events:none}
+.hp-name{font-family:'Press Start 2P','Fredoka One',cursive;font-size:.55rem;color:#1a1a2e;text-shadow:none;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.05em;font-weight:400;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.hp-name::after{content:'♂';font-size:.5rem;color:#1a1a2e;opacity:0;display:inline-block}
+.hp-label{font-family:'Press Start 2P','Courier New',monospace;font-size:.45rem;color:#1a1a2e;font-weight:400;margin-right:4px;letter-spacing:.05em;line-height:1}
+.hp-lv{font-family:'Press Start 2P','Courier New',monospace;font-size:.5rem;color:#1a1a2e;letter-spacing:.05em}
+.hp-bar-row{display:flex;align-items:center;gap:4px}
+.hp-bar{background:#1a1a2e;border:1px solid #1a1a2e;height:8px;overflow:hidden;flex:1;border-radius:0;box-shadow:inset 1px 1px 0 rgba(0,0,0,.6)}
+.hp-fill{height:100%;border-radius:0;transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(0,0,0,.25)}
+.hp-fill.green{background:#22c55e}
+.hp-fill.yellow{background:#eab308}
+.hp-fill.red{background:#ef4444;animation:hpDangerPulse 1s ease-in-out infinite}
+@keyframes hpDangerPulse{0%,100%{box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(0,0,0,.25),0 0 6px rgba(239,68,68,.7)}50%{box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(0,0,0,.25),0 0 14px rgba(239,68,68,1)}}
+.hp-text{font-size:.5rem;font-weight:400;color:#1a1a2e;text-shadow:none;letter-spacing:.04em;margin-top:3px;font-family:'Press Start 2P','Courier New',monospace;font-variant-numeric:tabular-nums;text-align:right}
+/* Battle message — pops more dramatically with a stroke */
+.battle-msg{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:1.7rem;color:#fff;text-shadow:3px 3px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,4px 4px 12px rgba(0,0,0,.6);opacity:0;pointer-events:none;z-index:10;white-space:nowrap;letter-spacing:.02em}
+.battle-msg.show{animation:msgPop 1s ease forwards}
+@keyframes msgPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-10deg)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.3) rotate(2deg)}25%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}80%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}100%{opacity:0;transform:translate(-50%,-90%) scale(1.05)}}
+/* Hit flash + screen shake */
+.hit-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.95) 0%,rgba(255,200,100,.6) 40%,transparent 80%);opacity:0;pointer-events:none;z-index:5;border-radius:20px;mix-blend-mode:screen}
+.hit-flash.show{animation:flash .45s ease}
+@keyframes flash{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+.battle.screen-shake{animation:screenShake .35s ease}
+@keyframes screenShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-3px,2px)}30%{transform:translate(4px,-2px) rotate(.5deg)}50%{transform:translate(-3px,-3px)}70%{transform:translate(2px,3px) rotate(-.3deg)}90%{transform:translate(-1px,1px)}}
+@keyframes gbcBlink{0%{opacity:1}50%{opacity:0}}
+@keyframes gbcBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes gbcPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.6),inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 4px rgba(255,255,255,.15),inset 0 0 12px rgba(255,255,255,.3)}}
+.gbc-npc{position:absolute;cursor:pointer;image-rendering:pixelated;transition:transform .15s;will-change:transform}
+.gbc-npc:active{transform:translate(-50%,-50%) scale(.92)!important}
+.gbc-npc img{image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4))}
+.gbc-npc-label{font-family:'Press Start 2P','Courier New',monospace;font-size:.45rem;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;text-align:center;margin-top:-2px;white-space:nowrap;letter-spacing:.5px}
+.gbc-hotspot{position:absolute;cursor:pointer;border-radius:6px;transition:all .2s;animation:gbcPulse 2.2s ease-in-out infinite}
+.gbc-hotspot:hover{background:rgba(255,255,255,.18)}
+.gbc-hotspot-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:2px 6px;font-family:'Press Start 2P','Courier New',monospace;font-size:.4rem;letter-spacing:.5px;border-radius:3px;white-space:nowrap;border:1px solid #fff}
+/* Attack animations — bigger lunge + scale punch */
+@keyframes attackRight{0%{transform:translateX(0)}25%{transform:translateX(-10px)}50%{transform:translateX(60px) scale(1.15) rotate(-3deg)}70%{transform:translateX(60px) scale(1.15)}100%{transform:translateX(0)}}
+@keyframes attackLeft{0%{transform:translateX(0)}25%{transform:translateX(10px)}50%{transform:translateX(-60px) scale(1.15) rotate(3deg)}70%{transform:translateX(-60px) scale(1.15)}100%{transform:translateX(0)}}
+@keyframes hurt{0%{transform:translateX(0) scale(1);filter:none}10%{transform:translateX(-10px);filter:brightness(2) saturate(.3)}25%{transform:translateX(10px);filter:brightness(2) saturate(.3)}40%{transform:translateX(-7px);filter:brightness(1.5)}55%{transform:translateX(7px);filter:brightness(1.2)}70%{transform:translateX(-4px);filter:none}85%{transform:translateX(4px)}100%{transform:translateX(0) scale(1);filter:none}}
+.shake .sprite-box{animation:hurt .55s ease!important}
+.atk-right .sprite-box{animation:attackRight .55s ease!important}
+.atk-left .sprite-box{animation:attackLeft .55s ease!important}
+/* Slash effect — pops over the target on hit */
+.slash-fx{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);font-size:4rem;opacity:0;pointer-events:none;z-index:9;filter:drop-shadow(0 0 8px rgba(255,255,255,.9))}
+.slash-fx.show{animation:slashPop .4s ease}
+@keyframes slashPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-30deg)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.3) rotate(15deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5) rotate(30deg)}}
 .vs-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;z-index:3;background:url('sprites/vs_badge_svg.svg') center/contain no-repeat;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
 
 /* TABS */
@@ -163,8 +194,31 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 .card{background:var(--card);border-radius:20px;padding:22px 20px;box-shadow:0 6px 24px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.8);max-width:500px;margin:0 auto;position:relative;border:2px solid rgba(26,39,68,.15)}
 .card.wrong-shake{animation:cardShake .5s ease}
 @keyframes cardShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-.question-text{font-size:1.8rem;font-weight:800;text-align:center;margin-bottom:16px;line-height:1.5}
-.question-text .blank{display:inline-block;min-width:70px;border-bottom:4px solid var(--accent);color:var(--accent);font-family:'Fredoka One',cursive;padding:0 4px}
+.question-text{font-size:1.8rem;font-weight:800;text-align:center;margin-bottom:16px;line-height:1.5;background:linear-gradient(135deg,var(--accent-dark),var(--accent) 60%,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(2px 3px 0 rgba(91,33,182,.18));animation:qtFadeIn .45s ease}
+@keyframes qtFadeIn{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+.question-text .blank{display:inline-block;min-width:70px;border-bottom:4px solid var(--accent);color:var(--accent);font-family:'Fredoka One',cursive;padding:0 4px;-webkit-text-fill-color:var(--accent)}
+/* Eyebrow / mode tag — small uppercase chip above a section heading */
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-family:'Fredoka One',cursive;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(135deg,var(--accent),#a855f7);color:#fff;padding:5px 12px;border-radius:99px;box-shadow:0 2px 0 rgba(0,0,0,.15),0 4px 12px rgba(91,33,182,.25);margin-bottom:8px}
+.eyebrow.gold{background:linear-gradient(135deg,#d4a548,#f59e0b);box-shadow:0 2px 0 rgba(0,0,0,.15),0 4px 12px rgba(212,165,72,.35)}
+.eyebrow.green{background:linear-gradient(135deg,#16a34a,#22c55e);box-shadow:0 2px 0 rgba(0,0,0,.15),0 4px 12px rgba(34,197,94,.3)}
+.eyebrow.pink{background:linear-gradient(135deg,#db2777,#ec4899);box-shadow:0 2px 0 rgba(0,0,0,.15),0 4px 12px rgba(236,72,153,.3)}
+/* Book / story title — bold serif with gradient + drop-shadow */
+.book-title{font-family:'Recoleta','Fredoka One',serif;font-size:1.5rem;font-weight:600;text-align:center;line-height:1.15;margin:2px 0 6px;background:linear-gradient(135deg,var(--accent-dark),var(--accent) 50%,#d4a548);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.01em;filter:drop-shadow(2px 2px 0 rgba(91,33,182,.12))}
+/* Page indicator — pill with dots */
+.page-indicator{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 12px;font-family:'Fredoka One',cursive;font-size:.78rem;color:var(--text2);letter-spacing:.04em}
+.page-indicator .dots{display:inline-flex;gap:4px}
+.page-indicator .dot{width:8px;height:8px;border-radius:50%;background:rgba(91,33,182,.18);transition:all .3s}
+.page-indicator .dot.active{background:linear-gradient(135deg,var(--accent),#a855f7);transform:scale(1.3);box-shadow:0 0 0 3px rgba(91,33,182,.15)}
+.page-indicator .dot.done{background:var(--gold)}
+/* Hero callout — eg "Tap each word as you read" with sparkle */
+.hero-prompt{position:relative;text-align:center;font-family:'Fredoka One',cursive;font-size:.85rem;color:var(--accent);font-weight:700;padding:10px 16px;margin-top:10px;background:linear-gradient(135deg,rgba(91,33,182,.06),rgba(168,85,247,.06));border-radius:12px;border:1.5px dashed rgba(91,33,182,.25)}
+.hero-prompt::before,.hero-prompt::after{content:'✨';position:absolute;top:50%;transform:translateY(-50%);font-size:.7rem;opacity:.6;animation:sparkleSpin 3s linear infinite}
+.hero-prompt::before{left:6px}
+.hero-prompt::after{right:6px;animation-delay:-1.5s}
+@keyframes sparkleSpin{0%,100%{transform:translateY(-50%) rotate(0) scale(1)}50%{transform:translateY(-50%) rotate(180deg) scale(1.3)}}
+/* Animated reveal helper */
+.fade-in{animation:fadeUpIn .45s ease}
+@keyframes fadeUpIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .choice-btn{font-family:'Fredoka One',cursive;font-size:1.5rem;font-weight:700;padding:18px 14px;border-radius:16px;border:2px solid #d6d3d1;background:#fff;cursor:pointer;transition:all .15s;color:var(--text);text-align:center;min-height:64px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #e7e5e4,0 6px 16px rgba(0,0,0,.06)}
 .choice-btn:hover{border-color:var(--accent);background:#fff7ed;transform:translateY(-3px);box-shadow:0 6px 0 #e7e5e4,0 8px 20px rgba(147,51,234,.15)}
@@ -364,7 +418,7 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
   .pill{font-size:.7rem;padding:3px 7px}
   .question-text{font-size:1.1rem}
   .choice-btn{font-size:.95rem;padding:10px 6px}
-  .sprite-box svg,.sprite-box img{width:80px!important;height:80px!important}
+  .sprite-box svg,.sprite-box img{width:128px!important;height:128px!important}
   .battle{min-height:170px;padding:10px}
   .battle-ground{min-height:140px;padding:0}
   .hp-bar-wrap{width:100px}
@@ -377,7 +431,7 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 <!-- HEADER -->
 <div class="header">
   <div class="header-top">
-    <img src="sprites/logo_rioreads_v11.png?v=11" alt="Río Reads — Word Quest" class="header-logo">
+    <img src="sprites/logo_v13_pokemon.png?v=13" alt="Río Reads — Word Quest" class="header-logo">
     <div class="hud">
       <div class="pill"><img src="sprites/hud_star.png" class="hud-icon"><span id="scoreVal">0</span></div>
       <div class="pill"><img src="sprites/hud_fire.png" class="hud-icon"><span id="streakVal">0</span></div>
@@ -408,18 +462,18 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
   <div class="battle-ground">
     <div class="fighter player" id="playerFighter">
       <div class="hp-bar-wrap">
-        <div class="hp-name" id="playerName">Sparky</div>
-        <div class="hp-bar"><div class="hp-fill green" id="playerHpBar" style="width:100%"></div></div>
-        <div class="hp-text" id="playerHpText">30/30 HP</div>
+        <div class="hp-name"><span id="playerName">Sparky</span><span class="hp-lv" id="playerLv">Lv1</span></div>
+        <div class="hp-bar-row"><span class="hp-label">HP</span><div class="hp-bar"><div class="hp-fill green" id="playerHpBar" style="width:100%"></div></div></div>
+        <div class="hp-text" id="playerHpText">30/ 30</div>
       </div>
       <div class="sprite-box" id="playerSprite"></div>
     </div>
     <div class="vs-badge"></div>
     <div class="fighter enemy" id="enemyFighter">
       <div class="hp-bar-wrap">
-        <div class="hp-name" id="enemyName">Grumblob</div>
-        <div class="hp-bar"><div class="hp-fill green" id="enemyHpBar" style="width:100%"></div></div>
-        <div class="hp-text" id="enemyHpText">20/20 HP</div>
+        <div class="hp-name"><span id="enemyName">Grumblob</span><span class="hp-lv" id="enemyLv">Lv1</span></div>
+        <div class="hp-bar-row"><span class="hp-label">HP</span><div class="hp-bar"><div class="hp-fill green" id="enemyHpBar" style="width:100%"></div></div></div>
+        <div class="hp-text" id="enemyHpText">20/ 20</div>
       </div>
       <div class="sprite-box" id="enemySprite"></div>
     </div>
@@ -513,19 +567,25 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 <!-- HOME BUTTON -->
 <button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(147,51,234,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
 
-<!-- HOUSE OVERLAY -->
-<div id="houseOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;overflow-y:auto;backdrop-filter:blur(4px)">
-  <div style="max-width:600px;margin:0 auto;position:relative;min-height:100vh">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
-      <div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#fff"><img src="sprites/ico_home.png" class="ico-lg"> Río's House</div>
-      <button onclick="closeHouse()" style="background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 14px;border-radius:10px;font-family:Fredoka One,cursive;font-size:.8rem;cursor:pointer">✕ Close</button>
+<!-- WORDMON TOWN OVERLAY (GBC style) -->
+<div id="houseOverlay" style="display:none;position:fixed;inset:0;background:#0a0a14;z-index:200;overflow-y:auto">
+  <div style="max-width:600px;margin:0 auto;position:relative;min-height:100vh;padding-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
+      <div style="font-family:'Press Start 2P','Fredoka One',cursive;font-size:.85rem;color:#fff;letter-spacing:1px;text-shadow:2px 2px 0 #1a1a2e">🏘️ WORDMON TOWN</div>
+      <button onclick="closeHouse()" style="background:#1a1a2e;color:#fff;border:2px solid #fff;padding:6px 12px;border-radius:0;font-family:'Press Start 2P','Fredoka One',cursive;font-size:.55rem;cursor:pointer;letter-spacing:1px">✕ EXIT</button>
     </div>
-    <div id="houseScene" style="position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:16px;margin:0 12px;max-width:576px">
-      <img src="sprites/house_empty.png?v=2" style="width:100%;height:100%;object-fit:cover;border-radius:16px">
-      <!-- Wordmons will be positioned absolutely inside here -->
-      <div id="houseWordmons" style="position:absolute;inset:0"></div>
+    <div id="houseScene" style="position:relative;width:calc(100% - 24px);max-width:560px;aspect-ratio:1/1;overflow:hidden;border:4px solid #fff;border-radius:6px;margin:0 12px;box-shadow:0 0 0 2px #1a1a2e,0 8px 24px rgba(0,0,0,.6);background:#5fb05f">
+      <img src="sprites/gbc_town.png?v=1" style="width:100%;height:100%;object-fit:cover;image-rendering:pixelated;image-rendering:crisp-edges">
+      <!-- Hotspots + Wordmon NPCs positioned absolutely inside here -->
+      <div id="houseWordmons" style="position:absolute;inset:0;image-rendering:pixelated"></div>
     </div>
-    <div style="text-align:center;padding:12px;color:rgba(255,255,255,.7);font-size:.85rem;font-weight:600" id="houseCount">Your Wordmons are hanging out at home!</div>
+    <!-- GBC-style dialogue box -->
+    <div id="gbcDialogue" style="display:none;margin:10px 12px 0;background:#fff;border:4px solid #1a1a2e;border-radius:6px;box-shadow:0 0 0 2px #fff,0 6px 20px rgba(0,0,0,.5);padding:14px 16px;min-height:84px;position:relative;font-family:'Press Start 2P','Courier New',monospace;font-size:.7rem;line-height:1.7;color:#1a1a2e;letter-spacing:.5px">
+      <div id="gbcDialogueSpeaker" style="position:absolute;top:-12px;left:12px;background:#1a1a2e;color:#fff;padding:3px 10px;font-size:.55rem;letter-spacing:1px;border-radius:3px"></div>
+      <div id="gbcDialogueText"></div>
+      <div id="gbcDialogueArrow" style="position:absolute;bottom:8px;right:14px;font-size:.7rem;color:#1a1a2e;animation:gbcBlink 1s steps(2) infinite">▼</div>
+    </div>
+    <div style="text-align:center;padding:14px 12px 4px;color:rgba(255,255,255,.7);font-size:.7rem;font-weight:600;letter-spacing:.5px" id="houseCount">Tap buildings or Wordmons to interact</div>
   </div>
 </div>
 
@@ -585,18 +645,57 @@ const SFX = {
         o.start(now);o.stop(now+.3);break;
       }
       case'attack':{
+        // Layered thwack: sub-bass thump + sawtooth bite + noise burst
+        // Much more impactful than the old single-oscillator slide.
         const o=c.createOscillator(),g=c.createGain();
         o.connect(g);g.connect(c.destination);
-        o.type='sawtooth';o.frequency.setValueAtTime(300,now);o.frequency.exponentialRampToValueAtTime(80,now+.15);
-        g.gain.setValueAtTime(.25,now);g.gain.exponentialRampToValueAtTime(.01,now+.2);
-        o.start(now);o.stop(now+.2);break;
+        o.type='sawtooth';o.frequency.setValueAtTime(360,now);o.frequency.exponentialRampToValueAtTime(60,now+.16);
+        g.gain.setValueAtTime(.28,now);g.gain.exponentialRampToValueAtTime(.01,now+.22);
+        o.start(now);o.stop(now+.22);
+        // Sub-bass thump for impact
+        const sub=c.createOscillator(),sg=c.createGain();
+        sub.connect(sg);sg.connect(c.destination);
+        sub.type='sine';sub.frequency.setValueAtTime(110,now);sub.frequency.exponentialRampToValueAtTime(35,now+.18);
+        sg.gain.setValueAtTime(.4,now);sg.gain.exponentialRampToValueAtTime(.01,now+.2);
+        sub.start(now);sub.stop(now+.2);
+        // White-noise burst for the "thwack"
+        const nb=c.createBuffer(1,c.sampleRate*.08,c.sampleRate);
+        const nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.02));
+        const ns=c.createBufferSource();ns.buffer=nb;
+        const ng=c.createGain();ns.connect(ng);ng.connect(c.destination);
+        ng.gain.setValueAtTime(.35,now);ng.gain.exponentialRampToValueAtTime(.01,now+.12);
+        ns.start(now);
+        break;
       }
       case'hurt':{
+        // Pitched-down screech + tonal wobble + noise — feels more painful.
         const o=c.createOscillator(),g=c.createGain();
         o.connect(g);g.connect(c.destination);
-        o.type='sawtooth';o.frequency.setValueAtTime(400,now);o.frequency.exponentialRampToValueAtTime(100,now+.25);
-        g.gain.setValueAtTime(.2,now);g.gain.exponentialRampToValueAtTime(.01,now+.25);
-        o.start(now);o.stop(now+.25);break;
+        o.type='sawtooth';o.frequency.setValueAtTime(480,now);o.frequency.exponentialRampToValueAtTime(80,now+.3);
+        // Add a wobble LFO
+        const lfo=c.createOscillator(),lfoGain=c.createGain();
+        lfo.frequency.setValueAtTime(18,now);lfoGain.gain.setValueAtTime(40,now);
+        lfo.connect(lfoGain);lfoGain.connect(o.frequency);
+        g.gain.setValueAtTime(.22,now);g.gain.exponentialRampToValueAtTime(.01,now+.3);
+        o.start(now);o.stop(now+.3);lfo.start(now);lfo.stop(now+.3);
+        // Brief noise hit
+        const nb=c.createBuffer(1,c.sampleRate*.1,c.sampleRate);
+        const nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.03));
+        const ns=c.createBufferSource();ns.buffer=nb;const ng=c.createGain();ns.connect(ng);ng.connect(c.destination);
+        ng.gain.setValueAtTime(.25,now);ng.gain.exponentialRampToValueAtTime(.01,now+.14);
+        ns.start(now);
+        break;
+      }
+      case'critical':{
+        // High-pitched zing — used when damage > 5
+        for(let i=0;i<3;i++){
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='square';o.frequency.setValueAtTime(800+i*200,now+i*.04);o.frequency.exponentialRampToValueAtTime(2400,now+i*.04+.15);
+          g.gain.setValueAtTime(.15,now+i*.04);g.gain.exponentialRampToValueAtTime(.01,now+i*.04+.2);
+          o.start(now+i*.04);o.stop(now+i*.04+.2);
+        }
+        break;
       }
       case'coin':{
         const o=c.createOscillator(),g=c.createGain();
@@ -716,6 +815,45 @@ const SFX = {
         o.type='sine';o.frequency.setValueAtTime(600,now);o.frequency.exponentialRampToValueAtTime(150,now+.6);
         g.gain.setValueAtTime(.3,now);g.gain.exponentialRampToValueAtTime(.01,now+.7);
         o.start(now);o.stop(now+.7);break;
+      }
+      case'blip':{
+        // Short GBC-style text-character beep
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='square';o.frequency.setValueAtTime(660+Math.random()*80,now);
+        g.gain.setValueAtTime(.04,now);g.gain.exponentialRampToValueAtTime(.001,now+.04);
+        o.start(now);o.stop(now+.04);break;
+      }
+      case'cry':{
+        // Cute Pokemon-style cry — randomized chirp
+        const f1=600+Math.random()*400, f2=300+Math.random()*200;
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='square';o.frequency.setValueAtTime(f1,now);o.frequency.exponentialRampToValueAtTime(f2,now+.18);
+        g.gain.setValueAtTime(.14,now);g.gain.exponentialRampToValueAtTime(.01,now+.2);
+        o.start(now);o.stop(now+.22);
+        // second voice harmony
+        const o2=c.createOscillator(),g2=c.createGain();
+        o2.connect(g2);g2.connect(c.destination);
+        o2.type='triangle';o2.frequency.setValueAtTime(f1*1.5,now+.04);o2.frequency.exponentialRampToValueAtTime(f2*1.3,now+.18);
+        g2.gain.setValueAtTime(.08,now+.04);g2.gain.exponentialRampToValueAtTime(.01,now+.2);
+        o2.start(now+.04);o2.stop(now+.22);
+        break;
+      }
+      case'page':{
+        // Paper-flip — short noise burst
+        const nb=c.createBuffer(1,c.sampleRate*.12,c.sampleRate);
+        const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.04));
+        const n=c.createBufferSource();n.buffer=nb;const g=c.createGain();n.connect(g);g.connect(c.destination);
+        g.gain.setValueAtTime(.18,now);g.gain.exponentialRampToValueAtTime(.01,now+.14);
+        n.start(now);
+        // little tonal accent
+        const o=c.createOscillator(),og=c.createGain();
+        o.connect(og);og.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(880,now);o.frequency.exponentialRampToValueAtTime(660,now+.1);
+        og.gain.setValueAtTime(.06,now);og.gain.exponentialRampToValueAtTime(.001,now+.12);
+        o.start(now);o.stop(now+.12);
+        break;
       }
     }
   }
@@ -2390,12 +2528,12 @@ const G = {
     // player
     const wm = this.getWordmon(this.activeWordmon);
     document.getElementById('playerName').textContent = wm.name;
-    document.getElementById('playerSprite').innerHTML = this.spriteHtml(wm,110);
+    document.getElementById('playerSprite').innerHTML = this.spriteHtml(wm,160);
     this.updateHpBar('player');
     // enemy
     if(this.currentEnemy){
       document.getElementById('enemyName').textContent = this.currentEnemy.name;
-      const eSize=this.isBossBattle?140:110;
+      const eSize=this.isBossBattle?200:160;
       document.getElementById('enemySprite').innerHTML = '<img src="'+this.currentEnemy.sprite+'" style="width:'+eSize+'px;height:'+eSize+'px;object-fit:contain;image-rendering:pixelated">';
       this.updateHpBar('enemy');
     }
@@ -2410,7 +2548,15 @@ const G = {
     const bar = document.getElementById(who+'HpBar');
     bar.style.width = pct+'%';
     bar.className = 'hp-fill '+(pct>50?'green':pct>25?'yellow':'red');
-    document.getElementById(who+'HpText').textContent = Math.max(0,hp)+'/'+max+' HP';
+    // Authentic Pokemon-style HP display: pad numbers so they align
+    const cur=String(Math.max(0,hp)).padStart(2,' '), mx=String(max).padStart(2,' ');
+    document.getElementById(who+'HpText').textContent = cur+'/'+mx;
+    // Update Lv badge if visible
+    const lvEl=document.getElementById(who+'Lv');
+    if(lvEl){
+      const lvl=who==='player'?(this.level||1):Math.max(1,Math.floor((this.level||1)+Math.random()*2));
+      lvEl.textContent=':L'+lvl;
+    }
   },
 
   // ---- BATTLE ----
@@ -2456,21 +2602,33 @@ const G = {
     this.enemyHp = Math.max(0, this.enemyHp-dmg);
     const pf = document.getElementById('playerFighter');
     const ef = document.getElementById('enemyFighter');
+    const battle = document.getElementById('battleScene');
     pf.classList.add('atk-right');
     setTimeout(()=>{
       SFX.play('attack');
       ef.classList.add('shake');
       document.getElementById('hitFlash').classList.add('show');
-      const msgs=['Super effective!','Critical hit!','POW!','WHAM!','Take that!','Boom!','Zap!','Nice one!'];
+      if(battle) battle.classList.add('screen-shake');
+      // Slash effect overlay on enemy
+      this._showSlashFx(ef, ['⚡','💥','✨','💢','🔥'][Math.floor(Math.random()*5)]);
+      const msgs=['SUPER EFFECTIVE!','CRITICAL HIT!','POW!','WHAM!','TAKE THAT!','BOOM!','ZAP!','NICE ONE!'];
       this.showBattleMsg(msgs[Math.floor(Math.random()*msgs.length)]);
     },250);
     setTimeout(()=>{
       pf.classList.remove('atk-right');
       ef.classList.remove('shake');
       document.getElementById('hitFlash').classList.remove('show');
+      if(battle) battle.classList.remove('screen-shake');
       this.updateHUD();
       if(this.enemyHp<=0) this.enemyDefeated();
     },700);
+  },
+  _showSlashFx(targetEl,emoji){
+    const fx=document.createElement('div');
+    fx.className='slash-fx show';
+    fx.textContent=emoji||'💥';
+    targetEl.appendChild(fx);
+    setTimeout(()=>fx.remove(),500);
   },
 
   enemyAttack(){
@@ -2480,18 +2638,22 @@ const G = {
     this.wordmonHpMap[this.activeWordmon]=this.playerHp;
     const ef = document.getElementById('enemyFighter');
     const pf = document.getElementById('playerFighter');
+    const battle = document.getElementById('battleScene');
     ef.classList.add('atk-left');
     setTimeout(()=>{
       SFX.play('hurt');
       pf.classList.add('shake');
       document.getElementById('hitFlash').classList.add('show');
-      const msgs=['Ouch!','Oh no!','Yikes!','Oof!','Watch out!'];
+      if(battle) battle.classList.add('screen-shake');
+      this._showSlashFx(pf, ['💢','💥','🌀','⚡','💀'][Math.floor(Math.random()*5)]);
+      const msgs=['OUCH!','OH NO!','YIKES!','OOF!','WATCH OUT!'];
       this.showBattleMsg(msgs[Math.floor(Math.random()*msgs.length)]);
     },250);
     setTimeout(()=>{
       ef.classList.remove('atk-left');
       pf.classList.remove('shake');
       document.getElementById('hitFlash').classList.remove('show');
+      if(battle) battle.classList.remove('screen-shake');
       this.updateHUD();
       if(this.playerHp<=0){SFX.play('faint');this.playerDefeated();}
       else if(this.playerHp<=Math.floor(this.playerMaxHp*0.3)){SFX.play('lowHp');}
@@ -4227,8 +4389,11 @@ const G = {
           '</div>';
       }
 
-      area.innerHTML='<div class="card" id="qCard">'+
-        '<div class="question-text" style="font-size:1.1rem;margin-bottom:4px">🎧 Pop Quiz! <span style="font-size:.7rem;background:'+(diff<2?'#dcfce7':diff<4?'#fef3c7':'#fef2f2')+';padding:2px 8px;border-radius:8px;color:'+(diff<2?'#15803d':diff<4?'#92400e':'#b91c1c')+'">'+diffLabel+'</span></div>'+
+      const eyebrowClass=diff<2?'green':diff<4?'gold':'pink';
+      area.innerHTML='<div class="card fade-in" id="qCard">'+
+        '<div style="text-align:center;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'+
+          '<span class="eyebrow '+eyebrowClass+'">🎧 Pop Quiz · '+diffLabel+'</span>'+
+        '</div>'+
         '<div style="text-align:center;margin-bottom:8px"><button id="pqPlay" style="font-size:2.5rem;background:none;border:none;cursor:pointer;animation:speakerPulse 2s ease-in-out infinite">🔊</button></div>'+
         (showSentence?'<div style="text-align:center;margin-bottom:4px;font-size:.8rem;color:var(--text2);font-weight:600">'+wd.sent.replace('___','<span style="color:var(--accent);font-weight:800">???</span>')+'</div>':
         '<div style="text-align:center;margin-bottom:4px;font-size:.8rem;color:var(--text2);font-weight:600;font-style:italic">No hint! Just listen! 👂</div>')+
@@ -5021,17 +5186,33 @@ const G = {
       const isLast=pageIdx>=book.pages.length;
       if(!isLast){
         const pct=Math.round(((pageIdx+1)/book.pages.length)*100);
-        area.innerHTML='<div class="card" id="qCard" style="padding:18px">'+
-          '<div style="text-align:center;font-size:3.5rem;margin-bottom:8px">'+(book.emoji||'📖')+'</div>'+
-          '<div style="background:#fef3c7;border-radius:14px;padding:6px 10px;text-align:center;font-family:Fredoka One,cursive;font-size:.85rem;color:#92400e;margin-bottom:10px">Page '+(pageIdx+1)+' of '+book.pages.length+'</div>'+
-          '<div style="background:#fff;border:3px solid var(--accent);border-radius:16px;padding:22px 18px;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:2.4">'+
+        // Build dot indicator for pages
+        let dotsHtml='';
+        for(let i=0;i<book.pages.length;i++){
+          const cls=i<pageIdx?'dot done':(i===pageIdx?'dot active':'dot');
+          dotsHtml+='<span class="'+cls+'"></span>';
+        }
+        // Generate a short story title from first line or emoji
+        let bookTitle=book.title;
+        if(!bookTitle){
+          // First 3-4 words of first page as title-cased label
+          const first=book.pages[0].replace(/[.!?]/g,'');
+          const words=first.split(' ').slice(0,4).join(' ');
+          bookTitle=words.replace(/\b\w/g,c=>c.toUpperCase());
+        }
+        area.innerHTML='<div class="card fade-in" id="qCard" style="padding:18px">'+
+          '<div style="text-align:center"><span class="eyebrow gold">📖 Storytime · Level '+level+'</span></div>'+
+          '<div style="text-align:center;font-size:3rem;margin:4px 0 2px;animation:fadeUpIn .5s ease">'+(book.emoji||'📖')+'</div>'+
+          '<div class="book-title">'+bookTitle+'</div>'+
+          '<div class="page-indicator"><span>Page '+(pageIdx+1)+'</span><span class="dots">'+dotsHtml+'</span><span>of '+book.pages.length+'</span></div>'+
+          '<div style="background:#fff;border:3px solid var(--accent);border-radius:16px;padding:22px 18px;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:2.4;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 16px rgba(91,33,182,.08)">'+
             '<div style="font-family:\'Fredoka One\',cursive;color:var(--text);font-size:'+(level<=1?'1.5rem':level===2?'1.3rem':'1.15rem')+'">'+this._gatedSentence(book.pages[pageIdx],'inherit')+'</div>'+
           '</div>'+
-          '<div id="sbHint" style="text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;margin-top:10px">👆 Tap each word as you read it. Tap twice if you need help!</div>'+
+          '<div id="sbHint" class="hero-prompt">Tap each word as you read it · double-tap for help</div>'+
           '<div style="display:flex;gap:10px;margin-top:14px;justify-content:center">'+
             '<button id="sbNext" disabled style="font-family:Fredoka One,cursive;font-size:1rem;padding:10px 22px;border-radius:12px;border:none;background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.6">'+(pageIdx===book.pages.length-1?'🔒 Read it first':'🔒 Read it first')+'</button>'+
           '</div>'+
-          '<div style="background:#f1f5f9;border-radius:8px;height:6px;margin-top:14px;overflow:hidden"><div style="background:var(--accent);height:100%;width:'+pct+'%;transition:width .4s"></div></div>'+
+          '<div style="background:#f1f5f9;border-radius:8px;height:6px;margin-top:14px;overflow:hidden"><div style="background:linear-gradient(90deg,var(--accent),#a855f7,var(--gold));height:100%;width:'+pct+'%;transition:width .4s"></div></div>'+
           '<div id="jokeArea"></div></div>';
         this._wireGated(area,()=>{
           const hint=document.getElementById('sbHint');
@@ -5054,9 +5235,10 @@ const G = {
       } else {
         // comprehension question (no auto-read — only speak on wrong)
         const cs=shuffle(book.choices.map((c,i)=>({c,i})));
-        area.innerHTML='<div class="card" id="qCard">'+
-          '<div style="text-align:center;font-size:2.5rem;margin-bottom:4px">'+(book.emoji||'📖')+'</div>'+
-          '<div class="question-text" style="font-size:1.2rem">'+book.q+'</div>'+
+        area.innerHTML='<div class="card fade-in" id="qCard">'+
+          '<div style="text-align:center"><span class="eyebrow green">🧠 Comprehension</span></div>'+
+          '<div style="text-align:center;font-size:2.5rem;margin:6px 0 4px">'+(book.emoji||'📖')+'</div>'+
+          '<div class="question-text" style="font-size:1.3rem">'+book.q+'</div>'+
           '<div class="choices">'+cs.map(c=>'<button class="choice-btn" data-idx="'+c.i+'">'+c.c+'</button>').join('')+'</div>'+
           '<div id="jokeArea"></div></div>';
         area.querySelectorAll('.choice-btn').forEach(btn=>{
@@ -5114,8 +5296,9 @@ const G = {
           '</div></div>';
       }).join('');
       const isLastPanel=revealedPanels>=comic.panels.length;
-      area.innerHTML='<div class="card" id="qCard" style="padding:16px">'+
-        '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1rem;color:var(--accent);margin-bottom:10px">💬 Read the comic!</div>'+
+      area.innerHTML='<div class="card fade-in" id="qCard" style="padding:16px">'+
+        '<div style="text-align:center;margin-bottom:8px"><span class="eyebrow pink">💬 Comic Time</span></div>'+
+        '<div class="book-title" style="font-size:1.2rem;margin-bottom:14px">Read the conversation</div>'+
         panelsHtml+
         '<div id="cmcQuestion" style="display:none">'+
           '<div class="question-text" style="font-size:1.15rem;margin-top:14px">'+comic.q+'</div>'+
@@ -6928,84 +7111,164 @@ function renderBookResult(card,book,score){
     '</div>';
 }
 
+// ===== GBC-STYLE WORDMON TOWN =====
+// Authentic Pokemon Gold/Silver/Crystal feel: pixel NPCs, hotspots for
+// Pokemon Center / Mart / Library / Río's House, typewriter dialogue box.
+const TOWN_HOTSPOTS=[
+  {id:'rios_house',  x:18, y:18, w:24, h:18, label:"RÍO'S HOUSE", emoji:'🏠',
+    flavor:["Welcome home, Río!","Your bed looks comfy.","Want to take a nap and restore your HP?"],
+    action:()=>{G.lives=Math.min(3,G.lives+1);G.playerHp=G.playerMaxHp;G.saveGame();G.updateHUD&&G.updateHUD();_gbcSay("RÍO'S HOUSE","Mom: 'Welcome back! You rested up. ♥ HP restored, +1 life!'",'fanfare');}},
+  {id:'library',     x:67, y:18, w:24, h:20, label:'LIBRARY',     emoji:'📚',
+    flavor:["The librarian smiles warmly.","'Books are waiting for you!'"],
+    action:()=>{_gbcSay('LIBRARY',"Librarian: 'Reading day! Pick a book to earn coins. ★'",'page',()=>{closeHouse();setTimeout(()=>openBookshelf(),250);});}},
+  {id:'pokecenter',  x:20, y:42, w:24, h:22, label:'HEAL CENTER', emoji:'❤️',
+    flavor:["A nurse smiles.","'Welcome to the Heal Center!'"],
+    action:()=>{const wasLow=G.lives<3;G.lives=3;G.playerHp=G.playerMaxHp;G.saveGame();G.updateHUD&&G.updateHUD();_gbcSay('HEAL CENTER',"Nurse: 'Your team is fully healed! We hope to see you again!' "+(wasLow?"+♥♥♥":""),'fanfare');}},
+  {id:'mart',        x:67, y:42, w:24, h:22, label:'MART',        emoji:'🛒',
+    flavor:["A shopkeeper waves.","'Spend those coins!'"],
+    action:()=>{_gbcSay('MART',"Clerk: 'Hi there! What can I get you today?' Opening shop...",'coin',()=>{closeHouse();setTimeout(()=>{const t=document.querySelector('.tab[data-mode="shop"]');t&&t.click();},250);});}},
+  {id:'pond',        x:73, y:80, w:14, h:14, label:'POND',        emoji:'💧',
+    flavor:["The pond sparkles in the sunlight.","A tiny splash! Was that a Bubblefin?"],
+    action:()=>{const lines=["The pond sparkles peacefully.","You toss a pebble. *Plop!*","A tiny rainbow shimmers above the water."];_gbcSay('POND',lines[Math.floor(Math.random()*lines.length)],'whoosh');}},
+];
+// Wordmon NPC positions — spread across grass, path, near pond, etc.
+// Avoids buildings/hotspot boxes. y > 60% mostly, plus path tiles.
+const TOWN_NPC_POSITIONS=[
+  {x:50, y:35, label:'on the path'},
+  {x:42, y:54, label:'crossing the path'},
+  {x:58, y:54, label:'sniffing flowers'},
+  {x:12, y:68, label:'in the grass'},
+  {x:28, y:74, label:'playing tag'},
+  {x:42, y:78, label:'on the path'},
+  {x:58, y:82, label:'near the pond'},
+  {x:18, y:88, label:'by the trees'},
+  {x:32, y:90, label:'rolling around'},
+  {x:48, y:92, label:'napping in the sun'},
+  {x:10, y:78, label:'hiding behind a tree'},
+  {x:88, y:62, label:'at the corner'},
+  {x:84, y:90, label:'sipping from the pond'},
+  {x:64, y:70, label:'wandering'},
+  {x:38, y:64, label:'on the cobblestones'},
+  {x:22, y:54, label:'sneaking around'},
+];
+let _gbcDialogueTimer=null;
+function _gbcSay(speaker,text,sfx,after){
+  const box=document.getElementById('gbcDialogue');
+  const sp=document.getElementById('gbcDialogueSpeaker');
+  const tx=document.getElementById('gbcDialogueText');
+  const ar=document.getElementById('gbcDialogueArrow');
+  if(!box) return;
+  box.style.display='block';
+  sp.textContent=speaker;
+  tx.textContent='';
+  ar.style.display='none';
+  if(sfx){try{SFX.play(sfx);}catch(e){}}
+  if(_gbcDialogueTimer){clearInterval(_gbcDialogueTimer);_gbcDialogueTimer=null;}
+  let i=0;
+  // Speak aloud for readers
+  if(window.speechSynthesis){
+    try{speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text.replace(/[♥★*]/g,''));
+      u.rate=0.85;u.pitch=1.1;
+      const v=getBestVoice();if(v)u.voice=v;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  _gbcDialogueTimer=setInterval(()=>{
+    if(i>=text.length){
+      clearInterval(_gbcDialogueTimer);_gbcDialogueTimer=null;
+      ar.style.display='block';
+      if(after){setTimeout(after,900);}
+      return;
+    }
+    tx.textContent+=text.charAt(i);
+    if(i%3===0){try{SFX.play('blip');}catch(e){}}
+    i++;
+  },28);
+  // Tap dialogue to skip typing
+  box.onclick=()=>{
+    if(_gbcDialogueTimer){
+      clearInterval(_gbcDialogueTimer);_gbcDialogueTimer=null;
+      tx.textContent=text;
+      ar.style.display='block';
+    }else{
+      box.style.display='none';
+    }
+  };
+}
+
 function openHouse(){
   document.getElementById('houseOverlay').style.display='block';
-  SFX.play('whoosh');
+  try{SFX.play('whoosh');}catch(e){}
   const container=document.getElementById('houseWordmons');
   container.innerHTML='';
-  const caught=G.caughtWordmons;
-  document.getElementById('houseCount').textContent=caught.length+' Wordmon'+(caught.length!==1?'s':'')+' living at home!';
-  // Define positions in the room (as % of container size)
-  // These correspond to furniture locations in the house_empty.png image
-  const POSITIONS=[
-    {x:8,y:55,scale:0.8,label:'on the bed'},      // bed area (left)
-    {x:45,y:60,scale:0.9,label:'on the couch'},    // couch (center)
-    {x:80,y:50,scale:0.7,label:'by the window'},   // window (right)
-    {x:20,y:75,scale:0.6,label:'on the rug'},      // floor left
-    {x:60,y:75,scale:0.65,label:'on the floor'},   // floor right
-    {x:35,y:40,scale:0.5,label:'on the shelf'},    // bookshelf
-    {x:70,y:35,scale:0.45,label:'on top of shelf'},// high shelf
-    {x:10,y:35,scale:0.4,label:'hiding'},           // corner
-    {x:50,y:30,scale:0.5,label:'on the desk'},     // desk area
-    {x:90,y:70,scale:0.55,label:'by the door'},    // door area
-    {x:30,y:65,scale:0.7,label:'playing'},          // middle floor
-    {x:75,y:65,scale:0.6,label:'napping'},          // right floor
-    {x:15,y:48,scale:0.55,label:'climbing'},        // left wall
-    {x:55,y:45,scale:0.5,label:'watching TV'},      // TV area
-    {x:42,y:78,scale:0.75,label:'walking around'},  // center bottom
-    {x:65,y:42,scale:0.45,label:'perched up high'}, // high right
-  ];
-  // Special house pose images for first few Wordmons
-  const HOUSE_POSES={
-    0:'sprites/sparky_couch.png',     // Sparky on couch
-    1:'sprites/flamepup_bed.png',     // Flamepup on bed
-    2:'sprites/bubblefin_window.png', // Bubblefin by window
-    3:'sprites/leafwhisk_bookshelf.png', // Leafwhisk on shelf
-    4:'sprites/spookle_corner.png',   // Spookle hiding
-    16:'sprites/crystalix_rug.png',   // Crystalix on rug
-  };
+  const caught=G.caughtWordmons||[];
+  document.getElementById('houseCount').textContent='Tap buildings & Wordmons to interact • '+caught.length+' Wordmon'+(caught.length!==1?'s':'')+' roaming';
+  // Hide any old dialogue
+  const dlg=document.getElementById('gbcDialogue');if(dlg)dlg.style.display='none';
+
+  // ---- HOTSPOTS over the buildings ----
+  TOWN_HOTSPOTS.forEach(h=>{
+    const hs=document.createElement('div');
+    hs.className='gbc-hotspot';
+    hs.style.cssText='left:'+h.x+'%;top:'+h.y+'%;width:'+h.w+'%;height:'+h.h+'%;z-index:5';
+    hs.innerHTML='<div class="gbc-hotspot-label">'+h.emoji+' '+h.label+'</div>';
+    hs.addEventListener('click',e=>{e.stopPropagation();try{SFX.play('click');}catch(e){}h.action();});
+    container.appendChild(hs);
+  });
+
+  // ---- WORDMON NPCs scattered around town ----
   caught.forEach((wmIdx,i)=>{
     const wm=G.getWordmon(wmIdx);
-    const pos=POSITIONS[i%POSITIONS.length];
-    // Size varies by evolution stage — baby=small, mid=medium, final=big
-    const stageScale=wm.stage===0?0.7:wm.stage===1?0.9:1.1;
-    const finalScale=pos.scale*stageScale;
+    if(!wm) return;
+    const pos=TOWN_NPC_POSITIONS[i%TOWN_NPC_POSITIONS.length];
+    const stageScale=wm.stage===0?0.85:wm.stage===1?1:1.15;
     const el=document.createElement('div');
-    el.style.cssText='position:absolute;left:'+pos.x+'%;top:'+pos.y+'%;transform:translate(-50%,-50%) scale('+finalScale+');cursor:pointer;transition:all .3s;z-index:'+(10+i);
-    // Use battle sprite (cleaner backgrounds than house poses)
-    const imgSrc=wm.spriteImg;
-    el.innerHTML='<img src="'+imgSrc+'" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(2px 4px 6px rgba(0,0,0,.3))" onerror="this.src=\''+wm.spriteImg+'\'">'+
-      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:.6rem;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.7);margin-top:-4px">'+wm.name+'</div>';
-    // Tap to hear name + bio
-    el.addEventListener('click',()=>{
-      el.style.transform='translate(-50%,-50%) scale('+(finalScale*1.2)+')';
-      setTimeout(()=>el.style.transform='translate(-50%,-50%) scale('+finalScale+')',300);
-      if(window.speechSynthesis){
-        speechSynthesis.cancel();
-        const u=new SpeechSynthesisUtterance(wm.name+' is '+pos.label+'! '+wm.bio);
-        u.rate=0.75;u.pitch=1.1;
-        const v=getBestVoice();if(v)u.voice=v;
-        speechSynthesis.speak(u);
-      }
+    el.className='gbc-npc';
+    el.style.cssText='left:'+pos.x+'%;top:'+pos.y+'%;transform:translate(-50%,-50%) scale('+stageScale+');z-index:'+(10+i)+';animation:gbcBob '+(1.5+Math.random()*1.2)+'s ease-in-out infinite '+(Math.random()*2)+'s';
+    el.innerHTML='<img src="'+wm.spriteImg+'" style="width:54px;height:54px;object-fit:contain">'+
+      '<div class="gbc-npc-label">'+wm.name+'</div>';
+    el.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      try{SFX.play('click');}catch(e){}
+      // Build a Pokemon-style line from the wordmon
+      // Make a cute cry from the first syllable of the name
+      const baseCry=wm.name.slice(0,Math.min(4,wm.name.length));
+      const cry=baseCry+'-'+baseCry.toLowerCase();
+      const greetings=[
+        wm.name.toUpperCase()+': '+wm.bio,
+        wm.name+' is '+pos.label+'! "'+cry+'!"',
+        '"'+cry+'!" '+wm.name+' looks happy to see you.',
+        wm.name+' wiggles excitedly. '+wm.bio,
+      ];
+      const line=greetings[Math.floor(Math.random()*greetings.length)];
+      _gbcSay(wm.name.toUpperCase(),line,'cry');
     });
-    // Add gentle floating animation
-    el.style.animation='houseFloat '+(2+Math.random()*2)+'s ease-in-out infinite '+(Math.random()*2)+'s';
     container.appendChild(el);
   });
-  // Add CSS for floating animation
-  if(!document.getElementById('houseStyles')){
-    const s=document.createElement('style');s.id='houseStyles';
-    s.textContent='@keyframes houseFloat{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-4px)}}';
-    document.head.appendChild(s);
-  }
-  // Río standing prominently in center of room
+
+  // ---- RÍO sprite on the path (center) ----
   const rio=document.createElement('div');
-  rio.style.cssText='position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);z-index:50';
-  rio.innerHTML='<img src="sprites/rio_house.png" style="width:140px;height:140px;object-fit:contain;filter:drop-shadow(3px 6px 8px rgba(0,0,0,.4))">';
+  rio.className='gbc-npc';
+  rio.style.cssText='left:50%;top:46%;transform:translate(-50%,-50%);z-index:50;animation:gbcBob 1.8s ease-in-out infinite';
+  rio.innerHTML='<img src="sprites/rio_house.png" style="width:64px;height:64px;object-fit:contain" onerror="this.src=\'sprites/rio.png\'">';
+  rio.addEventListener('click',ev=>{
+    ev.stopPropagation();
+    try{SFX.play('click');}catch(e){}
+    const lines=[
+      "Río: 'Look at all my Wordmon friends!'",
+      "Río: 'I'm the best reader in town!'",
+      "Río: 'Should we go on an adventure?'",
+      "Río: '"+caught.length+" Wordmons caught so far!'",
+    ];
+    _gbcSay('RÍO',lines[Math.floor(Math.random()*lines.length)],'click');
+  });
   container.appendChild(rio);
 }
 function closeHouse(){
   document.getElementById('houseOverlay').style.display='none';
+  if(_gbcDialogueTimer){clearInterval(_gbcDialogueTimer);_gbcDialogueTimer=null;}
+  try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
 }
 
 function openPokedex(){
