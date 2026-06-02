@@ -4776,6 +4776,116 @@ const G = {
     this._battleMusicNodes=[];
   },
 
+  // ===== OVERWORLD MUSIC — soft Pokemon-Crystal-style chiptune loop =====
+  // Plays in the walkable adventure mode AND the Wordmon Town overlay.
+  // Low volume (~25% of battle music) so it sits underneath dialogue & SFX.
+  _overworldMusic:null,
+  _overworldNodes:[],
+  _overworldTimer:null,
+  startOverworldMusic(){
+    if(this._overworldMusic) return;
+    SFX.init();
+    const c=SFX.ctx;
+    if(!c) return;
+    this._overworldMusic=true;
+    // 95 BPM — calm walking pace
+    const BPM=95;
+    const beat=60/BPM, bar=beat*4;
+    // C-major-ish pentatonic; 16 notes per section (4 bars per section)
+    // SECTION A — peaceful main theme
+    // SECTION B — gentle question/response
+    const SECTIONS=[
+      {mel:[659,784,659,523, 587,659,784,0,   880,784,659,587, 523,587,659,0],
+       bass:[131,0,196,0,   175,0,131,0,     110,0,165,0,    175,0,196,0],
+       pad:[262,0,0,0,      349,0,0,0,       220,0,0,0,      196,0,0,0]},
+      {mel:[392,440,494,523, 587,659,587,0,   698,659,587,523, 494,523,587,0],
+       bass:[131,0,196,0,   175,0,131,0,     220,0,165,0,    196,0,131,0],
+       pad:[262,0,0,0,      349,0,0,0,       220,0,0,0,      196,0,0,0]},
+      {mel:[523,587,659,784, 659,587,523,494, 440,494,523,587, 659,587,523,0],
+       bass:[131,0,196,0,   175,0,131,0,     147,0,196,0,    131,0,196,0],
+       pad:[262,0,0,0,      349,0,0,0,       294,0,0,0,      262,0,0,0]},
+      {mel:[784,880,784,659, 587,523,587,659, 523,587,659,784, 880,659,523,0],
+       bass:[131,0,196,0,   147,0,196,0,     131,0,196,0,    175,0,196,0],
+       pad:[262,0,0,0,      294,0,0,0,       262,0,0,0,      349,0,0,0]},
+    ];
+    let section=0;
+    const noteLen=bar*4/16; // 16 notes per section
+    const playLoop=()=>{
+      if(!this._overworldMusic) return;
+      const n=c.currentTime;
+      const S=SECTIONS[section%SECTIONS.length];
+
+      // Melody — triangle wave, gentle, with a quick fade so notes don't smear
+      S.mel.forEach((f,i)=>{
+        if(!f) return;
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.setValueAtTime(f,n+i*noteLen);
+        // Soft attack + decay envelope
+        g.gain.setValueAtTime(0,n+i*noteLen);
+        g.gain.linearRampToValueAtTime(.035,n+i*noteLen+.02);
+        g.gain.exponentialRampToValueAtTime(.001,n+i*noteLen+noteLen*.85);
+        o.start(n+i*noteLen);o.stop(n+i*noteLen+noteLen*.9);
+        this._overworldNodes.push(o);
+      });
+
+      // Bass — soft sine on root notes
+      S.bass.forEach((f,i)=>{
+        if(!f) return;
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(f,n+i*noteLen);
+        g.gain.setValueAtTime(0,n+i*noteLen);
+        g.gain.linearRampToValueAtTime(.045,n+i*noteLen+.03);
+        g.gain.exponentialRampToValueAtTime(.001,n+i*noteLen+noteLen*1.8);
+        o.start(n+i*noteLen);o.stop(n+i*noteLen+noteLen*2);
+        this._overworldNodes.push(o);
+      });
+
+      // Pad — sustained warm sine chord, very quiet, swells underneath
+      S.pad.forEach((f,i)=>{
+        if(!f) return;
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(f*2,n+i*noteLen); // octave up for warmth
+        g.gain.setValueAtTime(0,n+i*noteLen);
+        g.gain.linearRampToValueAtTime(.012,n+i*noteLen+.2);
+        g.gain.linearRampToValueAtTime(0,n+i*noteLen+noteLen*4);
+        o.start(n+i*noteLen);o.stop(n+i*noteLen+noteLen*4.1);
+        this._overworldNodes.push(o);
+      });
+
+      // Occasional gentle wind-chime sparkle (every other section, 1 note)
+      if(section%2===1){
+        const chimeT=n+noteLen*8;
+        [1568,1760,1976].forEach((cf,ci)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='sine';o.frequency.setValueAtTime(cf,chimeT+ci*.08);
+          g.gain.setValueAtTime(0,chimeT+ci*.08);
+          g.gain.linearRampToValueAtTime(.018,chimeT+ci*.08+.02);
+          g.gain.exponentialRampToValueAtTime(.001,chimeT+ci*.08+.7);
+          o.start(chimeT+ci*.08);o.stop(chimeT+ci*.08+.75);
+          this._overworldNodes.push(o);
+        });
+      }
+
+      section++;
+      // GC old nodes
+      this._overworldNodes=this._overworldNodes.filter(o=>{
+        try{return o.context.currentTime<n+bar*4+2;}catch(e){return false;}
+      });
+      this._overworldTimer=setTimeout(playLoop,bar*4*1000);
+    };
+    playLoop();
+  },
+  stopOverworldMusic(){
+    this._overworldMusic=null;
+    if(this._overworldTimer) clearTimeout(this._overworldTimer);
+    this._overworldNodes.forEach(o=>{try{o.stop();}catch(e){}});
+    this._overworldNodes=[];
+  },
+
   closeBattleOverlay(){
     const ov=document.getElementById('trainerBattleOverlay');
     if(ov) ov.remove();
@@ -7252,6 +7362,7 @@ function _gbcSay(speaker,text,sfx,after){
 function openHouse(){
   document.getElementById('houseOverlay').style.display='block';
   try{SFX.play('whoosh');}catch(e){}
+  try{G.startOverworldMusic&&G.startOverworldMusic();}catch(e){}
   const container=document.getElementById('houseWordmons');
   container.innerHTML='';
   const caught=G.caughtWordmons||[];
@@ -7321,6 +7432,7 @@ function closeHouse(){
   document.getElementById('houseOverlay').style.display='none';
   if(_gbcDialogueTimer){clearInterval(_gbcDialogueTimer);_gbcDialogueTimer=null;}
   try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+  try{G.stopOverworldMusic&&G.stopOverworldMusic();}catch(e){}
 }
 
 function openPokedex(){
@@ -7673,8 +7785,8 @@ const ADV={
       exits:[{x:7,y:17,to:'route1',spawnX:15,spawnY:0}],
       npcs:[
         {x:9,y:5,sprite:'npc_prof',name:'Professor Lexia',msg:'Welcome to Wordmon Town! I am Professor Lexia. I study Wordmons — creatures made of letters and sounds. Walk south through the tall grass to find wild ones!'},
-        {x:3,y:5,sprite:'npc_kid',name:'Reader Milo',msg:'I caught my first Wordmon by reading a whole sentence! The more words you know, the stronger they get!'},
-        {x:12,y:9,sprite:'npc_kid',name:'Gardener Rosa',msg:'My flowers love to be read aloud. Have you tried reading to plants? They listen!'},
+        {x:3,y:5,sprite:'npc_milo',name:'Reader Milo',msg:'I caught my first Wordmon by reading a whole sentence! The more words you know, the stronger they get!'},
+        {x:12,y:9,sprite:'npc_rosa',name:'Gardener Rosa',msg:'My flowers love to be read aloud. Have you tried reading to plants? They listen!'},
       ],
       signs:[
         {x:3,y:3,msg:'Río\'s House — This is where you live!'},
@@ -7839,6 +7951,13 @@ const ADV={
       const img=new Image();
       img.src='sprites/rio_'+dir+'.png';
       img.onload=()=>{this.playerImgs[dir]=img;};
+    });
+    // Load NPC sprites — keyed by sprite name (npc_prof, npc_kid, npc_rosa)
+    this.npcImgs={};
+    ['npc_prof','npc_kid','npc_rosa','npc_milo'].forEach(name=>{
+      const img=new Image();
+      img.src='sprites/'+name+'.png?v=2';
+      img.onload=()=>{this.npcImgs[name]=img;};
     });
     // D-pad controls
     document.querySelectorAll('.dpad-btn').forEach(btn=>{
@@ -8332,48 +8451,40 @@ const ADV={
       }
     }
 
-    // Draw NPCs — proper character sprites
+    // Draw NPCs — use PNG sprites (consistent GBA pixel-art look)
+    c.imageSmoothingEnabled=false;
     (map.npcs||[]).forEach(npc=>{
       const nx=npc.x*T-cx, ny=npc.y*T-cy;
       if(nx<-T*2||nx>CW+T||ny<-T*2||ny>CH+T) return;
-      const npcBob=Math.sin(this.animFrame/12+npc.x)*2;
-      // Shadow
-      c.fillStyle='rgba(0,0,0,.12)';c.beginPath();c.ellipse(nx+T/2,ny+T*0.95,T*0.3,T*0.07,0,0,Math.PI*2);c.fill();
-      // Body
-      const isProf=npc.sprite==='npc_prof';
-      c.fillStyle=isProf?'#f5f5f5':'#3b82f6'; // white coat or blue shirt
-      c.fillRect(nx+T*0.25,ny+T*0.4+npcBob,T*0.5,T*0.4);
-      // Head
-      c.fillStyle=isProf?'#f5deb3':'#c68642';
-      c.beginPath();c.arc(nx+T/2,ny+T*0.3+npcBob,T*0.22,0,Math.PI*2);c.fill();
-      // Hair
-      c.fillStyle=isProf?'#ccc':'#5a3a1a';
-      c.beginPath();c.arc(nx+T/2,ny+T*0.22+npcBob,T*0.24,Math.PI,0);c.fill();
-      // Eyes
-      c.fillStyle='#1a1a1a';
-      c.beginPath();c.arc(nx+T*0.42,ny+T*0.32+npcBob,2,0,Math.PI*2);c.fill();
-      c.beginPath();c.arc(nx+T*0.58,ny+T*0.32+npcBob,2,0,Math.PI*2);c.fill();
-      if(isProf){// glasses
-        c.strokeStyle='#666';c.lineWidth=1;
-        c.beginPath();c.arc(nx+T*0.42,ny+T*0.32+npcBob,4,0,Math.PI*2);c.stroke();
-        c.beginPath();c.arc(nx+T*0.58,ny+T*0.32+npcBob,4,0,Math.PI*2);c.stroke();
+      const npcBob=Math.sin(this.animFrame/14+npc.x*3)*1.5;
+      // Soft pixel shadow under feet
+      c.fillStyle='rgba(0,0,0,.18)';
+      c.beginPath();c.ellipse(nx+T/2,ny+T*0.96,T*0.28,T*0.06,0,0,Math.PI*2);c.fill();
+      // Sprite — slightly bigger than tile, feet aligned to bottom
+      const img=this.npcImgs[npc.sprite];
+      const NT=T*1.2;
+      const nox=(T-NT)/2, noy=(T-NT)+T*0.06; // shift down a touch
+      if(img && img.complete && img.naturalWidth>0){
+        c.drawImage(img,nx+nox,ny+noy+npcBob,NT,NT);
+      } else {
+        // Tiny pixel fallback so we never render an invisible NPC
+        c.fillStyle=npc.sprite==='npc_prof'?'#f5f5f5':'#3b82f6';
+        c.fillRect(nx+T*0.3,ny+T*0.35+npcBob,T*0.4,T*0.5);
+        c.fillStyle=npc.sprite==='npc_prof'?'#f5deb3':'#fcd34d';
+        c.fillRect(nx+T*0.35,ny+T*0.2+npcBob,T*0.3,T*0.18);
       }
-      // Legs
-      c.fillStyle='#4a4a4a';
-      c.fillRect(nx+T*0.3,ny+T*0.75+npcBob,T*0.15,T*0.2);
-      c.fillRect(nx+T*0.55,ny+T*0.75+npcBob,T*0.15,T*0.2);
-      // Name tag — floating above with background
-      c.fillStyle='rgba(0,0,0,.6)';
-      const name=npc.name.split(' ').pop();
-      c.font='bold '+(T/3)+'px Fredoka One';c.textAlign='center';
-      const tw=c.measureText(name).width;
-      c.fillRect(nx+T/2-tw/2-4,ny-T*0.15+npcBob,tw+8,T*0.2);
-      c.fillStyle='#fff';
-      c.fillText(name,nx+T/2,ny+npcBob);
-      // Interaction hint (!)
-      c.fillStyle='#fbbf24';c.font='bold '+(T/2.5)+'px sans-serif';
-      c.fillText('!',nx+T/2,ny-T*0.25+npcBob+Math.sin(this.animFrame/8)*3);
+      // Pokemon-style "!" interaction hint above when within 2 tiles
+      const dist=Math.abs(npc.x-this.px)+Math.abs(npc.y-this.py);
+      if(dist<=2){
+        const bx=nx+T/2, by=ny-T*0.15+npcBob+Math.sin(this.animFrame/8)*2;
+        // Yellow tilebox with black border + ! glyph (Pokemon-Crystal feel)
+        c.fillStyle='#1a1a2e';c.fillRect(bx-T*0.10,by-T*0.20,T*0.20,T*0.26);
+        c.fillStyle='#fbbf24';c.fillRect(bx-T*0.08,by-T*0.18,T*0.16,T*0.22);
+        c.fillStyle='#1a1a2e';c.font='bold '+(T*0.22)+'px "Press Start 2P","Courier New",monospace';c.textAlign='center';c.textBaseline='middle';
+        c.fillText('!',bx,by-T*0.07);
+      }
     });
+    c.textBaseline='alphabetic';
 
     // Draw player — proper character sprite
     const playerBob=Math.sin(this.animFrame/10)*2;
@@ -8474,9 +8585,12 @@ G.openAdventure=function(){
   if(!ADV.canvas) ADV.init();
   else ADV.resize();
   document.getElementById('advZoneName').textContent=ADV.getMap().name;
+  // Subtle Pokemon-Crystal-style overworld theme
+  try{G.startOverworldMusic&&G.startOverworldMusic();}catch(e){}
 };
 G.closeAdventure=function(){
   document.getElementById('adventureOverlay').style.display='none';
+  try{G.stopOverworldMusic&&G.stopOverworldMusic();}catch(e){}
 };
 
 // GO!
