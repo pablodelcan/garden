@@ -114,6 +114,11 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 .battle.screen-shake{animation:screenShake .35s ease}
 @keyframes screenShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-3px,2px)}30%{transform:translate(4px,-2px) rotate(.5deg)}50%{transform:translate(-3px,-3px)}70%{transform:translate(2px,3px) rotate(-.3deg)}90%{transform:translate(-1px,1px)}}
 @keyframes gbcBlink{0%{opacity:1}50%{opacity:0}}
+@keyframes eggWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes eggFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+#eggWidget{animation:eggFloat 3.5s ease-in-out infinite}
+#eggWidget:hover{transform:scale(1.06)}
+#eggWidget:active{transform:scale(.96)}
 @keyframes gbcBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes gbcPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.6),inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 4px rgba(255,255,255,.15),inset 0 0 12px rgba(255,255,255,.3)}}
 .gbc-npc{position:absolute;cursor:pointer;image-rendering:pixelated;transition:transform .15s;will-change:transform}
@@ -564,6 +569,11 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 <!-- EXPLORE BUTTON -->
 <button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!"><img src="sprites/ico_explore.png" style="width:32px;height:32px"></button>
 
+<!-- MYSTERY EGG WIDGET — floats on home screen, shows progress -->
+<div id="eggWidget" style="display:none;position:fixed;bottom:150px;right:16px;z-index:150;background:linear-gradient(135deg,rgba(91,33,182,.92),rgba(124,58,237,.92));border:2px solid rgba(255,255,255,.4);border-radius:18px;cursor:pointer;box-shadow:0 6px 18px rgba(91,33,182,.45),inset 0 1px 0 rgba(255,255,255,.3);overflow:hidden;transition:transform .2s" onclick="G.peekEgg&&G.peekEgg()" title="Mystery Egg — answer questions to hatch it!">
+  <div class="egg-glow" style="position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(253,224,71,.35),transparent 60%);pointer-events:none"></div>
+</div>
+
 <!-- HOME BUTTON -->
 <button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(147,51,234,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
 
@@ -853,6 +863,69 @@ const SFX = {
         o.type='sine';o.frequency.setValueAtTime(880,now);o.frequency.exponentialRampToValueAtTime(660,now+.1);
         og.gain.setValueAtTime(.06,now);og.gain.exponentialRampToValueAtTime(.001,now+.12);
         o.start(now);o.stop(now+.12);
+        break;
+      }
+      case'eggShake':{
+        // Soft "thump-thump" heartbeat for an egg about to hatch
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.setValueAtTime(110,now);o.frequency.exponentialRampToValueAtTime(60,now+.18);
+        g.gain.setValueAtTime(.18,now);g.gain.exponentialRampToValueAtTime(.001,now+.2);
+        o.start(now);o.stop(now+.22);
+        const o2=c.createOscillator(),g2=c.createGain();
+        o2.connect(g2);g2.connect(c.destination);
+        o2.type='sine';o2.frequency.setValueAtTime(110,now+.18);o2.frequency.exponentialRampToValueAtTime(60,now+.34);
+        g2.gain.setValueAtTime(.14,now+.18);g2.gain.exponentialRampToValueAtTime(.001,now+.36);
+        o2.start(now+.18);o2.stop(now+.36);
+        break;
+      }
+      case'eggCrack':{
+        // Sharp crisp crack — short layered noise burst + a high tonal accent
+        const nb=c.createBuffer(1,c.sampleRate*.14,c.sampleRate);
+        const d=nb.getChannelData(0);
+        for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.025));
+        const n=c.createBufferSource();n.buffer=nb;const ng=c.createGain();
+        n.connect(ng);ng.connect(c.destination);
+        ng.gain.setValueAtTime(.35,now);ng.gain.exponentialRampToValueAtTime(.001,now+.14);
+        n.start(now);
+        // High-pitched ping
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.setValueAtTime(2200,now);o.frequency.exponentialRampToValueAtTime(1100,now+.18);
+        g.gain.setValueAtTime(.12,now);g.gain.exponentialRampToValueAtTime(.001,now+.2);
+        o.start(now);o.stop(now+.2);
+        break;
+      }
+      case'eggHatch':{
+        // Magical reveal — sparkly ascending arp + sub-bass swell
+        const notes=[523,659,784,1047,1319,1568,1976];
+        notes.forEach((f,i)=>{
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type='triangle';o.frequency.setValueAtTime(f,now+i*.06);
+          g.gain.setValueAtTime(.15,now+i*.06);g.gain.exponentialRampToValueAtTime(.001,now+i*.06+.3);
+          o.start(now+i*.06);o.stop(now+i*.06+.32);
+          // Sine harmony an octave below
+          const oh=c.createOscillator(),gh=c.createGain();
+          oh.connect(gh);gh.connect(c.destination);
+          oh.type='sine';oh.frequency.setValueAtTime(f/2,now+i*.06);
+          gh.gain.setValueAtTime(.08,now+i*.06);gh.gain.exponentialRampToValueAtTime(.001,now+i*.06+.3);
+          oh.start(now+i*.06);oh.stop(now+i*.06+.32);
+        });
+        // Big sub-bass swell
+        const sub=c.createOscillator(),sg=c.createGain();
+        sub.connect(sg);sg.connect(c.destination);
+        sub.type='sine';sub.frequency.setValueAtTime(55,now);sub.frequency.exponentialRampToValueAtTime(110,now+.7);
+        sg.gain.setValueAtTime(.001,now);sg.gain.linearRampToValueAtTime(.25,now+.4);sg.gain.exponentialRampToValueAtTime(.001,now+.9);
+        sub.start(now);sub.stop(now+.9);
+        // Sparkle white noise
+        const nb=c.createBuffer(1,c.sampleRate*.7,c.sampleRate);
+        const d=nb.getChannelData(0);
+        for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*.25*Math.exp(-i/(c.sampleRate*.4));
+        const ns=c.createBufferSource();ns.buffer=nb;const ngg=c.createGain();
+        ns.connect(ngg);ngg.connect(c.destination);
+        ngg.gain.setValueAtTime(.08,now+.1);ngg.gain.exponentialRampToValueAtTime(.001,now+.8);
+        ns.start(now+.1);
         break;
       }
     }
@@ -2389,6 +2462,14 @@ const G = {
   maxStreak:0, bossesDefeated:0, secretsCaught:0, popQuizWins:0,
   wordmonHpMap:{}, // persistent HP tracking: {wordmonIdx: currentHp}
   unlockedAchievements:[], isBossBattle:false,
+  // Mystery Egg system — eggs tick down with each correct answer.
+  // When progress >= needed, the egg hatches with a dramatic reveal
+  // and Río gets a NEW Wordmon (one he doesn't already own).
+  // Daily golden eggs guarantee a rare hatch — 1 per calendar day.
+  egg:null,           // {type, needed, progress, isDaily}
+  eggsHatched:0,
+  lastLoginDate:'',   // YYYY-MM-DD of last open (used for daily egg)
+  loginStreak:0,      // consecutive calendar days played
   currentZone:0,
   ZONES:['Forest','Ocean','Volcano','Crystal Cave','Sky Kingdom','Snowlands','Castle','Space'],
   // word stats tracking for parent dashboard
@@ -2426,8 +2507,39 @@ const G = {
     this.updateModeBar();
     this.initReadingTracker();
     this.updateReadingStreak();
+    // 🥚 Mystery Egg system — daily login + bonus golden egg
+    try{this.initDailyLogin();this.updateEggHud();}catch(e){console.warn('egg init',e);}
     // auto-save every 30s
     setInterval(()=>this.saveGame(),30000);
+  },
+
+  // Show a small peek modal when Río taps the egg widget
+  peekEgg(){
+    if(!this.egg) return;
+    const def=this.EGG_TYPES[this.egg.type]||this.EGG_TYPES.normal;
+    const remaining=Math.max(0,this.egg.needed-this.egg.progress);
+    try{SFX.play('eggShake');}catch(e){}
+    const o=document.createElement('div');
+    o.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    o.onclick=e=>{if(e.target===o)o.remove();};
+    const hints=[
+      def.name+' is wiggling…',
+      'Almost ready! '+remaining+' more correct answers.',
+      'Who could be inside? 🤔',
+      'Keep reading — every right answer warms the egg!'
+    ];
+    const hint=remaining<=2?'It\'s about to hatch! 🎉':hints[Math.floor(Math.random()*hints.length)];
+    const eggSvg='<svg viewBox="0 0 100 120" style="width:120px;height:140px;animation:eggWiggle .35s ease-in-out infinite"><ellipse cx="50" cy="65" rx="38" ry="50" fill="'+def.color+'" stroke="'+def.stroke+'" stroke-width="5"/><ellipse cx="35" cy="48" rx="14" ry="8" fill="rgba(255,255,255,.55)" transform="rotate(-20 35 48)"/></svg>';
+    o.innerHTML='<div style="background:#fff;border-radius:22px;max-width:320px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;border:3px solid var(--gold)">'+
+      '<div style="display:inline-flex;align-items:center;gap:6px;font-family:\'Press Start 2P\',\'Fredoka One\',cursive;font-size:.55rem;background:linear-gradient(135deg,'+def.color+','+def.stroke+');color:#fff;padding:5px 12px;border-radius:99px;letter-spacing:.1em;margin-bottom:8px">'+(this.egg.isDaily?'✨ DAILY EGG':'MYSTERY EGG')+'</div>'+
+      '<div style="margin:8px 0">'+eggSvg+'</div>'+
+      '<div style="font-family:\'Recoleta\',\'Fredoka One\',serif;font-size:1.4rem;color:var(--accent-dark);margin-bottom:4px">'+def.name+'</div>'+
+      '<div style="font-family:\'Nunito\',sans-serif;font-size:.95rem;color:var(--text);margin-bottom:14px">'+hint+'</div>'+
+      '<div style="position:relative;width:100%;height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px"><div style="position:absolute;inset:0;width:'+Math.min(100,Math.round((this.egg.progress/this.egg.needed)*100))+'%;background:linear-gradient(90deg,'+def.color+','+def.stroke+');transition:width .4s"></div></div>'+
+      '<div style="font-family:\'Fredoka One\',cursive;font-size:.85rem;color:var(--text2);margin-bottom:14px">'+this.egg.progress+' / '+this.egg.needed+' &nbsp;·&nbsp; '+remaining+' to hatch</div>'+
+      '<button onclick="this.closest(\'div[style]\').parentElement.remove()" style="font-family:\'Fredoka One\',cursive;font-size:1rem;padding:10px 26px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(91,33,182,.3)">Keep playing!</button>'+
+      '</div>';
+    document.body.appendChild(o);
   },
 
   // ---- SAVE / LOAD (localStorage) ----
@@ -2439,7 +2551,8 @@ const G = {
       mode:this.mode,modeWins:this.modeWins,totalCorrect:this.totalCorrect||0,
       maxStreak:this.maxStreak||0,bossesDefeated:this.bossesDefeated||0,
       secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
-      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{}};
+      currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{},
+      egg:this.egg||null, eggsHatched:this.eggsHatched||0, lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
     // Auto-sync to cloud (debounced)
     if(this._cloudSyncTimer) clearTimeout(this._cloudSyncTimer);
@@ -2473,6 +2586,10 @@ const G = {
       if(d.wordStats) this.wordStats=d.wordStats;
       if(d.popQuizWins!==undefined) this.popQuizWins=d.popQuizWins;
       if(d.wordmonHpMap) this.wordmonHpMap=d.wordmonHpMap;
+      if(d.egg!==undefined) this.egg=d.egg;
+      if(d.eggsHatched!==undefined) this.eggsHatched=d.eggsHatched;
+      if(d.lastLoginDate!==undefined) this.lastLoginDate=d.lastLoginDate;
+      if(d.loginStreak!==undefined) this.loginStreak=d.loginStreak;
     }catch(e){}
   },
 
@@ -2564,6 +2681,7 @@ const G = {
     const wv=document.getElementById('walletVal');if(wv)wv.textContent=this.coins;
     const iw=document.getElementById('inlineWallet');if(iw)iw.textContent=this.coins;
     this.updateBackpack();
+    try{this.updateEggHud();}catch(e){}
     const pct = Math.min(100,(this.xp/this.xpNeeded)*100);
     document.getElementById('xpFill').style.width = pct+'%';
     document.getElementById('xpLabel').textContent = this.xp+' / '+this.xpNeeded+' XP';
@@ -2834,6 +2952,250 @@ const G = {
     this.coins+=n;
     this.updateHUD();
     if(this.mode==='shop') this.loadShopView();
+  },
+
+  // ============================================================
+  // 🥚 MYSTERY EGG SYSTEM
+  // ============================================================
+  // Each egg ticks down by 1 with every correct answer. When the
+  // progress hits the needed count, the egg hatches into a NEW
+  // Wordmon (one Río doesn't already own) with a dramatic reveal.
+  // Daily "Golden Eggs" arrive once per calendar day and guarantee
+  // a rarer hatch (final-evolution biased) with bonus coins.
+  EGG_TYPES:{
+    normal: {emoji:'🥚', color:'#f5deb3', stroke:'#92400e', name:'Mystery Egg', needed:8,  bonusCoins:5,  rareChance:0.15},
+    fire:   {emoji:'🥚', color:'#fb923c', stroke:'#9a3412', name:'Fire Egg',    needed:10, bonusCoins:8,  rareChance:0.25},
+    water:  {emoji:'🥚', color:'#7dd3fc', stroke:'#075985', name:'Water Egg',   needed:10, bonusCoins:8,  rareChance:0.25},
+    grass:  {emoji:'🥚', color:'#86efac', stroke:'#166534', name:'Grass Egg',   needed:10, bonusCoins:8,  rareChance:0.25},
+    fairy:  {emoji:'🥚', color:'#fbcfe8', stroke:'#9d174d', name:'Fairy Egg',   needed:12, bonusCoins:12, rareChance:0.40},
+    daily:  {emoji:'✨', color:'#fde047', stroke:'#b45309', name:'Daily Bonus Egg', needed:6, bonusCoins:25, rareChance:0.70},
+  },
+
+  // Get today's date key (used to detect a new calendar day)
+  _today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); },
+
+  // Initialize the daily login: bump streak, drop a golden egg if needed
+  initDailyLogin(){
+    const today=this._today();
+    if(this.lastLoginDate!==today){
+      // First open of a new calendar day
+      const yesterday=new Date(Date.now()-86400000);
+      const ykey=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+      this.loginStreak = (this.lastLoginDate===ykey) ? (this.loginStreak||0)+1 : 1;
+      this.lastLoginDate=today;
+      // Drop a daily golden egg if no egg is active (or replace a stale normal egg)
+      if(!this.egg || !this.egg.isDaily){
+        // If a normal egg is in progress, save it as queued and put the daily on top
+        this._queuedEgg = (this.egg && !this.egg.isDaily) ? this.egg : null;
+        this.egg = {type:'daily', needed:this.EGG_TYPES.daily.needed, progress:0, isDaily:true};
+      }
+      // Show a friendly login banner
+      if(this.loginStreak>1){
+        setTimeout(()=>this.showLoginStreakBanner(),900);
+      }
+    }
+    // Make sure SOME egg is always present so Río always has progress to chase
+    if(!this.egg) this.spawnNextEgg();
+  },
+
+  spawnNextEgg(){
+    // Random non-daily egg, weighted toward earlier types
+    const pool=['normal','normal','normal','fire','water','grass','fairy'];
+    const type=pool[Math.floor(Math.random()*pool.length)];
+    this.egg = {type, needed:this.EGG_TYPES[type].needed, progress:0, isDaily:false};
+    try{this.updateEggHud();}catch(e){}
+  },
+
+  // Tick the active egg by +1 (called from onCorrect)
+  tickEgg(){
+    if(!this.egg) this.spawnNextEgg();
+    this.egg.progress=(this.egg.progress||0)+1;
+    const def=this.EGG_TYPES[this.egg.type]||this.EGG_TYPES.normal;
+    // Subtle heartbeat sound when close
+    if(this.egg.progress===def.needed-2 || this.egg.progress===def.needed-1){
+      try{SFX.play('eggShake');}catch(e){}
+    }
+    if(this.egg.progress>=def.needed){
+      this.hatchEgg();
+    } else {
+      this.updateEggHud();
+    }
+  },
+
+  // Pick a wordmon to hatch — prefer ones Río doesn't already have
+  _pickEggWordmon(rare){
+    const owned=new Set(this.caughtWordmons||[]);
+    const uncaught=[];
+    for(let i=0;i<WORDMONS.length;i++) if(!owned.has(i)) uncaught.push(i);
+    // Filter by type for typed eggs (fire/water/grass/fairy)
+    const type=this.egg&&this.egg.type;
+    const typeMap={fire:'Fire',water:'Water',grass:'Grass',fairy:'Fairy'};
+    let pool=uncaught;
+    if(typeMap[type]){
+      const typed=uncaught.filter(i=>WORDMONS[i].type===typeMap[type]);
+      if(typed.length) pool=typed;
+    }
+    if(!pool.length){
+      // Río already has every Wordmon — surprise him with a duplicate any way
+      pool=WORDMONS.map((_,i)=>i);
+    }
+    if(rare && pool.length>3){
+      // Lean toward the back half (newer/rarer) wordmons
+      const back=pool.slice(Math.floor(pool.length/2));
+      if(back.length) pool=back;
+    }
+    return pool[Math.floor(Math.random()*pool.length)];
+  },
+
+  hatchEgg(){
+    if(!this.egg) return;
+    const eggType=this.egg.type;
+    const def=this.EGG_TYPES[eggType]||this.EGG_TYPES.normal;
+    const isRare = Math.random()<def.rareChance;
+    const wmIdx=this._pickEggWordmon(isRare);
+    const wm=this.getWordmon(wmIdx);
+    const wasAlreadyCaught = this.caughtWordmons.includes(wmIdx);
+    if(!wasAlreadyCaught) this.caughtWordmons.push(wmIdx);
+    this.eggsHatched=(this.eggsHatched||0)+1;
+    this.addCoins(def.bonusCoins);
+    // Clear active egg + queue
+    this.egg=null;
+    this.updateEggHud();
+    // Show the dramatic reveal
+    this.showHatchReveal(wm, def, wasAlreadyCaught);
+    // Persist
+    this.saveGame();
+    // Promote any queued egg (daily replaced an in-progress one)
+    if(this._queuedEgg){
+      setTimeout(()=>{this.egg=this._queuedEgg;this._queuedEgg=null;this.updateEggHud();},800);
+    } else {
+      setTimeout(()=>{this.spawnNextEgg();},800);
+    }
+  },
+
+  // Render the hatching ceremony — full-screen overlay with shake + crack + reveal
+  showHatchReveal(wm, def, wasDuplicate){
+    if(!document.getElementById('eggHatchStyles')){
+      const s=document.createElement('style');s.id='eggHatchStyles';
+      s.textContent=`
+        @keyframes eggShakeAnim{0%,100%{transform:rotate(0)}10%{transform:rotate(-8deg)}30%{transform:rotate(6deg)}50%{transform:rotate(-10deg)}70%{transform:rotate(8deg)}90%{transform:rotate(-4deg)}}
+        @keyframes eggCrackAnim{0%{transform:scale(1) rotate(0);opacity:1}40%{transform:scale(1.15) rotate(-4deg);opacity:1}80%{transform:scale(.9) rotate(2deg);opacity:.6}100%{transform:scale(0) rotate(20deg);opacity:0}}
+        @keyframes eggBurst{0%{transform:scale(0);opacity:0}40%{transform:scale(1.4);opacity:1}100%{transform:scale(2.5);opacity:0}}
+        @keyframes eggWmReveal{0%{transform:scale(.2) rotate(-10deg);opacity:0}50%{transform:scale(1.25) rotate(4deg);opacity:1}70%{transform:scale(.95) rotate(-2deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+        @keyframes eggCardSlide{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
+        .hatch-overlay{position:fixed;inset:0;z-index:400;background:radial-gradient(circle,rgba(91,33,182,.85),rgba(10,10,20,.95));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px)}
+        .hatch-eyebrow{font-family:'Press Start 2P','Fredoka One',cursive;font-size:.7rem;color:#fde047;letter-spacing:.18em;text-shadow:2px 2px 0 rgba(0,0,0,.4);margin-bottom:18px;animation:eggCardSlide .5s ease}
+        .hatch-egg-wrap{position:relative;width:180px;height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+        .hatch-egg{font-size:8rem;line-height:1;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4))}
+        .hatch-burst{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14rem;line-height:1;color:#fde047;text-shadow:0 0 40px rgba(253,224,71,1);opacity:0}
+        .hatch-wm{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
+        .hatch-wm img,.hatch-wm svg{width:160px;height:160px;filter:drop-shadow(0 0 24px rgba(253,224,71,.7)) drop-shadow(0 8px 12px rgba(0,0,0,.5));image-rendering:pixelated}
+        .hatch-title{font-family:'Recoleta','Fredoka One',serif;font-size:2.4rem;font-weight:600;text-align:center;margin:8px 0 4px;background:linear-gradient(135deg,#fde047,#fbbf24,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.5));animation:eggCardSlide .6s ease}
+        .hatch-bio{font-family:'Nunito',sans-serif;font-size:.95rem;text-align:center;color:#fff;max-width:340px;margin:8px 0 18px;line-height:1.4;text-shadow:1px 1px 4px rgba(0,0,0,.6);animation:eggCardSlide .8s ease}
+        .hatch-bonus{display:inline-flex;align-items:center;gap:6px;font-family:'Fredoka One',cursive;font-size:.95rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;padding:8px 16px;border-radius:99px;box-shadow:0 4px 16px rgba(251,191,36,.4);margin-bottom:14px;animation:eggCardSlide 1s ease}
+        .hatch-ok{font-family:'Fredoka One',cursive;font-size:1.1rem;padding:12px 32px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(168,85,247,.4);animation:eggCardSlide 1.2s ease}
+        .hatch-ok:hover{transform:translateY(-2px)}
+      `;
+      document.head.appendChild(s);
+    }
+    const overlay=document.createElement('div');
+    overlay.className='hatch-overlay';
+    // Use the egg color
+    const eggBgColor=def.color, eggStrokeColor=def.stroke;
+    const eggSvg='<svg viewBox="0 0 100 120" style="width:100%;height:100%"><ellipse cx="50" cy="65" rx="38" ry="50" fill="'+eggBgColor+'" stroke="'+eggStrokeColor+'" stroke-width="4"/><ellipse cx="35" cy="48" rx="14" ry="8" fill="rgba(255,255,255,.45)" transform="rotate(-20 35 48)"/><circle cx="42" cy="80" r="3" fill="'+eggStrokeColor+'" opacity=".4"/><circle cx="58" cy="92" r="2.5" fill="'+eggStrokeColor+'" opacity=".4"/><circle cx="52" cy="70" r="2" fill="'+eggStrokeColor+'" opacity=".4"/></svg>';
+    overlay.innerHTML=
+      '<div class="hatch-eyebrow">✦ '+def.name.toUpperCase()+' IS HATCHING ✦</div>'+
+      '<div class="hatch-egg-wrap">'+
+        '<div class="hatch-egg" id="hatchEggGraphic" style="animation:eggShakeAnim .35s ease infinite">'+eggSvg+'</div>'+
+        '<div class="hatch-burst" id="hatchBurst">✦</div>'+
+        '<div class="hatch-wm" id="hatchWm"></div>'+
+      '</div>'+
+      '<div id="hatchTextWrap" style="display:none">'+
+        '<div class="hatch-title" id="hatchTitle"></div>'+
+        '<div class="hatch-bio" id="hatchBio"></div>'+
+        '<div class="hatch-bonus">+'+def.bonusCoins+' coins · '+(wasDuplicate?'Bonus XP!':'New friend! 🎉')+'</div>'+
+        '<button class="hatch-ok" id="hatchOk">Awesome!</button>'+
+      '</div>';
+    document.body.appendChild(overlay);
+    SFX.play('eggShake');
+    // Phase 1: shake (1.4s)
+    setTimeout(()=>{
+      SFX.play('eggCrack');
+      const eg=document.getElementById('hatchEggGraphic');
+      if(eg) eg.style.animation='eggCrackAnim .9s ease forwards';
+      const burst=document.getElementById('hatchBurst');
+      if(burst) burst.style.animation='eggBurst .9s ease forwards';
+    },1400);
+    // Phase 2: hatch reveal
+    setTimeout(()=>{
+      SFX.play('eggHatch');
+      const wmEl=document.getElementById('hatchWm');
+      if(wmEl){
+        wmEl.innerHTML=this.spriteHtml(wm,160);
+        wmEl.style.animation='eggWmReveal 1.2s ease forwards';
+      }
+      this.fireConfetti();
+    },2300);
+    // Phase 3: show text + OK button
+    setTimeout(()=>{
+      const tw=document.getElementById('hatchTextWrap');
+      if(tw) tw.style.display='block';
+      document.getElementById('hatchTitle').textContent=wasDuplicate?(wm.name+'!'):'It\'s '+wm.name+'!';
+      document.getElementById('hatchBio').textContent=wm.bio||((wm.name||'Your new Wordmon')+' is happy to meet you!');
+      const ok=document.getElementById('hatchOk');
+      if(ok) ok.addEventListener('click',()=>{
+        overlay.remove();
+        try{this.renderRoster();this.updateHUD();}catch(e){}
+      });
+      // Read the name out for early readers
+      try{
+        if(window.speechSynthesis){
+          speechSynthesis.cancel();
+          const u=new SpeechSynthesisUtterance('Meet '+wm.name+'! '+(wm.bio||''));
+          u.rate=0.85;u.pitch=1.1;
+          const v=getBestVoice();if(v)u.voice=v;
+          speechSynthesis.speak(u);
+        }
+      }catch(e){}
+    },3400);
+  },
+
+  // Render the floating egg widget on the home screen
+  updateEggHud(){
+    const widget=document.getElementById('eggWidget');
+    if(!widget) return;
+    if(!this.egg){widget.style.display='none';return;}
+    const def=this.EGG_TYPES[this.egg.type]||this.EGG_TYPES.normal;
+    widget.style.display='flex';
+    const pct=Math.min(100,Math.round((this.egg.progress/this.egg.needed)*100));
+    const remaining=Math.max(0,this.egg.needed-this.egg.progress);
+    const close=remaining<=2;
+    const eggSvg='<svg viewBox="0 0 100 120" style="width:34px;height:38px;'+(close?'animation:eggWiggle .4s ease-in-out infinite':'')+'"><ellipse cx="50" cy="65" rx="38" ry="50" fill="'+def.color+'" stroke="'+def.stroke+'" stroke-width="5"/><ellipse cx="35" cy="48" rx="14" ry="8" fill="rgba(255,255,255,.55)" transform="rotate(-20 35 48)"/></svg>';
+    widget.innerHTML=
+      '<div class="egg-glow"></div>'+
+      '<div style="position:relative;z-index:2;display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px">'+
+        '<div style="width:34px;height:38px;display:flex;align-items:center;justify-content:center">'+eggSvg+'</div>'+
+        '<div style="display:flex;flex-direction:column;justify-content:center;gap:2px">'+
+          '<div style="font-family:\'Press Start 2P\',\'Fredoka One\',cursive;font-size:.5rem;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.4);letter-spacing:.04em">'+(this.egg.isDaily?'DAILY EGG':'EGG')+'</div>'+
+          '<div style="position:relative;width:60px;height:6px;background:rgba(0,0,0,.45);border-radius:99px;overflow:hidden">'+
+            '<div style="position:absolute;inset:0;width:'+pct+'%;background:linear-gradient(90deg,'+def.color+','+def.stroke+');transition:width .4s"></div>'+
+          '</div>'+
+          '<div style="font-family:\'Nunito\',sans-serif;font-size:.55rem;color:#fff;font-weight:700">'+remaining+' to hatch</div>'+
+        '</div>'+
+      '</div>';
+    widget.title=def.name+' — answer '+remaining+' more correctly to hatch!';
+  },
+
+  showLoginStreakBanner(){
+    const banner=document.createElement('div');
+    banner.style.cssText='position:fixed;top:90px;left:50%;transform:translateX(-50%) translateY(-100px);background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;padding:12px 20px;border-radius:18px;font-family:\'Fredoka One\',cursive;font-size:1rem;box-shadow:0 8px 24px rgba(251,191,36,.5);z-index:250;transition:transform .5s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:10px;border:3px solid #fff';
+    banner.innerHTML='<span style="font-size:1.6rem">🔥</span>'+
+      '<div><div style="font-size:.7rem;letter-spacing:.1em;opacity:.85">DAY '+this.loginStreak+' STREAK!</div>'+
+      '<div>Welcome back! Daily Egg unlocked ✨</div></div>';
+    document.body.appendChild(banner);
+    setTimeout(()=>{banner.style.transform='translateX(-50%) translateY(0)';},50);
+    setTimeout(()=>{banner.style.transform='translateX(-50%) translateY(-120px)';},4200);
+    setTimeout(()=>banner.remove(),5000);
   },
 
   // ---- STREAK / CATCH ----
@@ -3728,6 +4090,7 @@ const G = {
     this.playerAttack();
     this.checkCatch();
     this.addWordmonXP(1);
+    try{this.tickEgg();}catch(e){}
     // Pre-generate evolution video if close to evolving
     // Evolution is handled by CSS cinematic (no video generation needed)
     this.showJoke(wd);
