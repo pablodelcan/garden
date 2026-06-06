@@ -574,6 +574,9 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
   <div class="egg-glow" style="position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(253,224,71,.35),transparent 60%);pointer-events:none"></div>
 </div>
 
+<!-- WHAT'S NEW BUTTON — replays the egg intro voice-over -->
+<button id="whatsNewBtn" onclick="G.showEggIntro&&G.showEggIntro(true)" title="What's New? Hear the voice-over again" style="position:fixed;bottom:286px;left:16px;width:42px;height:42px;border-radius:50%;border:2px solid #fde047;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;cursor:pointer;box-shadow:0 4px 12px rgba(251,191,36,.45);z-index:100;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s">🆕</button>
+
 <!-- HOME BUTTON -->
 <button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(147,51,234,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
 
@@ -2509,8 +2512,149 @@ const G = {
     this.updateReadingStreak();
     // 🥚 Mystery Egg system — daily login + bonus golden egg
     try{this.initDailyLogin();this.updateEggHud();}catch(e){console.warn('egg init',e);}
+    // One-time announcement of the egg feature (with voice-over)
+    setTimeout(()=>{try{this.showEggIntro();}catch(e){console.warn('intro',e);}}, 1400);
     // auto-save every 30s
     setInterval(()=>this.saveGame(),30000);
+  },
+
+  // ============================================================
+  // 🆕 EGG INTRO — one-time announcement explaining the feature
+  // ============================================================
+  // Shows automatically on the first home-screen visit after the
+  // egg system shipped. Plays a friendly voice-over Río can listen
+  // to. Tracked in localStorage so it only appears once unless he
+  // taps the "What's New?" badge to replay it.
+  EGG_INTRO_VERSION:'2026-06-egg-v1',
+  showEggIntro(force){
+    try{
+      const seen=localStorage.getItem('rio_egg_intro_seen');
+      if(seen===this.EGG_INTRO_VERSION && !force) return;
+    }catch(e){}
+    if(document.getElementById('eggIntroOverlay')) return; // already open
+    // Inject styles once
+    if(!document.getElementById('eggIntroStyles')){
+      const s=document.createElement('style');s.id='eggIntroStyles';
+      s.textContent=`
+        @keyframes eggIntroFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+        @keyframes eggIntroPop{0%{transform:scale(.4) rotate(-10deg);opacity:0}60%{transform:scale(1.08) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+        @keyframes eggIntroBg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        @keyframes eggIntroSparkle{0%{transform:translate(0,0) scale(0);opacity:0}40%{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:1}100%{transform:translate(calc(var(--dx)*2),calc(var(--dy)*2)) scale(0);opacity:0}}
+        @keyframes eggIntroFadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+        @keyframes eggIntroSpeakerPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(253,224,71,.4)}50%{transform:scale(1.08);box-shadow:0 0 0 8px rgba(253,224,71,0)}}
+        .egg-intro-overlay{position:fixed;inset:0;z-index:500;background:radial-gradient(circle at 50% 40%,rgba(91,33,182,.92),rgba(15,8,40,.97));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px);animation:eggIntroFadeUp .5s ease}
+        .egg-intro-card{background:linear-gradient(160deg,#fff,#fef3c7 60%,#fed7aa);background-size:200% 200%;animation:eggIntroBg 6s ease infinite;border-radius:28px;max-width:380px;width:100%;padding:24px 22px 22px;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.9);border:4px solid #fde047;position:relative;overflow:hidden}
+        .egg-intro-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(253,224,71,.6),transparent 50%),radial-gradient(circle at 20% 80%,rgba(236,72,153,.4),transparent 50%);pointer-events:none}
+        .egg-intro-eyebrow{position:relative;z-index:2;display:inline-flex;align-items:center;gap:6px;font-family:'Press Start 2P','Fredoka One',cursive;font-size:.55rem;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;padding:6px 14px;border-radius:99px;letter-spacing:.16em;box-shadow:0 4px 12px rgba(91,33,182,.4)}
+        .egg-intro-headline{position:relative;z-index:2;font-family:'Recoleta','Fredoka One',serif;font-size:1.9rem;font-weight:600;color:#7c2d12;margin:14px 0 6px;line-height:1.05;text-align:center;background:linear-gradient(135deg,#7c2d12,#b45309,#7c3aed);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(2px 2px 0 rgba(124,45,18,.1))}
+        .egg-intro-egg{position:relative;z-index:2;margin:6px auto 4px;width:130px;height:140px;display:flex;align-items:center;justify-content:center;animation:eggIntroPop 1s cubic-bezier(.34,1.56,.64,1)}
+        .egg-intro-egg svg{filter:drop-shadow(0 8px 20px rgba(212,165,72,.55)) drop-shadow(0 0 14px rgba(253,224,71,.6));animation:eggIntroFloat 3s ease-in-out infinite}
+        .egg-intro-sparkle{position:absolute;font-size:1.1rem;color:#fde047;pointer-events:none;text-shadow:0 0 8px rgba(253,224,71,1)}
+        .egg-intro-body{position:relative;z-index:2;font-family:'Nunito',sans-serif;font-size:1.02rem;color:#4a2010;text-align:center;line-height:1.45;margin:10px 4px 14px;font-weight:600}
+        .egg-intro-features{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;margin:4px 0 16px}
+        .egg-intro-feat{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.7);border-radius:14px;border:2px solid #fde68a;font-family:'Fredoka One',cursive;font-size:.85rem;color:#7c2d12;animation:eggIntroFadeUp .6s ease both}
+        .egg-intro-feat .ef-icon{font-size:1.5rem;line-height:1;flex-shrink:0}
+        .egg-intro-feat .ef-text{flex:1;line-height:1.25}
+        .egg-intro-feat .ef-tag{font-family:'Nunito',sans-serif;font-size:.65rem;color:#92400e;font-weight:700;display:block;letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+        .egg-intro-actions{position:relative;z-index:2;display:flex;gap:10px;justify-content:center}
+        .egg-intro-btn{font-family:'Fredoka One',cursive;font-size:1.05rem;padding:12px 22px;border-radius:14px;border:none;cursor:pointer;transition:all .15s;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+        .egg-intro-btn.primary{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff}
+        .egg-intro-btn.primary:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(124,58,237,.5)}
+        .egg-intro-btn.speaker{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;display:flex;align-items:center;gap:6px;animation:eggIntroSpeakerPulse 2s ease-in-out infinite}
+        .egg-intro-btn.speaker:hover{transform:translateY(-2px)}
+        .egg-intro-btn.speaker.speaking{animation:none;opacity:.7}
+      `;
+      document.head.appendChild(s);
+    }
+    const overlay=document.createElement('div');
+    overlay.className='egg-intro-overlay';
+    overlay.id='eggIntroOverlay';
+    // A friendly Daily Egg illustration
+    const eggSvg=`<svg viewBox="0 0 100 130" style="width:100%;height:100%">
+      <defs>
+        <linearGradient id="eggGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fde047"/>
+          <stop offset="1" stop-color="#f59e0b"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="50" cy="70" rx="40" ry="55" fill="url(#eggGrad)" stroke="#92400e" stroke-width="4"/>
+      <ellipse cx="35" cy="50" rx="14" ry="9" fill="rgba(255,255,255,.6)" transform="rotate(-20 35 50)"/>
+      <circle cx="46" cy="86" r="3" fill="#92400e" opacity=".35"/>
+      <circle cx="60" cy="100" r="2.6" fill="#92400e" opacity=".35"/>
+      <circle cx="52" cy="74" r="2" fill="#92400e" opacity=".35"/>
+      <path d="M30 20 L35 28 L40 20 L36 32 L48 24 L40 36 L52 32 L42 40 L52 44 L42 44" stroke="#fde047" stroke-width="2" fill="none" opacity=".8" transform="translate(38 -10) scale(.5)"/>
+    </svg>`;
+    overlay.innerHTML=`
+      <div class="egg-intro-card">
+        <div style="text-align:center;margin-bottom:4px"><span class="egg-intro-eyebrow">✨ WHAT'S NEW</span></div>
+        <div class="egg-intro-headline">Mystery Eggs are here!</div>
+        <div class="egg-intro-egg">${eggSvg}
+          <span class="egg-intro-sparkle" style="--dx:-50px;--dy:-30px;top:18%;left:8%;animation:eggIntroSparkle 1.6s ease infinite">✨</span>
+          <span class="egg-intro-sparkle" style="--dx:50px;--dy:-30px;top:20%;right:10%;animation:eggIntroSparkle 1.6s ease .4s infinite">⭐</span>
+          <span class="egg-intro-sparkle" style="--dx:-40px;--dy:30px;bottom:18%;left:14%;animation:eggIntroSparkle 1.6s ease .8s infinite">✦</span>
+          <span class="egg-intro-sparkle" style="--dx:40px;--dy:40px;bottom:14%;right:14%;animation:eggIntroSparkle 1.6s ease 1.2s infinite">✨</span>
+        </div>
+        <div class="egg-intro-body">Hey Río! There's something new in your game!</div>
+        <div class="egg-intro-features">
+          <div class="egg-intro-feat" style="animation-delay:.1s">
+            <span class="ef-icon">🥚</span>
+            <span class="ef-text">Every time you get a word right, your mystery egg gets warmer!<span class="ef-tag">Read &amp; hatch</span></span>
+          </div>
+          <div class="egg-intro-feat" style="animation-delay:.25s">
+            <span class="ef-icon">🐣</span>
+            <span class="ef-text">When the egg hatches, you meet a brand-new Wordmon friend!<span class="ef-tag">Surprise inside</span></span>
+          </div>
+          <div class="egg-intro-feat" style="animation-delay:.4s">
+            <span class="ef-icon">✨</span>
+            <span class="ef-text">Come back every day for a Daily Golden Egg — extra rare!<span class="ef-tag">Daily bonus</span></span>
+          </div>
+        </div>
+        <div class="egg-intro-actions">
+          <button class="egg-intro-btn speaker" id="eggIntroSpeak" title="Hear it again">🔊 Hear it</button>
+          <button class="egg-intro-btn primary" id="eggIntroClose">Let's play! →</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    // The voice-over script — 4 short sentences with pauses between
+    const lines=[
+      "Hey Río! Guess what? There's something brand new in your game.",
+      "Every time you get a word right, your magic egg gets warmer.",
+      "When the egg hatches, you meet a brand new Wordmon friend!",
+      "And every single day, a special golden egg shows up just for you. So come back tomorrow to hatch another one!"
+    ];
+    const speakAll=()=>{
+      if(!window.speechSynthesis) return;
+      try{speechSynthesis.cancel();}catch(e){}
+      const btn=document.getElementById('eggIntroSpeak');
+      if(btn) btn.classList.add('speaking');
+      let i=0;
+      const speakNext=()=>{
+        if(i>=lines.length){
+          if(btn) btn.classList.remove('speaking');
+          return;
+        }
+        const u=new SpeechSynthesisUtterance(lines[i]);
+        u.rate=0.92;u.pitch=1.12;
+        const v=getBestVoice();if(v)u.voice=v;
+        u.onend=()=>{i++;setTimeout(speakNext,250);};
+        speechSynthesis.speak(u);
+      };
+      speakNext();
+    };
+    // Start the voice-over after a brief beat so it lines up with the pop-in
+    setTimeout(speakAll, 650);
+    // Small confetti burst for fun
+    try{this.fireConfetti&&this.fireConfetti();}catch(e){}
+    // Wire buttons
+    document.getElementById('eggIntroSpeak').addEventListener('click',speakAll);
+    document.getElementById('eggIntroClose').addEventListener('click',()=>{
+      try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+      overlay.remove();
+      try{localStorage.setItem('rio_egg_intro_seen',this.EGG_INTRO_VERSION);}catch(e){}
+      // Pull the egg widget into view so he notices it
+      try{const w=document.getElementById('eggWidget');if(w){w.style.animation='eggWiggle .4s ease 0s 3, eggFloat 3.5s ease-in-out 1.6s infinite';}}catch(e){}
+    });
   },
 
   // Show a small peek modal when Río taps the egg widget
