@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wordmon Saga — The Lost Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1a1a2e; --cream:#f8f0d8; --accent:#5b21b6; --accent2:#7c3aed;
+  --gold:#d4a548; --green:#22c55e; --red:#ef4444; --text:#2a1f3d; --text2:#6b5d7a;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito',sans-serif;background:#0a0a14;color:var(--text);overflow:hidden;height:100vh;height:100dvh}
+#gameRoot{position:relative;width:100%;height:100vh;height:100dvh;max-width:600px;margin:0 auto;background:#000;overflow:hidden}
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+
+/* ===== GBA-style HUD chrome ===== */
+.gba-box{background:var(--cream);border:3px solid var(--navy);box-shadow:0 0 0 2px var(--cream),3px 3px 0 var(--navy);border-radius:2px}
+.px{font-family:'Press Start 2P','Courier New',monospace}
+
+/* HUD top bar */
+#hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:30}
+#hudZone{padding:6px 10px;font-size:.55rem;letter-spacing:.06em;color:var(--navy)}
+#hudRight{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.hud-pill{padding:5px 9px;font-size:.5rem;color:var(--navy);display:flex;gap:6px;align-items:center}
+.hud-btn{pointer-events:auto;cursor:pointer;padding:7px 10px;font-size:.55rem;color:var(--navy);transition:transform .1s}
+.hud-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 2px var(--cream),1px 1px 0 var(--navy)}
+#hudBtns{position:absolute;bottom:190px;right:10px;display:flex;flex-direction:column;gap:8px;z-index:30}
+
+/* D-pad */
+#dpad{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:grid;grid-template:52px 52px 52px/52px 52px 52px;gap:4px;z-index:30}
+.dpad-btn{border:3px solid rgba(255,255,255,.35);background:rgba(26,26,46,.55);color:#fff;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(4px);border-radius:10px;display:flex;align-items:center;justify-content:center;user-select:none}
+.dpad-btn:active{background:rgba(124,58,237,.6)}
+.dpad-a{background:rgba(91,33,182,.7);border-color:#a855f7;font-family:'Press Start 2P',monospace;font-size:.8rem}
+
+/* ===== Dialogue box ===== */
+#dlg{display:none;position:absolute;left:10px;right:10px;bottom:184px;z-index:40;padding:13px 14px;min-height:84px;font-family:'Press Start 2P','Courier New',monospace;font-size:.62rem;line-height:1.8;color:var(--navy);letter-spacing:.4px;cursor:pointer}
+#dlgName{position:absolute;top:-12px;left:10px;background:var(--navy);color:#fff;padding:3px 10px;font-size:.5rem;letter-spacing:1px;border-radius:3px;font-family:'Press Start 2P',monospace}
+#dlgArrow{position:absolute;bottom:6px;right:12px;color:var(--navy);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.tapw{cursor:pointer;border-radius:3px;padding:0 1px}
+.tapw:active{background:var(--gold)}
+
+/* ===== Full-screen overlays ===== */
+.overlay{display:none;position:absolute;inset:0;z-index:60;background:rgba(10,10,20,.92);overflow-y:auto;padding:14px;backdrop-filter:blur(6px)}
+.overlay.open{display:block}
+.ov-title{font-family:'Press Start 2P',monospace;font-size:.8rem;color:#fff;text-align:center;margin:10px 0 14px;letter-spacing:.1em;text-shadow:2px 2px 0 var(--navy)}
+.ov-close{position:absolute;top:12px;right:12px;z-index:5;background:var(--navy);color:#fff;border:2px solid #fff;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:.55rem;cursor:pointer;border-radius:3px}
+.card{background:var(--cream);border:3px solid var(--navy);border-radius:4px;box-shadow:4px 4px 0 rgba(0,0,0,.5);padding:14px;margin:0 auto 12px;max-width:430px}
+
+/* ===== Battle ===== */
+#battle{display:none;position:absolute;inset:0;z-index:50;background:#000;flex-direction:column}
+#battle.open{display:flex}
+#btlScene{position:relative;flex:1;background-size:cover;background-position:center;min-height:230px;overflow:hidden}
+.btl-mon{position:absolute;display:flex;flex-direction:column;align-items:center}
+.btl-mon svg,.btl-mon img{width:120px;height:120px;image-rendering:pixelated;filter:drop-shadow(3px 5px 8px rgba(0,0,0,.45))}
+#btlPlayer{left:6%;bottom:4%;animation:bobP 2s ease-in-out infinite}
+#btlEnemy{right:6%;top:10%;animation:bobE 2s ease-in-out infinite .4s}
+@keyframes bobP{50%{transform:translateY(-8px)}}
+@keyframes bobE{50%{transform:translateY(-8px)}}
+.hpbox{width:150px;background:var(--cream);padding:5px 8px 6px;border:3px solid var(--navy);box-shadow:2px 2px 0 var(--navy);position:absolute;z-index:5}
+#hpBoxE{top:10px;left:10px}
+#hpBoxP{bottom:10px;right:10px}
+.hp-name{font-family:'Press Start 2P',monospace;font-size:.5rem;color:var(--navy);display:flex;justify-content:space-between;margin-bottom:4px;text-transform:uppercase}
+.hp-row{display:flex;align-items:center;gap:4px}
+.hp-lab{font-family:'Press Start 2P',monospace;font-size:.42rem;color:var(--navy)}
+.hp-track{flex:1;height:8px;background:var(--navy);box-shadow:inset 1px 1px 0 rgba(0,0,0,.6)}
+.hp-fill{height:100%;background:var(--green);transition:width .5s;box-shadow:inset 0 2px 0 rgba(255,255,255,.45)}
+.hp-num{font-family:'Press Start 2P',monospace;font-size:.45rem;color:var(--navy);text-align:right;margin-top:3px}
+#btlMsg{background:var(--cream);border-top:4px solid var(--navy);padding:12px 14px;font-family:'Press Start 2P',monospace;font-size:.6rem;line-height:1.8;color:var(--navy);min-height:64px}
+#btlActions{background:var(--navy);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btl-btn{font-family:'Press Start 2P',monospace;font-size:.55rem;padding:13px 8px;background:var(--cream);color:var(--navy);border:3px solid #fff;cursor:pointer;border-radius:3px;line-height:1.5}
+.btl-btn:active{transform:translate(1px,1px)}
+.btl-btn.gold{background:var(--gold)}
+.btl-btn:disabled{opacity:.4;pointer-events:none}
+.btl-shake{animation:shake .4s ease}
+@keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.btl-flash{animation:hflash .35s ease}
+@keyframes hflash{30%{filter:brightness(2.4) saturate(.2)}}
+
+/* ===== Exercise modal ===== */
+#exModal{display:none;position:absolute;inset:0;z-index:70;background:rgba(10,10,20,.88);align-items:center;justify-content:center;padding:14px}
+#exModal.open{display:flex}
+#exCard{background:var(--cream);border:4px solid var(--navy);border-radius:6px;box-shadow:5px 5px 0 rgba(0,0,0,.5);padding:18px 16px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto}
+.ex-tag{display:inline-block;font-family:'Press Start 2P',monospace;font-size:.45rem;background:var(--accent);color:#fff;padding:4px 9px;border-radius:3px;letter-spacing:.08em;margin-bottom:10px}
+.ex-q{font-family:'Fredoka One',cursive;font-size:1.25rem;color:var(--text);text-align:center;margin:6px 0 14px;line-height:1.5}
+.ex-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ex-btn{font-family:'Fredoka One',cursive;font-size:1.15rem;padding:14px 8px;border:3px solid var(--navy);background:#fff;cursor:pointer;border-radius:6px;color:var(--text);box-shadow:2px 2px 0 var(--navy)}
+.ex-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--navy)}
+.ex-btn.ok{background:#bbf7d0;border-color:#15803d}
+.ex-btn.bad{background:#fecaca;border-color:#b91c1c}
+.ex-speaker{display:block;margin:4px auto 10px;font-size:2.4rem;background:none;border:none;cursor:pointer;animation:pulseS 2s ease-in-out infinite}
+@keyframes pulseS{50%{transform:scale(1.12)}}
+.spell-slots{display:flex;justify-content:center;gap:5px;margin:10px 0;flex-wrap:wrap}
+.spell-slot{width:34px;height:42px;border-bottom:4px solid var(--navy);font-family:'Fredoka One',cursive;font-size:1.6rem;text-align:center;line-height:42px;color:var(--text)}
+.spell-tiles{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.spell-tile{width:42px;height:48px;font-family:'Fredoka One',cursive;font-size:1.4rem;border:3px solid var(--navy);background:#fff;cursor:pointer;border-radius:6px;box-shadow:2px 2px 0 var(--navy)}
+.spell-tile:disabled{opacity:.25}
+.passage{background:#fff;border:3px solid var(--accent);border-radius:8px;padding:14px;font-family:'Fredoka One',cursive;font-size:1.05rem;line-height:2.1;text-align:center;color:var(--text);margin-bottom:12px}
+
+/* ===== Quest log / Dex / Bag entries ===== */
+.q-item{display:flex;gap:10px;align-items:flex-start;padding:8px 4px;border-bottom:2px dashed rgba(26,26,46,.2);font-size:.85rem;font-weight:700;color:var(--text)}
+.q-check{font-size:1rem;flex-shrink:0}
+.dex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dex-cell{background:#fff;border:3px solid var(--navy);border-radius:6px;padding:8px 4px;text-align:center;cursor:pointer}
+.dex-cell svg{width:64px;height:64px}
+.dex-name{font-family:'Press Start 2P',monospace;font-size:.42rem;color:var(--navy);margin-top:4px;text-transform:uppercase}
+.bag-row{display:flex;align-items:center;gap:10px;background:#fff;border:3px solid var(--navy);border-radius:6px;padding:8px 10px;margin-bottom:8px;font-weight:800}
+.letters-grid{display:flex;flex-wrap:wrap;gap:5px}
+.letter-chip{font-family:'Fredoka One',cursive;font-size:.95rem;background:#fff;border:2px solid var(--navy);border-radius:5px;padding:3px 8px;box-shadow:1px 1px 0 var(--navy)}
+.craft-row{background:#fff;border:3px solid var(--navy);border-radius:6px;padding:10px;margin-bottom:10px}
+.craft-word{display:flex;gap:4px;margin:6px 0}
+.craft-letter{width:30px;height:34px;border:2px solid var(--navy);border-radius:4px;font-family:'Fredoka One',cursive;font-size:1.1rem;display:flex;align-items:center;justify-content:center}
+.craft-letter.have{background:#bbf7d0}
+.craft-letter.miss{background:#fecaca;opacity:.7}
+.craft-btn{font-family:'Press Start 2P',monospace;font-size:.5rem;padding:8px 12px;background:var(--gold);border:3px solid var(--navy);border-radius:4px;cursor:pointer;box-shadow:2px 2px 0 var(--navy)}
+.craft-btn:disabled{opacity:.4}
+
+/* ===== Title screen ===== */
+#title{position:absolute;inset:0;z-index:90;background:radial-gradient(circle at 50% 30%,#3b1b5a,#0a0a14 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+#title h1{font-family:'Press Start 2P',monospace;font-size:1.3rem;color:#fde047;text-shadow:3px 3px 0 #92400e,5px 5px 0 rgba(0,0,0,.5);line-height:1.9;margin-bottom:6px}
+#title .sub{font-family:'Press Start 2P',monospace;font-size:.55rem;color:#c4b5fd;letter-spacing:.15em;margin-bottom:26px}
+.title-btn{font-family:'Press Start 2P',monospace;font-size:.7rem;padding:15px 26px;background:var(--cream);color:var(--navy);border:3px solid #fff;box-shadow:0 0 0 2px var(--navy),4px 4px 0 rgba(0,0,0,.6);cursor:pointer;border-radius:3px;margin:6px;animation:blink 1.6s steps(2) infinite}
+.starter-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.starter-card{background:var(--cream);border:4px solid var(--navy);border-radius:8px;padding:12px;cursor:pointer;width:120px;transition:transform .15s}
+.starter-card:hover{transform:translateY(-4px)}
+.starter-card svg{width:84px;height:84px}
+.starter-name{font-family:'Press Start 2P',monospace;font-size:.5rem;color:var(--navy);margin-top:6px}
+.starter-type{font-size:.65rem;font-weight:800;margin-top:3px}
+
+/* Toast */
+#toast{position:absolute;top:70px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--navy);color:#fff;font-family:'Press Start 2P',monospace;font-size:.55rem;padding:10px 16px;border:2px solid #fff;border-radius:4px;z-index:95;transition:transform .4s cubic-bezier(.34,1.56,.64,1);max-width:90%;text-align:center;line-height:1.7}
+@media(min-width:500px){#dlg{font-size:.7rem}}
+</style>
+</head>
+<body>
+<div id="gameRoot">
+  <canvas id="world"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="hudZone" class="gba-box px">PAGES VILLAGE</div>
+    <div id="hudRight">
+      <div class="hud-pill gba-box px">⭐<span id="hudScore">0</span></div>
+      <div class="hud-pill gba-box px">🪙<span id="hudCoins">0</span></div>
+      <div class="hud-pill gba-box px">📜<span id="hudPages">0</span>/5</div>
+    </div>
+  </div>
+  <div id="hudBtns">
+    <div class="hud-btn gba-box px" onclick="UI.openQuest()">📋 QUEST</div>
+    <div class="hud-btn gba-box px" onclick="UI.openParty()">👥 TEAM</div>
+    <div class="hud-btn gba-box px" onclick="UI.openBag()">🎒 BAG</div>
+    <div class="hud-btn gba-box px" onclick="UI.openDex()">📕 DEX</div>
+  </div>
+
+  <!-- D-PAD -->
+  <div id="dpad">
+    <div></div><button class="dpad-btn" data-dir="up">▲</button><div></div>
+    <button class="dpad-btn" data-dir="left">◀</button><button class="dpad-btn dpad-a" data-dir="action">A</button><button class="dpad-btn" data-dir="right">▶</button>
+    <div></div><button class="dpad-btn" data-dir="down">▼</button><div></div>
+  </div>
+
+  <!-- DIALOGUE -->
+  <div id="dlg" class="gba-box">
+    <div id="dlgName"></div>
+    <div id="dlgText"></div>
+    <div id="dlgArrow" style="display:none">▼</div>
+  </div>
+
+  <!-- BATTLE -->
+  <div id="battle">
+    <div id="btlScene">
+      <div class="hpbox" id="hpBoxE">
+        <div class="hp-name"><span id="eName">?</span><span id="eLv">:L1</span></div>
+        <div class="hp-row"><span class="hp-lab">HP</span><div class="hp-track"><div class="hp-fill" id="eHp" style="width:100%"></div></div></div>
+        <div class="hp-num" id="eHpN"></div>
+      </div>
+      <div class="hpbox" id="hpBoxP">
+        <div class="hp-name"><span id="pName">?</span><span id="pLv">:L1</span></div>
+        <div class="hp-row"><span class="hp-lab">HP</span><div class="hp-track"><div class="hp-fill" id="pHp" style="width:100%"></div></div></div>
+        <div class="hp-num" id="pHpN"></div>
+      </div>
+      <div class="btl-mon" id="btlEnemy"></div>
+      <div class="btl-mon" id="btlPlayer"></div>
+    </div>
+    <div id="btlMsg" class="px">A wild Wordmon appears!</div>
+    <div id="btlActions"></div>
+  </div>
+
+  <!-- EXERCISE MODAL -->
+  <div id="exModal"><div id="exCard"></div></div>
+
+  <!-- GENERIC OVERLAYS -->
+  <div class="overlay" id="ovQuest"><button class="ov-close px" onclick="UI.close('ovQuest')">✕</button><div class="ov-title">QUEST LOG</div><div id="questBody"></div></div>
+  <div class="overlay" id="ovParty"><button class="ov-close px" onclick="UI.close('ovParty')">✕</button><div class="ov-title">YOUR TEAM</div><div id="partyBody"></div></div>
+  <div class="overlay" id="ovBag"><button class="ov-close px" onclick="UI.close('ovBag')">✕</button><div class="ov-title">BAG</div><div id="bagBody"></div></div>
+  <div class="overlay" id="ovDex"><button class="ov-close px" onclick="UI.close('ovDex')">✕</button><div class="ov-title">WORDMON DEX</div><div id="dexBody"></div></div>
+  <div class="overlay" id="ovCraft"><button class="ov-close px" onclick="UI.close('ovCraft')">✕</button><div class="ov-title">CRAFTING TABLE</div><div id="craftBody"></div></div>
+  <div class="overlay" id="ovStory"><div id="storyBody"></div></div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <!-- TITLE -->
+  <div id="title">
+    <h1>WORDMON SAGA</h1>
+    <div class="sub">THE LOST LIBRARY</div>
+    <div id="titleBody">
+      <div style="font-size:3.5rem;margin-bottom:10px">📖✨</div>
+      <button class="title-btn" onclick="G.titleStart()">▶ PRESS START</button>
+      <div id="titleHint" style="font-family:'Press Start 2P',monospace;font-size:.45rem;color:#8b7aa8;margin-top:18px;line-height:2">A READING ADVENTURE<br>FOR RÍO</div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ============================================================
+// WORDMON SAGA — The Lost Library
+// A Pokemon × Minecraft reading RPG for Río.
+// Story: The Silence stole the 5 Lost Pages of the Great
+// Library. Words are fading from the world. Río and his
+// Wordmon partner travel 6 zones to recover them.
+// ============================================================
+
+// ---------- SFX (compact WebAudio) ----------
+const SFX={ctx:null,init(){if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)();if(this.ctx.state==='suspended')this.ctx.resume();},
+play(t){try{this.init();const c=this.ctx,n=c.currentTime;const tone=(f0,f1,dur,type,vol,at)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,n+(at||0));if(f1)o.frequency.exponentialRampToValueAtTime(f1,n+(at||0)+dur);g.gain.setValueAtTime(vol||.2,n+(at||0));g.gain.exponentialRampToValueAtTime(.001,n+(at||0)+dur);o.start(n+(at||0));o.stop(n+(at||0)+dur+.02);};
+switch(t){
+case'correct':[523,659,784].forEach((f,i)=>tone(f,0,.3,'sine',.25,i*.08));break;
+case'wrong':tone(200,150,.3,'square',.18);break;
+case'click':tone(800,0,.06,'sine',.1);break;
+case'blip':tone(660+Math.random()*80,0,.04,'square',.04);break;
+case'step':tone(220,180,.05,'sine',.04);break;
+case'attack':tone(360,60,.18,'sawtooth',.25);tone(110,35,.18,'sine',.35);break;
+case'hurt':tone(480,80,.3,'sawtooth',.2);break;
+case'faint':tone(600,150,.6,'sine',.25);break;
+case'catch':[660,880,1100,1320,1100,1320].forEach((f,i)=>tone(f,0,.15,'sine',.18,i*.08));break;
+case'fanfare':[392,494,587,784,988,1175].forEach((f,i)=>tone(f,0,.3,'triangle',.2,i*.09));break;
+case'mine':tone(150,80,.12,'square',.25);tone(2200,1100,.1,'triangle',.08);break;
+case'craft':[523,659,784,1047].forEach((f,i)=>tone(f,0,.25,'triangle',.2,i*.1));break;
+case'levelup':[392,494,587,784,988].forEach((f,i)=>tone(f,0,.25,'sine',.25,i*.1));break;
+case'page':[784,988,1175,1568].forEach((f,i)=>tone(f,0,.4,'sine',.2,i*.12));break;
+case'whoosh':tone(400,1200,.14,'sine',.1);break;
+}}catch(e){}}};
+
+// ---------- Voice ----------
+let _voice=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();if(!vs.length)return null;const pref=['Samantha','Karen','Google US English','Moira','Daniel'];for(const p of pref){const v=vs.find(v=>v.name.includes(p));if(v)return v;}return vs.find(v=>v.lang.startsWith('en'))||vs[0];}catch(e){return null;}}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{_voice=pickVoice();};_voice=pickVoice();}
+function speak(text,rate,onEnd){if(!window.speechSynthesis){if(onEnd)onEnd();return;}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/[♥★✦📜🪙⭐]/g,''));u.rate=rate||0.82;u.pitch=1.1;if(!_voice)_voice=pickVoice();if(_voice)u.voice=_voice;if(onEnd)u.onend=onEnd;speechSynthesis.speak(u);}catch(e){if(onEnd)onEnd();}}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ============================================================
+// CREATURES — the Saga's own roster (word-themed)
+// ============================================================
+function monSvg(body,extra){return '<svg viewBox="0 0 100 100">'+body+(extra||'')+'</svg>';}
+const EYES='<circle cx="42" cy="46" r="5" fill="#1e293b"/><circle cx="58" cy="46" r="5" fill="#1e293b"/><circle cx="43.5" cy="44.5" r="2" fill="#fff"/><circle cx="59.5" cy="44.5" r="2" fill="#fff"/>';
+const SMILE='<path d="M44 58 Q50 63 56 58" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+const MONS=[
+{id:'inklet',type:'Ink',color:'#475569',names:['Inklet','Quillon','Scriptyrant'],hp:[34,50,72],
+ bio:'A tiny drop of living ink. It writes its feelings in the air!',
+ svgs:[
+  monSvg('<path d="M50 14 Q72 44 72 62 Q72 84 50 84 Q28 84 28 62 Q28 44 50 14Z" fill="#475569"/><path d="M50 22 Q66 46 66 62 Q66 78 50 78" fill="#64748b"/>'+EYES+SMILE),
+  monSvg('<path d="M50 8 Q76 42 76 62 Q76 88 50 88 Q24 88 24 62 Q24 42 50 8Z" fill="#334155"/><path d="M50 18 Q68 44 68 62 Q68 80 50 80" fill="#475569"/>'+EYES+SMILE+'<path d="M68 26 L84 10 L80 28 Z" fill="#f8f0d8" stroke="#1e293b" stroke-width="2"/>'),
+  monSvg('<path d="M50 4 Q82 40 82 62 Q82 94 50 94 Q18 94 18 62 Q18 40 50 4Z" fill="#1e293b"/><path d="M50 14 Q72 42 72 62 Q72 84 50 84" fill="#334155"/>'+EYES+SMILE+'<path d="M66 22 L88 2 L84 26 Z" fill="#f8f0d8" stroke="#1e293b" stroke-width="2"/><path d="M34 22 L12 2 L16 26 Z" fill="#f8f0d8" stroke="#1e293b" stroke-width="2"/><circle cx="50" cy="26" r="4" fill="#a855f7"/>')]},
+{id:'emberlex',type:'Flame',color:'#ef4444',names:['Emberlex','Pyroglyph','Blazeward'],hp:[32,48,70],
+ bio:'A little flame that burns brighter every time you read a word!',
+ svgs:[
+  monSvg('<ellipse cx="50" cy="58" rx="26" ry="24" fill="#ef4444"/><ellipse cx="50" cy="60" rx="19" ry="17" fill="#fca5a5"/><path d="M38 26 Q32 8 44 20 M50 20 Q50 2 58 16 M62 26 Q70 8 56 20" stroke="#f97316" stroke-width="6" fill="none" stroke-linecap="round"/>'+EYES+SMILE),
+  monSvg('<ellipse cx="50" cy="56" rx="30" ry="28" fill="#dc2626"/><ellipse cx="50" cy="58" rx="22" ry="20" fill="#ef4444"/><path d="M34 22 Q26 0 42 14 M50 14 Q50 -6 60 10 M66 22 Q76 0 58 14" stroke="#fbbf24" stroke-width="7" fill="none" stroke-linecap="round"/>'+EYES+SMILE+'<polygon points="22,52 10,46 16,58" fill="#f97316"/><polygon points="78,52 90,46 84,58" fill="#f97316"/>'),
+  monSvg('<ellipse cx="50" cy="54" rx="34" ry="32" fill="#b91c1c"/><ellipse cx="50" cy="56" rx="26" ry="24" fill="#ef4444"/><path d="M28 18 Q18 -8 38 10 M50 8 Q50 -12 62 6 M72 18 Q84 -8 62 10" stroke="#fde047" stroke-width="8" fill="none" stroke-linecap="round"/>'+EYES+SMILE+'<polygon points="16,50 2,42 10,56" fill="#fbbf24"/><polygon points="84,50 98,42 90,56" fill="#fbbf24"/><circle cx="50" cy="70" r="5" fill="#fde047"/>')]},
+{id:'drippel',type:'Tide',color:'#3b82f6',names:['Drippel','Tidescribe','Aquatome'],hp:[36,52,74],
+ bio:'A bubbly water sprite. It can spell its name in raindrops!',
+ svgs:[
+  monSvg('<path d="M50 16 Q70 42 70 60 Q70 82 50 82 Q30 82 30 60 Q30 42 50 16Z" fill="#3b82f6"/><path d="M50 26 Q63 44 63 60 Q63 74 50 74" fill="#93c5fd"/>'+EYES+SMILE+'<circle cx="30" cy="36" r="4" fill="#bfdbfe" opacity=".8"/>'),
+  monSvg('<path d="M50 10 Q74 40 74 60 Q74 86 50 86 Q26 86 26 60 Q26 40 50 10Z" fill="#2563eb"/><path d="M50 22 Q66 42 66 60 Q66 78 50 78" fill="#60a5fa"/>'+EYES+SMILE+'<path d="M22 56 Q8 50 14 66" fill="#3b82f6"/><path d="M78 56 Q92 50 86 66" fill="#3b82f6"/><circle cx="28" cy="32" r="4" fill="#bfdbfe" opacity=".8"/>'),
+  monSvg('<path d="M50 4 Q80 38 80 60 Q80 92 50 92 Q20 92 20 60 Q20 38 50 4Z" fill="#1d4ed8"/><path d="M50 16 Q70 40 70 60 Q70 84 50 84" fill="#3b82f6"/>'+EYES+SMILE+'<path d="M16 54 Q0 46 8 66" fill="#2563eb"/><path d="M84 54 Q100 46 92 66" fill="#2563eb"/><path d="M34 16 L30 6 L40 12 L44 2 L50 10 L56 2 L60 12 L70 6 L66 16Z" fill="#bfdbfe"/>')]},
+{id:'sprigling',type:'Leaf',color:'#22c55e',names:['Sprigling','Vinegraph','Eldertext'],hp:[34,50,72],
+ bio:'A sprout that grows a new leaf for every story it hears.',
+ svgs:[
+  monSvg('<ellipse cx="50" cy="60" rx="24" ry="22" fill="#86efac"/><ellipse cx="50" cy="62" rx="17" ry="15" fill="#bbf7d0"/><path d="M50 30 Q42 10 30 22 Q42 22 50 30 M50 30 Q58 8 70 20 Q58 20 50 30" fill="#22c55e"/>'+EYES+SMILE),
+  monSvg('<ellipse cx="50" cy="58" rx="28" ry="26" fill="#4ade80"/><ellipse cx="50" cy="60" rx="20" ry="18" fill="#86efac"/><path d="M50 24 Q38 0 24 16 Q38 18 50 24 M50 24 Q62 -2 78 14 Q62 16 50 24" fill="#16a34a"/><path d="M22 50 Q8 44 14 60" fill="#22c55e"/><path d="M78 50 Q92 44 86 60" fill="#22c55e"/>'+EYES+SMILE),
+  monSvg('<ellipse cx="50" cy="56" rx="32" ry="30" fill="#22c55e"/><ellipse cx="50" cy="58" rx="24" ry="22" fill="#4ade80"/><path d="M50 18 Q34 -8 18 12 Q36 14 50 18 M50 18 Q66 -10 84 10 Q66 12 50 18 M40 14 Q34 -4 24 6 M60 14 Q66 -6 76 4" fill="#15803d"/><path d="M16 48 Q0 40 8 60" fill="#16a34a"/><path d="M84 48 Q100 40 92 60" fill="#16a34a"/>'+EYES+SMILE+'<circle cx="36" cy="66" r="3" fill="#fde047"/><circle cx="64" cy="66" r="3" fill="#fde047"/>')]},
+{id:'pebblit',type:'Stone',color:'#a78b6f',names:['Pebblit','Runebould','Monoglyph'],hp:[40,58,82],
+ bio:'A round little rock with ancient letters carved on its back.',
+ svgs:[
+  monSvg('<ellipse cx="50" cy="58" rx="26" ry="23" fill="#a78b6f"/><ellipse cx="50" cy="60" rx="19" ry="16" fill="#d4b896"/>'+EYES+SMILE+'<path d="M38 70 L42 74 M58 70 L54 74" stroke="#8b6f50" stroke-width="2"/>'),
+  monSvg('<rect x="22" y="34" width="56" height="44" rx="12" fill="#8b6f50"/><rect x="28" y="40" width="44" height="32" rx="8" fill="#a78b6f"/>'+EYES+SMILE+'<text x="50" y="76" text-anchor="middle" font-size="10" fill="#6b563d" font-family="monospace">ᚱᚢᚾ</text>'),
+  monSvg('<rect x="16" y="22" width="68" height="62" rx="14" fill="#6b563d"/><rect x="24" y="30" width="52" height="46" rx="10" fill="#8b6f50"/>'+EYES+SMILE+'<polygon points="50,8 42,22 58,22" fill="#a78b6f"/><text x="50" y="74" text-anchor="middle" font-size="11" fill="#4a3a28" font-family="monospace">ᚠᚱᚦ</text><circle cx="30" cy="38" r="2.5" fill="#fde047"/><circle cx="70" cy="38" r="2.5" fill="#fde047"/>')]},
+{id:'zappet',type:'Volt',color:'#fbbf24',names:['Zappet','Voltsyl','Thundergram'],hp:[30,46,68],
+ bio:'A zappy spark that buzzes when you spell a word right!',
+ svgs:[
+  monSvg('<polygon points="54,10 30,52 46,52 40,88 72,42 54,42" fill="#fbbf24" stroke="#d97706" stroke-width="3"/><circle cx="48" cy="38" r="4" fill="#1e293b"/><circle cx="60" cy="34" r="4" fill="#1e293b"/><circle cx="49" cy="37" r="1.5" fill="#fff"/><circle cx="61" cy="33" r="1.5" fill="#fff"/>'),
+  monSvg('<ellipse cx="50" cy="56" rx="26" ry="24" fill="#fbbf24"/><ellipse cx="50" cy="58" rx="19" ry="17" fill="#fde047"/>'+EYES+SMILE+'<polygon points="36,20 28,34 38,32 32,46" fill="#f59e0b" stroke="#d97706" stroke-width="2"/><polygon points="64,20 72,34 62,32 68,46" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>'),
+  monSvg('<ellipse cx="50" cy="54" rx="32" ry="30" fill="#f59e0b"/><ellipse cx="50" cy="56" rx="24" ry="22" fill="#fbbf24"/>'+EYES+SMILE+'<polygon points="30,12 20,30 32,28 24,46" fill="#fde047" stroke="#d97706" stroke-width="2"/><polygon points="70,12 80,30 68,28 76,46" fill="#fde047" stroke="#d97706" stroke-width="2"/><polygon points="50,4 44,18 56,18" fill="#fde047" stroke="#d97706" stroke-width="2"/><circle cx="50" cy="70" r="4" fill="#fff"/>')]},
+{id:'snowpe',type:'Frost',color:'#7dd3fc',names:['Snowpe','Glacigram','Frostome'],hp:[34,50,72],
+ bio:'A snowball friend. Every snowflake it makes is a different letter.',
+ svgs:[
+  monSvg('<circle cx="50" cy="58" r="25" fill="#e0f2fe"/><circle cx="50" cy="60" r="18" fill="#fff"/>'+EYES+SMILE+'<path d="M30 30 L36 36 M70 30 L64 36 M50 24 L50 32" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round"/>'),
+  monSvg('<circle cx="50" cy="60" r="26" fill="#bae6fd"/><circle cx="50" cy="30" r="16" fill="#e0f2fe"/><circle cx="44" cy="28" r="4" fill="#1e293b"/><circle cx="56" cy="28" r="4" fill="#1e293b"/><path d="M45 36 Q50 40 55 36" stroke="#1e293b" stroke-width="2" fill="none"/><polygon points="50,6 46,14 54,14" fill="#7dd3fc"/><path d="M24 56 L16 50 M76 56 L84 50" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/>'),
+  monSvg('<circle cx="50" cy="64" r="28" fill="#7dd3fc"/><circle cx="50" cy="34" r="20" fill="#bae6fd"/><circle cx="43" cy="32" r="5" fill="#1e293b"/><circle cx="57" cy="32" r="5" fill="#1e293b"/><path d="M44 42 Q50 47 56 42" stroke="#1e293b" stroke-width="2.5" fill="none"/><polygon points="38,12 34,2 44,8" fill="#38bdf8"/><polygon points="62,12 66,2 56,8" fill="#38bdf8"/><path d="M18 60 L6 52 M82 60 L94 52" stroke="#38bdf8" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="64" r="6" fill="#e0f2fe"/>')]},
+{id:'murmur',type:'Shade',color:'#7c3aed',names:['Murmur','Hushling','Nightverse'],hp:[32,48,74],
+ bio:'A shy whisper-ghost. It only speaks in words it has learned.',
+ svgs:[
+  monSvg('<path d="M28 50 Q28 22 50 22 Q72 22 72 50 L72 76 Q66 70 60 76 Q54 82 50 76 Q46 82 40 76 Q34 70 28 76Z" fill="#a855f7"/><path d="M34 50 Q34 30 50 30 Q66 30 66 50 L66 66 Q58 62 50 66 Q42 62 34 66Z" fill="#d8b4fe"/><circle cx="43" cy="46" r="5" fill="#1e293b"/><circle cx="57" cy="46" r="5" fill="#1e293b"/><ellipse cx="50" cy="58" rx="4" ry="5" fill="#1e293b"/>'),
+  monSvg('<path d="M22 48 Q22 14 50 14 Q78 14 78 48 L78 82 Q70 74 64 82 Q58 90 50 82 Q42 90 36 82 Q30 74 22 82Z" fill="#7c3aed"/><path d="M30 48 Q30 24 50 24 Q70 24 70 48 L70 70 Q60 64 50 70 Q40 64 30 70Z" fill="#a855f7"/><circle cx="42" cy="44" r="6" fill="#fff"/><circle cx="58" cy="44" r="6" fill="#fff"/><circle cx="43" cy="44" r="3" fill="#1e293b"/><circle cx="59" cy="44" r="3" fill="#1e293b"/><ellipse cx="50" cy="58" rx="5" ry="6" fill="#1e293b"/>'),
+  monSvg('<path d="M16 46 Q16 6 50 6 Q84 6 84 46 L84 88 Q74 78 66 88 Q58 96 50 88 Q42 96 34 88 Q26 78 16 88Z" fill="#5b21b6"/><path d="M26 46 Q26 16 50 16 Q74 16 74 46 L74 74 Q62 68 50 74 Q38 68 26 74Z" fill="#7c3aed"/><circle cx="40" cy="42" r="8" fill="#fff"/><circle cx="60" cy="42" r="8" fill="#fff"/><circle cx="42" cy="42" r="4" fill="#1e293b"/><circle cx="62" cy="42" r="4" fill="#1e293b"/><ellipse cx="50" cy="58" rx="6" ry="7" fill="#1e293b"/><circle cx="30" cy="24" r="2.5" fill="#fde047"/><circle cx="70" cy="24" r="2.5" fill="#fde047"/>')]},
+{id:'chirpa',type:'Song',color:'#ec4899',names:['Chirpa','Melodee','Anthemis'],hp:[30,46,68],
+ bio:'A songbird who sings the alphabet at sunrise.',
+ svgs:[
+  monSvg('<ellipse cx="50" cy="56" rx="22" ry="20" fill="#f9a8d4"/><circle cx="50" cy="36" r="14" fill="#fbcfe8"/><circle cx="45" cy="34" r="3.5" fill="#1e293b"/><circle cx="55" cy="34" r="3.5" fill="#1e293b"/><polygon points="50,38 46,44 54,44" fill="#f59e0b"/><path d="M28 54 Q14 48 22 64" fill="#f9a8d4"/><path d="M72 54 Q86 48 78 64" fill="#f9a8d4"/><text x="74" y="26" font-size="13" fill="#ec4899">♪</text>'),
+  monSvg('<ellipse cx="50" cy="54" rx="26" ry="24" fill="#f472b6"/><circle cx="50" cy="32" r="16" fill="#f9a8d4"/><circle cx="44" cy="30" r="4" fill="#1e293b"/><circle cx="56" cy="30" r="4" fill="#1e293b"/><polygon points="50,34 45,42 55,42" fill="#f59e0b"/><path d="M24 50 Q8 42 18 62" fill="#f472b6"/><path d="M76 50 Q92 42 82 62" fill="#f472b6"/><text x="76" y="20" font-size="15" fill="#db2777">♫</text><text x="14" y="26" font-size="12" fill="#db2777">♪</text>'),
+  monSvg('<ellipse cx="50" cy="52" rx="30" ry="28" fill="#ec4899"/><circle cx="50" cy="28" r="18" fill="#f472b6"/><circle cx="43" cy="26" r="5" fill="#1e293b"/><circle cx="57" cy="26" r="5" fill="#1e293b"/><polygon points="50,30 44,40 56,40" fill="#fbbf24"/><path d="M20 48 Q0 38 12 62" fill="#db2777"/><path d="M80 48 Q100 38 88 62" fill="#db2777"/><polygon points="50,8 46,0 54,0" fill="#fbbf24"/><text x="78" y="16" font-size="16" fill="#9d174d">♬</text><text x="8" y="22" font-size="13" fill="#9d174d">♫</text><text x="46" y="78" font-size="12" fill="#fbcfe8">♪</text>')]},
+{id:'twinkel',type:'Star',color:'#c084fc',names:['Twinkel','Cometra','Galaxia'],hp:[32,48,76],
+ bio:'A fallen star learning to read so it can find its way home.',
+ svgs:[
+  monSvg('<polygon points="50,12 60,38 88,38 66,54 74,82 50,66 26,82 34,54 12,38 40,38" fill="#fde047" stroke="#d97706" stroke-width="2.5"/><circle cx="44" cy="46" r="4" fill="#1e293b"/><circle cx="56" cy="46" r="4" fill="#1e293b"/><path d="M45 55 Q50 59 55 55" stroke="#1e293b" stroke-width="2" fill="none"/>'),
+  monSvg('<polygon points="50,6 62,36 92,36 68,54 78,86 50,68 22,86 32,54 8,36 38,36" fill="#facc15" stroke="#a16207" stroke-width="2.5"/><circle cx="43" cy="46" r="5" fill="#1e293b"/><circle cx="57" cy="46" r="5" fill="#1e293b"/><path d="M44 56 Q50 61 56 56" stroke="#1e293b" stroke-width="2.5" fill="none"/><path d="M86 18 Q96 8 92 22" stroke="#c084fc" stroke-width="4" fill="none" stroke-linecap="round"/>'),
+  monSvg('<circle cx="50" cy="50" r="40" fill="#7c3aed" opacity=".25"/><polygon points="50,4 63,34 94,34 69,54 80,90 50,70 20,90 31,54 6,34 37,34" fill="#fde047" stroke="#a16207" stroke-width="3"/><circle cx="42" cy="44" r="5.5" fill="#1e293b"/><circle cx="58" cy="44" r="5.5" fill="#1e293b"/><path d="M43 56 Q50 62 57 56" stroke="#1e293b" stroke-width="3" fill="none"/><circle cx="18" cy="16" r="2.5" fill="#fff"/><circle cx="84" cy="12" r="2" fill="#fff"/><circle cx="90" cy="70" r="2.5" fill="#fff"/><circle cx="12" cy="74" r="2" fill="#fff"/>')]},
+];
+// Final boss — The Silence's beast
+const BOSS={id:'hushmaw',type:'Silence',color:'#0f172a',names:['Hushmaw'],hp:[120],
+ bio:'The beast that eats words. Its mouth is a hole where stories vanish.',
+ svgs:[monSvg('<circle cx="50" cy="52" r="42" fill="#0f172a"/><circle cx="50" cy="52" r="34" fill="#1e293b"/><ellipse cx="50" cy="62" rx="20" ry="14" fill="#000"/><path d="M32 60 L38 66 L44 60 L50 66 L56 60 L62 66 L68 60" stroke="#475569" stroke-width="2" fill="none"/><circle cx="36" cy="38" r="7" fill="#a855f7"/><circle cx="64" cy="38" r="7" fill="#a855f7"/><ellipse cx="36" cy="38" rx="2.5" ry="6" fill="#000"/><ellipse cx="64" cy="38" rx="2.5" ry="6" fill="#000"/><path d="M20 16 Q10 2 28 10 M80 16 Q90 2 72 10" stroke="#0f172a" stroke-width="6" fill="none" stroke-linecap="round"/><text x="50" y="90" text-anchor="middle" font-size="8" fill="#475569" font-family="monospace" opacity=".7">. . .</text>')]};
+
+// ============================================================
+// READING CONTENT — leveled by total correct answers
+// ============================================================
+const W1=[ // sight words + emoji (L1: hear & match / picture match)
+{w:'cat',e:'🐱'},{w:'dog',e:'🐶'},{w:'sun',e:'☀️'},{w:'map',e:'🗺️'},{w:'bed',e:'🛏️'},{w:'cup',e:'🥤'},{w:'hat',e:'🎩'},{w:'bug',e:'🐛'},{w:'fox',e:'🦊'},{w:'pig',e:'🐷'},
+{w:'red',e:'🔴'},{w:'run',e:'🏃'},{w:'six',e:'6️⃣'},{w:'ten',e:'🔟'},{w:'box',e:'📦'},{w:'key',e:'🔑'},{w:'egg',e:'🥚'},{w:'ant',e:'🐜'},{w:'owl',e:'🦉'},{w:'bee',e:'🐝'},
+{w:'star',e:'⭐'},{w:'fish',e:'🐟'},{w:'frog',e:'🐸'},{w:'cake',e:'🎂'},{w:'moon',e:'🌙'},{w:'tree',e:'🌳'},{w:'book',e:'📖'},{w:'ship',e:'🚢'},{w:'rain',e:'🌧️'},{w:'duck',e:'🦆'}];
+const W2=[ // fill in the blank (L2)
+{s:'The ___ sleeps on the bed.',a:'cat',d:['sun','map','cup']},
+{s:'I read a ___ before bed.',a:'book',d:['rock','frog','sock']},
+{s:'The ___ shines in the sky.',a:'sun',d:['bed','dog','box']},
+{s:'A ___ can hop very high.',a:'frog',d:['fish','cake','door']},
+{s:'We bake a ___ for the party.',a:'cake',d:['moon','tree','bug']},
+{s:'The ___ swims in the lake.',a:'fish',d:['star','hat','bell']},
+{s:'I use a ___ to open the door.',a:'key',d:['pen','cup','leaf'] },
+{s:'The ___ hoots at night.',a:'owl',d:['pig','ant','egg']},
+{s:'My ___ wags his tail.',a:'dog',d:['rock','sun','map']},
+{s:'The ___ buzzes by the flower.',a:'bee',d:['fox','cup','bed']},
+{s:'The boat sails on the ___.',a:'sea',d:['sky','mud','rug']},
+{s:'Snow is cold and ___.',a:'white',d:['loud','fast','sweet']},
+{s:'A spider spins a ___.',a:'web',d:['hat','cup','map']},
+{s:'At night we see the ___.',a:'moon',d:['sun','bus','fork']},
+{s:'The bird built a ___ in the tree.',a:'nest',d:['cake','lamp','shoe']},
+{s:'Río rides his ___ to the park.',a:'bike',d:['spoon','clock','sock']},
+{s:'The king lives in a ___.',a:'castle',d:['puddle','pocket','pillow']},
+{s:'Lava is very ___.',a:'hot',d:['wet','icy','soft']},
+{s:'A library is full of ___.',a:'books',d:['frogs','shoes','clouds']},
+{s:'We dig for treasure with a ___.',a:'shovel',d:['pencil','window','button']}];
+const W3=['cat','sun','map','dog','bed','fox','star','fish','book','moon','tree','cave','lava','snow','rock','word','page','gem','key','lamp','ship','frog','bell','nest','wing','sand','leaf','bone','mine','gold']; // spell-it (L3)
+const W4=[ // passages + comprehension (L4)
+{p:'Río walked into the dark cave. His lamp made a small circle of light. Drip, drip went the water from the rocks above.',q:'What made the light?',a:'The lamp',d:['The sun','A fire','The moon']},
+{p:'The little Wordmon was lost. It could not find its way home. Río knelt down and said, "I will help you."',q:'What did Río say?',a:'I will help you',d:['Go away','I am lost','Run fast']},
+{p:'The Silence took the pages from the library. Without the pages, the stories began to fade away like fog in the sun.',q:'What happened to the stories?',a:'They began to fade',d:['They got louder','They turned blue','They flew away']},
+{p:'Snow fell on the mountain all night. In the morning, every tree wore a white hat and the path was hidden.',q:'What was hidden?',a:'The path',d:['The trees','The snow','The hats']},
+{p:'The desert sand was hot under Río\'s boots. Far away he saw a tall stone with letters carved into it.',q:'What was carved into the stone?',a:'Letters',d:['Pictures','Stars','Doors']},
+{p:'Professor Lexia smiled. "Every word you learn makes your Wordmon stronger," she said. "Reading is the greatest power."',q:'What is the greatest power?',a:'Reading',d:['Running','Jumping','Shouting']},
+{p:'The ore glowed blue in the cave wall. Río swung his pick. Crack! Three shiny letters fell into his bag.',q:'What fell into his bag?',a:'Three letters',d:['Three rocks','Three coins','Three bugs']},
+{p:'Hushmaw roared, but no sound came out. The beast had eaten so many words that it had lost its own voice.',q:'Why was Hushmaw silent?',a:'It ate too many words',d:['It was sleepy','It was shy','It was happy']},
+{p:'The bridge was old and creaky. Río held his breath and stepped slowly. One plank, two planks, three — and he was across!',q:'How did Río cross?',a:'Slowly, step by step',d:['He jumped','He swam','He flew']},
+{p:'When the last page returned to the library, golden light poured from the windows and every book opened at once.',q:'What poured from the windows?',a:'Golden light',d:['Cold water','Black smoke','Green slime']}];
+const MINE_WORDS=['GEM','ORE','CAT','SUN','MAP','ROCK','STAR','BOOK','WORD','CAVE','LAVA','SNOW','TREE','GOLD','PICK','MINE','PAGE','LAMP','KEY','FROG'];
+
+// Lost Page stories — one per zone (the heart of the storyline)
+const LOST_PAGES=[
+{zone:'woods',title:'The Page of Beginnings',emoji:'🌳',
+ pages:['Long ago, every word in the world lived in the Great Library.','The first page held the very first word ever written: "hello".','When the Silence came, the page flew away and hid in the woods.'],
+ q:'What was the first word ever written?',a:'hello',d:['goodbye','run','quiet']},
+{zone:'cave',title:'The Page of Echoes',emoji:'⛰️',
+ pages:['Deep in the caves, every word you say comes back to you.','"Hello?" said Río. "Hello... hello... hello..." sang the walls.','The second page loved the echoes, so it hid where sounds sleep.'],
+ q:'What do the cave walls do?',a:'Echo your words',d:['Eat your words','Paint pictures','Sing songs alone']},
+{zone:'desert',title:'The Page of Names',emoji:'🏜️',
+ pages:['The desert seems empty, but everything in it has a name.','Dune. Cactus. Scorpion. Oasis. Names make the empty places real.','The third page wrote names in the sand until the wind took it.'],
+ q:'What makes the empty places real?',a:'Names',d:['Water','Shadows','Gold']},
+{zone:'peaks',title:'The Page of Quiet',emoji:'🏔️',
+ pages:['On the highest peak, snow falls without a sound.','But quiet is not the same as Silence. Quiet is peaceful. Silence is empty.','The fourth page hid in the snow to learn the difference.'],
+ q:'What is the difference?',a:'Quiet is peaceful, Silence is empty',d:['They are the same','Quiet is loud','Silence is warm']},
+{zone:'citadel',title:'The Page of Courage',emoji:'🏰',
+ pages:['The last page did not hide. It flew straight into the Silent Citadel.','It wanted to teach Hushmaw one final word.','That word was "friend". But Hushmaw swallowed it whole.'],
+ q:'What word did the page try to teach?',a:'friend',d:['fight','fear','fire']}];
+
+// ============================================================
+// WORLD MAPS — ASCII (legend below)
+// ============================================================
+// . grass  = path  , tallgrass  ~ water  # tree  H house  C heal-center
+// S craft-shop  L library  s sign  f fence  o letter-ore  r rock  i ice
+// l lava  v void  c cosmic  m mushroom  d sand  F flowerR  y flowerY
+const TILE_OF={'.':0,'=':1,',':2,'~':3,'#':4,'H':5,'C':6,'S':7,'s':8,'f':9,'o':10,'l':11,'i':12,'v':13,'c':14,'m':15,'L':16,'F':17,'y':18,'r':19,'d':20};
+const SOLID=[3,4,5,6,7,9,10,16,19];
+function buildMap(rows){const h=rows.length,w=rows[0].length,data=[];for(const r of rows)for(const ch of r)data.push(TILE_OF[ch]!==undefined?TILE_OF[ch]:0);return{w,h,data};}
+
+const MAPS={
+village:Object.assign(buildMap([
+'################',
+'#F....H...L...y#',
+'#..............#',
+'#...s......s...#',
+'#......==......#',
+'#..C...==...S..#',
+'#......==......#',
+'#.y....==....F.#',
+'#......==......#',
+'#,,....==....,,#',
+'#,,....==....,,#',
+'#######==#######',
+'#######==#######']),{
+ name:'Pages Village',bg:'bg_forest',zone:'village',encounterRate:0,pool:[],
+ exits:[{x:7,y:12,to:'woods',sx:7,sy:1},{x:8,y:12,to:'woods',sx:8,sy:1}],
+ npcs:[
+  {x:5,y:2,sprite:'npc_prof',name:'Prof. Lexia',script:'lexia'},
+  {x:12,y:7,sprite:'npc_kid',name:'Milo',script:'milo'},
+  {x:3,y:8,sprite:'npc_rosa',name:'Rosa',script:'rosa'}],
+ signs:[{x:4,y:3,msg:'Pages Village — where every story begins.'},{x:11,y:3,msg:'Library → read the Lost Pages here. Craft Shop → spell to build!'}],
+ start:{x:7,y:6}}),
+woods:Object.assign(buildMap([
+'#######==#######',
+'#..,,..==..,,..#',
+'#.,,,,.==.,,,,.#',
+'#..,,..==..,,..#',
+'#......==......#',
+'#.o....==....o.#',
+'#......==......#',
+'#,,,...==...,,,#',
+'#,,,,..==..,,,,#',
+'#......==......#',
+'#.F....==....y.#',
+'#..s...==...o..#',
+'#......==......#',
+'#######==#######']),{
+ name:'Whisper Woods',bg:'bg_forest',zone:'woods',encounterRate:0.18,pool:[3,8,7],
+ exits:[{x:7,y:0,to:'village',sx:7,sy:11},{x:8,y:0,to:'village',sx:8,sy:11},
+        {x:7,y:13,to:'cave',sx:7,sy:1,gate:{item:'LAMP',msg:'The cave below is pitch dark. Río needs a LAMP! (Mine letters from the blue ore and craft one in the village.)'}},
+        {x:8,y:13,to:'cave',sx:8,sy:1,gate:{item:'LAMP',msg:'The cave below is pitch dark. Río needs a LAMP!'}}],
+ npcs:[{x:3,y:4,sprite:'npc_kid',name:'Scout Finn',script:'finn'}],
+ signs:[{x:3,y:11,msg:'Whisper Woods — wild Wordmons hide in tall grass. Blue ore holds letters!'}],
+ start:{x:7,y:1}}),
+cave:Object.assign(buildMap([
+'#######==#######',
+'#ro....==....or#',
+'#r.....==.....r#',
+'#..o...==...o..#',
+'#......==......#',
+'#,,....==....,,#',
+'#,,,...==...,,,#',
+'#......==......#',
+'#.o..r.==.r..o.#',
+'#......==......#',
+'#...s..==..o...#',
+'#......==......#',
+'#######==#######']),{
+ name:'Echo Caves',bg:'bg_cave',zone:'cave',encounterRate:0.2,pool:[4,5,7],
+ exits:[{x:7,y:0,to:'woods',sx:7,sy:12},{x:8,y:0,to:'woods',sx:8,sy:12},
+        {x:7,y:12,to:'desert',sx:7,sy:1,gate:{read:true,msg:'A stone door with glowing words blocks the way!'}},
+        {x:8,y:12,to:'desert',sx:8,sy:1,gate:{read:true,msg:'A stone door with glowing words blocks the way!'}}],
+ npcs:[{x:4,y:7,sprite:'npc_milo',name:'Miner Tova',script:'tova'}],
+ signs:[{x:4,y:10,msg:'Echo Caves — rich in letter-ore. Listen... the walls repeat what you say.'}],
+ start:{x:7,y:1}}),
+desert:Object.assign(buildMap([
+'#######==#######',
+'#ddrdd.==.ddrdd#',
+'#dd,dd.==.dd,dd#',
+'#d,,,d.==.d,,,d#',
+'#dddd..==..dddd#',
+'#dod...==...dod#',
+'#ddd...==...ddd#',
+'#d,,d..==..d,,d#',
+'#dddd..==..dddd#',
+'#dd....==....dd#',
+'#d..s..==..o..d#',
+'#dd....==....dd#',
+'#######==#######']),{
+ name:'Glyph Desert',bg:'bg_volcano',zone:'desert',encounterRate:0.2,pool:[4,1,9],
+ exits:[{x:7,y:0,to:'cave',sx:7,sy:11},{x:8,y:0,to:'cave',sx:8,sy:11},
+        {x:7,y:12,to:'peaks',sx:7,sy:1,gate:{item:'WARM',msg:'Freezing winds blow from the peaks! Río needs a WARM cloak. (Craft it at the village shop.)'}},
+        {x:8,y:12,to:'peaks',sx:8,sy:1,gate:{item:'WARM',msg:'Freezing winds blow from the peaks! Río needs a WARM cloak.'}}],
+ npcs:[{x:4,y:9,sprite:'npc_rosa',name:'Nomad Zara',script:'zara'}],
+ signs:[{x:4,y:10,msg:'Glyph Desert — ancient names sleep beneath the sand.'}],
+ start:{x:7,y:1}}),
+peaks:Object.assign(buildMap([
+'#######==#######',
+'#ii.ii.==.ii.ii#',
+'#i,,,i.==.i,,,i#',
+'#io,,..==..,,oi#',
+'#ii....==....ii#',
+'#......==......#',
+'#.r....==....r.#',
+'#i,,...==...,,i#',
+'#ii,...==...,ii#',
+'#iii...==...iii#',
+'#i..s..==..o..i#',
+'#ii....==....ii#',
+'#######==#######']),{
+ name:'Frostfont Peaks',bg:'bg_frozen',zone:'peaks',encounterRate:0.2,pool:[6,9,5],
+ exits:[{x:7,y:0,to:'desert',sx:7,sy:11},{x:8,y:0,to:'desert',sx:8,sy:11},
+        {x:7,y:12,to:'citadel',sx:7,sy:1,gate:{item:'KEY',pages:4,msg:'The Citadel gate is sealed! Río needs the KEY and at least 4 Lost Pages.'}},
+        {x:8,y:12,to:'citadel',sx:8,sy:1,gate:{item:'KEY',pages:4,msg:'The Citadel gate is sealed! Río needs the KEY and at least 4 Lost Pages.'}}],
+ npcs:[{x:11,y:6,sprite:'npc_prof',name:'Sage Orla',script:'orla'}],
+ signs:[{x:4,y:10,msg:'Frostfont Peaks — quiet is not the same as Silence.'}],
+ start:{x:7,y:1}}),
+citadel:Object.assign(buildMap([
+'################',
+'#vv..........vv#',
+'#v....cccc....v#',
+'#....cc==cc....#',
+'#....c.==.c....#',
+'#vv...====...vv#',
+'#v....====....v#',
+'#......==......#',
+'#vv....==....vv#',
+'#v.....==.....v#',
+'#......==......#',
+'#vv....==....vv#',
+'#######==#######']),{
+ name:'The Silent Citadel',bg:'bg_cosmic',zone:'citadel',encounterRate:0.12,pool:[7,9],
+ exits:[{x:7,y:12,to:'peaks',sx:7,sy:11},{x:8,y:12,to:'peaks',sx:8,sy:11}],
+ npcs:[{x:7,y:3,sprite:null,name:'???',script:'boss',boss:true}],
+ signs:[],
+ start:{x:7,y:11}})};
+
+// ============================================================
+// STORY — chapters with objectives
+// ============================================================
+const CHAPTERS=[
+{id:0,title:'Chapter 1 — A Quiet Morning',
+ objectives:[
+  {id:'meetLexia',text:'Talk to Prof. Lexia',check:g=>g.flags.metLexia},
+  {id:'starter',text:'Choose your Wordmon partner',check:g=>g.party.length>0},
+  {id:'firstWin',text:'Win a battle in the Whisper Woods tall grass',check:g=>g.flags.winsWoods>=1}]},
+{id:1,title:'Chapter 2 — The Whispering Page',
+ objectives:[
+  {id:'wins3',text:'Win 3 battles in the woods',check:g=>g.flags.winsWoods>=3},
+  {id:'mine4',text:'Mine 2 letter-ore rocks',check:g=>g.flags.mined>=2},
+  {id:'page1',text:'Read the Page of Beginnings (find Scout Finn)',check:g=>g.pages.includes('woods')}]},
+{id:2,title:'Chapter 3 — Into the Echo',
+ objectives:[
+  {id:'lamp',text:'Craft a LAMP at the village shop',check:g=>g.items.includes('LAMP')},
+  {id:'enterCave',text:'Enter the Echo Caves',check:g=>g.flags.visitedCave},
+  {id:'page2',text:'Read the Page of Echoes (find Miner Tova)',check:g=>g.pages.includes('cave')}]},
+{id:3,title:'Chapter 4 — Names in the Sand',
+ objectives:[
+  {id:'enterDesert',text:'Pass the stone door into Glyph Desert',check:g=>g.flags.visitedDesert},
+  {id:'page3',text:'Read the Page of Names (find Nomad Zara)',check:g=>g.pages.includes('desert')},
+  {id:'team3',text:'Have 3 Wordmons on your team',check:g=>g.party.length>=3}]},
+{id:4,title:'Chapter 5 — The Cold Climb',
+ objectives:[
+  {id:'warm',text:'Craft a WARM cloak',check:g=>g.items.includes('WARM')},
+  {id:'page4',text:'Read the Page of Quiet (find Sage Orla)',check:g=>g.pages.includes('peaks')},
+  {id:'key',text:'Craft the KEY',check:g=>g.items.includes('KEY')}]},
+{id:5,title:'Chapter 6 — Breaking the Silence',
+ objectives:[
+  {id:'citadel',text:'Enter the Silent Citadel',check:g=>g.flags.visitedCitadel},
+  {id:'boss',text:'Face Hushmaw and teach it the final word',check:g=>g.flags.bossDown},
+  {id:'page5',text:'Recover the Page of Courage',check:g=>g.pages.includes('citadel')}]}];
+
+const RECIPES=[
+{word:'HEAL',name:'Heal Potion',emoji:'🧪',desc:'Restores your team. Use any time!',repeat:true},
+{word:'LAMP',name:'Miner\'s Lamp',emoji:'🏮',desc:'Lights the way into Echo Caves.'},
+{word:'WARM',name:'Wool Cloak',emoji:'🧥',desc:'Protects against the freezing peaks.'},
+{word:'KEY',name:'Citadel Key',emoji:'🗝️',desc:'Opens the Silent Citadel gate.'}];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+const G={
+ started:false,
+ party:[],            // [{mon:idx, xp:0, hp:cur}]
+ dexSeen:new Set(), dexCaught:new Set(),
+ letters:{},          // {A:3,...}
+ items:[],            // crafted item words
+ pages:[],            // zone ids of recovered Lost Pages
+ flags:{winsWoods:0,mined:0},
+ chapter:0, score:0, coins:0, totalCorrect:0,
+ map:'village', px:7, py:6, facing:'down',
+
+ save(){try{localStorage.setItem('wordmon_saga',JSON.stringify({party:this.party,dexSeen:[...this.dexSeen],dexCaught:[...this.dexCaught],letters:this.letters,items:this.items,pages:this.pages,flags:this.flags,chapter:this.chapter,score:this.score,coins:this.coins,totalCorrect:this.totalCorrect,map:this.map,px:this.px,py:this.py,minedTiles:WORLD.minedTiles}));}catch(e){}},
+ load(){try{const d=JSON.parse(localStorage.getItem('wordmon_saga'));if(!d)return false;this.party=d.party||[];this.dexSeen=new Set(d.dexSeen||[]);this.dexCaught=new Set(d.dexCaught||[]);this.letters=d.letters||{};this.items=d.items||[];this.pages=d.pages||[];this.flags=d.flags||{winsWoods:0,mined:0};this.chapter=d.chapter||0;this.score=d.score||0;this.coins=d.coins||0;this.totalCorrect=d.totalCorrect||0;this.map=d.map||'village';this.px=d.px??7;this.py=d.py??6;WORLD.minedTiles=d.minedTiles||{};return this.party.length>0;}catch(e){return false;}},
+
+ level(){const t=this.totalCorrect;return t<10?1:t<30?2:t<70?3:4;},
+ monOf(slot){const p=this.party[slot];const m=MONS[p.mon];const st=p.xp>=24?2:p.xp>=10?1:0;return{...m,stage:st,name:m.names[st],maxHp:m.hp[st],svg:m.svgs[st],slot};},
+ activeMon(){for(let i=0;i<this.party.length;i++){if(this.party[i].hp>0)return this.monOf(i);}return null;},
+ addLetters(word){for(const ch of word){this.letters[ch]=(this.letters[ch]||0)+1;}},
+ hasLetters(word){const need={};for(const ch of word)need[ch]=(need[ch]||0)+1;return Object.keys(need).every(ch=>(this.letters[ch]||0)>=need[ch]);},
+ spendLetters(word){for(const ch of word)this.letters[ch]--;},
+
+ updateHUD(){
+  document.getElementById('hudScore').textContent=this.score;
+  document.getElementById('hudCoins').textContent=this.coins;
+  document.getElementById('hudPages').textContent=this.pages.length;
+  document.getElementById('hudZone').textContent=MAPS[this.map].name.toUpperCase();
+ },
+ toast(msg,dur){const t=document.getElementById('toast');t.textContent=msg;t.style.transform='translateX(-50%) translateY(0)';clearTimeout(this._tt);this._tt=setTimeout(()=>{t.style.transform='translateX(-50%) translateY(-90px)';},dur||2600);},
+
+ checkChapter(){
+  const ch=CHAPTERS[this.chapter];
+  if(!ch)return;
+  if(ch.objectives.every(o=>o.check(this))){
+   this.chapter++;
+   SFX.play('fanfare');
+   const next=CHAPTERS[this.chapter];
+   if(next){this.toast('📖 '+next.title+' begins!',3500);speak(next.title+' begins!');}
+   else{this.endGame();}
+   this.save();
+  }
+ },
+ endGame(){
+  DLG.show('THE LIBRARY',["Golden light pours from every window of the Great Library!","Every book opens at once. The words are home.","Río... you taught the Silence its final word. You are a Reading Master!","THE END — but the world is yours to explore. Keep reading!"],()=>{SFX.play('page');});
+ },
+
+ titleStart(){
+  SFX.init();
+  if(this.load()){document.getElementById('title').style.display='none';this.started=true;this.updateHUD();UI.openQuest();return;}
+  // new game → intro + starter pick
+  const body=document.getElementById('titleBody');
+  body.innerHTML='<div style="font-family:\'Press Start 2P\',monospace;font-size:.55rem;color:#e9d5ff;line-height:2.2;max-width:340px;margin:0 auto 14px">The SILENCE has stolen the 5 Lost Pages of the Great Library. Words are fading from the world...<br><br>Choose your Wordmon partner, Río!</div>'+
+   '<div class="starter-row">'+[0,1,2].map(i=>{const m=MONS[i];return '<div class="starter-card" onclick="G.pickStarter('+i+')">'+m.svgs[0]+'<div class="starter-name">'+m.names[0].toUpperCase()+'</div><div class="starter-type" style="color:'+m.color+'">'+m.type+'</div></div>';}).join('')+'</div>';
+  speak("The Silence has stolen the five lost pages of the Great Library. Choose your Wordmon partner, Río!");
+ },
+ pickStarter(i){
+  SFX.play('catch');
+  this.party=[{mon:i,xp:0,hp:MONS[i].hp[0]}];
+  this.dexSeen.add(i);this.dexCaught.add(i);
+  document.getElementById('title').style.display='none';
+  this.started=true;
+  this.updateHUD();
+  speak(MONS[i].names[0]+" joins your team! Talk to Professor Lexia in the village.");
+  this.toast('⭐ '+MONS[i].names[0]+' joined your team!');
+  this.save();
+ }};
+
+// ============================================================
+// EXERCISES — the learning engine. Returns Promise<boolean>
+// ============================================================
+const EX={
+ open(html){const m=document.getElementById('exModal');document.getElementById('exCard').innerHTML=html;m.classList.add('open');},
+ close(){document.getElementById('exModal').classList.remove('open');},
+ // Main entry: pick exercise by reading level
+ ask(kind){
+  const lv=G.level();
+  if(kind==='spell')return this.spellIt();
+  if(kind==='passage')return this.passage();
+  if(lv===1)return Math.random()<.5?this.wordMatch():this.pictureMatch();
+  if(lv===2)return Math.random()<.5?this.fillBlank():this.wordMatch();
+  if(lv===3)return Math.random()<.5?this.spellIt():this.fillBlank();
+  return Math.random()<.5?this.passage():this.spellIt();
+ },
+ _choices(correctLabel,wrongLabels,onPick,prefix){
+  const opts=shuffle([{l:correctLabel,ok:true},...wrongLabels.map(l=>({l,ok:false}))]);
+  return {html:'<div class="ex-choices">'+opts.map((o,i)=>'<button class="ex-btn" data-ok="'+o.ok+'" data-i="'+i+'">'+(prefix?prefix(o.l):o.l)+'</button>').join('')+'</div>',
+   wire:(resolve)=>{document.querySelectorAll('#exCard .ex-btn').forEach(b=>{b.addEventListener('click',()=>{
+    const ok=b.dataset.ok==='true';
+    document.querySelectorAll('#exCard .ex-btn').forEach(x=>{x.style.pointerEvents='none';if(x.dataset.ok==='true')x.classList.add('ok');});
+    if(ok){b.classList.add('ok');SFX.play('correct');G.totalCorrect++;G.score+=5;G.updateHUD();}
+    else{b.classList.add('bad');SFX.play('wrong');}
+    setTimeout(()=>{this.close();resolve(ok);},ok?800:1500);
+   });});}};
+ },
+ wordMatch(){ // hear the word, tap it
+  return new Promise(res=>{
+   const t=W1[Math.floor(Math.random()*W1.length)];
+   const wrongs=shuffle(W1.filter(x=>x.w!==t.w)).slice(0,3).map(x=>x.w);
+   const c=this._choices(t.w,wrongs);
+   this.open('<div class="ex-tag">🎧 HEAR IT</div><button class="ex-speaker" onclick="speak(\''+t.w+'\',0.7)">🔊</button><div class="ex-q">Tap the word you hear!</div>'+c.html);
+   c.wire(res);speak("Tap the word... "+t.w,0.72);
+  });
+ },
+ pictureMatch(){ // see picture, tap the word
+  return new Promise(res=>{
+   const t=W1[Math.floor(Math.random()*W1.length)];
+   const wrongs=shuffle(W1.filter(x=>x.w!==t.w)).slice(0,3).map(x=>x.w);
+   const c=this._choices(t.w,wrongs);
+   this.open('<div class="ex-tag">👀 READ IT</div><div style="text-align:center;font-size:4rem;margin:6px 0">'+t.e+'</div><div class="ex-q">Which word matches?</div>'+c.html);
+   c.wire(res);speak("Which word matches the picture?");
+  });
+ },
+ fillBlank(){
+  return new Promise(res=>{
+   const t=W2[Math.floor(Math.random()*W2.length)];
+   const c=this._choices(t.a,t.d);
+   this.open('<div class="ex-tag">✏️ FILL THE BLANK</div><div class="ex-q">'+t.s.replace('___','<span style="color:var(--accent);border-bottom:4px solid var(--accent);padding:0 8px">___</span>')+'</div>'+c.html);
+   c.wire(res);speak(t.s.replace('___','blank'));
+  });
+ },
+ spellIt(){
+  return new Promise(res=>{
+   const w=W3[Math.floor(Math.random()*W3.length)].toUpperCase();
+   const extra=[];const AL='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+   while(extra.length<3){const l=AL[Math.floor(Math.random()*26)];if(!w.includes(l)&&!extra.includes(l))extra.push(l);}
+   const tiles=shuffle([...w.split(''),...extra]);
+   let built='';
+   this.open('<div class="ex-tag">🔤 SPELL IT</div><button class="ex-speaker" onclick="speak(\''+w.toLowerCase()+'\',0.65)">🔊</button><div class="ex-q">Spell the word you hear!</div>'+
+    '<div class="spell-slots">'+w.split('').map((_,i)=>'<div class="spell-slot" id="sl'+i+'"></div>').join('')+'</div>'+
+    '<div class="spell-tiles">'+tiles.map((l,i)=>'<button class="spell-tile" data-l="'+l+'" id="tl'+i+'">'+l+'</button>').join('')+'</div>');
+   speak("Spell the word... "+w.toLowerCase(),0.68);
+   document.querySelectorAll('.spell-tile').forEach(b=>{b.addEventListener('click',()=>{
+    if(built.length>=w.length)return;
+    SFX.play('click');b.disabled=true;
+    document.getElementById('sl'+built.length).textContent=b.dataset.l;
+    built+=b.dataset.l;
+    if(built.length===w.length){
+     const ok=built===w;
+     if(ok){SFX.play('correct');G.totalCorrect++;G.score+=8;G.updateHUD();}
+     else{SFX.play('wrong');for(let i=0;i<w.length;i++){const s=document.getElementById('sl'+i);s.textContent=w[i];s.style.color='#15803d';}speak("It spells "+w.toLowerCase());}
+     setTimeout(()=>{this.close();res(ok);},ok?800:2000);
+    }
+   });});
+  });
+ },
+ passage(){
+  return new Promise(res=>{
+   const t=W4[Math.floor(Math.random()*W4.length)];
+   const c=this._choices(t.a,t.d);
+   this.open('<div class="ex-tag">📖 READ &amp; ANSWER</div><div class="passage">'+t.p+'</div><div class="ex-q">'+t.q+'</div>'+c.html);
+   c.wire(res);speak(t.p+' ... '+t.q,0.85);
+  });
+ },
+ // mining scramble: tap letters in order to spell the shown word
+ mine(){
+  return new Promise(res=>{
+   const w=MINE_WORDS[Math.floor(Math.random()*MINE_WORDS.length)];
+   const tiles=shuffle(w.split('').map((l,i)=>({l,i})));
+   let next=0;
+   this.open('<div class="ex-tag">⛏️ MINE THE WORD</div><div class="ex-q">Tap the letters in order:<br><span style="font-family:\'Press Start 2P\',monospace;font-size:1.1rem;letter-spacing:.3em;color:var(--accent)">'+w+'</span></div>'+
+    '<div class="spell-tiles">'+tiles.map((t,i)=>'<button class="spell-tile" data-i="'+t.i+'" id="mt'+i+'" style="background:#dbeafe;border-color:#1d4ed8">'+t.l+'</button>').join('')+'</div>'+
+    '<div style="text-align:center;font-size:.75rem;color:var(--text2);font-weight:700;margin-top:6px">Crack the ore by spelling!</div>');
+   speak("Mine the word! Tap the letters in order: "+w.split('').join(', '),0.8);
+   document.querySelectorAll('#exCard .spell-tile').forEach(b=>{b.addEventListener('click',()=>{
+    if(parseInt(b.dataset.i)===next){
+     SFX.play('mine');b.style.background='#bbf7d0';b.style.borderColor='#15803d';b.disabled=true;next++;
+     if(next===w.length){G.totalCorrect++;G.score+=6;setTimeout(()=>{this.close();res(w);},600);}
+    }else{SFX.play('wrong');b.classList.add('btl-shake');setTimeout(()=>b.classList.remove('btl-shake'),400);}
+   });});
+  });
+ }};
+
+// ============================================================
+// DIALOGUE — GBC typewriter box with tap-to-hear words
+// ============================================================
+const DLG={
+ open:false,queue:[],onDone:null,timer:null,fullText:'',
+ show(name,lines,onDone){
+  this.queue=[...lines];this.onDone=onDone||null;this.open=true;
+  document.getElementById('dlgName').textContent=name;
+  document.getElementById('dlg').style.display='block';
+  this.next();
+ },
+ next(){
+  if(this.timer){clearInterval(this.timer);this.timer=null;
+   // skip typing → show full
+   this.renderFull();return;}
+  if(!this.queue.length){this.close();return;}
+  const text=this.queue.shift();this.fullText=text;
+  const el=document.getElementById('dlgText');el.textContent='';
+  document.getElementById('dlgArrow').style.display='none';
+  speak(text);
+  let i=0;
+  this.timer=setInterval(()=>{
+   if(i>=text.length){clearInterval(this.timer);this.timer=null;this.renderFull();return;}
+   el.textContent+=text[i];if(i%3===0)SFX.play('blip');i++;
+  },26);
+ },
+ renderFull(){
+  const el=document.getElementById('dlgText');
+  el.innerHTML=this.fullText.split(/(\s+)/).map(w=>{const c=w.trim();return c?'<span class="tapw" onclick="event.stopPropagation();speak(\''+c.replace(/[^a-zA-Z0-9¡!¿?.,'-]/g,'')+'\',0.7)">'+w+'</span>':w;}).join('');
+  document.getElementById('dlgArrow').style.display='block';
+ },
+ close(){
+  this.open=false;
+  document.getElementById('dlg').style.display='none';
+  try{speechSynthesis.cancel();}catch(e){}
+  if(this.onDone){const f=this.onDone;this.onDone=null;f();}
+ }};
+document.getElementById('dlg').addEventListener('click',()=>DLG.next());
+
+// ============================================================
+// NPC SCRIPTS
+// ============================================================
+const SCRIPTS={
+ lexia(){
+  if(!G.flags.metLexia){
+   DLG.show('PROF. LEXIA',[
+    "Río! Thank goodness you're here.",
+    "The Silence broke into the Great Library last night... It stole the 5 Lost Pages!",
+    "Without them, words are fading from the whole world.",
+    "Your Wordmon grows stronger every time YOU read. Words are its food!",
+    "Go south to Whisper Woods. Win battles, mine letter-ore, and find the first Lost Page!"],
+    ()=>{G.flags.metLexia=true;G.checkChapter();G.save();});
+  }else if(G.pages.length>=5){
+   DLG.show('PROF. LEXIA',["You did it, Río! All five pages are home!","The Library glows again because of YOUR reading. I'm so proud of you!"]);
+  }else{
+   DLG.show('PROF. LEXIA',["Pages found: "+G.pages.length+" of 5.","Remember: battles make your Wordmon strong, ore gives you letters, and the craft shop turns letters into tools!"]);
+  }
+ },
+ milo(){DLG.show('MILO',["I tried to read my favorite book this morning...","Half the words were just... gone! Blank spots on the page.","Please find the Lost Pages, Río. I miss my stories."]);},
+ rosa(){DLG.show('ROSA',["My flowers used to have name tags. Now the tags are empty!","The heal house (red roof) fixes your whole team for free.","The shop (blue roof) is where you craft things by spelling!"]);},
+ finn(){
+  if(G.pages.includes('woods')){DLG.show('SCOUT FINN',["The woods feel brighter since you found that page!"]);return;}
+  if(G.flags.winsWoods>=3){
+   DLG.show('SCOUT FINN',["Whoa, you've beaten "+G.flags.winsWoods+" wild Wordmons! You're ready.","I found something glowing in a hollow tree... I think it's a LOST PAGE!","Here — but you have to READ it to make it real again."],
+    ()=>STORY.readLostPage('woods'));
+  }else{
+   DLG.show('SCOUT FINN',["There's something glowing in a hollow tree, but wild Wordmons guard this forest!","Win "+(3-G.flags.winsWoods)+" more battles in the tall grass and I'll show you."]);
+  }
+ },
+ tova(){
+  if(G.pages.includes('cave')){DLG.show('MINER TOVA',["Hear that? The echoes are singing again! Thanks, Río."]);return;}
+  if(G.flags.mined>=4){
+   DLG.show('MINER TOVA',["You swing a fine pick, Río! "+G.flags.mined+" ores cracked!","Deep in this wall I found a page that repeats itself... an echo of an echo.","Read it with me!"],()=>STORY.readLostPage('cave'));
+  }else{
+   DLG.show('MINER TOVA',["These caves are full of letter-ore — the blue crystals!","Mine "+(4-G.flags.mined)+" more ores and I'll share a secret I found in the wall."]);
+  }
+ },
+ zara(){
+  if(G.pages.includes('desert')){DLG.show('NOMAD ZARA',["The dunes whisper their names again. Safe travels, friend."]);return;}
+  DLG.show('NOMAD ZARA',["A traveler! The desert lost its names — even my camel forgot hers.","I caught a page dancing in the wind. If you can read it, it's yours."],()=>STORY.readLostPage('desert'));
+ },
+ orla(){
+  if(G.pages.includes('peaks')){DLG.show('SAGE ORLA',["You understand the difference now. Quiet... is full of peace."]);return;}
+  DLG.show('SAGE ORLA',["Welcome to the roof of the world, Río.","I have guarded this page in the snow for forty years, waiting for a true reader.","Show me you are the one."],()=>STORY.readLostPage('peaks'));
+ },
+ boss(){
+  if(G.flags.bossDown){
+   if(!G.pages.includes('citadel'))STORY.readLostPage('citadel');
+   else DLG.show('HUSHMAW',["...friend.","(Hushmaw says its one word, over and over, like a treasure.)"]);
+   return;
+  }
+  DLG.show('???',["The hall is utterly silent. A huge shape uncoils in the dark...","HUSHMAW — the beast that eats words!","It opens its mouth and the air itself goes quiet. BATTLE!"],()=>BATTLE.start(null,true));
+ }};
+
+// ============================================================
+// STORY — Lost Page reading ceremony
+// ============================================================
+const STORY={
+ readLostPage(zone){
+  const pg=LOST_PAGES.find(p=>p.zone===zone);
+  const ov=document.getElementById('ovStory');
+  let idx=0;
+  const render=()=>{
+   if(idx<pg.pages.length){
+    document.getElementById('storyBody').innerHTML=
+     '<div class="ov-title">'+pg.emoji+' '+pg.title.toUpperCase()+'</div>'+
+     '<div class="card"><div style="text-align:center;font-family:\'Press Start 2P\',monospace;font-size:.5rem;color:var(--text2);margin-bottom:10px">PAGE '+(idx+1)+' OF '+pg.pages.length+'</div>'+
+     '<div class="passage" style="font-size:1.15rem">'+pg.pages[idx].split(/(\s+)/).map(w=>{const c=w.trim();return c?'<span class="tapw" onclick="speak(\''+c.replace(/[^a-zA-Z0-9.,!?\'-]/g,'')+'\',0.7)">'+w+'</span>':w;}).join('')+'</div>'+
+     '<button class="ex-btn" style="width:100%;background:var(--gold)" id="pgNext">Next ▶</button></div>';
+    speak(pg.pages[idx],0.8);
+    document.getElementById('pgNext').addEventListener('click',()=>{SFX.play('click');idx++;render();});
+   }else{
+    // comprehension to claim the page
+    ov.classList.remove('open');
+    const c=EX._choices(pg.a,pg.d);
+    EX.open('<div class="ex-tag">📜 CLAIM THE PAGE</div><div class="ex-q">'+pg.q+'</div>'+c.html);
+    c.wire(ok=>{
+     if(ok){
+      G.pages.push(zone);G.coins+=20;G.score+=25;
+      SFX.play('page');
+      G.toast('📜 '+pg.title+' recovered! +20 coins',3200);
+      speak("You recovered "+pg.title+"! Amazing reading, Río!");
+      G.updateHUD();G.checkChapter();G.save();
+     }else{
+      G.toast('The page slips away... read it again!');
+      setTimeout(()=>this.readLostPage(zone),900);
+     }
+    });
+   }
+  };
+  ov.classList.add('open');render();
+ }};
+
+// ============================================================
+// BATTLE
+// ============================================================
+const BATTLE={
+ active:false,enemy:null,eHp:0,eMax:0,busy:false,isBoss:false,
+ start(monIdx,isBoss){
+  this.isBoss=!!isBoss;
+  const map=MAPS[G.map];
+  if(monIdx===null||monIdx===undefined){
+   if(isBoss){this.enemy={...BOSS,stage:0,name:'Hushmaw',maxHp:BOSS.hp[0],svg:BOSS.svgs[0]};}
+   else{const pool=map.pool.length?map.pool:[3];const mi=pool[Math.floor(Math.random()*pool.length)];const st=G.level()>=3?1:0;const m=MONS[mi];this.enemy={...m,monIdx:mi,stage:st,name:m.names[st],maxHp:m.hp[st],svg:m.svgs[st]};G.dexSeen.add(mi);}
+  }
+  this.eMax=this.enemy.maxHp;this.eHp=this.eMax;
+  const pm=G.activeMon();
+  if(!pm){G.toast('Your team needs healing! Visit the red-roof house.');return;}
+  this.active=true;this.busy=false;
+  const b=document.getElementById('battle');b.classList.add('open');
+  document.getElementById('btlScene').style.backgroundImage="url('sprites/"+(map.bg||'bg_forest')+".png')";
+  document.getElementById('btlEnemy').innerHTML=this.enemy.svg;
+  document.getElementById('btlPlayer').innerHTML=pm.svg;
+  this.refresh();
+  this.msg((this.isBoss?'HUSHMAW blocks your way!':'A wild '+this.enemy.name.toUpperCase()+' appears!'));
+  speak(this.isBoss?'Hushmaw blocks your way! This is it, Río!':'A wild '+this.enemy.name+' appears!');
+  this.renderActions();
+  SFX.play('whoosh');
+ },
+ refresh(){
+  const pm=G.activeMon();
+  document.getElementById('eName').textContent=this.enemy.name;
+  document.getElementById('eLv').textContent=':L'+(this.enemy.stage+1+(this.isBoss?4:0));
+  document.getElementById('eHp').style.width=Math.max(0,this.eHp/this.eMax*100)+'%';
+  document.getElementById('eHp').style.background=this.eHp/this.eMax>.5?'var(--green)':this.eHp/this.eMax>.25?'#eab308':'var(--red)';
+  document.getElementById('eHpN').textContent=Math.max(0,this.eHp)+'/ '+this.eMax;
+  if(pm){
+   const slot=G.party[pm.slot];
+   document.getElementById('pName').textContent=pm.name;
+   document.getElementById('pLv').textContent=':L'+(pm.stage+1);
+   document.getElementById('pHp').style.width=Math.max(0,slot.hp/pm.maxHp*100)+'%';
+   document.getElementById('pHp').style.background=slot.hp/pm.maxHp>.5?'var(--green)':slot.hp/pm.maxHp>.25?'#eab308':'var(--red)';
+   document.getElementById('pHpN').textContent=Math.max(0,slot.hp)+'/ '+pm.maxHp;
+  }
+ },
+ msg(t){document.getElementById('btlMsg').textContent=t;},
+ renderActions(){
+  const a=document.getElementById('btlActions');
+  const canCatch=!this.isBoss&&this.eHp>0&&this.eHp<=this.eMax*0.4&&!G.dexCaught.has(this.enemy.monIdx);
+  const hasPotion=G.items.includes('HEAL');
+  a.innerHTML=
+   '<button class="btl-btn" id="actAtk">📖 READ<br>ATTACK</button>'+
+   '<button class="btl-btn" id="actSpell">🔤 SPELL<br>POWER HIT</button>'+
+   (canCatch?'<button class="btl-btn gold" id="actCatch">🪄 CATCH!</button>':'<button class="btl-btn" id="actHeal" '+(hasPotion?'':'disabled')+'>🧪 POTION'+(hasPotion?'':' (none)')+'</button>')+
+   '<button class="btl-btn" id="actRun">🏃 RUN</button>';
+  document.getElementById('actAtk').onclick=()=>this.playerTurn('normal');
+  document.getElementById('actSpell').onclick=()=>this.playerTurn('spell');
+  const ac=document.getElementById('actCatch');if(ac)ac.onclick=()=>this.tryCatch();
+  const ah=document.getElementById('actHeal');if(ah)ah.onclick=()=>this.usePotion();
+  document.getElementById('actRun').onclick=()=>this.end(false);
+ },
+ async playerTurn(kind){
+  if(this.busy)return;this.busy=true;
+  const ok=await (kind==='spell'?EX.ask('spell'):EX.ask());
+  const pm=G.activeMon();if(!pm){this.busy=false;return;}
+  if(ok){
+   const dmg=(kind==='spell'?10:6)+G.level()*2+Math.floor(Math.random()*4);
+   this.eHp-=dmg;SFX.play('attack');
+   document.getElementById('btlEnemy').classList.add('btl-flash');
+   setTimeout(()=>document.getElementById('btlEnemy').classList.remove('btl-flash'),400);
+   this.msg(pm.name.toUpperCase()+' strikes! '+dmg+' damage!');
+   this.refresh();
+   if(this.eHp<=0){this.busy=false;return this.win();}
+  }else{
+   this.msg('The attack fizzled... read carefully!');
+  }
+  setTimeout(()=>this.enemyTurn(),900);
+ },
+ enemyTurn(){
+  const pm=G.activeMon();if(!pm){this.busy=false;return;}
+  const slot=G.party[pm.slot];
+  const dmg=(this.isBoss?8:4)+Math.floor(Math.random()*5);
+  slot.hp-=dmg;SFX.play('hurt');
+  document.getElementById('btlPlayer').classList.add('btl-flash');
+  document.getElementById('battle').classList.add('btl-shake');
+  setTimeout(()=>{document.getElementById('btlPlayer').classList.remove('btl-flash');document.getElementById('battle').classList.remove('btl-shake');},450);
+  this.msg(this.enemy.name.toUpperCase()+' attacks! '+dmg+' damage!');
+  this.refresh();
+  if(slot.hp<=0){
+   SFX.play('faint');
+   const next=G.activeMon();
+   if(next){this.msg(pm.name.toUpperCase()+' fainted! '+next.name.toUpperCase()+' steps in!');document.getElementById('btlPlayer').innerHTML=next.svg;this.refresh();}
+   else{this.msg('Your team fainted! Río runs back to the village...');setTimeout(()=>{this.end(false);G.map='village';const st=MAPS.village.start;G.px=st.x;G.py=st.y;G.party.forEach((p,i)=>{p.hp=Math.ceil(G.monOf(i).maxHp/2);});G.updateHUD();G.save();},1400);return;}
+  }
+  this.busy=false;this.renderActions();
+ },
+ async tryCatch(){
+  if(this.busy)return;this.busy=true;
+  this.msg('Answer to befriend '+this.enemy.name.toUpperCase()+'!');
+  const ok=await EX.ask('passage');
+  if(ok){
+   SFX.play('catch');
+   const mi=this.enemy.monIdx;
+   G.dexCaught.add(mi);
+   if(G.party.length<6)G.party.push({mon:mi,xp:this.enemy.stage>=1?12:0,hp:this.enemy.maxHp});
+   this.msg('⭐ '+this.enemy.name.toUpperCase()+' joined your team!');
+   speak(this.enemy.name+' joined your team!');
+   G.score+=30;G.coins+=10;G.updateHUD();G.checkChapter();G.save();
+   setTimeout(()=>this.end(true),1500);
+  }else{
+   this.msg(this.enemy.name.toUpperCase()+' wiggled free!');
+   setTimeout(()=>this.enemyTurn(),900);
+  }
+ },
+ usePotion(){
+  if(this.busy)return;
+  const i=G.items.indexOf('HEAL');if(i<0)return;
+  G.items.splice(i,1);
+  G.party.forEach((p,idx)=>{p.hp=G.monOf(idx).maxHp;});
+  SFX.play('craft');this.msg('Your team is fully restored!');this.refresh();this.renderActions();G.save();
+ },
+ win(){
+  SFX.play('fanfare');
+  const pm=G.activeMon();
+  this.msg('You won! '+pm.name.toUpperCase()+' gains 3 XP! +5 coins');
+  speak('You won the battle!');
+  const slot=G.party[pm.slot];const oldStage=pm.stage;
+  slot.xp+=3;G.coins+=5;G.score+=15;
+  if(G.map==='woods')G.flags.winsWoods=(G.flags.winsWoods||0)+1;
+  const newMon=G.monOf(pm.slot);
+  if(newMon.stage>oldStage){
+   setTimeout(()=>{SFX.play('levelup');this.msg('✨ '+pm.name.toUpperCase()+' evolved into '+newMon.name.toUpperCase()+'!');speak(pm.name+' evolved into '+newMon.name+'!');document.getElementById('btlPlayer').innerHTML=newMon.svg;slot.hp=newMon.maxHp;this.refresh();},1400);
+  }
+  if(this.isBoss){
+   G.flags.bossDown=true;
+   setTimeout(()=>{
+    this.end(true);
+    DLG.show('HUSHMAW',["Hushmaw shrinks... and shrinks... until it is small as a kitten.","It looks up at Río with big empty eyes. It points at its mouth.","It doesn't want to EAT words. It never learned to READ them!","Talk to Hushmaw again to teach it the final word."],()=>{G.checkChapter();G.save();});
+   },1600);
+   return;
+  }
+  G.updateHUD();G.checkChapter();G.save();
+  setTimeout(()=>this.end(true),2600);
+ },
+ end(){this.active=false;document.getElementById('battle').classList.remove('open');}};
+
+// ============================================================
+// UI OVERLAYS — quest / party / bag / dex / craft
+// ============================================================
+const UI={
+ close(id){document.getElementById(id).classList.remove('open');},
+ openQuest(){
+  const ch=CHAPTERS[Math.min(G.chapter,CHAPTERS.length-1)];
+  const done=G.chapter>=CHAPTERS.length;
+  document.getElementById('questBody').innerHTML='<div class="card">'+
+   '<div style="font-family:\'Press Start 2P\',monospace;font-size:.6rem;color:var(--accent);margin-bottom:10px">'+(done?'🏆 SAGA COMPLETE!':ch.title.toUpperCase())+'</div>'+
+   (done?'<div style="font-weight:800">You restored the Great Library! Keep exploring, catching, and reading!</div>':
+   ch.objectives.map(o=>'<div class="q-item"><span class="q-check">'+(o.check(G)?'✅':'⬜')+'</span><span>'+o.text+'</span></div>').join(''))+
+   '</div><div class="card"><div style="font-size:.8rem;font-weight:800;color:var(--text2)">📜 Lost Pages: '+G.pages.length+'/5 &nbsp; ⭐ Score: '+G.score+' &nbsp; 📚 Words read right: '+G.totalCorrect+'</div></div>';
+  document.getElementById('ovQuest').classList.add('open');SFX.play('click');
+ },
+ openParty(){
+  document.getElementById('partyBody').innerHTML=G.party.map((p,i)=>{const m=G.monOf(i);return '<div class="card" style="display:flex;gap:12px;align-items:center"><div style="width:70px;height:70px">'+m.svg+'</div><div style="flex:1"><div style="font-family:\'Press Start 2P\',monospace;font-size:.55rem;color:var(--navy)">'+m.name.toUpperCase()+' <span style="color:'+m.color+'">'+m.type+'</span></div><div style="font-size:.75rem;font-weight:800;margin-top:4px">HP '+Math.max(0,p.hp)+'/'+m.maxHp+' · XP '+p.xp+(m.stage<2?' (evolve at '+(m.stage===0?10:24)+')':' · FINAL FORM')+'</div><div style="height:8px;background:var(--navy);margin-top:4px"><div style="height:100%;width:'+Math.max(0,p.hp/m.maxHp*100)+'%;background:var(--green)"></div></div></div></div>';}).join('')||'<div class="card">No Wordmons yet!</div>';
+  document.getElementById('ovParty').classList.add('open');SFX.play('click');
+ },
+ openBag(){
+  const letters=Object.keys(G.letters).filter(k=>G.letters[k]>0).sort();
+  document.getElementById('bagBody').innerHTML=
+   '<div class="card"><div style="font-family:\'Press Start 2P\',monospace;font-size:.55rem;margin-bottom:8px">🔤 LETTERS (from mining)</div><div class="letters-grid">'+(letters.length?letters.map(l=>'<span class="letter-chip">'+l+'×'+G.letters[l]+'</span>').join(''):'<span style="font-size:.8rem;color:var(--text2)">Mine the blue ore to collect letters!</span>')+'</div></div>'+
+   '<div class="card"><div style="font-family:\'Press Start 2P\',monospace;font-size:.55rem;margin-bottom:8px">🎒 ITEMS</div>'+(G.items.length?G.items.map(it=>{const r=RECIPES.find(r=>r.word===it);return '<div class="bag-row"><span style="font-size:1.6rem">'+(r?r.emoji:'❔')+'</span><span>'+(r?r.name:it)+'</span></div>';}).join(''):'<div style="font-size:.8rem;color:var(--text2)">Craft items at the blue-roof shop!</div>')+'</div>'+
+   '<div class="card"><div style="font-family:\'Press Start 2P\',monospace;font-size:.55rem;margin-bottom:8px">📜 LOST PAGES</div>'+LOST_PAGES.map(p=>'<div class="q-item"><span class="q-check">'+(G.pages.includes(p.zone)?p.emoji:'❔')+'</span><span style="'+(G.pages.includes(p.zone)?'':'opacity:.4')+'">'+p.title+'</span></div>').join('')+'</div>';
+  document.getElementById('ovBag').classList.add('open');SFX.play('click');
+ },
+ openDex(){
+  document.getElementById('dexBody').innerHTML='<div class="card"><div class="dex-grid">'+MONS.map((m,i)=>{
+   const caught=G.dexCaught.has(i),seen=G.dexSeen.has(i);
+   return '<div class="dex-cell" onclick="UI.dexDetail('+i+')" style="'+(caught?'':seen?'opacity:.55':'opacity:.3;filter:grayscale(1)')+'">'+(seen?m.svgs[0]:'<div style="font-size:2.6rem;line-height:64px">❔</div>')+'<div class="dex-name">'+(seen?m.names[0]:'???')+'</div></div>';
+  }).join('')+'</div></div>';
+  document.getElementById('ovDex').classList.add('open');SFX.play('click');
+ },
+ dexDetail(i){
+  if(!G.dexSeen.has(i))return;
+  const m=MONS[i];
+  document.getElementById('dexBody').innerHTML='<div class="card" style="text-align:center">'+
+   '<div style="display:flex;justify-content:center;gap:8px">'+m.svgs.map((s,si)=>'<div style="width:90px;height:90px;'+(G.dexCaught.has(i)||si===0?'':'filter:grayscale(1);opacity:.3')+'">'+s+'</div>').join('')+'</div>'+
+   '<div style="font-family:\'Press Start 2P\',monospace;font-size:.6rem;margin:8px 0;color:var(--navy)">'+m.names.join(' → ').toUpperCase()+'</div>'+
+   '<div style="font-weight:800;color:'+m.color+'">'+m.type+' type</div>'+
+   '<div style="font-size:.9rem;margin:10px 0;line-height:1.5">'+m.bio+'</div>'+
+   '<button class="ex-btn" onclick="UI.openDex()" style="width:100%">◀ Back</button></div>';
+  speak(m.names[0]+'. '+m.bio);
+ },
+ openCraft(){
+  document.getElementById('craftBody').innerHTML='<div class="card" style="text-align:center;font-size:.85rem;font-weight:800;color:var(--text2)">Spell with mined letters to craft!</div>'+RECIPES.map(r=>{
+   const owned=!r.repeat&&G.items.includes(r.word);
+   const can=G.hasLetters(r.word)&&!owned;
+   return '<div class="craft-row"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">'+r.emoji+'</span><div style="flex:1"><div style="font-family:\'Press Start 2P\',monospace;font-size:.5rem">'+r.name.toUpperCase()+'</div><div style="font-size:.7rem;color:var(--text2);font-weight:700">'+r.desc+'</div></div></div>'+
+   '<div class="craft-word">'+r.word.split('').map(ch=>'<div class="craft-letter '+((G.letters[ch]||0)>0?'have':'miss')+'">'+ch+'</div>').join('')+'</div>'+
+   (owned?'<div style="font-size:.7rem;font-weight:800;color:#15803d">✅ Crafted!</div>':'<button class="craft-btn px" '+(can?'':'disabled')+' onclick="UI.craft(\''+r.word+'\')">'+(can?'⚒️ CRAFT':'need letters')+'</button>')+'</div>';
+  }).join('');
+  document.getElementById('ovCraft').classList.add('open');
+ },
+ craft(word){
+  if(!G.hasLetters(word))return;
+  G.spendLetters(word);G.items.push(word);
+  SFX.play('craft');
+  const r=RECIPES.find(r=>r.word===word);
+  G.toast('⚒️ Crafted '+r.name+'!');
+  speak('You crafted the '+r.name+'! '+r.desc);
+  G.checkChapter();G.save();this.openCraft();
+ }};
+
+// ============================================================
+// OVERWORLD ENGINE (canvas)
+// ============================================================
+const WORLD={
+ canvas:null,ctx:null,TILE:48,tileImgs:{},playerImgs:{},npcImgs:{},
+ anim:0,moving:false,minedTiles:{},
+ init(){
+  this.canvas=document.getElementById('world');
+  this.ctx=this.canvas.getContext('2d');
+  this.resize();window.addEventListener('resize',()=>this.resize());
+  ['grass','path','tallgrass','water','tree','house','pokecenter','shop','sign','fence','crystal','lava','ice','void','cosmic','mushroom','library','flower_red','flower_yellow','rock','sand'].forEach((n,i)=>{const img=new Image();img.src='sprites/tile_'+n+'.png?v=5';img.onload=()=>{this.tileImgs[i]=img;};});
+  ['down','up','left','right'].forEach(d=>{const img=new Image();img.src='sprites/rio_'+d+'.png';img.onload=()=>{this.playerImgs[d]=img;};});
+  ['npc_prof','npc_kid','npc_rosa','npc_milo'].forEach(n=>{const img=new Image();img.src='sprites/'+n+'.png?v=2';img.onload=()=>{this.npcImgs[n]=img;};});
+  // input
+  document.querySelectorAll('.dpad-btn').forEach(b=>{
+   const dir=b.dataset.dir;let iv=null;
+   const go=()=>{if(dir==='action')this.interact();else this.tryMove(dir);};
+   b.addEventListener('touchstart',e=>{e.preventDefault();go();iv=setInterval(go,210);});
+   b.addEventListener('touchend',()=>clearInterval(iv));
+   b.addEventListener('mousedown',()=>{go();iv=setInterval(go,210);});
+   b.addEventListener('mouseup',()=>clearInterval(iv));
+   b.addEventListener('mouseleave',()=>clearInterval(iv));
+  });
+  document.addEventListener('keydown',e=>{
+   if(!G.started||BATTLE.active||document.querySelector('.overlay.open')||document.getElementById('exModal').classList.contains('open'))return;
+   if(DLG.open){if(e.key==='Enter'||e.key===' '||e.key==='z')DLG.next();return;}
+   const km={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
+   if(km[e.key])this.tryMove(km[e.key]);
+   if(e.key==='Enter'||e.key===' '||e.key==='z')this.interact();
+  });
+  this.loop();
+ },
+ resize(){
+  const w=Math.min(window.innerWidth,600),h=window.innerHeight;
+  this.TILE=Math.max(40,Math.min(64,Math.floor(w/9)));
+  this.canvas.width=w;this.canvas.height=h;
+ },
+ mapData(){return MAPS[G.map];},
+ tileAt(x,y){
+  const m=this.mapData();
+  if(x<0||y<0||x>=m.w||y>=m.h)return 4;
+  if(this.minedTiles[G.map+':'+x+','+y])return 0;
+  return m.data[y*m.w+x];
+ },
+ tryMove(dir){
+  if(this.moving||DLG.open||BATTLE.active)return;
+  G.facing=dir;
+  const dx={left:-1,right:1,up:0,down:0}[dir],dy={left:0,right:0,up:-1,down:1}[dir];
+  const nx=G.px+dx,ny=G.py+dy;
+  const m=this.mapData();
+  // exits + gates
+  const ex=(m.exits||[]).find(e=>e.x===nx&&e.y===ny);
+  if(ex){
+   if(ex.gate){
+    const g=ex.gate;
+    if(g.item&&!G.items.includes(g.item)){DLG.show('GATE',[g.msg]);return;}
+    if(g.pages&&G.pages.length<g.pages){DLG.show('GATE',[g.msg]);return;}
+    if(g.read&&!G.flags['gate_'+ex.to]){
+     DLG.show('STONE DOOR',[g.msg,"Answer the door's riddle to pass!"],async()=>{
+      const ok=await EX.ask();
+      if(ok){G.flags['gate_'+ex.to]=true;G.toast('The door rumbles open!');SFX.play('page');this.travel(ex);}
+      else G.toast('The door stays shut. Try again!');
+     });
+     return;
+    }
+   }
+   this.travel(ex);return;
+  }
+  const t=this.tileAt(nx,ny);
+  if(t===10){ // ORE — mine it!
+   EX.mine().then(word=>{
+    G.addLetters(word);
+    G.flags.mined=(G.flags.mined||0)+1;
+    G.coins+=2;
+    this.minedTiles[G.map+':'+nx+','+ny]=true;
+    G.toast('⛏️ Mined letters: '+word.split('').join(' ')+' (+2 coins)');
+    G.updateHUD();G.checkChapter();G.save();
+   });
+   return;
+  }
+  if(SOLID.includes(t))return;
+  G.px=nx;G.py=ny;this.moving=true;SFX.play('step');
+  setTimeout(()=>{this.moving=false;},130);
+  // encounters
+  if(t===2&&m.encounterRate&&Math.random()<m.encounterRate){
+   setTimeout(()=>BATTLE.start(null,false),220);
+  }
+  G.save();
+ },
+ travel(ex){
+  G.map=ex.to;G.px=ex.sx;G.py=ex.sy;
+  if(ex.to==='cave')G.flags.visitedCave=true;
+  if(ex.to==='desert')G.flags.visitedDesert=true;
+  if(ex.to==='citadel')G.flags.visitedCitadel=true;
+  SFX.play('whoosh');G.updateHUD();G.checkChapter();G.save();
+ },
+ interact(){
+  if(DLG.open){DLG.next();return;}
+  const m=this.mapData();
+  const dx={left:-1,right:1,up:0,down:0}[G.facing],dy={left:0,right:0,up:-1,down:1}[G.facing];
+  const fx=G.px+dx,fy=G.py+dy;
+  const npc=(m.npcs||[]).find(n=>n.x===fx&&n.y===fy);
+  if(npc){SFX.play('click');SCRIPTS[npc.script]();return;}
+  const sign=(m.signs||[]).find(s=>s.x===fx&&s.y===fy);
+  if(sign){DLG.show('SIGN',[sign.msg]);return;}
+  const t=this.tileAt(fx,fy);
+  if(t===6){G.party.forEach((p,i)=>{p.hp=G.monOf(i).maxHp;});SFX.play('fanfare');DLG.show('HEAL HOUSE',["Welcome! ... Ding-ding! ♥","Your whole team is healed. Come back any time!"]);G.save();return;}
+  if(t===7){UI.openCraft();return;}
+  if(t===16){ // library — re-read recovered pages
+   if(!G.pages.length){DLG.show('LIBRARY',["The shelves are dim and half the books are blank...","Bring back the Lost Pages to light this place up again!"]);}
+   else{DLG.show('LIBRARY',["The library glows a little brighter! Pages recovered: "+G.pages.length+"/5.","(You can re-read any recovered page from your BAG.)"]);}
+   return;
+  }
+  if(t===5){DLG.show('HOUSE',["A cozy home. Someone is reading by the window."]);return;}
+  if(t===10){this.tryMove(G.facing);return;}
+ },
+ loop(){
+  this.draw();requestAnimationFrame(()=>this.loop());
+ },
+ draw(){
+  const c=this.ctx,T=this.TILE,m=this.mapData();
+  const CW=this.canvas.width,CH=this.canvas.height;
+  this.anim++;
+  const camX=Math.max(0,Math.min(G.px*T-CW/2+T/2,m.w*T-CW));
+  const camY=Math.max(0,Math.min(G.py*T-CH/2+T/2,m.h*T-CH));
+  c.fillStyle='#0a0a14';c.fillRect(0,0,CW,CH);
+  c.imageSmoothingEnabled=false;
+  const x0=Math.floor(camX/T),y0=Math.floor(camY/T);
+  const x1=Math.min(m.w,x0+Math.ceil(CW/T)+2),y1=Math.min(m.h,y0+Math.ceil(CH/T)+2);
+  const BUILDING=[5,6,7,16],PROP=[4,8,9,10,17,18,19];
+  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){
+   const t=this.tileAt(x,y),sx=x*T-camX,sy=y*T-camY;
+   const img=this.tileImgs[t];
+   if(img&&img.complete&&img.naturalWidth){
+    if(BUILDING.includes(t)||PROP.includes(t)){
+     const base=(m.zone==='desert'&&t!==20)?this.tileImgs[20]:this.tileImgs[0];
+     if(base&&base.complete)c.drawImage(base,sx,sy,T,T);
+    }
+    c.drawImage(img,sx,sy,T,T);
+    // ore sparkle
+    if(t===10&&this.anim%60<30){c.fillStyle='rgba(255,255,255,.8)';c.fillRect(sx+T*0.3,sy+T*0.25,3,3);c.fillRect(sx+T*0.65,sy+T*0.55,2,2);}
+   }else{
+    c.fillStyle=['#65d97c','#d4a574','#2d8a4e','#3b82f6','#15803d','#ef4444','#ec4899','#3b82f6','#a16207','#92400e','#60a5fa','#9333ea','#bae6fd','#1e1b4b','#312e81','#c084fc','#78350f','#65d97c','#65d97c','#6b7280','#fcd34d'][t]||'#333';
+    c.fillRect(sx,sy,T,T);
+   }
+  }
+  // gates markers
+  (m.exits||[]).forEach(e=>{
+   if(!e.gate)return;
+   const sx=e.x*T-camX,sy=e.y*T-camY;
+   c.font=(T*0.5)+'px serif';c.textAlign='center';
+   c.fillText(e.gate.item?'🔒':'🚪',sx+T/2,sy+T*0.7);
+  });
+  // npcs
+  (m.npcs||[]).forEach(n=>{
+   const sx=n.x*T-camX,sy=n.y*T-camY;
+   if(sx<-T*2||sx>CW+T||sy<-T*2||sy>CH+T)return;
+   const bob=Math.sin(this.anim/14+n.x*3)*1.5;
+   c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(sx+T/2,sy+T*0.96,T*0.28,T*0.06,0,0,Math.PI*2);c.fill();
+   if(n.boss){
+    // Hushmaw drawn as dark blob (unless beaten → small)
+    const sz=G.flags.bossDown?T*0.8:T*1.6;
+    c.save();c.translate(sx+T/2,sy+T*0.6+bob);
+    c.fillStyle='#0f172a';c.beginPath();c.arc(0,0,sz/2,0,Math.PI*2);c.fill();
+    c.fillStyle='#a855f7';c.beginPath();c.arc(-sz*0.16,-sz*0.1,sz*0.08,0,Math.PI*2);c.fill();c.beginPath();c.arc(sz*0.16,-sz*0.1,sz*0.08,0,Math.PI*2);c.fill();
+    c.fillStyle='#000';c.beginPath();c.ellipse(0,sz*0.16,sz*0.22,sz*0.13,0,0,Math.PI*2);c.fill();
+    c.restore();
+   }else{
+    const img=this.npcImgs[n.sprite];
+    const NT=T*1.15,ox=(T-NT)/2,oy=(T-NT)+T*0.05;
+    if(img&&img.complete&&img.naturalWidth)c.drawImage(img,sx+ox,sy+oy+bob,NT,NT);
+    else{c.fillStyle='#3b82f6';c.fillRect(sx+T*0.3,sy+T*0.3+bob,T*0.4,T*0.55);}
+   }
+   // ! hint
+   const dist=Math.abs(n.x-G.px)+Math.abs(n.y-G.py);
+   if(dist<=2){
+    const bx=sx+T/2,by=sy-T*0.12+bob+Math.sin(this.anim/8)*2;
+    c.fillStyle='#1a1a2e';c.fillRect(bx-T*0.1,by-T*0.2,T*0.2,T*0.26);
+    c.fillStyle='#fbbf24';c.fillRect(bx-T*0.08,by-T*0.18,T*0.16,T*0.22);
+    c.fillStyle='#1a1a2e';c.font='bold '+(T*0.2)+'px monospace';c.textAlign='center';c.textBaseline='middle';
+    c.fillText('!',bx,by-T*0.06);c.textBaseline='alphabetic';
+   }
+  });
+  // player
+  const psx=G.px*T-camX,psy=G.py*T-camY+Math.sin(this.anim/10)*1.5;
+  c.fillStyle='rgba(0,0,0,.2)';c.beginPath();c.ellipse(psx+T/2,psy+T*0.96,T*0.3,T*0.07,0,0,Math.PI*2);c.fill();
+  const pimg=this.playerImgs[G.facing];
+  const PT=T*1.2,pox=(T-PT)/2,poy=(T-PT);
+  if(pimg&&pimg.complete&&pimg.naturalWidth)c.drawImage(pimg,psx+pox,psy+poy,PT,PT);
+  else{c.fillStyle='#16a34a';c.fillRect(psx+T*0.28,psy+T*0.3,T*0.44,T*0.55);}
+  // partner mon follows
+  const am=G.activeMon();
+  if(am){
+   const off={down:{x:0,y:-1},up:{x:0,y:1},left:{x:1,y:0},right:{x:-1,y:0}}[G.facing];
+   const fsx=(G.px+off.x)*T-camX,fsy=(G.py+off.y)*T-camY+Math.sin(this.anim/9+2)*2;
+   const div=document.getElementById('_monFollow')||(()=>{const d=document.createElement('div');d.id='_monFollow';d.style.cssText='position:absolute;pointer-events:none;z-index:5;transition:left .12s linear,top .12s linear';document.getElementById('gameRoot').appendChild(d);return d;})();
+   const FS=T*0.78;
+   div.style.width=FS+'px';div.style.height=FS+'px';
+   div.style.left=(fsx+(T-FS)/2)+'px';div.style.top=(fsy+(T-FS)/2)+'px';
+   if(div._mon!==am.name){div.innerHTML=am.svg;div._mon=am.name;}
+  }
+ }};
+
+// GO!
+WORLD.init();
+G.updateHUD();
+</script>
+</body>
+</html>
