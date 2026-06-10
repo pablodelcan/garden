@@ -328,6 +328,45 @@ const STICKER_TYPES=[
 
 const BACKGROUNDS=['rosa-sprites/bg_park.png','rosa-sprites/bg_bedroom.png','rosa-sprites/bg_garden.png','rosa-sprites/bg_space.png'];
 
+// ===== DAYS OF THE WEEK (English + Spanish) =====
+const DAYS_OF_WEEK=[
+  {en:'Monday',   es:'Lunes',     short:'Mon', emoji:'🌅', color:'#fbbf24', order:1},
+  {en:'Tuesday',  es:'Martes',    short:'Tue', emoji:'☀️', color:'#f97316', order:2},
+  {en:'Wednesday',es:'Miércoles', short:'Wed', emoji:'🌤️', color:'#22c55e', order:3},
+  {en:'Thursday', es:'Jueves',    short:'Thu', emoji:'⛅', color:'#3b82f6', order:4},
+  {en:'Friday',   es:'Viernes',   short:'Fri', emoji:'🎉', color:'#a855f7', order:5},
+  {en:'Saturday', es:'Sábado',    short:'Sat', emoji:'🦸', color:'#ec4899', order:6},
+  {en:'Sunday',   es:'Domingo',   short:'Sun', emoji:'🐶', color:'#ef4444', order:7},
+];
+
+// ===== SPIDEY + BLUEY THEMED COACHES =====
+// Each "coach" is a beloved character who introduces a question. Their
+// catch-phrase plays as voice-over and their emoji decorates the card.
+const SPIDEY_COACHES=[
+  {name:'Spidey',    color:'#dc2626', emoji:'🕷️', icon:'🕸️',  catchphrase:"Spidey here! Let's solve this together!"},
+  {name:'Ghost-Spider',color:'#f0abfc',emoji:'👻',icon:'🕸️',catchphrase:"Hey, it's Ghost-Spider! Web-tastic question coming up!"},
+  {name:'Miles',     color:'#1e3a8a', emoji:'🦸‍♂️',icon:'⭐',  catchphrase:"It's Miles! You got this, Web-Pal!"},
+  {name:'TRACE-E',   color:'#fbbf24', emoji:'🤖', icon:'🔧',  catchphrase:"Beep boop! TRACE-E says you can do it!"},
+];
+const BLUEY_COACHES=[
+  {name:'Bluey',     color:'#3b82f6', emoji:'🐕', icon:'🦴',  catchphrase:"For real life! Let's play a game, mate!"},
+  {name:'Bingo',     color:'#f97316', emoji:'🐶', icon:'🌸',  catchphrase:"Bingo here! Can you help me?"},
+  {name:'Bandit',    color:'#1e40af', emoji:'👨', icon:'🎩',  catchphrase:"G'day! Bandit reckons you'll smash this one!"},
+  {name:'Chilli',    color:'#fcd34d', emoji:'👩', icon:'💛',  catchphrase:"Chilli here! Have a go, you legend!"},
+];
+
+// What gets unlocked as Rosa earns coins. Spidey + Bluey themed surprises.
+const ROSA_DAILY_STICKERS=[
+  {id:'spidey_web',  src:null, fallback:'🕸️', name:'Spidey Web'},
+  {id:'spidey_mask', src:null, fallback:'🕷️', name:'Spidey Mask'},
+  {id:'ghost_spider',src:null, fallback:'👻', name:'Ghost-Spider'},
+  {id:'bluey_paw',   src:null, fallback:'🐾', name:'Bluey Paw'},
+  {id:'bingo_flower',src:null, fallback:'🌸', name:'Bingo Flower'},
+  {id:'heeler_house',src:null, fallback:'🏠', name:'Heeler House'},
+  {id:'rainbow',     src:null, fallback:'🌈', name:'Rainbow'},
+  {id:'unicorn',     src:null, fallback:'🦄', name:'Unicorn'},
+];
+
 // ========================================================
 // GAME ENGINE
 // ========================================================
@@ -339,10 +378,10 @@ const G={
   currentSpoken:'', // what to repeat when speaker is tapped
   // Phrases mode disabled — too text-heavy for a 3-year-old who can't read.
   // It stays in code (LEGACY) so it can be re-enabled later for an older Rosa.
-  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','smemory','maze'],
+  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','smemory','maze','days','spidey','bluey','count20'],
   LEGACY_MODES:['phrases'],
-  // Icon-only mode names — Rosa is 3 and can't read words
-  MODE_NAMES:{letters:'🔤',numbers:'🔢',colors:'🎨',shapes:'🔷',matching:'🃏',spanish:'🇪🇸',phrases:'💬',smemory:'🧠🇪🇸',maze:'🌀'},
+  // Icon-only mode names — Rosa is 4 and can't read words yet
+  MODE_NAMES:{letters:'🔤',numbers:'🔢',colors:'🎨',shapes:'🔷',matching:'🃏',spanish:'🇪🇸',phrases:'💬',smemory:'🧠🇪🇸',maze:'🌀',days:'📅',spidey:'🕷️',bluey:'🐕',count20:'🔢'},
 
   init(){
     this.loadGame();
@@ -352,20 +391,97 @@ const G={
     this.renderStickers();
     this.loadMode(this.mode);
     this.changeBackground();
-    // auto-speak first instruction
-    setTimeout(()=>speak("Hi Rosa! Let's learn together! Tap the right answer!",0.85,1.15),500);
+    // Daily login bonus (once per calendar day)
+    try{this.initDailyBonus();}catch(e){console.warn('daily',e);}
+    // If the daily bonus modal is up, let it speak first
+    setTimeout(()=>{
+      if(document.querySelector('.rd-overlay')) return;
+      speak("Hi Rosa! Let's learn together! Tap the right answer!",0.85,1.15);
+    },800);
   },
 
   saveGame(){
     try{localStorage.setItem('rosa_save',JSON.stringify({
       score:this.score,streak:this.streak,gems:this.gems,level:this.level,xp:this.xp,
       totalCorrect:this.totalCorrect,stickers:this.stickers,
-      maxStreak:this.maxStreak||0,purchased:this.purchased||[]
+      maxStreak:this.maxStreak||0,purchased:this.purchased||[],
+      purchaseCounts:this.purchaseCounts||{},
+      dailyStickers:this.dailyStickers||[], lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0
     }));}catch(e){}
   },
   loadGame(){
     try{const d=JSON.parse(localStorage.getItem('rosa_save'));
     if(d){Object.assign(this,d);}}catch(e){}
+  },
+
+  // ===== DAILY LOGIN BONUS — coins + special Spidey/Bluey sticker =====
+  _today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');},
+  initDailyBonus(){
+    const today=this._today();
+    if(this.lastLoginDate===today) return; // already got today's
+    const yesterday=new Date(Date.now()-86400000);
+    const ykey=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+    this.loginStreak=(this.lastLoginDate===ykey)?(this.loginStreak||0)+1:1;
+    this.lastLoginDate=today;
+    // Daily coin bonus that grows with streak (caps at +50)
+    const bonusCoins=Math.min(50, 20 + (this.loginStreak-1)*5);
+    this.gems+=bonusCoins;
+    // Pick a daily sticker (one Rosa doesn't have yet, or a random one if she has all)
+    if(!this.dailyStickers) this.dailyStickers=[];
+    const unowned=ROSA_DAILY_STICKERS.filter(s=>!this.dailyStickers.includes(s.id));
+    const sticker=(unowned.length?unowned:ROSA_DAILY_STICKERS)[Math.floor(Math.random()*(unowned.length||ROSA_DAILY_STICKERS.length))];
+    if(!this.dailyStickers.includes(sticker.id)) this.dailyStickers.push(sticker.id);
+    // Show the bonus modal
+    setTimeout(()=>this.showDailyBonus(bonusCoins, sticker),1100);
+    this.saveGame();
+  },
+
+  showDailyBonus(coins, sticker){
+    if(!document.getElementById('rosaDailyStyles')){
+      const s=document.createElement('style');s.id='rosaDailyStyles';
+      s.textContent=`
+        @keyframes rosaDailyPop{0%{transform:scale(.4) rotate(-10deg);opacity:0}60%{transform:scale(1.1) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+        @keyframes rosaStickerSpin{0%{transform:scale(0) rotate(0)}40%{transform:scale(1.3) rotate(360deg)}100%{transform:scale(1) rotate(360deg)}}
+        @keyframes rosaShine{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .rd-overlay{position:fixed;inset:0;z-index:600;background:radial-gradient(circle,rgba(236,72,153,.85),rgba(91,33,182,.95));display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px)}
+        .rd-card{background:linear-gradient(160deg,#fff,#fce7f3,#fef3c7);border-radius:28px;max-width:340px;width:100%;padding:24px;text-align:center;border:5px solid #fde047;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative;animation:rosaDailyPop .7s cubic-bezier(.34,1.56,.64,1)}
+        .rd-eyebrow{display:inline-block;font-family:'Fredoka One',cursive;font-size:.75rem;background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;padding:5px 14px;border-radius:99px;letter-spacing:.12em;box-shadow:0 4px 12px rgba(236,72,153,.4)}
+        .rd-streak{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#be185d;margin:8px 0 4px}
+        .rd-sticker{margin:14px auto;width:130px;height:130px;background:radial-gradient(circle,#fef3c7,#fcd34d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:5.5rem;line-height:1;box-shadow:0 10px 30px rgba(251,191,36,.6),inset 0 2px 0 rgba(255,255,255,.8);animation:rosaStickerSpin 1.1s ease}
+        .rd-sticker-name{font-family:'Fredoka One',cursive;font-size:1.1rem;color:#7c2d12;margin-top:4px}
+        .rd-coins{font-family:'Fredoka One',cursive;font-size:1.5rem;color:#92400e;background:linear-gradient(90deg,#fde047,#fbbf24,#fde047);background-size:200% 100%;animation:rosaShine 2s linear infinite;padding:8px 18px;border-radius:14px;margin:8px 0 14px;display:inline-block;border:3px solid #fbbf24}
+        .rd-btn{font-family:'Fredoka One',cursive;font-size:1.15rem;padding:12px 26px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,.4)}
+        .rd-btn:hover{transform:translateY(-2px)}
+      `;
+      document.head.appendChild(s);
+    }
+    const overlay=document.createElement('div');
+    overlay.className='rd-overlay';
+    overlay.innerHTML=`
+      <div class="rd-card">
+        <div class="rd-eyebrow">✨ DAILY SURPRISE ✨</div>
+        <div class="rd-streak">${this.loginStreak>1?'Day '+this.loginStreak+' streak! 🔥':'Hi Rosa! 💖'}</div>
+        <div class="rd-sticker">${sticker.fallback}</div>
+        <div class="rd-sticker-name">${sticker.name} sticker!</div>
+        <div class="rd-coins">+${coins} 🪙 coins!</div>
+        <button class="rd-btn" id="rdBtn">Yay! Play! 🎉</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    this.fireConfetti();
+    SFX.play('fanfare');
+    // Voice-over
+    setTimeout(()=>{
+      const greeting=this.loginStreak>1
+        ? "Hi Rosa! Day "+this.loginStreak+" in a row! You got a "+sticker.name+" sticker and "+coins+" coins!"
+        : "Hi Rosa! Welcome back! You got a "+sticker.name+" sticker and "+coins+" coins!";
+      speak(greeting,0.82,1.15);
+    },500);
+    document.getElementById('rdBtn').addEventListener('click',()=>{
+      try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+      overlay.remove();
+      this.updateHUD();
+    });
   },
 
   updateHUD(){
@@ -426,6 +542,10 @@ const G={
       case'phrases':this.loadSpanishPhrases();break;
       case'smemory':this.loadSpanishMemory();break;
       case'maze':this.loadMaze();break;
+      case'days':this.loadDays();break;
+      case'spidey':this.loadSpidey();break;
+      case'bluey':this.loadBluey();break;
+      case'count20':this.loadCount20();break;
     }
   },
 
@@ -536,6 +656,175 @@ const G={
 
     this.setupChoices(String(target));
     this.speakAndHighlight("How many dots? Count them! There are "+target+" dots!", choices, String(target));
+  },
+
+  // =============== COUNT TO 20 — bigger numbers for a 4yo ===============
+  loadCount20(){
+    const area=document.getElementById('gameArea');
+    const target=Math.floor(Math.random()*15)+6;  // 6 to 20
+    // Group dots into rows of 5 for easier counting (like five-frames)
+    let dotRows='';
+    let remaining=target;
+    while(remaining>0){
+      const row=Math.min(5,remaining);
+      dotRows+='<div style="display:flex;justify-content:center;gap:6px;margin:2px 0">'+
+        Array.from({length:row},()=>'<span style="font-size:1.6rem">🔵</span>').join('')+
+        '</div>';
+      remaining-=row;
+    }
+    let wrongs=new Set();
+    // Numbers within ±4 of the target so the choices are challenging
+    while(wrongs.size<3){
+      const n=target+(Math.floor(Math.random()*9)-4);
+      if(n>=1 && n<=20 && n!==target) wrongs.add(n);
+    }
+    const choices=shuffle([target,...wrongs]);
+
+    this.currentSpoken="How many dots? Count them! "+target+" dots!";
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-size:2rem;margin:6px 0">🔢❓ Count to '+target+'!</div>'+
+      '<div style="text-align:center;line-height:1.1">'+dotRows+'</div>'+
+      '<div class="big-choices">'+
+      choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span class="big-number" style="font-size:3rem;margin:0">'+c+'</span></button>').join('')+
+      '</div></div>';
+    this.setupChoices(String(target));
+    this.speakAndHighlight("Count the dots! There are "+target+" dots!", choices, String(target));
+  },
+
+  // =============== DAYS OF THE WEEK — English + Spanish ===============
+  loadDays(){
+    const area=document.getElementById('gameArea');
+    const target=DAYS_OF_WEEK[Math.floor(Math.random()*DAYS_OF_WEEK.length)];
+    const wrongs=shuffle(DAYS_OF_WEEK.filter(d=>d.en!==target.en)).slice(0,3);
+    const choices=shuffle([target,...wrongs]);
+    // Randomly ask in English OR Spanish
+    const askInSpanish=Math.random()<0.4;
+    const questionText=askInSpanish
+      ? "¿Qué día es? ¡"+target.es+"!"
+      : "What day is this? "+target.en+"!";
+
+    this.currentSpoken=questionText;
+    // Card body — show the day's color and emoji
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-size:2.2rem;margin:6px 0">📅❓</div>'+
+      '<div style="text-align:center;background:linear-gradient(135deg,'+target.color+',rgba(255,255,255,.4));border-radius:18px;padding:24px 12px;margin:8px 12px;box-shadow:0 4px 16px rgba(0,0,0,.15);border:4px solid #fff;color:#fff;font-family:Fredoka One,cursive;font-size:1.5rem;text-shadow:2px 2px 0 rgba(0,0,0,.3)">'+
+        '<div style="font-size:4rem;line-height:1">'+target.emoji+'</div>'+
+        '<div style="font-size:.85rem;margin-top:4px;opacity:.95">Day '+target.order+' of the week</div>'+
+      '</div>'+
+      '<div class="big-choices">'+
+      choices.map(c=>'<button class="big-btn" data-val="'+c.en+'" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;background:'+c.color+'33;border:4px solid '+c.color+'"><span style="font-size:2rem">'+c.emoji+'</span><span style="font-family:Fredoka One,cursive;font-size:1rem;color:#1a1a2e">'+c.en+'</span></button>').join('')+
+      '</div>'+
+      '<div style="text-align:center;font-size:.7rem;color:var(--text2);margin-top:8px;font-weight:600">'+(askInSpanish?'In English →':'En Español: '+target.es)+'</div>'+
+      '</div>';
+    this.setupChoices(target.en);
+    // First read the question in chosen language, then read each English choice
+    if(askInSpanish){
+      speakSpanish(questionText, 0.7, 1.1, ()=>{
+        this.speakAndHighlight("Which one is "+target.en+"?", choices.map(c=>c.en), target.en);
+      });
+    } else {
+      this.speakAndHighlight(questionText+" In Spanish, "+target.en+" is "+target.es+".", choices.map(c=>c.en), target.en);
+    }
+  },
+
+  // =============== 🕷️ SPIDEY-COACHED CHALLENGE ===============
+  // Spidey (or Ghost-Spider, Miles, TRACE-E) introduces a question and Rosa
+  // answers — covers colors / shapes / counting in one rotating mode.
+  loadSpidey(){ this._coachedChallenge(SPIDEY_COACHES,'🕸️','#dc2626','spidey'); },
+
+  // =============== 🐕 BLUEY-COACHED CHALLENGE ===============
+  loadBluey(){ this._coachedChallenge(BLUEY_COACHES,'🦴','#3b82f6','bluey'); },
+
+  _coachedChallenge(coaches, propEmoji, themeColor, modeId){
+    const area=document.getElementById('gameArea');
+    const coach=coaches[Math.floor(Math.random()*coaches.length)];
+    // Pick what kind of question: color, shape, count, or Spanish word
+    const kinds=['color','shape','count','spanish'];
+    const kind=kinds[Math.floor(Math.random()*kinds.length)];
+    let prompt='', answerVal='', cardBody='', choicesHtml='', choiceVals=[];
+    if(kind==='color'){
+      const target=COLORS[Math.floor(Math.random()*COLORS.length)];
+      const wrongs=shuffle(COLORS.filter(c=>c.name!==target.name)).slice(0,3);
+      const choices=shuffle([target,...wrongs]);
+      prompt=coach.name+" wants to know what color this is!";
+      answerVal=target.name;
+      cardBody='<div class="color-swatch" style="background:'+target.hex+';border:6px solid '+themeColor+'"></div>';
+      choicesHtml=choices.map(c=>'<button class="big-btn" data-val="'+c.name+'" style="background:'+c.hex+';border:4px solid '+c.hex+'"><span style="font-size:3.5rem">'+c.emoji+'</span></button>').join('');
+      choiceVals=choices.map(c=>c.name);
+    } else if(kind==='shape'){
+      const palette=['#f472b6','#60a5fa','#fbbf24','#4ade80','#a78bfa'];
+      const fc=palette[Math.floor(Math.random()*palette.length)];
+      const target=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      const wrongs=shuffle(SHAPES.filter(s=>s.name!==target.name)).slice(0,3);
+      const choices=shuffle([target,...wrongs]);
+      prompt=coach.name+" found a shape! What is it?";
+      answerVal=target.name;
+      cardBody='<div class="shape-display" style="border:6px solid '+themeColor+';border-radius:20px;padding:8px"><svg viewBox="0 0 120 120">'+target.svg.replace('VAR',fc)+'</svg></div>';
+      choicesHtml=choices.map(c=>'<button class="big-btn" data-val="'+c.name+'"><span style="font-size:4rem">'+c.emoji+'</span></button>').join('');
+      choiceVals=choices.map(c=>c.name);
+    } else if(kind==='count'){
+      const target=Math.floor(Math.random()*9)+2;  // 2-10
+      const emoji=propEmoji.repeat(target);
+      let wrongs=new Set();
+      while(wrongs.size<3){const n=Math.floor(Math.random()*10)+1;if(n!==target)wrongs.add(n);}
+      const choices=shuffle([target,...wrongs]);
+      prompt=coach.name+" has some "+(modeId==='spidey'?'webs':'bones')+'! How many?';
+      answerVal=String(target);
+      cardBody='<div style="text-align:center;font-size:2.4rem;line-height:1.2;letter-spacing:4px;margin:8px 0;padding:12px;background:rgba(255,255,255,.6);border-radius:18px;border:4px solid '+themeColor+'">'+emoji+'</div>';
+      choicesHtml=choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span class="big-number" style="font-size:3rem;margin:0">'+c+'</span></button>').join('');
+      choiceVals=choices.map(c=>String(c));
+    } else {
+      // Spanish — simple noun
+      const SIMPLE=[
+        {en:'Cat',es:'Gato',emoji:'🐱'},
+        {en:'Dog',es:'Perro',emoji:'🐶'},
+        {en:'Sun',es:'Sol',emoji:'☀️'},
+        {en:'Moon',es:'Luna',emoji:'🌙'},
+        {en:'Apple',es:'Manzana',emoji:'🍎'},
+        {en:'House',es:'Casa',emoji:'🏠'},
+        {en:'Water',es:'Agua',emoji:'💧'},
+        {en:'Star',es:'Estrella',emoji:'⭐'},
+      ];
+      const target=SIMPLE[Math.floor(Math.random()*SIMPLE.length)];
+      const wrongs=shuffle(SIMPLE.filter(s=>s.en!==target.en)).slice(0,3);
+      const choices=shuffle([target,...wrongs]);
+      prompt=coach.name+" wants to know — ¿Cómo se dice "+target.en+"?";
+      answerVal=target.es;
+      cardBody='<div style="text-align:center;font-size:6rem;line-height:1;margin:8px 0;padding:18px;background:rgba(255,255,255,.55);border-radius:20px;border:4px solid '+themeColor+'">'+target.emoji+'</div>';
+      choicesHtml=choices.map(c=>'<button class="big-btn" data-val="'+c.es+'" style="flex-direction:column;gap:2px"><span style="font-size:2.5rem">'+c.emoji+'</span><span style="font-family:Fredoka One,cursive;font-size:1rem;color:#1a1a2e">'+c.es+'</span></button>').join('');
+      choiceVals=choices.map(c=>c.es);
+    }
+    this.currentSpoken=coach.catchphrase+' '+prompt;
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,'+themeColor+',rgba(255,255,255,.2));border-radius:18px;margin:0 8px 10px;color:#fff;font-family:Fredoka One,cursive;font-size:1rem;text-shadow:1px 1px 0 rgba(0,0,0,.4);border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.2)">'+
+        '<span style="font-size:2.6rem;line-height:1;animation:coachBob 1.6s ease-in-out infinite">'+coach.emoji+'</span>'+
+        '<div style="flex:1;line-height:1.25"><div style="font-size:.7rem;opacity:.85;letter-spacing:.06em">'+modeId.toUpperCase()+' SAYS:</div><div>'+coach.catchphrase+'</div></div>'+
+      '</div>'+
+      cardBody+
+      '<div class="big-choices">'+choicesHtml+'</div></div>';
+    // Inject coach-bob animation once
+    if(!document.getElementById('coachBobStyles')){
+      const s=document.createElement('style');s.id='coachBobStyles';
+      s.textContent='@keyframes coachBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-4px) rotate(3deg)}}';
+      document.head.appendChild(s);
+    }
+    this.setupChoices(answerVal);
+    // Voice: coach catchphrase first, then the question + choices
+    if(kind==='spanish'){
+      speak(coach.catchphrase, 0.85, 1.18, ()=>{
+        speak(prompt, 0.75, 1.15, ()=>{
+          speakSpanish(answerVal, 0.75, 1.1);
+          setTimeout(()=>{
+            const btns=document.querySelectorAll('.big-btn');
+            btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});
+          }, 900);
+        });
+      });
+    } else {
+      speak(coach.catchphrase, 0.85, 1.18, ()=>{
+        this.speakAndHighlight(prompt, choiceVals, answerVal);
+      });
+    }
   },
 
   // =============== COLOR MODE ===============
@@ -1179,13 +1468,28 @@ const G={
   renderStickers(){
     const grid=document.getElementById('stickerGrid');
     grid.innerHTML='';
-    document.getElementById('stickerCount').textContent=this.stickers.length;
-    for(let i=0;i<30;i++){
+    // Combine the in-game stickers (earned for streaks) + the daily-login
+    // Spidey/Bluey stickers Rosa collects by coming back each day.
+    const dailyOwned=(this.dailyStickers||[]).map(id=>{
+      const s=ROSA_DAILY_STICKERS.find(x=>x.id===id);
+      return s?{src:s.src,fallback:s.fallback,name:s.name,daily:true}:null;
+    }).filter(Boolean);
+    const inGame=(this.stickers||[]).map(i=>{
+      const s=STICKER_TYPES[i];
+      return {src:s.src,fallback:s.fallback,name:s.name,daily:false};
+    });
+    const allStickers=[...dailyOwned, ...inGame];
+    document.getElementById('stickerCount').textContent=allStickers.length;
+    const slots=Math.max(30, allStickers.length+5);
+    for(let i=0;i<slots;i++){
       const slot=document.createElement('div');
-      slot.className='sticker-slot'+(i<this.stickers.length?' earned':'');
-      if(i<this.stickers.length){
-        const st=STICKER_TYPES[this.stickers[i]];
-        slot.innerHTML='<img src="'+st.src+'" onerror="this.outerHTML=\'<span style=font-size:2rem>'+st.fallback+'</span>\'">';
+      slot.className='sticker-slot'+(i<allStickers.length?' earned':'');
+      if(i<allStickers.length){
+        const st=allStickers[i];
+        const dailyMark=st.daily?'<span style="position:absolute;top:-4px;right:-4px;background:#fde047;color:#7c2d12;font-size:.5rem;padding:1px 4px;border-radius:8px;font-weight:800;border:1.5px solid #fff">✨</span>':'';
+        slot.style.position='relative';
+        slot.innerHTML='<span style="font-size:2rem">'+st.fallback+'</span>'+dailyMark;
+        slot.title=st.name+(st.daily?' (daily surprise!)':'');
       }else{
         slot.innerHTML='<span style="font-size:1.2rem;color:#ddd">?</span>';
       }
@@ -1223,15 +1527,27 @@ const G={
     this._modeBeforeShop=this.mode;
     const area=document.getElementById('gameArea');
     const SHOP=[
-      // Small rewards (100-200 coins) — a few hours of play
-      {id:'sticker_book',name:'Sticker Book',price:100,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null,emoji:'⭐'},
-      {id:'puzzle',name:'Safari Puzzles',price:150,desc:'Wooden animal puzzles!',realPrice:'~$10',url:'https://www.amazon.com/Melissa-Doug-Preschool-Full-Color-Pictures/dp/B000B9RHYC',img:'https://m.media-amazon.com/images/I/51sIjUFePwL._AC_SL500_.jpg',emoji:'🧩'},
+      // ===== TINY REWARDS (50-100 coins) — quick wins, repeatable =====
+      {id:'sticker_pack',name:'Sticker Pack',price:50,desc:'Spidey or Bluey stickers!',realPrice:'~$5',url:'https://www.amazon.com/s?k=spidey+bluey+stickers',img:null,emoji:'⭐',repeatable:true},
+      {id:'sticker_book',name:'Sticker Book',price:100,desc:'Stickers everywhere!',realPrice:'~$8',url:'https://www.amazon.com/s?k=toddler+sticker+book',img:null,emoji:'📕',repeatable:true},
+      {id:'spidey_bath',name:'Spidey Bath Crayons',price:80,desc:'Web-tastic bath time!',realPrice:'~$7',url:'https://www.amazon.com/s?k=spidey+bath+crayons',img:null,emoji:'🛁',repeatable:true},
+      // ===== SPIDEY & HIS AMAZING FRIENDS =====
+      {id:'spidey_plush',name:'Spidey Plush (10")',price:300,desc:'Snuggle with Spidey!',realPrice:'~$18',url:'https://www.amazon.com/s?k=spidey+amazing+friends+plush',img:null,emoji:'🕷️'},
+      {id:'spidey_web_blaster',name:'Web Blaster',price:400,desc:'Sling webs like Spidey!',realPrice:'~$25',url:'https://www.amazon.com/s?k=spidey+web+blaster',img:null,emoji:'🕸️'},
+      {id:'spidey_team_set',name:'Spidey Team Pack',price:450,desc:'Spidey + Ghost-Spider + Miles!',realPrice:'~$28',url:'https://www.amazon.com/s?k=spidey+team+figures',img:null,emoji:'🦸'},
+      {id:'spidey_costume',name:'Spidey Costume',price:700,desc:'Dress up like Spidey!',realPrice:'~$35',url:'https://www.amazon.com/s?k=spidey+toddler+costume',img:null,emoji:'🕷️'},
+      {id:'spidey_webquarters',name:'Spidey Webquarters Playset',price:1200,desc:'The HQ for web-pals!',realPrice:'~$60',url:'https://www.amazon.com/s?k=spidey+webquarters',img:null,emoji:'🏢'},
+      // ===== BLUEY (her favorites!) =====
       {id:'bluey_figures',name:'Bluey Family Set',price:200,desc:'Bluey, Bingo, Mum & Dad!',realPrice:'~$15',url:'https://www.amazon.com/Bluey-Figure-Pack-Family-Multicolor/dp/B083XNCRS3',img:'https://m.media-amazon.com/images/I/51lVkTgFO-L._AC_SL500_.jpg',emoji:'👨‍👩‍👧‍👦'},
-      // Medium rewards (250-400 coins) — a day or two of play
+      {id:'bingo_plush',name:'Bingo Plush',price:350,desc:'Soft cuddly Bingo!',realPrice:'~$20',url:'https://www.amazon.com/s?k=bingo+heeler+plush',img:null,emoji:'🐶'},
+      {id:'bluey_plush',name:'Bluey Plush (11")',price:500,desc:'A soft cuddly Bluey!',realPrice:'~$30',url:'https://www.amazon.com/Bluey-Plush-Cuddle-Care-Baby/dp/B0DQ6ND4Q2',img:'https://m.media-amazon.com/images/I/410mK1OeyML._AC_SL500_.jpg',emoji:'🐕'},
+      {id:'bluey_camping',name:'Bluey Camping Playset',price:600,desc:'Adventure with Bluey!',realPrice:'~$35',url:'https://www.amazon.com/s?k=bluey+camping+playset',img:null,emoji:'🏕️'},
+      {id:'bluey_dance',name:'Bluey Dance Mode Toy',price:550,desc:'Dance like Bluey!',realPrice:'~$30',url:'https://www.amazon.com/s?k=bluey+dance+mode',img:null,emoji:'💃'},
+      {id:'bluey_home',name:'Bluey Family Home Playset',price:1500,desc:'The whole Heeler house!',realPrice:'~$70',url:'https://www.amazon.com/s?k=bluey+family+home+playset',img:null,emoji:'🏡'},
+      // ===== CLASSIC CREATIVE TOYS =====
+      {id:'puzzle',name:'Safari Puzzles',price:150,desc:'Wooden animal puzzles!',realPrice:'~$10',url:'https://www.amazon.com/Melissa-Doug-Preschool-Full-Color-Pictures/dp/B000B9RHYC',img:'https://m.media-amazon.com/images/I/51sIjUFePwL._AC_SL500_.jpg',emoji:'🧩'},
       {id:'playdoh',name:'Play-Doh Fun Tub',price:250,desc:'Colorful squishy fun!',realPrice:'~$18',url:'https://www.amazon.com/Playset-Starter-Non-Toxic-Preschool-Exclusive/dp/B00TPMDLOG',img:'https://m.media-amazon.com/images/I/51F+AV8iPYL._AC_SL500_.jpg',emoji:'🎨'},
       {id:'crayons',name:'Crayola Wonder Kit',price:350,desc:'Mess-free coloring!',realPrice:'~$25',url:'https://www.amazon.com/Crayola-Wonder-Coloring-Amazon-Exclusive/dp/B071G4G3LT',img:'https://m.media-amazon.com/images/I/51sv3H7Zi1L._AC_SL500_.jpg',emoji:'🖍️'},
-      // Big rewards (500+ coins) — several days of play
-      {id:'bluey_plush',name:'Bluey Plush (11")',price:500,desc:'A soft cuddly Bluey!',realPrice:'~$30',url:'https://www.amazon.com/Bluey-Plush-Cuddle-Care-Baby/dp/B0DQ6ND4Q2',img:'https://m.media-amazon.com/images/I/410mK1OeyML._AC_SL500_.jpg',emoji:'🐕'},
       {id:'duplo',name:'LEGO DUPLO Set',price:600,desc:'Build castles and animals!',realPrice:'~$35',url:'https://www.amazon.com/s?k=lego+duplo+toddler',img:null,emoji:'🧱'},
       {id:'magna_tiles',name:'Magna-Tiles Set',price:800,desc:'Magnetic building tiles!',realPrice:'~$50',url:'https://www.amazon.com/s?k=magna+tiles+toddler',img:null,emoji:'🔺'},
     ];
@@ -1240,20 +1556,27 @@ const G={
       '<div style="font-size:3rem;margin-bottom:8px">🎁🛒</div>'+
       '<div style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-radius:14px;padding:10px;margin-bottom:12px;font-family:Fredoka One,cursive;font-size:1.4rem;color:#be185d;border:2px solid #f9a8d4">🪙 '+this.gems+'</div>'+
       '<div class="shop-grid">';
+    if(!this.purchaseCounts) this.purchaseCounts={};
     SHOP.forEach(item=>{
-      const bought=this.purchased.includes(item.id);
+      const count=this.purchaseCounts[item.id]||0;
+      const purchased=this.purchased.includes(item.id);
+      // Repeatable items can always be re-bought when you have coins.
+      const bought = item.repeatable ? false : purchased;
       const canBuy=this.gems>=item.price&&!bought;
       const locked=!canBuy&&!bought;
       const imgHtml=item.img?'<img src="'+item.img+'" alt="'+item.name+'" style="width:80px;height:80px;object-fit:contain;border-radius:8px;margin-bottom:4px" onerror="this.outerHTML=\'<div style=font-size:3rem>'+item.emoji+'</div>\'">':'<div style="font-size:3rem;margin-bottom:4px">'+item.emoji+'</div>';
       html+='<div class="shop-item" style="'+(locked?'opacity:.5;filter:grayscale(.5)':'')+'">'+
         imgHtml+
         '<div class="item-name">'+item.name+'</div>'+
+        (item.repeatable?'<div style="font-size:.5rem;color:#be185d;font-weight:800;letter-spacing:.06em">★ AGAIN OK ★</div>':'')+
         '<div style="font-size:.65rem;color:var(--text2)">'+item.desc+'</div>'+
         (item.realPrice?'<div style="font-size:.55rem;color:#22c55e;font-weight:700">Real: '+item.realPrice+'</div>':'')+
         '<div class="item-price">🪙 '+item.price+' coins</div>'+
+        (count>0?'<div style="font-size:.55rem;color:#16a34a;font-weight:700">Earned '+count+'×</div>':'')+
         (bought?'<div style="font-size:.7rem;color:#22c55e;font-weight:800">Earned! ✅</div>'+
           '<a href="'+item.url+'" target="_blank" style="font-size:.6rem;color:var(--pink)">View on Amazon</a>'
-        :canBuy?'<button onclick="G.buyRosaItem(\''+item.id+'\','+item.price+')" style="font-family:Fredoka One,cursive;font-size:.75rem;padding:6px 12px;border-radius:8px;border:none;background:var(--pink);color:#fff;cursor:pointer;margin-top:4px">Buy! 🎉</button>'
+        :canBuy?'<button onclick="G.buyRosaItem(\''+item.id+'\','+item.price+',\''+(item.repeatable?'1':'')+'\')" style="font-family:Fredoka One,cursive;font-size:.75rem;padding:6px 12px;border-radius:8px;border:none;background:var(--pink);color:#fff;cursor:pointer;margin-top:4px">'+(count>0?'Again! 🔁':'Buy! 🎉')+'</button>'+
+          (item.repeatable&&item.url?'<a href="'+item.url+'" target="_blank" style="display:block;font-size:.55rem;color:var(--pink);margin-top:2px">View on Amazon</a>':'')
         :'<div style="font-size:.6rem;color:var(--text2);font-weight:600;margin-top:4px">Need '+(item.price-this.gems)+' more coins!</div>')+
         '</div>';
     });
@@ -1261,14 +1584,18 @@ const G={
     area.innerHTML=html;
   },
 
-  buyRosaItem(id,price){
-    if(this.gems<price||this.purchased.includes(id)) return;
+  buyRosaItem(id,price,repeatable){
+    if(this.gems<price) return;
+    const isRepeat=repeatable==='1';
+    if(!isRepeat && this.purchased.includes(id)) return;
     this.gems-=price;
-    this.purchased.push(id);
+    if(!isRepeat && !this.purchased.includes(id)) this.purchased.push(id);
+    if(!this.purchaseCounts) this.purchaseCounts={};
+    this.purchaseCounts[id]=(this.purchaseCounts[id]||0)+1;
     SFX.play('fanfare');
     this.fireConfetti();
     this.fireStars(15);
-    speak("Yay! You earned a new toy! Mom or Dad will get it for you!",0.85,1.15);
+    speak(isRepeat?"Yay! Another one! Mom or Dad will get it for you!":"Yay! You earned a new toy! Mom or Dad will get it for you!",0.85,1.15);
     this.updateHUD();
     this.saveGame();
     this.loadShop();
