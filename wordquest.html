@@ -119,6 +119,37 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 #eggWidget{animation:eggFloat 3.5s ease-in-out infinite}
 #eggWidget:hover{transform:scale(1.06)}
 #eggWidget:active{transform:scale(.96)}
+/* 💰 Treasure Run */
+@keyframes treasureFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-4px) rotate(3deg)}}
+#treasureBtn:hover{transform:scale(1.08)}
+#treasureBtn:active{transform:scale(.94)}
+#treasureBtn.tr-done{filter:grayscale(.75) brightness(.85);animation:none;border-color:#cbd5e1}
+@keyframes trGemPop{0%{transform:scale(0) rotate(-30deg)}55%{transform:scale(1.35) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes trChestShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px) rotate(-2deg)}40%{transform:translateX(5px) rotate(2deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes trCoinRain{0%{transform:translateY(-30px) rotate(0);opacity:0}15%{opacity:1}100%{transform:translateY(420px) rotate(540deg);opacity:0}}
+@keyframes trCardIn{0%{opacity:0;transform:translateY(16px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.tr-overlay{position:fixed;inset:0;z-index:400;background:radial-gradient(circle at 50% 35%,#3b1b5a,#0a0a14 78%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px 16px 24px;overflow-y:auto;backdrop-filter:blur(6px)}
+.tr-eyebrow{font-family:'Fredoka One',cursive;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#fde047;background:linear-gradient(135deg,#d97706,#b45309);padding:6px 16px;border-radius:99px;box-shadow:0 3px 10px rgba(217,119,6,.45);margin:6px 0 4px}
+.tr-title{font-family:'Recoleta','Fredoka One',serif;font-size:1.9rem;color:#fff;text-align:center;margin:4px 0 2px;text-shadow:2px 3px 0 rgba(0,0,0,.45)}
+.tr-sub{font-family:'Nunito',sans-serif;font-size:.92rem;color:#e9d5ff;text-align:center;margin-bottom:10px;font-weight:700}
+.tr-gems{display:flex;gap:8px;justify-content:center;margin:6px 0 12px}
+.tr-gem{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .25s}
+.tr-gem.on{background:linear-gradient(135deg,#fde047,#f59e0b);border-color:#fff;box-shadow:0 0 14px rgba(253,224,71,.8);animation:trGemPop .45s ease}
+.tr-gem.miss{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);opacity:.5}
+.tr-card{background:var(--card,#fff);border-radius:20px;max-width:420px;width:100%;padding:18px 16px;box-shadow:0 16px 50px rgba(0,0,0,.5);border:3px solid var(--gold,#d4a548);animation:trCardIn .35s ease}
+.tr-progress{font-family:'Fredoka One',cursive;font-size:.78rem;color:var(--text2,#6b5d7a);text-align:center;margin-bottom:6px}
+.tr-sentence{font-family:'Fredoka One',cursive;font-size:1.5rem;text-align:center;line-height:1.6;color:var(--text,#2a1f3d);margin:8px 4px 6px}
+.tr-blank{display:inline-block;min-width:62px;border-bottom:4px solid var(--accent,#5b21b6);color:var(--accent,#5b21b6);padding:0 6px}
+.tr-speaker{display:block;margin:2px auto 12px;font-size:2.2rem;background:none;border:none;cursor:pointer;animation:pulseS 2s ease-in-out infinite}
+@keyframes pulseS{50%{transform:scale(1.12)}}
+.tr-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tr-choice{font-family:'Fredoka One',cursive;font-size:1.5rem;padding:16px 8px;border:3px solid #d6d3d1;background:#fff;border-radius:14px;cursor:pointer;color:var(--text,#2a1f3d);box-shadow:0 4px 0 #e7e5e4;transition:transform .12s}
+.tr-choice:active{transform:translateY(2px);box-shadow:0 2px 0 #e7e5e4}
+.tr-choice.ok{background:#dcfce7;border-color:#16a34a;color:#15803d}
+.tr-choice.bad{background:#fee2e2;border-color:#dc2626;color:#b91c1c}
+.tr-coin-pot{font-family:'Fredoka One',cursive;font-size:1rem;color:#92400e;background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fbbf24;border-radius:12px;padding:7px 14px;margin-top:12px;text-align:center}
+.tr-btn{font-family:'Fredoka One',cursive;font-size:1.1rem;padding:12px 30px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,.4);margin-top:14px}
+.tr-btn.gold{background:linear-gradient(135deg,#fbbf24,#d97706);color:#7c2d12}
 @keyframes gbcBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes gbcPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.6),inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 4px rgba(255,255,255,.15),inset 0 0 12px rgba(255,255,255,.3)}}
 .gbc-npc{position:absolute;cursor:pointer;image-rendering:pixelated;transition:transform .15s;will-change:transform}
@@ -576,6 +607,9 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 
 <!-- WHAT'S NEW BUTTON — replays the egg intro voice-over -->
 <button id="whatsNewBtn" onclick="G.showEggIntro&&G.showEggIntro(true)" title="What's New? Hear the voice-over again" style="position:fixed;bottom:286px;left:16px;width:42px;height:42px;border-radius:50%;border:2px solid #fde047;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;cursor:pointer;box-shadow:0 4px 12px rgba(251,191,36,.45);z-index:100;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s">🆕</button>
+
+<!-- 💰 TREASURE RUN BUTTON — bonus reading game worth up to 50 coins -->
+<button id="treasureBtn" onclick="G.openTreasureRun&&G.openTreasureRun()" title="Treasure Run — read 5 words to win up to 50 coins!" style="position:fixed;bottom:218px;right:16px;width:56px;height:56px;border-radius:50%;border:3px solid #fde047;background:linear-gradient(135deg,#fbbf24,#d97706);color:#7c2d12;cursor:pointer;box-shadow:0 4px 16px rgba(217,119,6,.5);z-index:150;display:flex;align-items:center;justify-content:center;font-size:1.7rem;transition:transform .15s;animation:treasureFloat 2.6s ease-in-out infinite">💰</button>
 
 <!-- HOME BUTTON -->
 <button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(147,51,234,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
@@ -2517,6 +2551,9 @@ const G = {
   eggsHatched:0,
   lastLoginDate:'',   // YYYY-MM-DD of last open (used for daily egg)
   loginStreak:0,      // consecutive calendar days played
+  // 💰 Treasure Run — a bonus reading game worth up to 50 coins.
+  // Daily-limited so the shop economy stays meaningful.
+  treasureDate:'', treasureRuns:0,   // YYYY-MM-DD + plays used today
   currentZone:0,
   ZONES:['Forest','Ocean','Volcano','Crystal Cave','Sky Kingdom','Snowlands','Castle','Space'],
   // word stats tracking for parent dashboard
@@ -2556,6 +2593,7 @@ const G = {
     this.updateReadingStreak();
     // 🥚 Mystery Egg system — daily login + bonus golden egg
     try{this.initDailyLogin();this.updateEggHud();}catch(e){console.warn('egg init',e);}
+    try{this.refreshTreasureBtn();}catch(e){}
     // One-time announcement of the egg feature (with voice-over)
     setTimeout(()=>{try{this.showEggIntro();}catch(e){console.warn('intro',e);}}, 1400);
     // auto-save every 30s
@@ -2740,7 +2778,8 @@ const G = {
       maxStreak:this.maxStreak||0,bossesDefeated:this.bossesDefeated||0,
       secretsCaught:this.secretsCaught||0,unlockedAchievements:this.unlockedAchievements||[],
       currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{},
-      egg:this.egg||null, eggsHatched:this.eggsHatched||0, lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0};
+      egg:this.egg||null, eggsHatched:this.eggsHatched||0, lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0,
+      treasureDate:this.treasureDate||'', treasureRuns:this.treasureRuns||0};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
     // Auto-sync to cloud (debounced)
     if(this._cloudSyncTimer) clearTimeout(this._cloudSyncTimer);
@@ -2778,6 +2817,8 @@ const G = {
       if(d.eggsHatched!==undefined) this.eggsHatched=d.eggsHatched;
       if(d.lastLoginDate!==undefined) this.lastLoginDate=d.lastLoginDate;
       if(d.loginStreak!==undefined) this.loginStreak=d.loginStreak;
+      if(d.treasureDate!==undefined) this.treasureDate=d.treasureDate;
+      if(d.treasureRuns!==undefined) this.treasureRuns=d.treasureRuns;
     }catch(e){}
   },
 
@@ -3140,6 +3181,162 @@ const G = {
     this.coins+=n;
     this.updateHUD();
     if(this.mode==='shop') this.loadShopView();
+  },
+
+  // ============================================================
+  // 💰 TREASURE RUN — bonus reading game worth up to 50 coins
+  // ============================================================
+  // Read 5 words right (fill-in-the-blank with sentence context + a
+  // "hear it" button) to fill a treasure chest. Each FIRST-TRY correct
+  // answer is worth 10 coins → a perfect run pays the full 50.
+  // Fairness: a wrong answer never ends the game — the correct word is
+  // revealed and read aloud (so he learns), he just misses that gem's
+  // 10 coins and moves on. He always finishes and always keeps what he
+  // earned. Daily-limited (4 runs/day) so the shop economy stays real.
+  TREASURE_RUNS_PER_DAY:4,
+  TREASURE_COINS_PER_GEM:10,
+
+  treasureRunsLeft(){
+    if(this.treasureDate!==this._today()) return this.TREASURE_RUNS_PER_DAY;
+    return Math.max(0, this.TREASURE_RUNS_PER_DAY-(this.treasureRuns||0));
+  },
+  refreshTreasureBtn(){
+    const b=document.getElementById('treasureBtn');
+    if(!b) return;
+    const left=this.treasureRunsLeft();
+    if(left<=0){ b.classList.add('tr-done'); b.title='Treasure Run — come back tomorrow for more!'; }
+    else { b.classList.remove('tr-done'); b.title='Treasure Run — '+left+' left today! Win up to 50 coins!'; }
+  },
+
+  // Build 5 fill-in-the-blank questions from the sight-word list.
+  _treasureQuestions(){
+    const pool=shuffle(WORDS.filter(w=>w.sent&&w.sent.includes('___')));
+    const picks=pool.slice(0,5);
+    return picks.map(t=>{
+      // 3 distractors: other real words, prefer different from target
+      const others=shuffle(WORDS.filter(w=>w.w!==t.w)).slice(0,3).map(w=>w.w);
+      return {word:t.w, sent:t.sent, choices:shuffle([t.w,...others])};
+    });
+  },
+
+  openTreasureRun(){
+    if(this.treasureRunsLeft()<=0){
+      this._treasureLockedScreen();
+      return;
+    }
+    try{SFX.play('whoosh');}catch(e){}
+    // consume a daily run up front (so refreshing mid-game can't farm it)
+    if(this.treasureDate!==this._today()){this.treasureDate=this._today();this.treasureRuns=0;}
+    this.treasureRuns=(this.treasureRuns||0)+1;
+    this.saveGame();
+    this.refreshTreasureBtn();
+
+    const qs=this._treasureQuestions();
+    let idx=0, earned=0;
+    const overlay=document.createElement('div');
+    overlay.className='tr-overlay';
+    overlay.id='trOverlay';
+    document.body.appendChild(overlay);
+
+    const gemsHtml=()=> '<div class="tr-gems">'+qs.map((_,i)=>'<div class="tr-gem" id="trGem'+i+'">💎</div>').join('')+'</div>';
+
+    const renderQ=()=>{
+      const q=qs[idx];
+      const sentHtml=q.sent.replace('___','<span class="tr-blank">?</span>');
+      overlay.innerHTML=
+        '<div class="tr-eyebrow">💰 Treasure Run</div>'+
+        '<div class="tr-title">Read &amp; Win Coins!</div>'+
+        '<div class="tr-sub">Get all 5 right to win 50 coins!</div>'+
+        gemsHtml()+
+        '<div class="tr-card">'+
+          '<div class="tr-progress">Word '+(idx+1)+' of 5 · '+earned+' coins so far</div>'+
+          '<div class="tr-sentence">'+sentHtml+'</div>'+
+          '<button class="tr-speaker" id="trSpeak">🔊</button>'+
+          '<div class="tr-choices" id="trChoices">'+
+            q.choices.map(c=>'<button class="tr-choice" data-w="'+c+'">'+c+'</button>').join('')+
+          '</div>'+
+          '<div class="tr-coin-pot">🪙 Coins won: '+earned+' / 50</div>'+
+        '</div>';
+      // re-light earned/missed gems
+      for(let i=0;i<idx;i++){const g=document.getElementById('trGem'+i);if(g)g.className='tr-gem '+(qs[i]._got?'on':'miss');}
+      const readSent=()=>{ const spoken=q.sent.replace('___', q.word); try{speak(spoken,0.72);}catch(e){} };
+      document.getElementById('trSpeak').addEventListener('click',readSent);
+      readSent();
+      let answered=false;
+      document.querySelectorAll('#trChoices .tr-choice').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          if(answered) return; answered=true;
+          const picked=btn.dataset.w;
+          document.querySelectorAll('#trChoices .tr-choice').forEach(b=>b.style.pointerEvents='none');
+          if(picked===q.word){
+            btn.classList.add('ok');
+            qs[idx]._got=true; earned+=this.TREASURE_COINS_PER_GEM;
+            const g=document.getElementById('trGem'+idx); if(g)g.className='tr-gem on';
+            try{SFX.play('coin');}catch(e){}
+            setTimeout(next, 750);
+          } else {
+            btn.classList.add('bad');
+            qs[idx]._got=false;
+            // reveal + read the correct word so he learns
+            document.querySelectorAll('#trChoices .tr-choice').forEach(b=>{if(b.dataset.w===q.word)b.classList.add('ok');});
+            const g=document.getElementById('trGem'+idx); if(g)g.className='tr-gem miss';
+            try{SFX.play('wrong');}catch(e){}
+            try{speak('The word is '+q.word+'.',0.7);}catch(e){}
+            setTimeout(next, 1700);
+          }
+        });
+      });
+    };
+    const next=()=>{ idx++; if(idx>=qs.length) finish(); else renderQ(); };
+
+    const finish=()=>{
+      const correct=qs.filter(q=>q._got).length;
+      const coins=correct*this.TREASURE_COINS_PER_GEM;
+      if(coins>0){ this.addCoins(coins); this.saveGame(); }
+      const perfect=correct===5;
+      try{SFX.play(perfect?'fanfare':correct>=3?'levelup':'correct');}catch(e){}
+      try{this.fireConfetti&&this.fireConfetti();}catch(e){}
+      // coin rain for a perfect run
+      let coinRain='';
+      if(perfect){ for(let i=0;i<14;i++){coinRain+='<div style="position:absolute;top:0;left:'+(5+Math.random()*90)+'%;font-size:'+(1.2+Math.random()*1.1)+'rem;animation:trCoinRain '+(1.4+Math.random()*1.2)+'s linear '+(Math.random()*0.8)+'s infinite">🪙</div>'; } }
+      const left=this.treasureRunsLeft();
+      overlay.innerHTML=
+        coinRain+
+        '<div class="tr-eyebrow">'+(perfect?'🏆 Perfect Run!':'💰 Treasure Run')+'</div>'+
+        '<div style="font-size:4.5rem;margin:10px 0;animation:trChestShake .6s ease">'+(perfect?'🎉':correct>=3?'🪙':'📖')+'</div>'+
+        '<div class="tr-title">'+(perfect?'You won 50 coins!':'You won '+coins+' coins!')+'</div>'+
+        '<div class="tr-sub">'+(perfect?'Amazing reading, Río! ⭐⭐⭐⭐⭐'
+            : correct>=3?'Great reading! Try for all 5 next time!'
+            : 'Good try! Read each word out loud to win more!')+'</div>'+
+        '<div class="tr-gems">'+qs.map((q,i)=>'<div class="tr-gem '+(q._got?'on':'miss')+'">'+(q._got?'💎':'·')+'</div>').join('')+'</div>'+
+        '<div class="tr-coin-pot">🪙 +'+coins+' coins added!</div>'+
+        '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">'+
+          (left>0?'<button class="tr-btn gold" id="trAgain">Play again ('+left+' left)</button>':'<div style="font-family:Nunito,sans-serif;color:#e9d5ff;font-weight:700;font-size:.85rem">Come back tomorrow for more treasure! 🌙</div>')+
+          '<button class="tr-btn" id="trClose">Done!</button>'+
+        '</div>';
+      try{speak(perfect?'Wow! A perfect run! You won fifty coins!':'You won '+coins+' coins! '+(correct>=3?'Great reading!':'Good try!'),0.85);}catch(e){}
+      const again=document.getElementById('trAgain');
+      if(again)again.addEventListener('click',()=>{overlay.remove();this.openTreasureRun();});
+      document.getElementById('trClose').addEventListener('click',()=>{try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}overlay.remove();});
+    };
+
+    renderQ();
+  },
+
+  _treasureLockedScreen(){
+    try{SFX.play('click');}catch(e){}
+    const o=document.createElement('div');
+    o.className='tr-overlay';
+    o.style.justifyContent='center';
+    o.onclick=e=>{if(e.target===o)o.remove();};
+    o.innerHTML=
+      '<div style="font-size:4rem;margin-bottom:8px">🌙</div>'+
+      '<div class="tr-title">Treasure is resting</div>'+
+      '<div class="tr-sub" style="max-width:320px">You found all the treasure you can today!<br>Come back tomorrow for '+this.TREASURE_RUNS_PER_DAY+' more chances to win 50 coins.</div>'+
+      '<button class="tr-btn" id="trLockClose">OK!</button>';
+    document.body.appendChild(o);
+    try{speak("You found all the treasure for today! Come back tomorrow, Río.",0.85);}catch(e){}
+    document.getElementById('trLockClose').addEventListener('click',()=>o.remove());
   },
 
   // ============================================================
