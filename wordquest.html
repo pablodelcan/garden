@@ -148,6 +148,7 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 .tr-choice.ok{background:#dcfce7;border-color:#16a34a;color:#15803d}
 .tr-choice.bad{background:#fee2e2;border-color:#dc2626;color:#b91c1c}
 .tr-coin-pot{font-family:'Fredoka One',cursive;font-size:1rem;color:#92400e;background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fbbf24;border-radius:12px;padding:7px 14px;margin-top:12px;text-align:center}
+.tr-readhint{text-align:center;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;color:var(--accent,#5b21b6);margin:2px 0 12px}
 /* Treasure Run — spell-it tiles */
 .tr-slots{display:flex;gap:6px;justify-content:center;margin:6px 0 10px;flex-wrap:wrap}
 .tr-slot{width:34px;height:44px;border-bottom:4px solid var(--accent,#5b21b6);font-family:'Fredoka One',cursive;font-size:1.7rem;text-align:center;line-height:44px;color:var(--text,#2a1f3d);text-transform:uppercase}
@@ -3320,22 +3321,22 @@ const G = {
         '<div class="tr-progress">Word '+(idx+1)+' of 5 · '+earned+' coins so far '+tagHtml+'</div>';
     const relight=()=>{for(let i=0;i<idx;i++){const g=document.getElementById('trGem'+i);if(g)g.className='tr-gem '+(qs[i]._got?'on':'miss');}};
 
+    // NO audio + NO answer reveal — Treasure Run is a real reading test.
+    // Río has to READ the sentence and choices himself; the game never
+    // speaks the words or shows him which one is right.
     const renderMC=()=>{
       const q=qs[idx];
       const sentHtml=q.sent.replace('___','<span class="tr-blank">?</span>');
       overlay.innerHTML=
         header('<span style="color:var(--accent);font-weight:800">· READ IT</span>')+
           '<div class="tr-sentence">'+sentHtml+'</div>'+
-          '<button class="tr-speaker" id="trSpeak">🔊</button>'+
+          '<div class="tr-readhint">👀 Read it yourself — pick the word that fits!</div>'+
           '<div class="tr-choices" id="trChoices">'+
             q.choices.map(c=>'<button class="tr-choice" data-w="'+c+'">'+c+'</button>').join('')+
           '</div>'+
           '<div class="tr-coin-pot">🪙 Coins won: '+earned+' / 50</div>'+
         '</div>';
       relight();
-      const readSent=()=>{ try{speak(q.sent.replace('___', q.word),0.72);}catch(e){} };
-      document.getElementById('trSpeak').addEventListener('click',readSent);
-      readSent();
       let answered=false;
       document.querySelectorAll('#trChoices .tr-choice').forEach(btn=>{
         btn.addEventListener('click',()=>{
@@ -3344,13 +3345,12 @@ const G = {
           if(btn.dataset.w===q.word){
             btn.classList.add('ok'); award(true);
             try{SFX.play('coin');}catch(e){}
-            setTimeout(next, 750);
+            setTimeout(next, 700);
           } else {
+            // wrong: just mark it, do NOT reveal the answer or say it
             btn.classList.add('bad'); award(false);
-            document.querySelectorAll('#trChoices .tr-choice').forEach(b=>{if(b.dataset.w===q.word)b.classList.add('ok');});
             try{SFX.play('wrong');}catch(e){}
-            try{speak('The word is '+q.word+'.',0.7);}catch(e){}
-            setTimeout(next, 1700);
+            setTimeout(next, 950);
           }
         });
       });
@@ -3367,23 +3367,17 @@ const G = {
       overlay.innerHTML=
         header('<span style="color:#b45309;font-weight:800">· SPELL IT</span>')+
           '<div class="tr-sentence" style="font-size:1.2rem">'+sentHtml+'</div>'+
-          '<button class="tr-speaker" id="trSpeak">🔊</button>'+
+          '<div class="tr-readhint">👀 Read the sentence — then spell the missing word!</div>'+
           '<div class="tr-slots" id="trSlots">'+slots+'</div>'+
           '<div class="tr-tiles" id="trTiles">'+tiles.map((l,i)=>'<button class="tr-tile" data-l="'+l+'" data-i="'+i+'">'+l+'</button>').join('')+'</div>'+
           '<div class="tr-coin-pot">🔤 Spell it to win the gem!</div>'+
         '</div>';
       relight();
-      const readWord=()=>{ try{speak('Spell the word. '+q.word+'.',0.7);}catch(e){} };
-      document.getElementById('trSpeak').addEventListener('click',readWord);
-      readWord();
+      // No audio — he reads the sentence and works out the word himself.
+      // The tiles only accept the correct next letter, so he can always
+      // finish (never stuck) — but any wrong tap costs him the gem.
       let pos=0, wrongs=0, done=false;
-      const finishSpell=(got)=>{ if(done)return; done=true; award(got); try{SFX.play(got?'coin':'wrong');}catch(e){} setTimeout(next, got?750:1500); };
-      const reveal=()=>{ // safety after too many wrong taps — show the answer
-        for(let i=0;i<word.length;i++){const s=document.getElementById('trSlot'+i);if(s){s.textContent=word[i];s.classList.add('rev');}}
-        document.querySelectorAll('#trTiles .tr-tile').forEach(b=>b.disabled=true);
-        try{speak('It spells '+q.word+'.',0.7);}catch(e){}
-        finishSpell(false);
-      };
+      const finishSpell=(got)=>{ if(done)return; done=true; award(got); try{SFX.play(got?'coin':'wrong');}catch(e){} setTimeout(next, 800); };
       document.querySelectorAll('#trTiles .tr-tile').forEach(btn=>{
         btn.addEventListener('click',()=>{
           if(done||btn.disabled) return;
@@ -3396,7 +3390,6 @@ const G = {
             wrongs++;
             btn.classList.add('bad'); setTimeout(()=>btn.classList.remove('bad'),350);
             try{SFX.play('wrong');}catch(e){}
-            if(wrongs>=3) reveal(); // never let him get stuck
           }
         });
       });
