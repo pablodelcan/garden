@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Greenhouse — Studio OS</title>
+<title>Playhouse — Studio OS</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -83,7 +83,6 @@
   .seg{display:grid;gap:6px}
   .seg.two{grid-template-columns:1fr 1fr}
   .seg.four{grid-template-columns:1fr 1fr}
-  .seg.three{grid-template-columns:1fr 1fr 1fr}
   .seg button{padding:9px 4px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:transparent;color:var(--tm);border:1px solid var(--bd);border-radius:8px;cursor:pointer;transition:.13s;text-transform:uppercase}
   .seg button.on{background:var(--ac);color:var(--paper);border-color:var(--ac)}
   .seg button:hover:not(.on){color:var(--tx);border-color:var(--tf)}
@@ -425,7 +424,7 @@
 <div id="dimLabelLayer"></div>
 
 <div class="topbar">
-  <div class="brand">Studio&nbsp;OS <b>·</b> Greenhouse Builder</div>
+  <div class="brand">Studio&nbsp;OS <b>·</b> Playhouse Builder</div>
   <div class="topright">
     <div class="viewseg" id="viewSeg"><b data-view="shaded" class="on">Shaded</b><b data-view="manual">Manual</b><b data-view="blueprint">Blueprint</b></div>
     <div class="unittog" id="unitTog"><b data-u="imp" class="on">ft</b><b data-u="met">m</b></div>
@@ -435,13 +434,13 @@
 <aside class="paper left">
   <button class="pcollapse" id="hideL" title="Hide controls (Esc restores)">‹</button>
   <div class="scroll">
-    <div class="ptitle">Backyard Greenhouse</div>
+    <div class="ptitle">Stilt Playhouse</div>
     <div class="psub">Drag to orbit · tune the build</div>
     <div class="rule"></div>
 
     <div class="group archbox">
       <p class="glabel">Architect</p>
-      <textarea id="archInput" rows="2" placeholder="Describe it — “an 8×10 glasshouse with a gable roof, knee-wall, a potting bench and raised beds, under $2,000”"></textarea>
+      <textarea id="archInput" rows="2" placeholder="Describe it — “a reading nook for two kids with a slide and a lookout, under $1,500”"></textarea>
       <button class="sharebtn" id="archGo">✦ Design it</button>
       <div class="archmsg" id="archMsg"></div>
       <div id="archCard"></div>
@@ -460,17 +459,15 @@
 
     <div class="group">
       <p class="glabel">Dimensions</p>
-      <div class="ctl"><div class="row"><label>Width (across)</label><span class="val" id="vW">8.0 ft</span></div>
-        <input type="range" id="W" min="4" max="12" step="0.5" value="8"></div>
-      <div class="ctl"><div class="row"><label>Depth (length)</label><span class="val" id="vD">10.0 ft</span></div>
-        <input type="range" id="D" min="4" max="16" step="0.5" value="10"></div>
-      <div class="ctl"><div class="row"><label>Base height (off grade)</label><span class="val" id="vHf">0.4 ft</span></div>
-        <input type="range" id="Hf" min="0" max="2.5" step="0.1" value="0.4"></div>
-      <div class="ctl"><div class="row"><label>Wall height (eave)</label><span class="val" id="vHw">5.5 ft</span></div>
-        <input type="range" id="Hw" min="4" max="8" step="0.5" value="5.5"></div>
-      <div class="ctl"><div class="row"><label>Knee-wall height</label><span class="val" id="vknee">1.8 ft</span></div>
-        <input type="range" id="knee" min="0" max="4" step="0.1" value="1.8"></div>
-      <div class="ctl"><div class="row"><label>Staging deck</label><span class="val" id="vDd">none</span></div>
+      <div class="ctl"><div class="row"><label>Width (across)</label><span class="val" id="vW">6.0 ft</span></div>
+        <input type="range" id="W" min="4" max="12" step="0.5" value="6"></div>
+      <div class="ctl"><div class="row"><label>Depth (length)</label><span class="val" id="vD">8.0 ft</span></div>
+        <input type="range" id="D" min="4" max="14" step="0.5" value="8"></div>
+      <div class="ctl"><div class="row"><label>Floor height</label><span class="val" id="vHf">3.5 ft</span></div>
+        <input type="range" id="Hf" min="1" max="7" step="0.5" value="3.5"></div>
+      <div class="ctl"><div class="row"><label>Wall / peak height</label><span class="val" id="vHw">4.0 ft</span></div>
+        <input type="range" id="Hw" min="3" max="7" step="0.5" value="4"></div>
+      <div class="ctl"><div class="row"><label>Deck depth</label><span class="val" id="vDd">none</span></div>
         <input type="range" id="Dd" min="0" max="6" step="0.5" value="0"></div>
       <div class="ctl"><div class="row"><label>Deck side</label></div>
         <div class="seg four" id="deckSide">
@@ -517,7 +514,7 @@
           <button data-v="front">Front</button>
           <button data-v="back">Back</button>
         </div></div>
-      <div class="ctl"><div class="row"><label>Glazing-bar / rafter spacing</label><span class="val" id="vOc">16 in · std</span></div>
+      <div class="ctl"><div class="row"><label>Joist spacing</label><span class="val" id="vOc">16 in · std</span></div>
         <input type="range" id="oc" min="8" max="24" step="1" value="16"></div>
       <div class="ctl"><div class="row"><label>Access</label></div>
         <div class="seg two" id="access">
@@ -543,10 +540,10 @@
 
     <div class="group">
       <p class="glabel">Foundation</p>
-      <div class="seg three" id="foundation">
-        <button data-v="gravel" class="on">Gravel pad</button>
-        <button data-v="pavers">Paver base</button>
-        <button data-v="timber">Timber frame</button>
+      <div class="seg four" id="foundation">
+        <button data-v="blocks" class="on">Deck blocks</button>
+        <button data-v="piers">Concrete piers</button>
+        <button data-v="buried">Buried posts</button>
       </div>
       <div class="fincap" id="foundCap"></div>
       <div class="ctl"><div class="row"><label>Ground slope</label><span class="val" id="vGrade">level</span></div>
@@ -564,7 +561,7 @@
       <p class="glabel">Door &amp; windows</p>
       <div class="ctl"><div class="row"><label>Door style</label></div>
         <div class="seg four" id="doorSize">
-          <button data-v="kid">Compact</button>
+          <button data-v="kid">Kid</button>
           <button data-v="standard" class="on">Standard</button>
           <button data-v="wide">Wide</button>
           <button data-v="dutch">Dutch</button>
@@ -581,23 +578,24 @@
       <div class="ctl"><div class="row"><label>Windows</label><button class="addwin" id="addWin">+ Add window</button></div>
         <div id="winList"></div></div>
       <div class="ctl"><div class="row"><label>Sign over door</label></div>
-        <input type="text" id="signText" class="signinput" placeholder="e.g. THE GLASSHOUSE" maxlength="16"></div>
+        <input type="text" id="signText" class="signinput" placeholder="e.g. PABLO'S FORT" maxlength="16"></div>
     </div>
 
     <div class="group">
-      <p class="glabel">Glazing &amp; color</p>
-      <div class="ctl"><div class="seg three" id="finish">
-        <button data-v="poly" class="on">Twin-wall</button>
-        <button data-v="glass">Glass</button>
-        <button data-v="film">Poly film</button>
+      <p class="glabel">Finish &amp; color</p>
+      <div class="ctl"><div class="seg four" id="finish">
+        <button data-v="pt">PT (raw)</button>
+        <button data-v="cedar" class="on">Cedar</button>
+        <button data-v="redwood">Redwood</button>
+        <button data-v="paint">Painted</button>
       </div></div>
       <div class="colors">
-        <div class="ci"><span>Frame</span><input type="color" id="cStruct" value="#b07a43"></div>
-        <div class="ci"><span>Glazing</span><input type="color" id="cSiding" value="#cfe6ea"></div>
-        <div class="ci"><span>Roof glass</span><input type="color" id="cRoof" value="#cfe6ea"></div>
+        <div class="ci"><span>Structure</span><input type="color" id="cStruct" value="#b07a43"></div>
+        <div class="ci"><span>Siding</span><input type="color" id="cSiding" value="#c68a4a"></div>
+        <div class="ci"><span>Roof</span><input type="color" id="cRoof" value="#5a4231"></div>
         <div class="ci"><span>Trim</span><input type="color" id="cTrim" value="#b07a43"></div>
-        <div class="ci"><span>Door</span><input type="color" id="cDoor" value="#6f7d5e"></div>
-        <div class="ci"><span>Accent</span><input type="color" id="cAccent" value="#8a9a78"></div>
+        <div class="ci"><span>Door</span><input type="color" id="cDoor" value="#3a2517"></div>
+        <div class="ci"><span>Accent</span><input type="color" id="cAccent" value="#705339"></div>
       </div>
       <div class="wallpaint">
         <div class="row"><label>Paint walls separately</label><button class="miniBtn" id="wpReset">↺ reset</button></div>
@@ -612,21 +610,33 @@
     </div>
 
     <div class="group">
-      <p class="glabel">Ventilation &amp; add-ons</p>
+      <p class="glabel">Extras</p>
       <div class="seg four" id="extras">
-        <button data-x="roofvent">Roof vent</button>
-        <button data-x="ridgevent">Ridge vent</button>
-        <button data-x="sidevent">Side louvres</button>
-        <button data-x="fan">Exhaust fan</button>
-        <button data-x="bench">Potting bench</button>
-        <button data-x="shelf">Shelving</button>
-        <button data-x="beds">Raised beds</button>
-        <button data-x="coldframe">Cold frame</button>
-        <button data-x="shade">Shade cloth</button>
-        <button data-x="gutter">Gutter + barrel</button>
-        <button data-x="lights">Grow lights</button>
+        <button data-x="loft">Loft</button>
+        <button data-x="porch">Porch roof</button>
+        <button data-x="slide">Slide</button>
+        <button data-x="climb">Climb wall</button>
+        <button data-x="anchor">Anchors</button>
+        <button data-x="cupola">Cupola</button>
+        <button data-x="tower">Tower</button>
+        <button data-x="bay">Bay window</button>
+        <button data-x="dormer">Dormer</button>
+        <button data-x="jetty">Jetty</button>
+        <button data-x="wing">Wing (L-shape)</button>
+        <button data-x="split">Split level</button>
+        <button data-x="shutters">Shutters</button>
+        <button data-x="flower">Flower boxes</button>
+        <button data-x="awning">Awnings</button>
+        <button data-x="chimney">Chimney</button>
+        <button data-x="vane">Weathervane</button>
+        <button data-x="flag">Flag</button>
+        <button data-x="swing">Swing</button>
+        <button data-x="pole">Fire pole</button>
+        <button data-x="sandbox">Sandbox</button>
+        <button data-x="lights">String lights</button>
+        <button data-x="mailbox">Mailbox</button>
       </div>
-      <div class="fincap" id="extrasNote">Benches &amp; beds show best in Interior view · always keep at least one vent.</div>
+      <div class="fincap" id="extrasNote">A loft shows best in Interior view · porch needs a deck.</div>
       <div class="ctl" style="margin-top:14px"><div class="row"><label>Exploded view</label><span class="val" id="vExplode">off</span></div>
         <input type="range" id="explode" min="0" max="100" step="1" value="0"></div>
     </div>
@@ -668,10 +678,10 @@
 <button class="revealtab" id="showR" title="Show materials">‹</button>
 
 <div class="dock" id="dock">
-  <button data-t="tSiding" class="on">Glazing</button>
+  <button data-t="tSiding" class="on">Siding</button>
   <button data-t="tRoof" class="on">Roof</button>
   <button data-t="tBraces" class="on">Braces</button>
-  <button data-t="tLadder" class="on">Access</button>
+  <button data-t="tLadder" class="on">Ladder</button>
   <button data-t="tFraming" class="on">Framing</button>
   <span class="sep"></span>
   <button data-t="tInterior">⌂ Interior</button>
@@ -687,9 +697,9 @@
 </div>
 
 <div class="intpanel" id="intPanel">
-  <label class="tog2"><input type="checkbox" id="optFurniture" checked> Staging</label>
-  <label class="tog2"><input type="checkbox" id="optKids" checked> Gardener</label>
-  <div class="intlegend"><span class="kdot" style="background:#3f5d74"></span> gardener ≈ 5'6" — for scale</div>
+  <label class="tog2"><input type="checkbox" id="optFurniture" checked> Furniture</label>
+  <label class="tog2"><input type="checkbox" id="optKids" checked> Scale kids</label>
+  <div class="intlegend"><span class="kdot" style="background:#c0563f"></span> 7 yr ≈ 4'0" &nbsp; <span class="kdot" style="background:#5a86a8"></span> 4 yr ≈ 3'4"</div>
 </div>
 
 <div class="stepnav" id="stepnav">
@@ -759,15 +769,15 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 /* ===== state (before render loop references it) ===== */
-const state={W:8,D:10,Hf:0.4,Hw:5.5,knee:1.8,Dd:0,deckSide:'front',post:'4x4',roof:'gable',slopeDir:'right',grade:0,gradeDir:'right',oc:24,finish:'poly',hour:14,
-  explode:0,sign:'',unit:'imp',view:'shaded',
-  foundation:'gravel',access:'ladder',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:false,rafter8:false,
-  roofvent:true,ridgevent:false,sidevent:false,gutter:false,bench:true,beds:false,shelf:false,coldframe:false,shade:false,fan:false,lights:false,
-  door:{wall:'front',pos:0.5,size:'standard'}, windows:[]};
+const state={W:6,D:8,Hf:3.5,Hw:4,Dd:0,deckSide:'front',post:'4x4',roof:'lean',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
+  loft:false,porch:false,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'shaded',
+  foundation:'blocks',access:'ladder',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
+  door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
 const tog={tSiding:true,tRoof:true,tBraces:true,tLadder:true,tFraming:true,tSpin:false,tInterior:false,furniture:true,kids:true,tDims:false,tScale:false};
-const colors={struct:'#b07a43',siding:'#cfe6ea',roof:'#cfe6ea',trim:'#b07a43',door:'#7a8a6a',accent:'#705339',base:'#6e5a3e',
-  walls:{front:null,back:null,left:null,right:null}};   // per-wall paint — glazing falls back to siding tint
-const DOOR={ kid:{w:2.2,h:5.0,label:'Compact'}, standard:{w:2.6,h:5.4,label:'Standard'},
+const colors={struct:'#b07a43',siding:'#c68a4a',roof:'#5a4231',trim:'#b07a43',door:'#3a2517',accent:'#705339',
+  walls:{front:null,back:null,left:null,right:null}};   // per-wall paint — null falls back to siding
+const DOOR={ kid:{w:2.0,h:4.2,label:'Kid'}, standard:{w:2.6,h:5.4,label:'Standard'},
   wide:{w:3.4,h:5.4,label:'Wide'}, dutch:{w:2.6,h:5.4,dutch:true,label:'Dutch'} };
 // real Lowe's "Shed Windows and More" flush-mount, tempered-glass units (in = nominal opening, sized so the model matches what you'd actually order)
 const WIN={
@@ -781,33 +791,34 @@ let stepOn=false, stepCur=1, _stage=0, _limit=Infinity, _explode=0;
 const eoff=()=>Math.max(0,Math.min(_stage-1,16))*_explode;   // exploded-view Y lift per build stage
 let dimLabels=[], dimPool=[];   // {x,y,z,text} projected to HTML each frame when dimension overlay is on
 const STAGES={
-  1:{name:'Pad & footings', desc:'Excavate ~4", lay landscape fabric and compacted gravel, and set the perimeter footings/pad dead level to each other.'},
-  2:{name:'Corner posts', desc:'Stand the corner posts on the sill. Plumb each one and brace it temporarily until the plates tie them together.'},
-  3:{name:'Sill & top plates', desc:'Run the pressure-treated sill around the pad and the top plate across the post tops — this is what the glazing bars land on.'},
-  4:{name:'Base framing', desc:'Frame the base ring: tie the sill plates together and square the footprint with the diagonals before anything goes up.'},
-  5:{name:'Gravel / paver floor', desc:'Finish the floor — compacted gravel for drainage, or a level course of pavers for benches and pots.'},
-  6:{name:'Corner braces', desc:'Add the 45° braces at the corners — a glazed box racks easily, so this is what keeps it square in the wind.'},
-  7:{name:'Wall framing & glazing bars', desc:'Frame the walls: sill, knee rail and top plate, with vertical glazing bars at ~24" plus the door opening.'},
-  8:{name:'Roof framing', desc:'Set the rafters and ridge to your roof slope, with a small overhang to throw rain clear of the walls.'},
-  9:{name:'Glazing', desc:'Fill the bays with glazing panels — knee-wall infill below, twin-wall/glass/film above, capped in H- and U-channel.'},
-  10:{name:'Door & vents', desc:'Hang the door and set the roof / side vents (with auto openers) so the house can breathe.'},
-  11:{name:'Deck footings & posts', desc:'Set the staging deck’s outer footings and stand its posts, leveled to the greenhouse sill.'},
-  12:{name:'Deck frame', desc:'Run the rim beam along the outer edge and hang the deck joists across to the greenhouse.'},
-  13:{name:'Decking', desc:'Lay the deck boards or pavers across the joists with ~⅛" gaps for drainage.'},
-  14:{name:'Deck edge', desc:'Trim the deck edge and add a step or low rail where it meets the path.'},
-  15:{name:'Glaze the seams & finish', desc:'Tape the open flutes, seal the sill and frame joints, anchor the frame down, and bench it out. Done — go grow something.'}
+  1:{name:'Footings', desc:'Set the footings — deck blocks on tamped gravel, or concrete piers with post bases. Level them all to each other.'},
+  2:{name:'Posts', desc:'Stand the posts on the footings. Plumb each one and brace it temporarily until the beams tie them together.'},
+  3:{name:'Beams', desc:'Bolt the doubled beams across the post tops — through-bolt, don’t just screw. This is the main load path.'},
+  4:{name:'Joists', desc:'Hang the joists across the beams at your spacing — these carry the floor. Hangers or blocking at the rim.'},
+  5:{name:'Floor deck', desc:'Screw down the ¾" plywood floor deck over the joists.'},
+  6:{name:'Knee braces', desc:'Add the 45° braces from post to beam on all sides — this is what kills the wobble/racking.'},
+  7:{name:'Wall framing', desc:'Frame the walls: bottom & top plates, studs, plus headers and trimmer studs around each opening.'},
+  8:{name:'Roof', desc:'Set the rafters and roof slope, with an overhang to keep rain off the walls.'},
+  9:{name:'Siding', desc:'Sheathe the walls with siding, cutting around the door and window openings.'},
+  10:{name:'Door & windows', desc:'Set the window(s) in their frames and hang the door.'},
+  11:{name:'Deck footings & posts', desc:'Set the deck’s outer footings and stand its posts, leveled to the house floor.'},
+  12:{name:'Deck frame', desc:'Run the rim beam along the outer edge and hang the deck joists across to the house.'},
+  13:{name:'Decking', desc:'Lay the deck boards across the joists with ~⅛" gaps for drainage.'},
+  14:{name:'Deck railing', desc:'Set railing posts, top rails, and balusters — leave the gap where the ladder lands.'},
+  15:{name:'Access & finish', desc:'Set the ladder or stairs for access, add your finish/sealer. Done — go compare it to yours.'}
 };
 const stepsFor=s=>[1,2,3,4,5,6,7,8,9,10].concat(s.Dd>0?[11,12,13,14]:[]).concat([15]);
 
 /* ===== finishes ===== */
-// glazing types — what fills the frame
 const FINISH={
-  poly:{name:'Twin-wall poly', struct:'#b07a43',siding:'#cfe6ea',roof:'#cfe6ea', mult:1.0, op:0.42, glaze:'twin-wall polycarbonate',
-    cap:'<b>Twin-wall polycarbonate.</b> The DIY default — light, shatter-resistant, insulates well and diffuses light so plants don\'t scorch. Sold in 4×8 / 4×12 sheets with H-channel + U-channel edging.'},
-  glass:{name:'Glass', struct:'#9a9488',siding:'#bfe0e6',roof:'#bfe0e6', mult:1.7, op:0.28, glaze:'tempered glass',
-    cap:'<b>Glass.</b> Classic and crystal-clear — best light transmission. Heavier and pricier; use <b>tempered</b> safety glass and a sturdier frame.'},
-  film:{name:'Poly film', struct:'#8f8f86',siding:'#dfeef0',roof:'#dfeef0', mult:0.5, op:0.32, glaze:'6-mil greenhouse film',
-    cap:'<b>Poly film.</b> Cheapest — 6-mil UV-stabilized sheeting stretched over the frame (hoop-house style). Pairs best with the Gothic/arch roof. Re-cover every 3–4 yrs.'}
+  pt:{name:'PT (raw)', struct:'#8f8a5e',siding:'#a99b67',roof:'#565656', mult:1.0,
+    cap:'<b>Cheapest.</b> Pressure-treated is greenish when new — let it silver out, or it stays rough. Fine structurally, not pretty.'},
+  cedar:{name:'Cedar look', struct:'#b07a43',siding:'#c68a4a',roof:'#5a4231', mult:1.35,
+    cap:'<b>Cedar look — read this:</b> Lowe\'s doesn\'t stock cedar sheet/lap siding. For this look, in-stock options are <b>LP SmartSide</b> (engineered, cedar-grain, primed) or <b>T1-11</b> panel + a cedar-tone stain. True cedar = build board-and-batten from cedar fence boards, or special-order bevel siding. Seal it or it silvers.'},
+  redwood:{name:'Redwood look', struct:'#a0512f',siding:'#b85e3a',roof:'#4a352b', mult:1.8,
+    cap:'<b>Redwood look.</b> Also not a stock Lowe\'s siding — use T1-11 or LP SmartSide with a redwood-tone stain, or special-order redwood boards. Seal yearly to keep the red.'},
+  paint:{name:'Painted', struct:'#ece6db',siding:'#5f7d6e',roof:'#3c3c42', mult:1.1,
+    cap:'<b>Painted.</b> Build with cheaper PT/pine, then primer + 2 coats exterior paint. Pick any colors above.'}
 };
 
 /* ===== view styles: how the 3D plan is drawn (paper field is fixed) ===== */
@@ -956,7 +967,7 @@ function applyViewStyle(){
     o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mat.side||THREE.FrontSide,
       polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
     o.castShadow=false; o.receiveShadow=false;
-    if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all the framing/glazing/floor reads clean; skip extrude/sphere/cone to avoid triangulation noise
+    if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all the framing/siding/floor reads clean; skip extrude/sphere/cone to avoid triangulation noise
       try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
         const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});
         const ls=new THREE.LineSegments(eg,lm);
@@ -975,11 +986,11 @@ function rebuild3D(p){
   const {W,D,Hf,Hw,Dd,post,roof,oc}=p;
   const P={struct:colors.struct,siding:colors.siding,roof:colors.roof,
     trim:colors.trim||colors.struct,accent:colors.accent||shade(colors.roof,1.25),
-    footing:'#564d40',door:colors.door||'#3a2517',glass:'#9fc7d6',base:colors.base||'#6e5a3e'};
+    footing:'#564d40',door:colors.door||'#3a2517',glass:'#9fc7d6'};
   const wallCol=k=>(colors.walls&&colors.walls[k])||colors.siding;   // per-wall paint override
   const th=post==='6x6'?0.46:0.29, base=0.26;
   const ex=W/2-th/2, ez=D/2-th/2;
-  const floorY=Hf, wallTop=Hf+Hw, ov=0.25, beamY=floorY-0.3;   // greenhouse: minimal roof overhang
+  const floorY=Hf, wallTop=Hf+Hw, ov=1, beamY=floorY-0.32;
   const isA=roof==='aframe', isGable=roof==='gable', isLean=roof==='lean', isSalt=roof==='saltbox', isGam=roof==='gambrel', isCleres=roof==='clerestory', isHip=roof==='hip', isFlat=roof==='flat', isShed=roof==='shed', isBfly=roof==='butterfly', isSaw=roof==='sawtooth', isBarrel=roof==='barrel';
   _explode = state.explode*1.6;                  // exploded-view lift per stage
   const interior=tog.tInterior&&!stepOn&&!isA&&!state.explode;   // dollhouse: ghost siding, drop roof, furnish
@@ -1020,7 +1031,7 @@ function rebuild3D(p){
   _stage=4;
   if(sF){ const n=Math.floor(D*12/oc)+1;
     for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1); box(W-0.2,0.46,0.13, 0,floorY-0.25,z, P.struct); } }
-  _stage=5; box(W+0.2,0.14,D+0.2, 0,floorY-0.05,0, '#b3ac98',{rough:1,cast:false});   // gravel / paver floor pad
+  _stage=5; box(W,0.09,D, 0,floorY,0, P.struct);
 
   // ---- door & window sizing ----
   const dS=DOOR[p.door.size];
@@ -1044,36 +1055,28 @@ function rebuild3D(p){
     const hw=Math.min(ow,len-0.7)/2;
     const uc=Math.max(w.uMin+hw+0.25, Math.min(w.uMax-hw-0.25, w.uMin+pos*len));
     return {k,uc,hw,vBot,vTop:vBot+oh}; }
-  // greenhouse wall = aluminium/cedar frame (always visible) + glazing panels, on a solid knee-wall base
-  const kneeY=floorY+Math.min(state.knee||0, Hw-1);
   function renderWall(k,ops){
     const w=wInfo(k), len=w.uMax-w.uMin, mid=(w.uMin+w.uMax)/2;
     _stage=7;
-    // FRAME — the greenhouse skeleton (glazing bars + rails), shown whenever the build has reached the frame stage
-    if(sF||sS){
-      onWall(k,mid,floorY+0.06,len,0.12,0.16,P.struct); onWall(k,mid,wallTop-0.05,len,0.12,0.18,P.struct);   // sill + eave plate
-      if(kneeY>floorY+0.2) onWall(k,mid,kneeY,len,0.1,0.16,P.struct);                                          // knee rail
-      const n=Math.max(2,Math.round(len/1.6)+1), sp=(len-0.2)/(n-1);
-      for(let i=0;i<n;i++){ const u=w.uMin+0.1+i*sp; let segs=[[floorY+0.05,wallTop-0.05]];
-        for(const op of ops) if(op.uc-op.hw-0.14<u && op.uc+op.hw+0.14>u) segs=subSeg(segs,op.vBot,op.vTop);
-        for(const [a,b] of segs) if(b-a>0.1) onWall(k,u,(a+b)/2,0.085,b-a,0.16,P.struct); }   // vertical glazing bars
+    if(sF){
+      onWall(k,mid,floorY+0.06,len,0.12,0.3,P.struct); onWall(k,mid,wallTop-0.06,len,0.12,0.3,P.struct);
+      const n=Math.max(2,Math.round(len/1.333)+1), sp=(len-0.3)/(n-1);
+      for(let i=0;i<n;i++){ const u=w.uMin+0.15+i*sp; let segs=[[floorY+0.1,wallTop-0.1]];
+        for(const op of ops) if(op.uc-op.hw-0.18<u && op.uc+op.hw+0.18>u) segs=subSeg(segs,op.vBot,op.vTop);
+        for(const [a,b] of segs) if(b-a>0.12) onWall(k,u,(a+b)/2,0.12,b-a,0.29,P.struct); }
       for(const op of ops){
-        onWall(k,op.uc,op.vTop+0.1,op.hw*2+0.4,0.14,0.18,P.struct);                            // header bar over the door
-        onWall(k,op.uc-op.hw-0.09,(floorY+op.vTop)/2,0.1,op.vTop-floorY,0.18,P.struct);
-        onWall(k,op.uc+op.hw+0.09,(floorY+op.vTop)/2,0.1,op.vTop-floorY,0.18,P.struct);
+        onWall(k,op.uc,op.vTop+0.13,op.hw*2+0.5,0.26,0.29,P.struct);
+        onWall(k,op.uc-op.hw-0.13,(floorY+op.vTop)/2,0.12,op.vTop-floorY,0.29,P.struct);
+        onWall(k,op.uc+op.hw+0.13,(floorY+op.vTop)/2,0.12,op.vTop-floorY,0.29,P.struct);
+        if(op.vBot>floorY+0.3) onWall(k,op.uc,op.vBot-0.08,op.hw*2+0.3,0.12,0.29,P.struct);
       }
     }
     _stage=9;
-    // KNEE-WALL (solid base) + GLAZING panels filling the bays
-    if(sS){ const nS=Math.max(3,Math.round(len/1.5)), sw=len/nS, gl=wallCol(k), op2=interior?0.12:(FINISH[state.finish]||{}).op||0.4;
+    if(sS){ const nS=Math.max(4,Math.round(len/0.55)), sw=len/nS;
       for(let i=0;i<nS;i++){ const u0=w.uMin+i*sw, uc=u0+sw/2; let segs=[[floorY,wallTop]];
         for(const op of ops) if(op.uc-op.hw<u0+sw && op.uc+op.hw>u0) segs=subSeg(segs,op.vBot,op.vTop);
-        for(const [a,b] of segs){
-          const kb=Math.min(b,kneeY);
-          if(kb-a>0.04) onWall(k,uc,(a+kb)/2,sw,kb-a,0.12,P.base,{off:0});                                       // solid knee-wall infill
-          const ga=Math.max(a,kneeY);
-          if(b-ga>0.04) onWall(k,uc,(ga+b)/2,sw*0.95,b-ga,0.04,gl,{off:0.02,opacity:op2,cast:false}); }          // glazing panel
-      } }
+        for(const [a,b] of segs) if(b-a>0.03) onWall(k,uc,(a+b)/2,sw*0.93,b-a,0.06,wallCol(k),{off:0.03,opacity:interior?0.16:null}); }
+    }
   }
   function renderOpening(op,type,spec){
     _stage=10;
@@ -1113,39 +1116,41 @@ function rebuild3D(p){
     for(const r of wRects) renderOpening(r,'window',r._ws);
   }
 
-  // ---- collar ties: light cross-bars at eave height (no solid ceiling — a greenhouse is open to the glazed roof) ----
+  // ---- ceiling: caps the box at wall height so high-angle / over-wall views never see into a dark attic ----
   if(!isA && !isFlat){
     _stage=8;
-    if(sF){ const nc=Math.max(2,Math.round(D/2.2)+1);                          // collar ties across the width at intervals
-      for(let i=0;i<nc;i++){ const z=-((D-0.4)/2)+i*(D-0.4)/(nc-1); box(W-0.2,0.07,0.07, 0,wallTop-0.12,z, P.struct,{cast:false}); } }
+    if(sF){ const nc=Math.max(2,Math.floor(W*12/oc)+1);                       // ceiling joists span the width
+      for(let i=0;i<nc;i++){ const x=-W/2+0.12+i*(W-0.24)/(nc-1); box(0.1,0.3,D-0.18, x,wallTop-0.2,0, P.struct); } }
+    if(sR&&!interior) box(W-0.06,0.08,D-0.06, 0,wallTop-0.05,0, shade(colors.struct,1.15),{cast:false});   // ceiling deck (hidden in dollhouse)
   }
 
-  // ---- roofs: glazed panels on a frame of glazing bars + rafters ----
-  const ROP=()=>interior?0.12:((FINISH[state.finish]||{}).op||0.4);
-  const seamCol=colors.struct;   // glazing bars / ridge caps read as the aluminium-or-cedar frame
+  // ---- roofs: sheathing + visible rafters + fascia + ridge ----
+  const seamCol=shade(colors.roof,1.5);
   function deckRafters(cx,cy,rotZ,slabW,depth,noRake){
-    box(slabW*0.99,0.05,depth, cx,cy+0.04,0, colors.roof,{rotZ,opacity:ROP(),cast:false});   // translucent glazing panel
-    const nS=Math.max(3,Math.round(depth/1.1));
-    for(let i=0;i<=nS;i++){ const z=-depth/2+i*depth/nS; box(slabW,0.09,0.07, cx,cy+0.07,z, P.struct,{rotZ}); }  // glazing bars (down-slope)
+    box(slabW,0.1,depth, cx,cy+0.05,0, P.roof,{rotZ});                                   // sheathing deck
+    const nS=Math.max(3,Math.round(depth/0.8));
+    for(let i=0;i<=nS;i++){ const z=-depth/2+i*depth/nS; box(slabW,0.07,0.05, cx,cy+0.14,z, seamCol,{rotZ,cast:false}); }  // standing-seam ribs
     const nR=Math.max(2,Math.round(depth/1.6)+1), sp=(depth-0.2)/(nR-1);
-    for(let i=0;i<nR;i++){ const z=-depth/2+0.1+i*sp; box(slabW,0.2,0.08, cx,cy-0.1,z, P.struct,{rotZ}); }  // rafters under
-    if(!noRake) for(const sz of [-1,1]) box(slabW,0.16,0.07, cx,cy-0.02,sz*(depth/2+0.03), P.struct,{rotZ});   // slim rake bar (frame)
+    for(let i=0;i<nR;i++){ const z=-depth/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ}); }  // rafters
+    box(slabW,0.06,depth, cx,cy-0.34,0, P.trim,{rotZ,cast:false});                         // soffit — closes the underside
+    if(!noRake) for(const sz of [-1,1]) box(slabW,0.62,0.08, cx,cy-0.08,sz*(depth/2+0.04), P.trim,{rotZ});   // rake fascia — covers the slab edge sandwich
   }
   if(sR){
     _stage=8; const rd=D+2*ov, zEdge=D/2+ov, xEdge=W/2+ov;
-    function deckRaftersZ(cy,rotX,slabZ,widthX){            // mono-pitch glazed slab sloping along Z (depth)
-      box(widthX,0.05,slabZ*0.99, 0,cy+0.04,0, colors.roof,{rotX,opacity:ROP(),cast:false});   // translucent glazing panel
-      const nS=Math.max(3,Math.round(slabZ/1.1));
-      for(let i=0;i<=nS;i++){ const z=-slabZ/2+i*slabZ/nS; box(widthX,0.07,0.07, 0,cy+0.07,z, P.struct,{rotX}); }  // glazing bars (down-slope)
+    function deckRaftersZ(cy,rotX,slabZ,widthX){            // mono-pitch slab sloping along Z (depth)
+      box(widthX,0.1,slabZ, 0,cy+0.05,0, P.roof,{rotX});
+      const nS=Math.max(3,Math.round(widthX/0.8));
+      for(let i=0;i<=nS;i++){ const x=-widthX/2+i*widthX/nS; box(0.05,0.07,slabZ, x,cy+0.14,0, seamCol,{rotX,cast:false}); }
       const nR=Math.max(2,Math.round(widthX/1.6)+1), sp=(widthX-0.2)/(nR-1);
-      for(let i=0;i<nR;i++){ const x=-widthX/2+0.1+i*sp; box(0.08,0.2,slabZ, x,cy-0.1,0, P.struct,{rotX}); }  // rafters under
-      for(const sx of [-1,1]) box(0.07,0.16,slabZ, sx*(widthX/2+0.03),cy-0.02,0, P.struct,{rotX});   // slim rake bar (frame)
+      for(let i=0;i<nR;i++){ const x=-widthX/2+0.1+i*sp; box(0.1,0.34,slabZ, x,cy-0.18,0, P.struct,{rotX}); }
+      box(widthX,0.06,slabZ, 0,cy-0.34,0, P.trim,{rotX,cast:false});                        // soffit — closes the underside
+      for(const sx of [-1,1]) box(0.08,0.62,slabZ, sx*(widthX/2+0.04),cy-0.08,0, P.trim,{rotX});   // rake fascia
     }
-    // angled ridge cap — a solid aluminium/cedar cap straddling the peak
+    // angled ridge cap — two plates meeting over the peak (replaces the square ridge box look)
     function ridgeCap(px,py,angL,angR,depth){
-      box(0.42,0.08,depth, px-0.2*Math.cos(angL),py-0.2*Math.sin(angL),0, P.struct,{rotZ:angL,cast:false});
-      box(0.42,0.08,depth, px+0.2*Math.cos(angR),py-0.2*Math.sin(angR),0, P.struct,{rotZ:-angR,cast:false});
-      box(0.1,0.1,depth, px,py+0.02,0, P.struct,{cast:false});                               // ridge bar
+      box(0.55,0.07,depth, px-0.26*Math.cos(angL),py-0.26*Math.sin(angL),0, P.roof,{rotZ:angL,cast:false});
+      box(0.55,0.07,depth, px+0.26*Math.cos(angR),py-0.26*Math.sin(angR),0, P.roof,{rotZ:-angR,cast:false});
+      box(0.07,0.09,depth, px,py+0.01,0, seamCol,{cast:false});                              // crown seam
     }
     if(isFlat){                                             // flat roof + parapet — tower / rooftop-deck look
       box(W+0.3,0.16,D+0.3, 0, wallTop+0.08, 0, P.roof);
@@ -1371,8 +1376,8 @@ function rebuild3D(p){
     }
   }
 
-  // ---- access: only meaningful when the greenhouse sits up high or fronts a staging deck (a ground-level pad needs no ladder) ----
-  if(sL && (floorY>1.2 || state.Dd>0)){
+  // ---- access: ladder or stairs — positionable side, along-position & descent direction ----
+  if(sL){
     _stage=15;
     const isOut = stairDir==='out', sgn = stairDir==='left'?-1:1;
     // pt(runDist, widthOff, y): for 'out' the run goes outward from the wall; for left/right it runs along the wall
@@ -1612,30 +1617,24 @@ function rebuild3D(p){
     const cl=(v,m)=>Math.max(-m,Math.min(m,v));
     const legTable=(cx,cz,w,d,h,col)=>{ box(w,0.12,d, cx,fy+h,cz, col);
       for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.12,h,0.12, cx+sx*(w/2-0.12),fy+h/2,cz+sz*(d/2-0.12), col); };
-    if(tog.furniture||state.bench){                                  // potting bench + pots on the back wall
-      const bw=Math.min(W-1.0,4.6), bz=-(inZ-0.55), bh=0.9;
-      box(bw,0.1,1.25, 0,fy+bh,bz, '#8a6a44'); box(bw,0.08,1.05, 0,fy+0.4,bz, FC.wood2);   // slat top + lower shelf
-      for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.1,bh,0.1, sx*(bw/2-0.12),fy+bh/2,bz+sz*0.52, FC.wood);
-      const np=Math.max(2,Math.round(bw/1.2));
-      for(let i=0;i<np;i++){ const px=-bw/2+0.55+i*(bw-1.1)/Math.max(1,np-1);
-        box(0.34,0.3,0.34, px,fy+bh+0.16,bz, '#a35a38'); ball(0.22, px,fy+bh+0.46,bz, i%2?'#5f7d44':'#6f8f4e'); }   // terracotta pots + seedlings
+    if(tog.furniture){
+      const bw=Math.min(W-1.0,4.2), bz=-(inZ-0.6);                 // bench / cot on back wall
+      legTable(0,bz, bw,1.3, 0.85, FC.wood); box(bw-0.2,0.18,1.05, 0,fy+0.95,bz, FC.fab);
+      const tz=Math.min(inZ-0.9, 0.7);                              // table + two stools
+      legTable(0,tz, Math.min(2.0,W-1.4),1.1, 1.5, FC.wood);
+      for(const sx of [-1,1]){ const x=cl(sx*1.25, W/2-0.6);
+        box(0.8,0.1,0.8, x,fy+0.95,tz, FC.wood2);
+        for(const lx of [-1,1]) for(const lz of [-1,1]) box(0.08,0.9,0.08, x+lx*0.28,fy+0.45,tz+lz*0.28, FC.wood2); }
+      box(0.7,3.0,1.6, -(inX-0.35),fy+1.5,cl(D*0.12,inZ-1), FC.wood);   // cabinet on left wall
     }
-    if(state.shelf){                                                 // wire shelving up one side wall
-      const sx=inX-0.12, sl=Math.min(D-1.2,4.4);
-      for(const sy of [1.0,1.75,2.5]){ box(0.5,0.05,sl, -sx,fy+sy,0, '#9aa0a2');
-        const ns=Math.max(2,Math.round(sl/0.95)); for(let i=0;i<ns;i++){ const z=-sl/2+0.5+i*sl/ns; box(0.26,0.22,0.26, -sx,fy+sy+0.15,z, '#a35a38'); ball(0.15,-sx,fy+sy+0.32,z,'#6f8f4e'); } }
-    }
-    if(state.beds){                                                  // raised beds down the floor
-      for(const sgx of [-1,1]){ const bx=sgx*(inX-0.85), bl=Math.min(D-1.6,5.2);
-        box(1.5,0.6,bl, bx,fy+0.3,0, FC.wood); box(1.3,0.14,bl-0.2, bx,fy+0.62,0, '#3f3329');
-        const ns=Math.max(2,Math.round(bl/0.7)); for(let i=0;i<ns;i++){ const z=-bl/2+0.4+i*bl/ns; ball(0.18, bx,fy+0.82,z, i%2?'#5f7d44':'#6f8f4e'); } }
-    }
-    if(tog.kids){                                                    // a gardener for scale
-      const h=5.5, x=cl(-0.7,W/2-0.8), z=cl(0.9,inZ-1.1), headR=h*0.072;
-      for(const s of [-1,1]) box(h*0.07,h*0.46,h*0.1, x+s*h*0.06,fy+h*0.23,z, '#3f5d74');
-      box(h*0.22,h*0.32,h*0.14, x,fy+h*0.63,z, '#5b7355');
-      for(const s of [-1,1]) box(h*0.05,h*0.32,h*0.07, x+s*h*0.145,fy+h*0.6,z, '#5b7355');
-      ball(headR, x,fy+h-headR,z, '#dca878');
+    if(tog.kids){
+      const kid=(h,x,z,shirt,pants)=>{ const headR=h*0.085;
+        for(const sx of [-1,1]) box(h*0.07,h*0.45,h*0.09, x+sx*h*0.055,fy+h*0.225,z, pants);
+        box(h*0.2,h*0.34,h*0.13, x,fy+h*0.62,z, shirt);
+        for(const sx of [-1,1]) box(h*0.05,h*0.3,h*0.06, x+sx*h*0.13,fy+h*0.6,z, shirt);
+        ball(headR, x,fy+h-headR,z, '#dca878'); };
+      kid(4.0, cl(-1.1,W/2-0.7), cl(1.0,inZ-1.1), '#c0563f','#46485a');   // 7 yr ≈ 4'0"
+      kid(3.33, cl(1.2,W/2-0.7), cl(-0.3,inZ-1.1), '#5a86a8','#7a6038');  // 4 yr ≈ 3'4"
     }
   }
   // ---- scale figures standing on the ground beside the house (sense of scale) ----
@@ -1649,8 +1648,8 @@ function rebuild3D(p){
     const fz=D/2+(state.deckSide==='front'&&Dd>0?Dd:0)+1.6;   // clear a front deck
     const dodge=x=>{ if(stairSide!=='front'||stairDir!=='out') return x;   // step aside from front stairs
       const d=x-stairAC; return Math.abs(d)<2.2 ? stairAC+(d<0?-2.6:2.6) : x; };
-    person(5.83, dodge(-W*0.28), fz,       '#3f5d74','#2c313c');   // gardener ≈ 5'10"
-    person(5.3,  dodge( W*0.22), fz+0.55,  '#6b7d52','#3a3f2c');   // gardener ≈ 5'4"
+    person(5.83, dodge(-W*0.28), fz,       '#3f5d74','#2c313c');   // adult ≈ 5'10"
+    person(4.0,  dodge( W*0.22), fz+0.55,  '#c0563f','#46485a');   // 7 yr ≈ 4'0"
   }
   applyViewStyle();
 }
@@ -1658,26 +1657,18 @@ function rebuild3D(p){
 /* ===== materials engine ===== */
 const PRICE={ p4x4:2.6,p6x6:5.5,beam:1.7,joist:1.7,stud:0.9,brace:0.9,
   plySheet:52,siding:48,sheath:42,deckBlock:8,postBase:11,bolt:2.4,hanger:2.5,
-  roofCoverSqft:1.6,misc:60,window:60,door:95,deckBoardSqft:3.4,railLF:13,
-  // greenhouse-specific
-  glazeSqft:1.9,        // twin-wall polycarbonate base $/sq ft (× finish.mult: glass 1.7×, film 0.5×)
-  channelLF:1.3,        // H-channel / U-channel edging per ft
-  glazeTape:9,          // foam glazing / anti-dust tape per roll
-  ventKit:58,           // manual roof vent / louvre window
-  ventAuto:34,          // non-electric automatic vent opener (wax piston)
-  gravelBag:5.5,        // ¾" crushed stone, 0.5 cu ft bag
-  fabric:24,            // landscape weed fabric roll
-  paver:3.2 };          // 12×12 concrete paver
+  roofCoverSqft:1.6,misc:60,window:60,door:95,deckBoardSqft:3.4,railLF:13 };
 const lw=t=>'https://www.lowes.com/search?searchTerm='+encodeURIComponent(t);
-const WIN_URL=WIN.medium.url;   // generic operable-window / louvre link
-// real Lowe's product pages for greenhouse glazing + foundation
+const WIN_URL=WIN.medium.url;   // generic glazing link (cupola / wing / clerestory)
+const T11_URL='https://www.lowes.com/pl/siding-stone-veneer/wood-siding-accessories/t1-11/2365411302-328841971';   // real panel siding (no cedar siding at Lowe's)
+// real Lowe's product pages for the structural hardware
 const HW={
-  glaze:'https://www.lowes.com/search?searchTerm=twin+wall+polycarbonate+sheet',
-  channel:'https://www.lowes.com/search?searchTerm=polycarbonate+h+channel',
-  vent: 'https://www.lowes.com/search?searchTerm=greenhouse+roof+vent',
+  block:'https://www.lowes.com/pd/Midwest-Products-Group-Deck-Block-Accepts-6x6-and-4x4-Post/1002690830',
+  base: 'https://www.lowes.com/pd/Simpson-Strong-Tie-ABA-4x4-Rough-ZMAX-174-Galvanized-Adjustable-Standoff-Post-Base/5001171757',
+  hanger:'https://www.lowes.com/pd/Simpson-Strong-Tie-LUS26Z-Double-Shear-Hanger-Z-Max/1203779',
+  htie: 'https://www.lowes.com/pd/Simpson-Strong-Tie-H2-5A-18-Gauge-Galvanized-Hurricane-Tie/1002748772',
   conc: 'https://www.lowes.com/pd/QUIKRETE-60-lb-Gray-Fast-Setting-Concrete-Mix/1000201983',
-  gravel:'https://www.lowes.com/search?searchTerm=all+purpose+gravel+0.5+cu+ft',
-  paver:'https://www.lowes.com/search?searchTerm=12+x+12+concrete+patio+paver'
+  tube: 'https://www.lowes.com/pd/QUIKRETE-Common-10-in-Actual-9-5-in-Quik-Tube-48-in-Concrete-Tube-Form/3018328'
 };
 const stdLen=ft=>{ for(const o of [8,10,12,16]) if(o>=ft-0.001) return o; return Math.ceil(ft/2)*2; };
 const $=n=>'$'+Math.round(n).toLocaleString();
@@ -1686,142 +1677,159 @@ function computeMaterials(p){
   const {W,D,Hf,Hw,Dd,post,roof,oc,finish}=p;
   const isA=roof==='aframe', isGable=roof==='gable', isLean=roof==='lean', isSalt=roof==='saltbox', isGam=roof==='gambrel', isCleres=roof==='clerestory', isHip=roof==='hip', isFlat=roof==='flat', isBfly=roof==='butterfly', isSaw=roof==='sawtooth', isBarrel=roof==='barrel';
   const fin=FINISH[finish];
-  const perim=2*(W+D);
-  const kneeH=Math.min(p.knee||0, Hw-1), wallGlH=Math.max(0.5,Hw-kneeH);
+  const perSide=Math.max(2,Math.ceil(D/4)+1), totalPosts=perSide*(p.midBeam?3:2), mids=totalPosts-4;
   const postPrice=post==='6x6'?PRICE.p6x6:PRICE.p4x4;
-  const postTerm=post==='6x6'?'cedar or PT 6x6':'cedar or PT 4x4';
-  const grade=state.grade||0;
-  const glz=area=>area*PRICE.glazeSqft*fin.mult;          // glazing $ for an area, by material
-  const sheets=area=>Math.max(1,Math.ceil(area/32));      // 4×8 sheet count
+  const postTerm=post==='6x6'?'pressure treated 6x6':'pressure treated 4x4';
+  const grade=state.grade||0, gSpan=(state.gradeDir==='front'||state.gradeDir==='back')?(D-0.5):(W-0.5), gExtra=grade*gSpan;  // downhill posts run longer
+  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gExtra), midLen=stdLen(Hf+0.5+gExtra);
 
   const groups=[]; let total=0;
   const G=n=>{const g={name:n,items:[],sum:0};groups.push(g);return g;};
   const add=(g,qty,unit,label,detail,cost,link)=>{g.items.push({qty,unit,label,detail,cost,link});g.sum+=cost;total+=cost;};
 
-  // ---- Foundation ----
   let g=G('Foundation');
-  const padArea=(W+0.7)*(D+0.7);
-  if(p.foundation==='pavers'){
-    const np=Math.ceil(padArea); add(g,np,'×','Patio pavers — 12×12','level course over a compacted base · ~1 / sq ft',np*PRICE.paver,HW.paver);
-    const pb=Math.ceil(padArea*0.5); add(g,pb,'bags','Paver base + sand','QUIKRETE paver base · 2–3″ compacted',pb*PRICE.gravelBag,lw('quikrete paver base 0.5 cu ft'));
-  } else if(p.foundation==='timber'){
-    const tb=Math.ceil(perim/8)*2; add(g,tb,'×',`Ground-frame timbers — ${post==='6x6'?'6×6':'4×4'} × 8 ft`,'PT, two courses staked at the corners',tb*8*postPrice,lw('pressure treated 6x6 8 ft'));
-    const gb=Math.ceil(padArea*0.45); add(g,gb,'bags','¾" crushed stone fill','inside the timber frame (cheaper bulk by the yard)',gb*PRICE.gravelBag,HW.gravel);
-    add(g,8,'×','12″ timber screws / rebar stakes','spike the frame to the ground',8*3.5,lw('12 in timber screw'));
+  if(p.foundation==='piers'){ const bags=totalPosts*4;
+    add(g,totalPosts,'×','Concrete tube forms — 10″ × 4 ft','QUIKRETE QUIK-Tube, cut to depth',totalPosts*12,HW.tube);
+    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · ~4 per pier',bags*7,HW.conc);
+    add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, set in each pier',totalPosts*PRICE.postBase,HW.base);
+  } else if(p.foundation==='buried'){ const bags=totalPosts*3;
+    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · ~3 per post hole',bags*7,HW.conc);
+    add(g,totalPosts,'×','Paver-base gravel','few inches in each hole',totalPosts*4,lw('paver base gravel 0.5 cu ft'));
   } else {
-    const gb=Math.ceil(padArea*0.5); add(g,gb,'bags','¾" crushed stone','all-purpose gravel · ~4″ compacted (cheaper bulk by the yard)',gb*PRICE.gravelBag,HW.gravel);
-    add(g,1,'roll','Landscape fabric','weed barrier under the gravel',PRICE.fabric,lw('landscape weed fabric roll'));
-    const sl=Math.ceil(perim/8); add(g,sl,'×','PT 4×4 perimeter sill — 8 ft','frames the pad, anchors the walls',sl*8*PRICE.p4x4,lw('pressure treated 4x4 8 ft'));
-  }
-  if(grade>0) add(g,'⚑','','Sloped site — level the pad first',`${Math.round(grade*100)}% grade · dig the high side / build up the low side to a level string`,0,lw('string line level'));
-
-  // ---- Frame (posts + glazing bars + rafters) ----
-  g=G('Frame ('+post+' + 2×4)');
-  const cornerLen=stdLen((isA?W*0.5+1:Hw)+(isFlat?0.4:isA?0:W*0.30)+1);
-  add(g,4,'×',`Corner posts ${post} — ${cornerLen} ft`,'cedar or PT, set on the sill',4*cornerLen*postPrice,lw(postTerm));
-  const studs=Math.ceil(perim*12/24)+6, studBoards=Math.ceil((studs*Hw+perim*2.5)/8);
-  add(g,studs,'studs','2×4 glazing bars + plates','verticals @ ~24″ + sill / knee / top plates',studBoards*8*PRICE.stud,lw('2x4 stud 8 ft'));
-  // rafters / roof framing — geometry by roof type
-  let rafterLen,rafters,roofArea;
-  if(isA){ const peakH=Hw+W*0.45, slope=Math.hypot(W/2,peakH); rafterLen=stdLen(slope+0.3); rafters=(Math.floor(D*12/16)+1)*2; roofArea=2*slope*(D+0.5); }
-  else if(isFlat){ rafterLen=stdLen(W+0.5); rafters=Math.floor(D*12/16)+1; roofArea=(W+0.5)*(D+0.5)*1.05; }
-  else if(isGable||isSalt||isHip){ rafterLen=stdLen((W/2+0.4)*1.25); rafters=(Math.floor(D*12/16)+1)*2+(isHip?4:0); roofArea=(W+0.5)*(D+0.5)*(isSalt?1.4:isHip?1.5:1.26); }
-  else if(isGam||isCleres){ rafterLen=stdLen((W/2+0.4)*1.4); rafters=(Math.floor(D*12/16)+1)*(isGam?4:2); roofArea=(W+0.5)*(D+0.5)*(isGam?1.5:1.35); }
-  else if(isBfly){ rafterLen=stdLen((W/2+0.4)*1.2); rafters=(Math.floor(D*12/16)+1)*2; roofArea=(W+0.5)*(D+0.5)*1.3; }
-  else if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); rafterLen=stdLen(W/nT+0.4); rafters=(Math.floor(D*12/16)+1)*nT; roofArea=(W+0.5)*(D+0.5)*1.35; }
-  else if(isBarrel){ rafterLen=stdLen(W*1.25); rafters=Math.floor(D*12/16)+1; roofArea=(W+0.5)*(D+0.5)*1.4; }
-  else { const f=isLean?1.2:1.06; rafterLen=stdLen((W+0.5)*f); rafters=Math.floor(D*12/16)+1; roofArea=(W+0.5)*(D+0.5)*f; }
-  const rSize=p.rafter8?'2×8':'2×6', rPrice=p.rafter8?PRICE.joist*1.55:PRICE.joist;
-  const rDesc=isGable?'two slopes':isLean?'single slope':isHip?'four hip slopes':isGam?'gambrel slopes':isBfly?'centre-valley slopes':isSaw?'sawtooth panels':isBarrel?'curved ribs':isFlat?'low-slope to drain':'roof framing';
-  add(g,rafters,'pcs',`Rafters ${rSize} — ${rafterLen} ft`,rDesc+(p.rafter8?' · sized up':''),rafters*rafterLen*rPrice,lw(p.rafter8?'2x8':'2x6'));
-  if(!isFlat&&!isLean&&!isBfly&&!isSaw) add(g,1,'×',`Ridge board ${rSize} — ${stdLen(D)} ft`,'rafters land here at the peak',stdLen(D)*rPrice,lw(p.rafter8?'2x8':'2x6'));
-
-  // ---- Knee-wall base ----
-  if(kneeH>0.1){ g=G('Knee-wall base');
-    const kSheets=sheets(perim*kneeH);
-    add(g,kSheets,'×','½" exterior plywood / siding','4×8 — solid lower band that keeps splash off the glazing',kSheets*PRICE.siding,lw('1/2 exterior plywood siding'));
-    add(g,2,'gal','Exterior primer + paint','seal + color the knee-wall',135,lw('exterior paint primer'));
+    add(g,totalPosts,'×','Deck blocks — precast pier','Midwest deck block, takes a 4×4/6×6 · one per post',totalPosts*PRICE.deckBlock,HW.block);
+    add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, off the soil',totalPosts*PRICE.postBase,HW.base);
   }
 
-  // ---- Wall glazing ----
-  g=G('Wall glazing — '+fin.name);
-  const wSheets=sheets(perim*wallGlH*0.92);
-  add(g,wSheets,'×',fin.glaze+' — 4×8 panel',`walls above the knee · ~${dim(wallGlH)} tall band`,glz(wSheets*32),HW.glaze);
-  const wChan=Math.round(perim*2.2);
-  add(g,wChan,'ft','H-channel + U-channel','joins panels and caps every edge',wChan*PRICE.channelLF,HW.channel);
-  add(g,Math.max(1,Math.ceil(perim/30)),'rolls','Glazing / anti-dust tape','seals the open flutes top & bottom',Math.max(1,Math.ceil(perim/30))*PRICE.glazeTape,lw('polycarbonate anti dust tape'));
+  g=G('Posts ('+post+' PT)');
+  add(g,4,'×',`Corner posts — ${cornerLen} ft`,isA?'to platform':'full height → roof',4*cornerLen*postPrice,lw(postTerm));
+  if(mids>0) add(g,mids,'×',`Mid-span posts — ${midLen} ft`,'support the beams',mids*midLen*postPrice,lw(postTerm));
+  if(grade>0) add(g,'⚑','','Sloped site — cut each post to a level line',`${Math.round(grade*100)}% grade · downhill posts run ~${dim(gExtra)} longer; buy long, scribe to a level string`,0,lw('post level string line'));
 
-  // ---- Door (custom — glaze the upper panel) ----
+  g=G('Platform');
+  const beamLen=stdLen(D), beamQty=p.midBeam?6:4;
+  add(g,beamQty,'×',`Beam 2×6 — ${beamLen} ft`,'doubled, two long sides'+(p.midBeam?' + center':''),beamQty*beamLen*PRICE.beam,lw('pressure treated 2x6'));
+  const joists=Math.floor(D*12/oc)+1, perBoard=Math.max(1,Math.floor(16/W)), jBoards=Math.ceil(joists/perBoard);
+  add(g,joists,'pcs',`Joists 2×6 @ ${oc}" O.C.`,`cut to ${W} ft · ${jBoards}× 16 ft`,jBoards*16*PRICE.joist,lw('pressure treated 2x6'));
+  const floorSheets=Math.ceil(W*D/32);
+  add(g,floorSheets,'×','¾" T&G plywood floor','4×8 exterior sheets',floorSheets*PRICE.plySheet,lw('3/4 plywood'));
+
+  g=G('Walls — '+fin.name);
+  const perim=2*(W+D); let studs,studBoards,sideSheets;
+  if(isA){ const peakH=Hw+W*0.45; studs=(Math.ceil(W/1.333)+1)*2; studBoards=Math.ceil((studs*peakH*0.6+W*4)/8); sideSheets=Math.ceil((W*peakH)/32); }
+  else { studs=Math.ceil(perim*12/16)+4; studBoards=Math.ceil((studs*Hw+perim*2)/8); sideSheets=Math.ceil(perim*Hw/32); }
+  add(g,studs,'studs','2×4 framing',isA?'two gable ends':'studs + plates',studBoards*8*PRICE.stud,lw('2x4 stud'));
+  add(g,sideSheets,'×','Siding — 4×8 panel','T1-11 grooved plywood, or LP SmartSide engineered panel',sideSheets*PRICE.siding*fin.mult,T11_URL);
+  if(finish==='cedar'||finish==='redwood'){ const gal=Math.ceil((perim*Hw)/300);
+    add(g,Math.max(1,gal),'gal',fin.name.replace(' look','')+'-tone stain','gets the '+fin.name.replace(' look','').toLowerCase()+' color on T1-11 / SmartSide (no real cedar at Lowe\'s)',Math.max(1,gal)*42,lw('exterior semi transparent stain cedar')); }
+  if(finish==='paint'){ add(g,2,'gal','Primer + exterior paint','your color',135,lw('exterior paint primer')); }
   const dS=DOOR[p.door.size], doorH=Math.min(dS.h, Hw-0.25);
+  for(const win of p.windows){ const ws=WIN[win.size];
+    add(g,1,'×',`Window — ${ws.label}`,`Shed Windows & More ${ws.type}, flush-mount tempered · on the ${win.wall} wall`,ws.price,ws.url); }
+  // ---- door: custom-built board-and-batten (no stock door fits a playhouse opening) ----
   const leaves=dS.dutch?2:1, faceBoards=Math.ceil(dS.w/0.46), ledges=leaves*3+1, nHinge=leaves*(doorH>4.5?3:2);
-  g=G('Door');
-  add(g,1,'×',`Door — ${dS.label}, custom built`,`~${dim(dS.w)}×${dim(doorH)}${dS.dutch?' · split dutch':''} on the ${p.door.wall} wall — glaze the upper panel to match, board the lower`,0,'');
-  add(g,faceBoards,'pcs',`1×6 frame / face boards — ${stdLen(doorH)} ft`,'door stiles + lower panel',faceBoards*stdLen(doorH)*1.5,lw('1x6 cedar board'));
-  add(g,ledges,'pcs',`1×4 ledge + Z-brace — ${stdLen(dS.w)} ft`,'battens that hold it square',ledges*stdLen(dS.w)*PRICE.brace,lw('1x4 furring board'));
-  add(g,1,'×','Glazing for the door panel',`offcut of ${fin.glaze}`,glz(dS.w*doorH*0.5),HW.glaze);
+  add(g,1,'×',`Door — ${dS.label}, custom built`,`board-and-batten, ~${dim(dS.w)}×${dim(doorH)}${dS.dutch?' · split dutch (2 leaves)':''} on the ${p.door.wall} wall — build it from the boards below; no stock shed door suits this opening`,0,'');
+  add(g,faceBoards,'pcs',`1×6 T&G face boards — ${stdLen(doorH)} ft`,'vertical face of the door (or a siding offcut)',faceBoards*stdLen(doorH)*1.5,lw('1x6 tongue and groove cedar board'));
+  add(g,ledges,'pcs',`1×4 ledge + Z-brace — ${stdLen(dS.w)} ft`,'battens that hold the face boards together',ledges*stdLen(dS.w)*PRICE.brace,lw('1x4 furring board'));
   add(g,nHinge,'×','Exterior strap / T-hinges',`${nHinge} for a ${dim(doorH)} door${leaves>1?' (both leaves)':''}`,nHinge*9,lw('exterior t-hinge strap'));
-  add(g,leaves,'×','Gate latch + handle',leaves>1?'one per leaf':'thumb latch or barrel bolt',leaves*13,lw('gate latch black'));
+  add(g,leaves,'×','Gate latch + handle',leaves>1?'one per leaf + dutch shelf':'thumb latch or barrel bolt',leaves*13+(dS.dutch?14:0),lw('gate latch black'));
+  const openings=p.windows.length+1;
+  add(g,openings,'pcs','Headers 2×6 — openings','framed over each opening',openings*stdLen(3)*PRICE.beam,lw('2x6'));
 
-  // ---- Roof glazing ----
-  g=G('Roof glazing');
-  const rSheets=sheets(roofArea);
-  add(g,rSheets,'×',fin.glaze+' — roof panels',`${roof} roof · ~${Math.round(roofArea)} sq ft`,glz(rSheets*32),HW.glaze);
-  const closeLF=Math.round((isHip?perim*0.6:D)+perim);
-  add(g,closeLF,'ft','Ridge + eave closures / channel','caps the panel ends along the ridge and eaves',closeLF*PRICE.channelLF,HW.channel);
+  g=G('Roof ('+roof+')');
+  let rafterLen,rafters,roofArea;
+  if(isA){ const peakH=Hw+W*0.45, slope=Math.hypot(W/2,peakH); rafterLen=stdLen(slope+0.5); rafters=(Math.floor(D*12/16)+1)*2; roofArea=2*slope*(D+1); }
+  else if(isFlat){ rafterLen=stdLen(W+1); rafters=Math.floor(D*12/16)+1; roofArea=(W+1)*(D+1)*1.05; }
+  else if(isGable||isSalt||isHip){ rafterLen=stdLen((W/2+0.5)*1.3); rafters=(Math.floor(D*12/16)+1)*(isHip?2:2)+(isHip?4:0); roofArea=(W+1)*(D+1)*(isSalt?1.4:isHip?1.5:1.28); }
+  else if(isGam||isCleres){ rafterLen=stdLen((W/2+0.5)*1.4); rafters=(Math.floor(D*12/16)+1)*(isGam?4:2); roofArea=(W+1)*(D+1)*(isGam?1.5:1.35); }
+  else if(isBfly){ rafterLen=stdLen((W/2+0.5)*1.2); rafters=(Math.floor(D*12/16)+1)*2; roofArea=(W+1)*(D+1)*1.3; }
+  else if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); rafterLen=stdLen(W/nT+0.5); rafters=(Math.floor(D*12/16)+1)*nT; roofArea=(W+1)*(D+1)*1.35; }
+  else if(isBarrel){ rafterLen=stdLen(W*1.25); rafters=(Math.floor(D*12/16)+1); roofArea=(W+1)*(D+1)*1.4; }
+  else { const f=isLean?1.22:1.06; rafterLen=stdLen((W+1)*f); rafters=Math.floor(D*12/16)+1; roofArea=(W+1)*(D+1)*f; }
+  const rDesc=isA?'A-frame slopes':isFlat?'flat — slope ¼"/ft to drain':isHip?'four hip slopes':isBfly?'two slopes to a centre valley':isSaw?'north-light sawtooth panels':isBarrel?'curved laminated ribs':isGable?'two slopes':'single slope';
+  const rSize=p.rafter8?'2×8':'2×6', rPrice=p.rafter8?PRICE.joist*1.55:PRICE.joist;
+  add(g,rafters,'pcs',`${isFlat?'Roof joists':isBarrel?'Curved ribs':'Rafters'} ${rSize} — ${rafterLen} ft`, rDesc+(p.rafter8?' · sized up for the span':''), rafters*rafterLen*rPrice, lw(isBarrel?'2x4':p.rafter8?'2x8':'2x6'));
+  if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); add(g,nT-1,'×','Clerestory glazing strips','north-light glass between the teeth',(nT-1)*PRICE.window,WIN_URL); }
+  if(isBfly) add(g,1,'×','Valley gutter + downspout','a butterfly drains to the centre — don’t skip this',48,lw('rain gutter kit'));
+  if(isFlat){ const par=Math.ceil(2*(W+D)*0.9/32); add(g,Math.max(2,par),'×','Parapet siding + coping','low wall around the roof deck',Math.max(2,par)*PRICE.siding*fin.mult,lw('exterior t1-11 siding')); }
+  const sheath=Math.ceil(roofArea/32);
+  add(g,sheath,'×','Roof sheathing','7/16" OSB, 4×8',sheath*PRICE.sheath,lw('7/16 osb sheathing'));
+  add(g,Math.round(roofArea),'sqft','Felt + shingles','or metal panels',roofArea*PRICE.roofCoverSqft,lw('asphalt shingles bundle'));
 
-  // ---- Ventilation ----
-  g=G('Ventilation');
-  let anyVent=false;
-  if(p.roofvent){ anyVent=true; add(g,1,'×','Roof vent — hinged glazed panel','heat escapes near the ridge',PRICE.ventKit,HW.vent);
-    add(g,1,'×','Automatic vent opener','wax-piston, no power needed',PRICE.ventAuto,lw('greenhouse automatic vent opener')); }
-  if(p.ridgevent){ anyVent=true; const n=Math.max(1,Math.round(D/4)); add(g,n,'×','Continuous ridge vent sections','runs the length of the peak',n*PRICE.ventKit*0.7,HW.vent); }
-  if(p.sidevent){ anyVent=true; add(g,2,'×','Side louvre vents','low intake for cross-flow',2*PRICE.ventKit*0.8,lw('greenhouse louvre vent'));
-    add(g,2,'×','Auto louvre opener','opens with heat',2*PRICE.ventAuto,lw('greenhouse louver opener')); }
-  if(p.fan){ anyVent=true; add(g,1,'×','Exhaust fan + thermostat','powered cooling for hot climates',95,lw('greenhouse exhaust fan thermostat')); }
-  for(const win of (p.windows||[])){ const ws=WIN[win.size]; if(!ws) continue; anyVent=true;
-    add(g,1,'×',`Operable window — ${ws.label}`,`${ws.type} vent on the ${win.wall} wall`,ws.price,ws.url); }
-  if(!anyVent) add(g,'⚑','','Add at least one vent','a sealed greenhouse cooks plants on a sunny day — turn on a roof or side vent',0,lw('greenhouse vent'));
+  if(Dd>0){
+    g=G('Deck ('+Dd+' ft)');
+    const dPosts=W>9?3:2, dpLen=stdLen(Hf+0.3);
+    add(g,dPosts,'×',`Deck posts ${post} — ${dpLen} ft`,'outer edge support',dPosts*dpLen*postPrice,lw(postTerm));
+    add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),HW.block);
+    const dj=Math.max(2,Math.round(W/1.6))+1;
+    add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C.',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
+    add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
+    const railLF=W+2*Dd;
+    add(g,Math.round(railLF),'ft','Railing + balusters','3 sides, ~36" tall',railLF*PRICE.railLF,lw('deck railing baluster'));
+  }
 
-  // ---- Hardware ----
-  g=G('Hardware & fasteners');
-  add(g,1,'lot','Glazing screws + neoprene washers','hold panels to the bars without cracking them',28,lw('polycarbonate screws neoprene washer'));
-  add(g,1,'lot','Exterior screws + corner brackets','3″ & 2″ structural screws + L-brackets',PRICE.misc,lw('exterior structural wood screws'));
-  add(g,4,'×','Ground anchors / hold-downs','tie the frame down against wind uplift',4*8,lw('greenhouse ground anchor'));
-  add(g,1,'tube','Exterior caulk / sealant','seal the sill and frame joints',8,lw('exterior silicone caulk'));
+  g=G('Bracing & hardware');
+  const braceL=stdLen(Hf*0.9);
+  add(g,8,'pcs',`Knee braces 2×4 — ${braceL} ft`,'anti-racking, all corners',8*braceL*PRICE.brace,lw('2x4x8 lumber'));
+  const bolts=totalPosts*2;
+  add(g,bolts,'×','½″ × 6″ carriage bolts','galvanized, beam-to-post (+ nuts/washers)',bolts*PRICE.bolt,lw('1/2 x 6 galvanized carriage bolt'));
+  add(g,joists,'×','Joist hangers — Simpson LUS26Z','ZMAX double-shear face-mount hanger',joists*PRICE.hanger,HW.hanger);
+  add(g,1,'lot','Exterior screws + misc','3″ & 2″ structural / deck screws',PRICE.misc,lw('exterior structural wood screws'));
+  if(p.anchor){ add(g,totalPosts,'×','Hurricane ties — Simpson H2.5A','galvanized rafter/post uplift tie',totalPosts*PRICE.hanger,HW.htie);
+    add(g,totalPosts,'×','Footing anchor straps','galvanized, post-to-footing',totalPosts*4,lw('simpson post anchor strap')); }
 
-  // ---- Benches & extras ----
-  const EXTRA_ITEMS={
-    bench:  ['Potting bench / staging','cedar slat top + lower shelf, one long side', Math.round(D*9)+40,'cedar 2x4'],
-    beds:   ['Raised beds','2×10 PT or cedar boxes inside', Math.max(40,Math.round(W*D*0.5)),'cedar 2x10 board'],
-    shelf:  ['Wire shelving','galvanized shelf along the back wall', Math.round(D*7)+18,'wire shelf'],
-    coldframe:['Cold frame','low hinged-lid box against the sunny wall', 70,'cold frame'],
-    shade:  ['Shade cloth','40% knitted cloth + clips for summer', Math.round(roofArea*0.35)+18,'greenhouse shade cloth 40 percent'],
-    gutter: ['Gutter + rain barrel','catch roof runoff for watering', 96,'rain barrel 50 gallon'],
-    lights: ['Grow / string lights','LED strand or grow bar along the ridge', 38,'led grow light bar'],
+  if(state.wing){
+    g=G('Wing addition'+(state.split?' (split level)':''));
+    const wW=Math.min(W*0.7,5), wD=Math.min(D*0.6,5), wpLen=stdLen(Hf+Hw*0.9+1);
+    add(g,3,'×',`Wing posts ${post} — ${wpLen} ft`,'outer + front-inner corners',3*wpLen*postPrice,lw(postTerm));
+    add(g,3,'×','Deck blocks + ABA44Z bases','precast pier + post base, under the wing posts',3*(PRICE.deckBlock+PRICE.postBase),HW.block);
+    const wj=Math.max(2,Math.floor(wD*12/oc)+1);
+    add(g,wj,'pcs',`Wing joists 2×6 — ${stdLen(wW)} ft`,`@ ${oc}" O.C.`,wj*stdLen(wW)*PRICE.joist,lw('pressure treated 2x6'));
+    const wFloor=Math.ceil(wW*wD/32);
+    add(g,wFloor,'×','¾" T&G plywood floor','wing deck, 4×8 sheets',wFloor*PRICE.plySheet,lw('3/4 plywood'));
+    const wSide=Math.max(2,Math.ceil((wW+wD)*2*Hw*0.9/32));
+    add(g,wSide,'×','Siding ('+fin.name+')','wing walls, 4×8',wSide*PRICE.siding*fin.mult,lw('exterior t1-11 siding'));
+    add(g,wFloor+1,'×','Wing shed roof','OSB sheathing + shingles/metal',(wFloor+1)*(PRICE.sheath+PRICE.roofCoverSqft*16),lw('7/16 osb sheathing'));
+    add(g,1,'×','Window — wing','on the wing outer wall',PRICE.window,WIN_URL);
+    if(state.split) add(g,1,'lot','Step framing','2×6 stringers + treads down to the wing',45,lw('2x6'));
+  }
+
+  const EXTRA_ITEMS={   // every toggle gets a real line item
+    loft:  ['Loft kit','2×6 ledgers + ply deck + rail + ladder', Math.round(W*D*0.45*4.5)+60,'2x6'],
+    porch: ['Porch roof','posts + ply + roofing over the deck', 95,'porch roof panel'],
+    slide: ['Playground slide','~'+Math.round(Hf+1)+' ft slide, bolts to the floor edge', 180,'playground slide'],
+    climb: ['Climbing holds + ¾" ply','12 holds on a braced panel', 95,'rock climbing holds kit'],
+    cupola:['Cupola kit','framed + glazed, sits on the ridge', 120,'cupola'],
+    tower: ['Lookout tower framing','4 posts, ply floor, glazing, cap', 240,'2x4 stud'],
+    bay:   ['Bay window framing','cantilevered box + fixed glazing', 130,'plexiglass sheet'],
+    dormer:['Dormer framing','2×4s + sheathing + flashing', 110,'2x4 stud'],
+    jetty: ['Jetty band trim','overhang band + brackets', 70,'cedar trim board'],
+    shutters:['Shutters','pair per window, with louvers', 38*Math.max(1,(p.windows||[]).length),'exterior shutters'],
+    flower:['Flower boxes','cedar box + brackets per window', 28*Math.max(1,(p.windows||[]).length),'window flower box'],
+    awning:['Window awnings','frame + cover per window', 42*Math.max(1,(p.windows||[]).length),'window awning'],
+    chimney:['Faux chimney','framed box, faux-brick wrap, cap + flashing', 85,'faux brick panel'],
+    vane:  ['Weathervane','rooftop mount + arrow', 45,'weathervane'],
+    flag:  ['Flag kit','pole, bracket + flag', 25,'flag pole kit'],
+    swing: ['Swing set','A-frame: 4×4 legs, beam, hangers, seat', 160,'swing set kit'],
+    pole:  ['Fireman pole','1½" galvanized pipe + flanges', 75,'galvanized pipe 1.5 in'],
+    sandbox:['Sandbox','2×10 frame + liner + 8 bags of sand', 90,'play sand 50 lb'],
+    lights:['String lights','outdoor LED strand along the eave', 32,'outdoor string lights'],
+    mailbox:['Mailbox','post-mount box by the path', 38,'mailbox post combo'],
   };
   const activeExtras=Object.keys(EXTRA_ITEMS).filter(k=>state[k]);
-  if(activeExtras.length){ g=G('Benches & extras');
+  if(activeExtras.length){ g=G('Extras');
     for(const k of activeExtras){ const [label,detail,cost,term]=EXTRA_ITEMS[k]; add(g,1,'×',label,detail,cost,lw(term)); } }
 
-  // optional staging deck out front
-  if(Dd>0){ g=G('Staging deck ('+Dd+' ft)');
-    const dj=Math.max(2,Math.round(W/1.6))+1;
-    add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C. on gravel/blocks',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
-    add(g,Math.round(W*Dd),'sqft','Decking / pavers','5/4×6 PT, composite, or pavers',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
-  }
-
-  // ---- structure note ----
-  let note,level; const big=W*D>96;
-  if(finish==='glass'&&(big||post==='4x4')){ level='warn'; note='Glass is heavy — beef up the frame: 6×6 corners, glazing bars no wider than ~24″, and a continuous ridge. Always use tempered safety glass.'; }
-  else if(finish==='glass'){ level='good'; note='Solid for glass. Keep glazing bars ≤24″ apart, use tempered safety glass, and bed each pane on glazing tape.'; }
-  else if(big&&post==='4x4'){ level='warn'; note='Workable. This footprint is large for 4×4 — go 6×6 on the corners and add a ridge + collar ties so the walls can’t spread.'; }
-  else { level='good'; note='Solid. Light glazing keeps loads low. Fasten panels with neoprene-washer screws (not bare screws) so they don’t crack, and leave the flutes able to drain.'; }
-  note+=' Anchor the frame down — an empty greenhouse is a sail in the wind.';
+  let note,level; const big=W*D>88;
+  if(post==='6x6'){ level='good'; note='Rock solid. 6×6 posts handle this height and footprint with ease. Brace all four sides and through-bolt the beams.'; }
+  else if(Hf<=3){ level='good'; note='Solid. 4×4 posts are well within their limits at this height. Brace at least two sides.'; }
+  else if(Hf<=5){ level='warn'; note='Workable — add 45° knee braces on all four sides. At '+Hf+' ft, 4×4 posts need the bracing. Through-bolt beams (don’t just screw).'; }
+  else { level='bad'; note='⚠ Marginal. Above 5 ft a 4×4 gets whippy and can rack. Switch to 6×6 or drop the floor lower.'; }
+  if(big && post==='4x4' && level!=='bad'){ level='warn'; note+=' This footprint is large for 4×4 — consider 6×6 for the corners.'; }
   return {groups,total,note,level};
 }
 
 /* ===== ordered tracker — check items off as you buy them (persists in localStorage) ===== */
-const OKEY='greenhouse:ordered';
+const OKEY='playhouse:ordered';
 function loadOrdered(){ try{ return new Set(JSON.parse(localStorage.getItem(OKEY))||[]); }catch(e){ return new Set(); } }
 function saveOrdered(s){ try{ localStorage.setItem(OKEY,JSON.stringify([...s])); }catch(e){} }
 let ordered=loadOrdered();
@@ -1870,9 +1878,9 @@ document.getElementById('materials').addEventListener('click',e=>{
 
 /* ===== controls ===== */
 function readSliders(){
-  state.W=+W.value; state.D=+D.value; state.Hf=+Hf.value; state.Hw=+Hw.value; state.Dd=+Dd.value; state.oc=+oc.value; state.knee=+knee.value;
+  state.W=+W.value; state.D=+D.value; state.Hf=+Hf.value; state.Hw=+Hw.value; state.Dd=+Dd.value; state.oc=+oc.value;
   vW.textContent=dim(state.W); vD.textContent=dim(state.D);
-  vHf.textContent=dim(state.Hf); vHw.textContent=dim(state.Hw); vknee.textContent=dim(state.knee);
+  vHf.textContent=dim(state.Hf); vHw.textContent=dim(state.Hw);
   vDd.textContent=state.Dd>0?dim(state.Dd):'none';
   vOc.textContent=dimIn(state.oc)+([12,16,24].includes(state.oc)?' · std':'');
   vDoorPos.textContent=state.door.pos===0.5?'center':Math.round(state.door.pos*100)+'%';
@@ -1881,7 +1889,7 @@ function update(){
   readSliders(); rebuild3D(state); renderMaterials(computeMaterials(state));
   const fp = state.unit==='met' ? `${(state.W*0.3048).toFixed(1)}×${(state.D*0.3048).toFixed(1)} m` : `${state.W}×${state.D} ft`;
   document.getElementById('badge').innerHTML=
-    `<b>${fp}</b>${state.Dd>0?` · ${dim(state.Dd)} deck`:''} · eave <b>${dim(state.Hw)}</b> · <b>${state.post}</b> · <b>${state.roof}</b> · <b>${FINISH[state.finish].name}</b>`;
+    `<b>${fp}</b>${state.Dd>0?` · ${dim(state.Dd)} deck`:''} · floor <b>${dim(state.Hf)}</b> · <b>${state.post}</b> · <b>${state.roof}</b> · <b>${FINISH[state.finish].name}</b>`;
   renderStepNav();
   const slopeCtl=document.getElementById('slopeCtl'); if(slopeCtl) slopeCtl.style.display=(state.roof==='lean'||state.roof==='shed')?'':'none';
   const gv=document.getElementById('vGrade'); if(gv) gv.textContent=state.grade>0?Math.round(state.grade*100)+'% ('+dim(state.grade*(state.gradeDir==='front'||state.gradeDir==='back'?state.D:state.W))+' drop)':'level';
@@ -1897,7 +1905,7 @@ const ENG={
   joist:{'2x6':{12:10.9,16:9.9,24:8.1},'2x8':{12:14.2,16:12.9,24:10.6}},        // clear span ft, by O.C.
   beam:{'2-2x6':{2:8.7,4:7.2,6:6.3,8:5.4}},                                     // post spacing ft, by trib width
   rafter:{'2x6':{12:13.8,16:12.0,24:9.8},'2x8':{12:17.5,16:15.2,24:12.4}},      // horizontal run ft, by O.C.
-  post:{'4x4':7.0,'6x6':11.0}, soilPSF:1500, bearing:{gravel:1.0,pavers:0.9,timber:0.85,blocks:1.0,piers:0.55,buried:0.8}};   // light glazed frame braces fine taller than a stilted floor
+  post:{'4x4':5.0,'6x6':10.0}, soilPSF:1500, bearing:{blocks:1.0,piers:0.55,buried:0.8}};
 const lerpTab=(tab,k)=>{const ks=Object.keys(tab).map(Number).sort((a,b)=>a-b);
   if(k<=ks[0])return tab[ks[0]]; if(k>=ks[ks.length-1])return tab[ks[ks.length-1]];
   let i=0; while(k>ks[i+1])i++; const t=(k-ks[i])/(ks[i+1]-ks[i]); return tab[ks[i]]+(tab[ks[i+1]]-tab[ks[i]])*t;};
@@ -1914,34 +1922,34 @@ function engineer(s){
     members[key]={label,need:fmt(need),have:fmt(have),pass,marginPct:have>0?Math.round((have-need)/have*100):0,note};
     return pass; };
   const ft=v=>dim(v), sqft=v=>v.toFixed(2)+' ft²';
-  // collar ties — they span the width and keep the glazed walls from spreading; a ridge beam halves the span
+  // floor joists — they span the width; a center beam halves the span
   const jSpan=s.W/(s.midBeam?2:1), jAllow=lerpTab(ENG.joist['2x6'],s.oc);
-  if(!row('joist',`Collar ties 2×6 @ ${s.oc}″${s.midBeam?' + ridge beam':''}`,jSpan,jAllow,ft,'holds walls from spreading')){
-    issues.push(`Collar ties: ${dim(jSpan)} span exceeds ${dim(jAllow)} allowed for 2×6 @ ${s.oc}″ O.C.`);
-    if(s.oc>12 && jSpan<=lerpTab(ENG.joist['2x6'],12)) fixes.push({label:'tighten ties to 12″ O.C.',apply:t=>t.oc=12});
-    else if(!s.midBeam) fixes.push({label:'add a ridge beam + mid posts',apply:t=>t.midBeam=true});
+  if(!row('joist',`Floor joists 2×6 @ ${s.oc}″${s.midBeam?' + center beam':''}`,jSpan,jAllow,ft,'40 psf live · L/360')){
+    issues.push(`Joists: ${dim(jSpan)} span exceeds ${dim(jAllow)} allowed for 2×6 @ ${s.oc}″ O.C.`);
+    if(s.oc>12 && jSpan<=lerpTab(ENG.joist['2x6'],12)) fixes.push({label:'tighten joists to 12″ O.C.',apply:t=>t.oc=12});
+    else if(!s.midBeam) fixes.push({label:'add a center beam + mid posts',apply:t=>t.midBeam=true});
   }
-  // top plate — doubled 2×6 on each long side, carrying wall + roof load (posts land every ~4 ft)
+  // beams — doubled 2×6 on each long side (posts land every ~4 ft by construction)
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), bSpan=s.D/(perSide-1), trib=s.W/2, bAllow=lerpTab(ENG.beam['2-2x6'],trib);
-  if(!row('beam',`Top plate (2) 2×6 · posts @ ${dim(bSpan)}`,bSpan,bAllow,ft,`carrying ${dim(trib)} of roof`))
-    issues.push(`Top plate: ${dim(bSpan)} between posts exceeds ${dim(bAllow)} for a doubled 2×6 — add an intermediate post.`);
+  if(!row('beam',`Beams (2) 2×6 · posts @ ${dim(bSpan)}`,bSpan,bAllow,ft,`carrying ${dim(trib)} of floor`))
+    issues.push(`Beams: ${dim(bSpan)} between posts exceeds ${dim(bAllow)} for a doubled 2×6 — add an intermediate post.`);
   // rafters
   const run=rafterRun(s), rAllow=lerpTab(ENG.rafter[s.rafter8?'2x8':'2x6'],16);
   if(!row('rafter',`Rafters ${s.rafter8?'2×8':'2×6'} @ 16″`,run,rAllow,ft,'30 psf snow')){
     issues.push(`Rafters: ~${dim(run)} run exceeds ${dim(rAllow)} for ${s.rafter8?'2×8':'2×6'} @ 16″.`);
     if(!s.rafter8) fixes.push({label:'spec 2×8 rafters',apply:t=>t.rafter8=true});
   }
-  // posts — braced-frame height limit (corner posts run base + eave)
-  const pHeight=s.Hf+s.Hw, pAllow=ENG.post[s.post]||5;
-  if(!row('post',`${s.post} posts · ${dim(pHeight)} tall`,pHeight,pAllow,ft,'braced frame')){
-    issues.push(`Posts: ${s.post} is past its ${dim(pAllow)} braced height at ${dim(pHeight)}.`);
+  // posts — braced-frame height limit
+  const pAllow=ENG.post[s.post]||5;
+  if(!row('post',`${s.post} posts · ${dim(s.Hf)} to floor`,s.Hf,pAllow,ft,'braced frame')){
+    issues.push(`Posts: ${s.post} is past its ${dim(pAllow)} braced height at ${dim(s.Hf)}.`);
     if(s.post!=='6x6') fixes.push({label:'upgrade to 6×6 posts',apply:t=>t.post='6x6'});
   }
   // footings — soil bearing per post
-  const pRows=s.midBeam?3:2, totalPosts=perSide*pRows, lb=s.W*s.D*70/totalPosts;
-  const reqA=lb/ENG.soilPSF, haveA=ENG.bearing[s.foundation||'gravel']||1;
-  if(!row('footing',`${totalPosts}× ${s.foundation||'gravel'} · ~${Math.round(lb)} lb/post`,reqA,haveA,sqft,'1,500 psf soil')){
-    issues.push(`Footings: ~${Math.round(lb)} lb/post needs ${reqA.toFixed(2)} ft² of bearing; ${s.foundation||'gravel'} gives ~${haveA} ft² — widen the pads or spread the load over more posts.`);
+  const pRows=s.midBeam?3:2, totalPosts=perSide*pRows, lb=s.W*s.D*90/totalPosts;
+  const reqA=lb/ENG.soilPSF, haveA=ENG.bearing[s.foundation||'blocks']||1;
+  if(!row('footing',`${totalPosts}× ${s.foundation||'blocks'} · ~${Math.round(lb)} lb/post`,reqA,haveA,sqft,'1,500 psf soil')){
+    issues.push(`Footings: ~${Math.round(lb)} lb/post needs ${reqA.toFixed(2)} ft² of bearing; ${s.foundation||'blocks'} give ~${haveA} ft² — pour wider pads or spread the load over more posts.`);
     if(!s.midBeam) fixes.push({label:'add a center post row (spreads the load)',apply:t=>t.midBeam=true});
   }
   return {members,pass:issues.length===0,issues,fixes};
@@ -1954,19 +1962,20 @@ function autoSize(){
 }
 function renderSafety(){
   const el=document.getElementById('safetyNote'); if(!el) return; const msgs=[];
+  if(state.Hf>2.5) msgs.push('Floor is '+dim(state.Hf)+' up — code wants a guardrail (≥36" tall) anywhere the fall is over 30".');
+  if(state.Dd>0){ const along=(state.deckSide==='front'||state.deckSide==='back')?state.W:state.D;
+    const railLen=along+2*state.Dd, nBal=Math.ceil(railLen*12/4.5);
+    msgs.push('Deck rail ~36" ✓ — for a code ≤4" baluster gap, run ~'+nBal+' balusters over '+dim(railLen)+' of railing.'); }
+  if(((state.Hf>5)||(state.Dd>0&&state.Hf>4))&&!state.anchor) msgs.push('Tall &amp; exposed — consider hurricane ties / ground anchors (Extras → Anchors).');
   const eng=engineer(state);
   for(const m of eng.issues) msgs.push('⚠ '+m);
-  if(eng.pass) msgs.push('Structure ✓ — frame, rafters, posts &amp; sill all inside span-table limits.');
-  const venting = state.roofvent||state.ridgevent||state.sidevent||state.fan;
-  if(!venting) msgs.push('⚠ No vent enabled — a sealed greenhouse can hit 120°F+ on a sunny day. Add a roof or side vent (Add-ons).');
-  if(state.finish==='glass') msgs.push('Glass glazing — always tempered safety glass overhead; a falling pane is dangerous.');
-  msgs.push('Anchor the frame to the foundation against wind uplift, and pick a spot with 6+ hours of sun.');
-  const ch=state.Hw, who = ch>=6.4?'comfortable standing room':ch>=5.5?'standing room (you may stoop at the low eaves)':ch>=4?'a stoop-in / reach-in house':'cold-frame height';
-  msgs.push('Eave height '+dim(ch)+' — '+who+'.');
+  if(eng.pass) msgs.push('Structure ✓ — joists, beams, rafters, posts &amp; footings all inside span-table limits.');
+  const ch=state.Hw, who = ch>=5.83?'adult standing room':ch>=4.0?'kid standing room (an adult must duck)':'a crawl-in / sit-in space';
+  msgs.push('Interior clear height '+dim(ch)+' — '+who+'.');
   if(!msgs.length){ el.className=''; el.innerHTML=''; return; }
   el.className='note warn'; el.innerHTML='<span class="ntag">Safety &amp; structure</span>'+msgs.join(' ');
 }
-['W','D','Hf','Hw','Dd','oc','knee'].forEach(id=>document.getElementById(id).addEventListener('input',update));
+['W','D','Hf','Hw','Dd','oc'].forEach(id=>document.getElementById(id).addEventListener('input',update));
 
 function seg(id,key){ const el=document.getElementById(id);
   el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
@@ -1986,9 +1995,9 @@ document.getElementById('autoSizeBtn').addEventListener('click',()=>{
 document.getElementById('grade').addEventListener('input',e=>{ state.grade=+e.target.value/100; update(); });
 document.getElementById('stairPos').addEventListener('input',e=>{ state.stairPos=+e.target.value/100; update(); });
 const FOUND={
-  gravel:'Cheapest and best-draining. Excavate ~4″, lay landscape fabric, fill with compacted ¾″ crushed stone, and set the sill on pressure-treated timbers or a paver border. Great floor for a greenhouse — water drains straight through.',
-  pavers:'A level course of patio pavers or concrete blocks on a compacted gravel/sand base. Clean, firm footing for benches and pots; pavers store a little daytime heat. Run the sill on the perimeter course.',
-  timber:'A pressure-treated 4×4 or 6×6 ground frame staked at the corners, filled with gravel inside. Defines the footprint, anchors the walls, and copes with a gentle slope by stepping the timbers to a level line.'
+  blocks:'Cheapest, no digging. Best on firm, fairly level ground — level/shim each block. Not ideal on a real slope.',
+  piers:'Concrete in tube forms with post saddles on top — solid, keeps posts off the soil. On a slope, pour the pier tops to one level line.',
+  buried:'Posts set in concrete below the frost line — most rigid and great on slopes (cut each post to a level string line). Use Ground-Contact PT; it’ll still rot eventually.'
 };
 function renderFoundCap(){ const el=document.getElementById('foundCap'); if(el) el.innerHTML=FOUND[state.foundation]||''; }
 
@@ -2028,7 +2037,7 @@ document.getElementById('winList').addEventListener('click',e=>{
 const cTrim=document.getElementById('cTrim'), cDoor=document.getElementById('cDoor'), cAccent=document.getElementById('cAccent');
 function applyFinish(key,setPickers){
   const f=FINISH[key]; state.finish=key;
-  if(setPickers){ colors.struct=f.struct; colors.siding=f.siding; colors.roof=f.roof; colors.trim=f.struct; colors.door='#6f7d5e'; colors.accent='#8a9a78';
+  if(setPickers){ colors.struct=f.struct; colors.siding=f.siding; colors.roof=f.roof; colors.trim=f.struct; colors.door='#3a2517'; colors.accent=shade(f.roof,1.25);
     colors.walls={front:null,back:null,left:null,right:null};
     cStruct.value=f.struct; cSiding.value=f.siding; cRoof.value=f.roof; cTrim.value=f.struct; cDoor.value=colors.door; cAccent.value=colors.accent;
     ['front','back','left','right'].forEach(k=>{ const el=document.getElementById('cW'+k); if(el) el.value=f.siding; }); }
@@ -2064,7 +2073,7 @@ addEventListener('keydown',e=>{ if(e.key==='Escape'&&(document.body.classList.co
 document.getElementById('saveImg').onclick=()=>{ if(!renderer) return;
   renderer.render(scene,camera);
   const a=document.createElement('a'); a.href=renderer.domElement.toDataURL('image/png');
-  a.download='greenhouse-'+state.W+'x'+state.D+'-'+state.roof+'.png'; a.click(); };
+  a.download='playhouse-'+state.W+'x'+state.D+'-'+state.roof+'.png'; a.click(); };
 document.getElementById('optFurniture').addEventListener('change',e=>{ tog.furniture=e.target.checked; update(); });
 document.getElementById('optKids').addEventListener('change',e=>{ tog.kids=e.target.checked; update(); });
 document.getElementById('hour').addEventListener('input',e=>{ state.hour=+e.target.value; document.getElementById('vHour').textContent=fmtHour(state.hour); updateSun(); });
@@ -2102,47 +2111,45 @@ function shade(hex,f){ const n=parseInt(hex.slice(1),16); const r=Math.min(255,M
 /* ===== build-step navigator ===== */
 function stepDetail(c,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2), mids=totalPosts-4;
-  const bars=Math.ceil(2*(s.W+s.D)*12/24)+6;
-  const kneeH=Math.min(s.knee||0,s.Hw-1), wallSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*Math.max(0.5,s.Hw-kneeH)/32));
-  const cl=stdLen(s.Hf+s.Hw+1);
-  const nv=(s.roofvent?1:0)+(s.ridgevent?1:0)+(s.sidevent?2:0)+(s.fan?1:0)+(s.windows||[]).length;
+  const joists=Math.floor(s.D*12/s.oc)+1, sheets=Math.ceil(s.W*s.D/32);
+  const cl=stdLen(s.Hf+s.Hw+1.5);
   return ({
-    1:`gravel pad + ${totalPosts}× footings`,
-    2:`4× corner (${cl} ft) + ${mids}× mid · ${s.post} cedar/PT`,
-    3:`PT sill + 2×6 top plate (${s.D} ft) · anchored`,
-    4:`base ring tied + squared (${s.W}×${s.D})`,
-    5:`${s.foundation==='pavers'?'paver':'gravel'} floor — free-draining`,
-    6:`8× 2×4 corner braces, 45°`,
-    7:`~${bars} glazing bars @ ~24" + door opening`,
-    8:`rafters + ridge · ${s.roof} roof`,
-    9:`${wallSheets}× glazing panels · ${FINISH[s.finish].name}`,
-    10:`${nv} vent${nv===1?'':'s'} + 1 door`,
+    1:`${totalPosts}× footing blocks + post bases`,
+    2:`4× corner (${cl} ft) + ${mids}× mid · ${s.post} PT`,
+    3:`4× 2×6 beams (${s.D} ft), doubled · through-bolt`,
+    4:`${joists}× 2×6 joists @ ${s.oc}" O.C.`,
+    5:`${sheets}× ¾" plywood sheet${sheets>1?'s':''}`,
+    6:`8× 2×4 knee braces, 45°`,
+    7:`2×4 studs @ 16" + headers over openings`,
+    8:`rafters + sheathing · ${s.roof} roof`,
+    9:`siding · ${FINISH[s.finish].name}`,
+    10:`${s.windows.length} window${s.windows.length===1?'':'s'} + 1 door`,
     11:`${s.W>9?3:2}× deck posts + footings`,
     12:`rim beam + ${Math.max(2,Math.round(s.W/1.6))+1}× deck joists`,
     13:`decking — ~${Math.round(s.W*s.Dd)} sq ft of 5/4 board`,
-    14:`deck edge + step`,
-    15:`tape flutes, seal, anchor + bench out`
+    14:`railing ~${Math.round(s.W+2*s.Dd)} ft + balusters`,
+    15:`${s.access==='stairs'?'stairs + handrail':'ladder'} + finish/sealer`
   })[c]||'';
 }
 const FASTENERS={
-  1:'Sill → foundation: ½" anchor bolts or ground anchors into the pad; level on shims first.',
-  2:'Posts → sill / base brackets: 1½" Simpson SD structural screws or galvanized angle, 4 per joint.',
-  3:'Top plate → each post: 2× ½"×6" galvanized lag/carriage bolts, or a ZMAX strap.',
-  4:'Base ring ties → sill: 3" structural screws; check diagonals before fastening.',
-  5:'Pavers: dry-laid, swept sand joints — no fasteners. Gravel: rake + compact.',
+  1:'Post bases → piers: ¼"×3" concrete screws (or anchor bolts set in wet concrete).',
+  2:'Posts → base brackets: 1½" Simpson SD structural screws or 10d nails, 4 per bracket.',
+  3:'Beam → each post: 2× ½"×6" galvanized carriage bolts + washers + nuts (through-bolt).',
+  4:'Joists → beam: Simpson LUS joist hangers + 1½" hanger nails (or 3" toe screws).',
+  5:'Plywood → joists: 2" exterior/deck screws @ 8" on edges, 12" in the field.',
   6:'Each brace end: 2× ⅜"×4" lag screws (or 3" structural screws).',
-  7:'Glazing bars → plates: 3" framing screws, 2 per end; header the same over the door.',
-  8:'Rafters → top plate: hurricane ties + 1½" nails; ridge: through-screws each side.',
-  9:'Glazing → bars: gasketed / neoprene-washer screws @ ~12" — snug, never crushed.',
-  10:'Vent flange: gasketed screws; door: hinge screws; latch: through-bolts.',
-  11:'Deck post bases → pad: ¼"×3" concrete screws; posts → bases: 1½" SD screws.',
-  12:'Ledger → greenhouse sill: ½"×4" lag screws @ 16"; joists: hangers + 1½" hanger nails.',
+  7:'Studs → plates: 3" framing screws or 16d nails, 2 per end; headers the same.',
+  8:'Rafters → top plate: hurricane ties + 1½" nails; sheathing: 2" nails/screws @ 6".',
+  9:'Siding → studs: 2" galvanized/exterior screws or ring-shank nails @ 8".',
+  10:'Window flange: 1½" roofing nails/screws; door: hinge screws; trim: 2" finish screws.',
+  11:'Deck post bases → piers: ¼"×3" concrete screws; posts → bases: 1½" SD screws.',
+  12:'Ledger → house wall: ½"×4" lag screws @ 16"; joists: hangers + 1½" hanger nails.',
   13:'Deck boards → joists: 2½" deck screws, 2 per joist crossing.',
-  14:'Edge trim → rim: 2½" screws; step treads: 3" structural screws.',
-  15:'Channel + closures → bars: gasketed screws; anchors → pad: lag shields or wedge anchors.'
+  14:'Rail posts → rim: 2× ⅜"×4" lag screws or carriage bolts each; balusters: 2½" screws.',
+  15:'Stairs/ladder → deck: 3" structural screws or ⅜" lags; treads/rungs: 2½" screws.'
 };
-function loadJournal(){ try{ return new Set(JSON.parse(localStorage.getItem('greenhouse:journal'))||[]); }catch(e){ return new Set(); } }
-function saveJournal(set){ try{ localStorage.setItem('greenhouse:journal',JSON.stringify([...set])); }catch(e){} }
+function loadJournal(){ try{ return new Set(JSON.parse(localStorage.getItem('playhouse:journal'))||[]); }catch(e){ return new Set(); } }
+function saveJournal(set){ try{ localStorage.setItem('playhouse:journal',JSON.stringify([...set])); }catch(e){} }
 function renderStepNav(){
   const present=stepsFor(state), total=present.length;
   stepCur=Math.max(1,Math.min(total,stepCur));
@@ -2177,7 +2184,7 @@ document.getElementById('stepPlay').addEventListener('click',e=>{ e.stopPropagat
 document.getElementById('stepDone').addEventListener('change',e=>{ const present=stepsFor(state), canon=present[stepCur-1], jr=loadJournal(); if(e.target.checked) jr.add(canon); else jr.delete(canon); saveJournal(jr); renderStepNav(); });
 
 /* ===== designs: save / load (localStorage) ===== */
-const DKEY='greenhouse:designs';
+const DKEY='playhouse:designs';
 function loadDesigns(){ try{ return JSON.parse(localStorage.getItem(DKEY))||[]; }catch(e){ return []; } }
 function storeDesigns(a){ try{ localStorage.setItem(DKEY,JSON.stringify(a)); }catch(e){} }
 function setSeg(id,val){ document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===val)); }
@@ -2202,7 +2209,7 @@ function applyDesign(d){
   delete state.window;
   if(d.colors) Object.assign(colors,d.colors);
   if(state.hour==null) state.hour=14;
-  for(const id of ['W','D','Hf','Hw','Dd','oc','knee']) document.getElementById(id).value=state[id];
+  for(const id of ['W','D','Hf','Hw','Dd','oc']) document.getElementById(id).value=state[id];
   if(state.grade==null) state.grade=0; if(!state.gradeDir) state.gradeDir='right';
   document.getElementById('grade').value=Math.round(state.grade*100); setSeg('gradeDir',state.gradeDir);
   document.getElementById('doorPos').value=state.door.pos;
@@ -2213,8 +2220,8 @@ function applyDesign(d){
   if(state.unit==null) state.unit='imp'; document.querySelectorAll('#unitTog b').forEach(x=>x.classList.toggle('on',x.dataset.u===state.unit));
   setSeg('post',state.post); setSeg('roof',state.roof); setSeg('finish',state.finish); setSeg('deckSide',state.deckSide); setSeg('slopeDir',state.slopeDir||'right');
   setSeg('doorSize',state.door.size); setSeg('doorWall',state.door.wall);
-  ['roofvent','ridgevent','sidevent','fan','bench','shelf','beds','coldframe','shade','gutter','lights'].forEach(x=>{ const b=document.querySelector('#extras [data-x="'+x+'"]'); if(b) b.classList.toggle('on',!!state[x]); });
-  setSeg('foundation',state.foundation||'gravel'); setSeg('access',state.access||'ladder');
+  ['loft','porch','slide','climb','anchor','cupola','tower','bay','dormer','jetty','wing','split','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'].forEach(x=>{ const b=document.querySelector('#extras [data-x="'+x+'"]'); if(b) b.classList.toggle('on',!!state[x]); });
+  setSeg('foundation',state.foundation||'blocks'); setSeg('access',state.access||'ladder');
   if(!state.stairSide) state.stairSide='front'; if(state.stairPos==null) state.stairPos=0.5; if(!state.stairDir) state.stairDir='out';
   setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
@@ -2242,7 +2249,7 @@ function openShop(){
   const m=computeMaterials(state);
   document.getElementById('shopTotal').textContent=$(m.total);
   document.getElementById('shopMeta').innerHTML=
-    `${state.W}×${state.D} ft · ${state.roof} roof · ${FINISH[state.finish].name}${state.Dd>0?` · ${state.Dd} ft deck`:''}<br>eave ${state.Hw} ft · ${state.post} frame · knee ${state.knee} ft`;
+    `${state.W}×${state.D} ft · ${state.roof} roof · ${FINISH[state.finish].name}${state.Dd>0?` · ${state.Dd} ft deck`:''}<br>floor ${state.Hf} ft · ${state.post} posts · ${state.windows.length} window${state.windows.length===1?'':'s'}`;
   let h='';
   for(const g of m.groups){ h+='<h4>'+g.name+' — '+$(g.sum)+'</h4>';
     for(const it of g.items){ const link=it.link?` &nbsp;<a href="${it.link}" target="_blank" rel="noopener">Lowe’s ↗</a>`:''; const k=itemKey(it);
@@ -2266,9 +2273,9 @@ function pieceLists(s){
   const perSide=Math.max(2,Math.ceil(D/4)+1), mids=perSide*(s.midBeam?3:2)-4;
   const isA=roof==='aframe',isG=roof==='gable',isL=roof==='lean';
   const L={}; const add=(t,len,n)=>{ (L[t]=L[t]||[]); for(let i=0;i<n;i++) L[t].push(Math.round(len*10)/10); };
-  add('2×6 — sill, plates & ties', D, s.midBeam?6:4);
-  const joists=Math.floor(D*12/oc)+1; add('2×6 — sill, plates & ties', W, joists);
-  if(Dd>0){ const dj=Math.max(2,Math.round(W/1.6))+1; add('2×6 — sill, plates & ties', Dd, dj); }
+  add('2×6 PT — beams & joists', D, s.midBeam?6:4);
+  const joists=Math.floor(D*12/oc)+1; add('2×6 PT — beams & joists', W, joists);
+  if(Dd>0){ const dj=Math.max(2,Math.round(W/1.6))+1; add('2×6 PT — beams & joists', Dd, dj); }
   const rPer=Math.floor(D*12/16)+1;   // same rafter math as the materials list, per roof type
   let rl,rc; if(isA){const pH=Hw+W*0.45; rl=Math.hypot(W/2,pH)+0.5; rc=rPer*2;}
     else if(roof==='flat'){rl=W+1; rc=rPer;}
@@ -2278,11 +2285,11 @@ function pieceLists(s){
     else if(roof==='sawtooth'){const nT=Math.max(2,Math.round(W/3.2)); rl=W/nT+0.5; rc=rPer*nT;}
     else if(roof==='barrel'){rl=W*1.25; rc=rPer;}
     else {const f=isL?1.22:1.06; rl=(W+1)*f; rc=rPer;}
-  add(s.rafter8?'2×8 — rafters':'2×6 — rafters & ridge', rl, rc); add('2×6 — rafters & ridge', 3, s.windows.length+1);
+  add(s.rafter8?'2×8 — rafters':'2×6 — rafters & headers', rl, rc); add('2×6 — rafters & headers', 3, s.windows.length+1);
   const perim=2*(W+D), studN=Math.ceil(perim*12/16)+4;
-  add('2×4 — glazing bars & braces', Hw, studN); add('2×4 — glazing bars & braces', Math.min(Hf*0.8*1.41,3.5), 8);
+  add('2×4 — studs & braces', Hw, studN); add('2×4 — studs & braces', Math.min(Hf*0.8*1.41,3.5), 8);
   const gEx=(s.grade||0)*(((s.gradeDir==='front'||s.gradeDir==='back')?D:W)-0.5);   // sloped site: downhill posts run longer
-  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gEx), midLen=stdLen((isA?(Hf+1):(Hf+Hw))+gEx);
+  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gEx), midLen=stdLen(Hf+0.5+gEx);
   add(post+' PT — posts (buy to length)', cornerLen, 4); if(mids>0) add(post+' PT — posts (buy to length)', midLen, mids);
   return L;
 }
@@ -2437,26 +2444,26 @@ function framingPlan(s,mode,S,bare){      // top view: footings/posts (+ beams &
     const nj=Math.floor(D*12/s.oc)+1; for(let i=0;i<nj;i++) jz.push(0.1+i*(D-0.2)/(nj-1));
     for(const z of jz) p+=`<rect class="mem" x="${X(0)}" y="${Y(z)-0.07*S}" width="${W*S}" height="${0.14*S}"/>`;          // joists across
     if(jz.length>1) p+=fdimV(Y(jz[0]),Y(jz[1]),padL-26,dim(jz[1]-jz[0]),X(0));
-    p+=`<text class="dimt" x="${X(W/2)}" y="${Y(D)+34}" text-anchor="middle">${jz.length} ties / bars @ ${ocLabel(jz.length>1?jz[1]-jz[0]:0)} O.C.</text>`;
+    p+=`<text class="dimt" x="${X(W/2)}" y="${Y(D)+34}" text-anchor="middle">${jz.length} joists @ ${ocLabel(jz.length>1?jz[1]-jz[0]:0)} O.C.</text>`;
   } else {
     if(postZ.length>1) p+=fdimV(Y(postZ[0]),Y(postZ[1]),padL-26,dim(pStepZ),X(0));
-    p+=`<text class="dimt" x="${X(W/2)}" y="${Y(D)+34}" text-anchor="middle">${perSide*rows.length} footings on the pad</text>`;
+    p+=`<text class="dimt" x="${X(W/2)}" y="${Y(D)+34}" text-anchor="middle">${perSide*rows.length} footings · post bases</text>`;
   }
   for(const px of rows) for(const z of postZ) p+=`<rect class="post" x="${X(px)-th/2*S}" y="${Y(z)-th/2*S}" width="${th*S}" height="${th*S}"/>`;   // posts
   p+=fdimH(X(0),X(W),padT-22,dim(W));                                                  // overall width
   p+=fdimH(X(rows[0]),X(rows[1]),padT-8,dim(W-th),Y(0));                               // post row center-to-center
   p+=fdimV(Y(0),Y(D),Wpx-padR+26,dim(D));                                              // overall depth
   const svg=`<svg viewBox="0 0 ${Wpx} ${Hpx}" class="fsvg" preserveAspectRatio="xMidYMid meet">${p}</svg>`;
-  return bare?svg:`<div class="framebox">${svg}<div class="flabel">${mode==='foundation'?'Footing &amp; post plan':'Base &amp; bar plan'} (top view)</div></div>`;
+  return bare?svg:`<div class="framebox">${svg}<div class="flabel">${mode==='foundation'?'Footing &amp; post plan':'Floor framing plan'} (top view)</div></div>`;
 }
 function buildEstimate(s){
   let wk=s.W*s.D/45+0.6; if(s.Dd>0) wk+=0.7; if(s.roof==='gable'||s.roof==='aframe') wk+=0.6;
-  if(s.finish==='glass') wk+=0.6; if(s.sidevent||s.ridgevent) wk+=0.3;
+  ['loft','porch','slide','climb'].forEach(x=>{ if(s[x]) wk+=0.5; }); if(s.Hf>4) wk+=0.3;
   const lo=Math.max(1,Math.round(wk));
-  const c=((s.roof!=='shed'&&s.roof!=='lean')?1:0)+(s.Dd>0?1:0)+(s.finish==='glass'?1:0)+(s.W*s.D>110?1:0);
+  const c=((s.roof!=='shed'&&s.roof!=='lean')?1:0)+(s.Dd>0?1:0)+(s.loft?1:0)+(s.Hf>4.5?1:0);
   const skill=c>=3?'Advanced':c>=1?'Intermediate':'Beginner';
-  const tools=['Cordless drill/driver','Circular saw + fine blade','Tape measure + speed square','4-ft level','Caulk / sealant gun','Rake + tamper (gravel pad)','Safety glasses + ear protection','Step ladder'];
-  tools.push(s.finish==='glass'?'Glass cutter + suction cups':'Utility knife (panel cuts)');
+  const tools=['Cordless drill/driver','Circular saw','Tape measure + speed square','4-ft level','Socket wrench (½" bolts)','Post-hole digger / shovel','Safety glasses + ear protection','Ladder'];
+  if(s.roof!=='flat') tools.push('Utility knife (roofing)');
   return {weekends:lo+'–'+(lo+1), skill, tools};
 }
 // render the 3D model at each build stage → data-URL images for the plan sheet
@@ -2485,29 +2492,28 @@ function stepSpecs(st,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2);
   const joists=Math.floor(s.D*12/s.oc)+1, isA=s.roof==='aframe', isFlat=s.roof==='flat';
   const cornerLen=stdLen(isA?(s.Hf+1):(s.Hf+s.Hw+1.5));
-  const studs=Math.ceil(2*(s.W+s.D)*12/24)+6, kneeH=Math.min(s.knee||0,s.Hw-1);
-  const wallSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*Math.max(0.5,s.Hw-kneeH)/32));
-  const nv=(s.roofvent?1:0)+(s.ridgevent?1:0)+(s.sidevent?2:0)+(s.fan?1:0)+(s.windows||[]).length;
+  const studs=Math.ceil(2*(s.W+s.D)*12/16)+4, floorSheets=Math.ceil(s.W*s.D/32), sideSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*s.Hw/32));
+  const nw=(s.windows||[]).length;
   const M={
-    1:[`gravel pad + ${totalPosts} footings`, s.foundation==='pavers'?'paver base':s.foundation==='timber'?'PT timber frame':'compacted gravel', 'level to each other'],
-    2:[`${totalPosts}× ${s.post} posts`, `corners ~${cornerLen} ft`, 'plumb + braced'],
-    3:['PT sill + top plate', `${dim(s.D)} per side`, 'glazing bars land here'],
-    4:['base ring tied + squared', `${dim(s.W)}×${dim(s.D)}`, 'equal diagonals'],
-    5:[s.foundation==='pavers'?'paver floor':'gravel floor', 'drains free'],
-    6:['8× 2×4 corner braces', '45° all corners'],
-    7:[`~${studs} glazing bars`, `${dim(s.Hw)} walls`, 'door opening framed'],
-    8:[`${s.roof} roof`, isFlat?'low-slope to drain':'~3" overhang',
+    1:[`${totalPosts} footings`, s.foundation==='piers'?'concrete piers':s.foundation==='buried'?'buried in concrete':'deck blocks', 'level to each other'],
+    2:[`${totalPosts}× ${s.post} posts`, `corners ~${cornerLen} ft`, `floor ${dim(s.Hf)} up`],
+    3:['doubled 2×6 beams', `${dim(s.D)} per side`, 'through-bolted'],
+    4:[`${joists} joists`, `@ ${s.oc}" O.C.`, `${dim(s.W)} span`],
+    5:[`${floorSheets}× ¾" plywood`, '4×8 T&G sheets'],
+    6:['8× 2×4 knee braces', '45° all corners'],
+    7:[`~${studs} studs`, `${dim(s.Hw)} walls`, 'headers over openings'],
+    8:[`${s.roof} roof`, isFlat?'flat + parapet':'1 ft overhang',
        s.roof==='lean'||s.roof==='shed'?('slopes '+(s.slopeDir||'right'))
-       : s.roof==='hip'?'hipped all four sides' : isFlat?'capped edge'
-       : s.roof==='butterfly'?'centre valley gutter' : s.roof==='sawtooth'?'north-light risers'
-       : s.roof==='barrel'?'arched ribs' : 'glazed gable ends'],
-    9:[`${wallSheets}× glazing panels`, FINISH[s.finish].name, 'H/U channel'],
-    10:['1 door on '+s.door.wall, nv+' vent'+(nv===1?'':'s')],
-    11:['deck footings + posts', 'level to the sill'],
+       : s.roof==='hip'?'hipped all four sides' : isFlat?'coping cap'
+       : s.roof==='butterfly'?'centre valley gutter' : s.roof==='sawtooth'?'glazed risers'
+       : s.roof==='barrel'?'arched ribs' : 'boxed gable ends'],
+    9:[`${sideSheets}× siding sheets`, FINISH[s.finish].name],
+    10:['1 door on '+s.door.wall, nw+' window'+(nw===1?'':'s')],
+    11:['deck footings + posts', 'level to the floor'],
     12:['rim beam + deck joists', '~16" O.C.'],
     13:[`${dim(s.Dd)} decking`, '~⅛" drainage gaps'],
-    14:['deck edge + step', 'trim the perimeter'],
-    15:['tape flutes + seal', 'anchor + bench out']
+    14:['rail posts + balusters', '~36" tall', 'gap at the ladder'],
+    15:[s.access==='stairs'?'stairs':'ladder', 'finish / sealer']
   };
   return M[st]||[];
 }
@@ -2522,11 +2528,11 @@ function stepGuide(st,s){
   G[1]=[
     `Lay out the post grid: ${rows} rows of ${perSide}, a ${dim(W-th)} × ${dim(D-th)} rectangle of post centers (${dim(pSpacing)} between posts along each side).`,
     `Square it with strings: both diagonals must measure ${dim(diag)} — equal diagonals = square.`,
-    s.foundation==='pavers' ? 'Compact a gravel base, screed 1–2″ of sand dead level, then lay the pavers tight — the perimeter course carries the sill.'
-    : s.foundation==='timber' ? 'Stake a PT timber frame to the footprint (two courses, lap the corners), spike it down, and fill inside with compacted gravel.'
-    : 'Excavate ~4″, lay landscape fabric, fill with compacted ¾″ crushed stone, and run a PT 4×4 sill around the perimeter dead level.',
-    grade>0 ? `Sloped site: the grade drops ${dim(grade*((s.gradeDir==='front'||s.gradeDir==='back')?D:W))} across the footprint — dig the high side / build up the low side to one level line; never set it on the angle.` : null,
-    '✔ Check: diagonals equal within ¼″, pad level both ways.'
+    s.foundation==='piers' ? 'Dig and pour each pier in a 10″ tube form; set the post bases in the wet concrete, tops all to one level line.'
+    : s.foundation==='buried' ? 'Dig below frost line, add a few inches of gravel, stand the posts and pour concrete around them — plumb each before it sets.'
+    : 'Set a deck block at each mark on tamped gravel; level each block in both directions, then level block-to-block with a straight board.',
+    grade>0 ? `Sloped site: the grade drops ${dim(grade*((s.gradeDir==='front'||s.gradeDir==='back')?D:W))} across the footprint — set every footing level, stepping down the slope; never set them on the angle.` : null,
+    '✔ Check: diagonals equal within ¼″, every footing level both ways.'
   ];
   G[2]=[
     `Cut posts to length: corners reach the roof line (~${dim(Hf+Hw)} above grade), mid posts reach the beam (~${dim(Hf)}). ${grade>0?'On the slope, cut each post to a level string line — downhill posts run longer.':'Buy long, trim in place.'}`,
@@ -2534,36 +2540,34 @@ function stepGuide(st,s){
     '✔ Check: every post plumb in two planes before the beams go on.'
   ];
   G[3]=[
-    `Run the PT sill around the pad and a 2×6 top plate across the post tops (${stdLen(D)} ft per side) — crowns up, lapped and screwed at the corners.`,
-    'Bed the sill on the foundation, level it all round, and anchor it down — the whole glazed frame ties back to this.',
-    'Through-bolt or strap the top plate to each post; this is what the glazing bars and rafters land on.',
-    '✔ Check: sill and top plate both dead level, corners square.'
+    `Build ${rows} doubled beams: pairs of 2×6 × ${stdLen(D)} ft, crowns BOTH up, screwed together in a zigzag every 12″.`,
+    `Mark the beam height on the posts: top of beam at ${dim(Hf-0.07)} (finished floor ${dim(Hf)} minus joist + ply). Clamp, level end-to-end, then through-bolt.`,
+    'Drill ½″ holes and fit 2 carriage bolts per post — washers + nuts on the inside face.',
+    '✔ Check: beams level along their length AND level beam-to-beam across the span.'
   ];
   G[4]=[
-    `Tie the base ring together: blocking / cross-ties across the footprint so the sill can’t spread, then re-check the ${dim(W)} × ${dim(D)} rectangle.`,
-    'Square it before anything goes vertical — both diagonals equal.',
-    s.midBeam?'A centre tie across the middle stiffens a wide span — add it now.':null,
-    '✔ Check: footprint square, the base ring feels rigid.'
+    `Hook your tape on one end and mark the beam tops every ${oc}″ — ${joists} joists, cut to ${dim(W)}.`,
+    'Set each joist crown-up on the marks; fasten with a hanger or 2 toe-screws per side.',
+    'Block between the joist ends (rim) so nothing can roll over.',
+    s.midBeam?'The center beam carries the joists mid-span — make sure each joist bears on it and gets 2 screws there too.':null,
+    '✔ Check: joist tops flush — lay a straightedge across; shim any low hanger.'
   ];
-  G[5]=(()=> s.foundation==='pavers' ? [
-    'Lay the paver floor: screed the sand, set pavers from one corner with tight joints, tap level with a rubber mallet, then sweep sand into the joints.',
-    'No mortar — leave the floor free-draining so water and spills run straight through.',
-    '✔ Check: no rockers underfoot; the surface drains.'
-  ] : [
-    'Finish the gravel floor: rake the ¾″ crushed stone level and compact it — it drains straight through, no puddles.',
-    'A row of pavers or a flagstone path down the middle gives you a firm place to stand and wheel a cart.',
-    '✔ Check: firm, level, free-draining.'
-  ])();
+  G[5]=[
+    `Lay ¾″ T&G ply long-side ACROSS the joists, end seams landing on a joist; stagger the next row half a sheet.`,
+    'Glue the tongues (construction adhesive on joists too — kills squeaks), tap home with a block.',
+    'Screw 2″ deck screws every 8″ on edges, 12″ in the field. Snap chalk lines over the joists so you don’t miss.',
+    '✔ Check: walk it — no movement, no squeaks.'
+  ];
   G[6]=(()=>{ const run=Math.min(Hf*0.6,1.6), bl=run*1.414; return [
     `Cut 8 knee braces from 2×4: ${dim(bl)} long with 45° cuts both ends (set your miter saw once, cut all 8).`,
     'Fit each from post face to beam face — snug before fastening; gaps make wobble.',
     'Fasten each end with 2× ⅜″ lag screws into pre-drilled holes.',
     '✔ Check: shove the structure hard — racking should feel dead.'
   ];})();
-  G[7]=(()=>{ const out=[`Frame each wall flat on the pad, then tilt up: sill, knee rail and top plate cut to the wall length, with vertical glazing bars every ~24″ to suit your panel width.`];
+  G[7]=(()=>{ const out=[`Frame each wall flat on the floor deck, then tilt up: bottom + top plate cut to the wall length, studs every ~16″.`];
     for(const k of ['front','back','left','right']){ const wo=wallOpenings(s,k); if(!wo.ops.length) continue;
-      for(const o of wo.ops) out.push(`${k[0].toUpperCase()+k.slice(1)} wall ${o.kind}: rough opening ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — a bar each side and a header above${o.vBot>0.3?', rail below':''}.`); }
-    out.push('Tilt each wall up, screw the sill down into the perimeter plate, brace plumb, then tie the corners together and lap the top plates over the joints.');
+      for(const o of wo.ops) out.push(`${k[0].toUpperCase()+k.slice(1)} wall ${o.kind}: rough opening ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — king stud each side, jack studs under a doubled 2×6 header${o.vBot>0.3?', sill below':''}.`); }
+    out.push('Tilt each wall up, screw the bottom plate through the floor into joists, brace plumb, then tie corners together and add the second top plate overlapping the joints.');
     out.push('✔ Check: walls plumb + corners square before the roof.');
     return out; })();
   G[8]=(()=>{ const r=s.roof, rd=Math.floor(D*12/16)+1, out=[];
@@ -2610,28 +2614,29 @@ function stepGuide(st,s){
       out.push('Stand the ribs every 16″ like rafters; sheath with two layers of ¼″ ply bent over the curve, seams staggered, glued + screwed.');
       out.push('Flexible membrane or metal over the top; arched infill panels close the two ends.');
     }
-    // ---- finishing the roof: glaze it (same for every shape) ----
+    // ---- finishing the roof: the same for every shape ----
     if(r!=='flat'&&r!=='barrel'){
       out.push('Layout: mark BOTH plates (or the ridge) every 16″ from the same end so rafters land in matched pairs — cut ONE pattern rafter, test-fit it at both ends, then batch-cut the rest from it.');
-      out.push('Glazing bars: cap each rafter with a bar or batten the panels seat into — space them to your panel width (twin-wall is happiest in bays ≤24″).');
+      out.push(`Sheathing: ${Math.ceil(((W+1)*(D+1)*1.3)/32)}× 7/16″ OSB, long edge ACROSS the rafters, seams staggered and landing mid-rafter; nail 6″ on edges / 12″ in the field.`);
     }
-    out.push(`Glaze it: cut ${FINISH[s.finish].glaze} so the flutes run DOWN-slope to drain, seal the top end with solid tape and the bottom with vented tape, sit each panel in U-channel at the eave, and join sheets with H-channel.`);
-    out.push('Fasten with gasketed / neoprene-washer screws into the bars every ~12″ — snug, not crushed; over-tightening cracks the panel and breaks the seal. A capping or ridge bar hides the screws and closes the peak.');
-    out.push(['gable','saltbox','gambrel','hip'].includes(r) ? 'Gable / hip ends: glaze them too, or louvre one for a high vent — a fixed end panel is just another bay.'
-      : 'Leave the rafters exposed inside — the light pouring through the glazing is the whole point.');
-    out.push('✔ Check: measure overhangs at both ends — equal means the roof is square to the walls. Then hose-test: a drip at a seam means more tape or a tighter cap, never more screws.');
+    out.push('Weather, in this order: metal drip edge on the EAVES first → underlayment up the slope, each course overlapping 4″ → drip edge on the RAKES on top. Then the covering: metal panels (1¼″ gasketed screws in the flat beside each rib) or shingles (starter strip, then 5″ exposure, nails above the slot).');
+    out.push('Trim: fascia covers the rafter tails, soffit closes the underside, frieze blocking seals each rafter bay at the wall — screen any vent gaps or wasps move in.');
+    out.push(r==='aframe' ? 'Ceiling: the rafters ARE the ceiling — seal/finish the underside of the sheathing between them.'
+      : ['gable','saltbox','gambrel'].includes(r) ? 'Ceiling: leave the rafters exposed (seal the sheathing underside), or screw collar ties across every other pair ~12″ below the ridge and skin them with thin ply for a flat ceiling strip.'
+      : 'Ceiling: leave the rafters exposed and seal the sheathing underside, or skin the rafter undersides with ¼″ ply for a finished ceiling.');
+    out.push('✔ Check: measure overhangs at both ends — equal means the roof is square to the walls. Then hose-test before trim: any drip inside now is cheap to fix.');
     return out; })();
   G[9]=[
-    'Knee-wall first: clad the solid lower band (½″ exterior ply or boards) up to the knee rail — it keeps splash and mower clippings off the glazing.',
-    `Glaze the bays above: cut ${FINISH[s.finish].glaze} to each bay, slide it into U-channel along the rails and H-channel between sheets, flutes running VERTICALLY so condensation drains down and out.`,
-    'Fasten with gasketed / neoprene-washer screws into the bars (snug, not crushed), and tape the open flutes — solid tape on top, vented tape at the bottom — so dust and bugs stay out but water weeps free.',
-    '✔ Check: every panel captured on all four edges; no bar over ~24″ unsupported.'
+    'Hang siding sheets vertically, bottom edge ½″ below the floor framing as a drip; leave ⅛″ between sheets.',
+    'Cut window/door openings from the back with a circular saw — drill a corner hole first, finish corners with a handsaw.',
+    `Fasten every 8″ on edges into studs. ${s.finish==='paint'?'Prime cut edges before they go up.':s.finish==='pt'?'Let PT dry a few weeks before any finish.':'Seal cut edges so the '+FINISH[s.finish].name.toLowerCase()+' doesn’t wick water.'}`,
+    '✔ Check: no fastener missed a stud (you’ll hear it).'
   ];
   G[10]=[
-    'Vents: cut the roof / side vent openings, hinge the glazed vent panels, and fit an auto opener (wax-piston, no wiring) so the house cracks itself open as it heats.',
+    'Windows: set each in its opening on the sill, flange screwed to the sheathing, flashing tape over the top + sides (top piece LAST, over the side pieces).',
     s.door.size==='dutch'?'Dutch door: hang the bottom leaf first, get its gap even, then the top leaf; a small shelf on the bottom leaf hides the meeting joint.':'Hang the door on its hinges to the jack stud, shim until the gap is even all round, then drive long screws through the shims.',
-    'Add a cane bolt or hook so the door can’t bang in the wind, and screen any vent opening if bugs are a problem.',
-    '✔ Check: door swings closed and STAYS (plumb), and each vent opens + closes freely.'
+    'Trim every opening — it covers the shims and the RO gaps.',
+    '✔ Check: door swings closed and STAYS (not self-opening = plumb).'
   ];
   G[11]=[`Deck footings exactly like step 1: ${(s.deckSide==='front'||s.deckSide==='back')?(W>9?3:2):(D>9?3:2)} posts at the deck’s outer edge, ${dim(s.Dd)} out from the house wall.`,
     'Cut the deck posts so the deck floor lands flush with the house floor.','✔ Check: outer posts in line with the house wall posts.'];
@@ -2639,20 +2644,29 @@ function stepGuide(st,s){
     'Run deck joists between them @ ~16″ with hangers both ends.','✔ Check: deck frame level with the house floor in both directions.'];
   G[13]=[`Lay 5/4×6 decking ACROSS the joists with ⅛″ gaps (a 16d nail is a perfect spacer) — ${Math.ceil(s.Dd*12/5.7)} rows.`,
     'Two screws per board per joist; let ends run wild, then saw one straight line.','✔ Check: gaps even, no proud screw heads.'];
-  G[14]=['Trim the staging-deck edge flush and ease the corners.',
-    'Add a single step or a low rail where the deck meets the path.','✔ Check: nothing to trip on at the doorway.'];
-  G[15]=[
-    'Seal the glazing: solid tape over the top flutes, vented tape along the bottom of every panel so they drain but stay bug- and dust-free; bed the channels in a thread of silicone.',
-    'Caulk the sill-to-foundation joint and any frame gaps, then drive the ground anchors / hold-downs — a glazed box is a sail in a gust.',
-    'Fit the auto vent opener(s), hang a min/max thermometer, and bench it out: staging on the sunny side, shelving on the shady wall.',
-    (s.Dd>0 ? 'A single step or two on a level pad at the door is plenty at this base height.' : null),
-    '✔ Check: vents crack open on a warm day, nothing rattles in the wind, water sheds off the glazing — go grow something.'
-  ];
+  G[14]=['Bolt the 4×4 rail posts inside the rim (2 carriage bolts each), max 4 ft apart, leaving the stair opening.',
+    'Top rail at 36″; balusters spaced under 4″ clear (a scrap block as a spacer keeps it even).','✔ Check: a 4″ ball can’t pass anywhere; rail takes a hard shake.'];
+  G[15]=(()=>{ const gF=grade?-(grade*(((s.stairSide==='front'||s.stairSide==='back')?D:W)/2+1)):0;
+    if(s.access==='stairs'){ const N=Math.max(3,Math.ceil((Hf-Math.min(0,gF))/0.6)), riseIn=(Hf-Math.min(0,gF))*12/N;
+      return [
+        `Stairs: ${N} steps · ${Math.round(riseIn*10)/10}″ rise each · 10″ run. Lay this out on two 2×12 stringers with a framing square (clamp stops at ${Math.round(riseIn*10)/10}″ and 10″ and just walk it down the board).`,
+        `Stringer stock: ~${dim(Math.hypot(Hf,N*0.85)+0.5)} long. Cut the bottom rise SHORTER by one tread thickness so every step ends up equal.`,
+        'Hang the stringers from the deck/floor rim with stringer hangers; land the feet on a pad or pavers' + (grade?' — on your slope the downhill foot needs a deeper pad':'') + '.',
+        'Treads: doubled 2×6 per step, screwed 2 per stringer. Handrail 34–36″ above the tread nosings.',
+        '✔ Check: every rise within ⅛″ of the others — uneven steps trip people.'
+      ]; }
+    return [
+      `Ladder: two 2×4 rails ~${dim(Hf+0.8)}, rungs every ~12″ from ${dim(0.3)} above grade.`,
+      'Lean it at ~75° (base out ~1 ft per 4 ft of height), lag the top of the rails to the floor rim.',
+      'Round over every rung edge — kid hands.',
+      '✔ Check: rungs take full weight without flex; top can’t slide sideways.'
+    ]; })();
+  if(st===15) G[15].splice(G[15].length-1,0, s.finish==='pt'?'Finish: let PT weather a few weeks, then a penetrating oil if you want.':s.finish==='paint'?'Finish: prime + 2 coats exterior paint; caulk trim joints first.':'Finish: clear penetrating sealer on '+FINISH[s.finish].name.toLowerCase()+'; recoat yearly-ish.');
   return (G[st]||[]).filter(Boolean);
 }
 function openPlan(){
   const s=state;
-  document.getElementById('planMeta').innerHTML=`${s.W}×${s.D} ft · ${s.roof} roof · ${s.post} frame · ${FINISH[s.finish].name}${s.Dd>0?` · ${s.Dd} ft deck`:''}`;
+  document.getElementById('planMeta').innerHTML=`${s.W}×${s.D} ft · ${s.roof} roof · ${s.post} posts · ${FINISH[s.finish].name}${s.Dd>0?` · ${s.Dd} ft deck`:''}`;
   let h='<div class="elevrow">'+elev(s.W,s.Hf,s.Hw,s.roof,'Front elevation')+elev(s.D,s.Hf,s.Hw,'flat','Side elevation')+'</div>';
   const su=location.origin+location.pathname+'#d='+encodeDesign();
   h+='<div class="qrbox"><img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&ecc=L&margin=0&data='+encodeURIComponent(su)+'" alt="QR"><div>📱 Scan to open this exact design in 3D on your phone</div></div>';
@@ -2703,7 +2717,7 @@ function openPlan(){
     h+='</div></div>';
   });
   h+='</div>';
-  h+='<h4>Build notes</h4><ul class="plannotes"><li>Gravel pad on landscape fabric, dead level — a greenhouse floor wants to drain, not pool.</li><li>Glazing bars / rafters '+s.oc+'" O.C. · '+(s.post==='6x6'?'6×6':'4×4')+' frame'+((s.W*s.D>96||s.finish==='glass')&&s.post==='4x4'?' (consider 6×6 — large or glass-glazed)':'')+'.</li><li>Fasten panels with gasketed / neoprene-washer screws (never bare screws) so they don\'t crack; tape the flutes to drain.</li><li>Anchor the frame to the foundation against wind, use Ground-Contact PT near soil, and keep at least one working vent.</li></ul>';
+  h+='<h4>Build notes</h4><ul class="plannotes"><li>Footings below frost line (or deck blocks for casual builds), leveled to each other.</li><li>Through-bolt beams to posts; add 45° knee braces on all sides.</li><li>Joists '+s.oc+'" O.C. · '+(s.post==='6x6'?'6×6':'4×4')+' posts'+(s.Hf>5&&s.post==='4x4'?' (consider 6×6 at this height)':'')+'.</li><li>Use Ground-Contact PT near soil; flash/seal exposed end-grain.</li></ul>';
   document.getElementById('planBody').innerHTML=h;
   document.getElementById('planModal').classList.add('on');
 }
@@ -2733,15 +2747,15 @@ const archLog=[];
 function sanitizeDesign(d){
   const out=JSON.parse(JSON.stringify(state)); if(!d||typeof d!=='object') return out;
   const num=(k,lo,hi,st)=>{ const v=+d[k]; if(d[k]!=null&&isFinite(v)) out[k]=Math.max(lo,Math.min(hi,st?Math.round(v/st)*st:v)); };
-  num('W',4,12,0.5); num('D',4,16,0.5); num('Hf',0,2.5,0.1); num('Hw',4,8,0.5); num('Dd',0,6,0.5); num('oc',8,24,1); num('knee',0,4,0.1);
+  num('W',4,12,0.5); num('D',4,14,0.5); num('Hf',1,7,0.5); num('Hw',3,7,0.5); num('Dd',0,6,0.5); num('oc',8,24,1);
   num('grade',0,0.25,0.01); num('stairPos',0,1,0.01);
   const SID=['front','back','left','right'];
   const en=(k,vals)=>{ if(vals.includes(d[k])) out[k]=d[k]; };
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
-  en('post',['4x4','6x6']); en('finish',['poly','glass','film']); en('deckSide',SID);
-  en('foundation',['gravel','pavers','timber']); en('access',['ladder','stairs']);
+  en('post',['4x4','6x6']); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
+  en('foundation',['blocks','piers','buried']); en('access',['ladder','stairs']);
   en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
-  for(const k of ['midBeam','rafter8','roofvent','ridgevent','sidevent','gutter','bench','beds','shelf','coldframe','shade','fan','lights'])
+  for(const k of ['midBeam','rafter8','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
     if(typeof d[k]==='boolean') out[k]=d[k];
   if(typeof d.sign==='string') out.sign=d.sign.slice(0,16);
   if(d.door&&typeof d.door==='object'){
@@ -2760,7 +2774,7 @@ function verifyDesign(s){
   return v;
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-const ARCH_API=(location.hostname.endsWith('delcan.tools')?'':'https://timeline.delcan.tools')+'/api/greenhouse-architect';
+const ARCH_API=(location.hostname.endsWith('delcan.tools')?'':'https://timeline.delcan.tools')+'/api/playhouse-architect';
 async function runArchitect(){
   const inp=document.getElementById('archInput'), btn=document.getElementById('archGo'),
         msg=document.getElementById('archMsg'), card=document.getElementById('archCard');
@@ -2821,7 +2835,7 @@ function designState(val){ if(val==='__cur') return state; const d=loadDesigns()
 function compareOpts(){ return '<option value="__cur">Current design</option>'+loadDesigns().map((d,i)=>`<option value="${i}">${d.name}</option>`).join(''); }
 function renderCompare(){
   const A=designState(document.getElementById('cmpA').value), B=designState(document.getElementById('cmpB').value);
-  const spec=s=>({'Footprint':`${s.W}×${s.D} ft`,'Floor area':`${Math.round(s.W*s.D)} sq ft`,'Base height':`${s.Hf} ft`,'Eave height':`${s.Hw} ft`,'Roof':s.roof,'Frame':s.post,'Glazing':FINISH[s.finish].name,'Staging deck':s.Dd>0?`${s.Dd} ft`:'none','Vents':['roofvent','ridgevent','sidevent','fan'].filter(x=>s[x]).length,'Add-ons':['bench','beds','shelf','coldframe','shade','gutter','lights'].filter(x=>s[x]).join(', ')||'none','Est. cost':$(computeMaterials(s).total)});
+  const spec=s=>({'Footprint':`${s.W}×${s.D} ft`,'Floor area':`${Math.round(s.W*s.D)} sq ft`,'Floor height':`${s.Hf} ft`,'Wall height':`${s.Hw} ft`,'Roof':s.roof,'Posts':s.post,'Finish':FINISH[s.finish].name,'Deck':s.Dd>0?`${s.Dd} ft`:'none','Windows':(s.windows||[]).length,'Extras':['loft','porch','slide','climb'].filter(x=>s[x]).join(', ')||'none','Est. cost':$(computeMaterials(s).total)});
   const sa=spec(A), sb=spec(B); let h='<table class="cmptab"><tr><th>Spec</th><th>A</th><th>B</th></tr>';
   for(const k of Object.keys(sa)){ const df=String(sa[k])!==String(sb[k]); h+=`<tr class="${df?'diff':''}"><td>${k}</td><td>${sa[k]}</td><td>${sb[k]}</td></tr>`; }
   document.getElementById('cmpBody').innerHTML=h+'</table>';
@@ -2841,7 +2855,7 @@ renderDesigns();
 renderWindows();
 
 document.body.dataset.view='shaded';
-applyFinish('poly',true);
+applyFinish('cedar',true);
 update();
 updateSun();
 if(controls) frame();
