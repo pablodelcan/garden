@@ -4,18 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Playhouse — Studio OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --field:#D5D7D6;          /* page field — flat cool off-white gray */
-    --paper:#F0F1EF;          /* panel paper, a shade lighter */
-    --shadow:0 1px 0 rgba(20,28,40,.05),0 8px 24px rgba(28,36,48,.10);
-    --tx:#1D1F22; --tm:#63666b; --tf:#a4a7ab; --ac:#1F4E79;     /* ink-blue accent */
-    --bd:rgba(20,28,40,0.16); --bd2:rgba(20,28,40,0.30); --pb:rgba(22,28,38,0.95);
-    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;   /* contemporary neutral grotesque */
-    --cond:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;    /* headings — same family, set bold */
-    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* clean technical mono */
-    --good:#5a8746; --warn:#a4771c; --bad:#a53f29; --blue:#16365c;
+    --field:#E7E6E0;          /* page field — light warm paper, near white */
+    --paper:#FFFFFF;          /* panels are white instruction-sheet stock */
+    --shadow:0 2px 0 rgba(20,20,18,.10);
+    --tx:#141414; --tm:#5b5b57; --tf:#9a9a94; --ac:#D8261D;     /* instruction red accent */
+    --ink:#141414;            /* heavy black line work / frames */
+    --bd:rgba(20,20,18,0.16); --bd2:#141414; --pb:rgba(20,20,18,0.95);
+    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;   /* readable body sans */
+    --cond:'Oswald','Helvetica Neue',Arial,sans-serif;             /* bold condensed instruction headers */
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* technical drafting figures */
+    --good:#2f8a3e; --warn:#b97400; --bad:#D8261D; --blue:#15407a; --part1:#1C8FD6; --part2:#F2C200; --part3:#E5202A; --part4:#3DA34D;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden;background:var(--field);font-family:var(--serif);color:var(--tx)}
@@ -24,8 +25,8 @@
   a{color:var(--ac);text-decoration:none}
 
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field);
-    background-image:linear-gradient(rgba(20,28,40,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(20,28,40,.05) 1px,transparent 1px);
-    background-size:30px 30px}
+    background-image:linear-gradient(rgba(20,20,18,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(20,20,18,.05) 1px,transparent 1px);
+    background-size:32px 32px}
   body[data-view="blueprint"] #bg{background:var(--blue);
     background-image:linear-gradient(rgba(255,255,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px)}
   .blob{display:none}
@@ -53,7 +54,7 @@
   body[data-view="blueprint"] .unittog b,body[data-view="blueprint"] .viewseg b{color:#bcd4f2;border-color:rgba(255,255,255,.18)}
   body[data-view="blueprint"] .unittog b.on,body[data-view="blueprint"] .viewseg b.on{background:#eaf1fb;color:var(--blue)}
 
-  .paper{background:var(--paper);border:1px solid var(--bd2);border-radius:3px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;animation:fu .5s ease both}
+  .paper{background:var(--paper);border:1.5px solid var(--ink);border-radius:2px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;animation:fu .5s ease both}
   .left{position:fixed;left:22px;top:62px;bottom:84px;width:300px;z-index:5;transition:left .4s cubic-bezier(.4,0,.2,1)}
   .right{position:fixed;right:22px;top:62px;bottom:84px;width:346px;z-index:5;transition:right .4s cubic-bezier(.4,0,.2,1)}
   body.lhide .left{left:-340px}
@@ -70,7 +71,7 @@
   .psub{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tm);margin-top:6px}
   .rule{height:1px;background:var(--bd);margin:16px 0}
 
-  .glabel{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);margin:0 0 12px;font-weight:600;border-bottom:1px solid var(--bd);padding-bottom:7px}
+  .glabel{font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--ink);margin:0 0 13px;font-weight:600;padding:3px 8px;display:inline-block}
   .group{margin-bottom:22px}
 
   .ctl{margin-bottom:16px}
@@ -118,7 +119,7 @@
   .note.bad{background:rgba(176,73,47,.12);border-color:rgba(176,73,47,.45);color:var(--tx)}
   .note.bad .ntag{color:var(--bad)}
 
-  .mgroup h3{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);margin:20px 0 8px;display:flex;justify-content:space-between;font-weight:500}
+  .mgroup h3{font-family:var(--cond);font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--tx);margin:20px 0 8px;display:flex;justify-content:space-between;font-weight:600;border-bottom:2px solid var(--ink);padding-bottom:4px}
   .mgroup h3 .gsum{color:var(--tm);font-variant-numeric:tabular-nums}
   .item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px;cursor:pointer}
   .item .ck{flex-shrink:0;width:17px;height:17px;border:1.5px solid var(--bd);border-radius:5px;margin-top:1px;
@@ -367,10 +368,10 @@
   .shophead .stitle2,.stepinfo h5,.stepnav .stitle{font-family:var(--cond)!important;text-transform:uppercase;letter-spacing:.01em}
 
   /* ===== compact type scale — dial the whole UI down so it reads lighter ===== */
-  .ptitle{font-size:17px;letter-spacing:.02em}
+  .ptitle{font-size:19px;letter-spacing:.01em}
   .psub{font-size:9px}
   .rhead .ptitle{font-size:15px}
-  .glabel{font-size:9px;margin-bottom:10px;padding-bottom:6px}
+  .glabel{font-size:12px;margin-bottom:12px}
   .ctl label{font-size:12px}
   .val{font-size:11px}
   .fincap{font-size:11.5px}
@@ -378,7 +379,7 @@
   .totalbox .tval{font-size:23px}
   .note{font-size:11.5px;padding:11px 12px}
   .note .ntag{font-size:9px}
-  .mgroup h3{font-size:9px}
+  .mgroup h3{font-size:12px}
   .item{font-size:12px}
   .item .mqty .q{font-size:11px}
   .item .mdet{font-size:11px}
@@ -426,7 +427,7 @@
 <div class="topbar">
   <div class="brand">Studio&nbsp;OS <b>·</b> Playhouse Builder</div>
   <div class="topright">
-    <div class="viewseg" id="viewSeg"><b data-view="shaded" class="on">Shaded</b><b data-view="manual">Manual</b><b data-view="blueprint">Blueprint</b></div>
+    <div class="viewseg" id="viewSeg"><b data-view="shaded" class="on">Shaded</b><b data-view="manual">Line</b><b data-view="color">Color</b><b data-view="blueprint">Blueprint</b></div>
     <div class="unittog" id="unitTog"><b data-u="imp" class="on">ft</b><b data-u="met">m</b></div>
   </div>
 </div>
@@ -825,7 +826,7 @@ const FINISH={
 // shaded = soft solid model · manual = IKEA-style flat fills + ink outlines · blueprint = white lines on blue
 function applyTheme(){}   // (legacy no-op — the Turrell themes were retired for a flat construction-manual look)
 function setView(v){
-  if(!['shaded','manual','blueprint'].includes(v)) v='shaded';
+  if(!['shaded','manual','color','blueprint'].includes(v)) v='shaded';
   state.view=v;
   document.body.dataset.view=v;
   document.querySelectorAll('#viewSeg b').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
@@ -956,23 +957,30 @@ function applyViewStyle(){
   if(document.body) document.body.dataset.view=v;
   if(v==='shaded' || !house) return;
   const meshes=[]; house.traverse(o=>{ if(o.isMesh) meshes.push(o); });
-  const inkHex = v==='blueprint' ? 0xe2eeff : 0x161a1f;      // cool near-black ink on paper · bright lines on blue
-  const white=new THREE.Color(0xffffff);
+  const C=h=>new THREE.Color(h), white=C(0xffffff);
+  // color-coded mode: map each part's semantic colour to a bright primary (like a parts-coded plan sheet)
+  const ramp = v==='color' ? [
+    [C(colors.struct),C(0x1C8FD6)],[C(colors.trim||colors.struct),C(0x1C8FD6)],[C(0x564d40),C(0x15538A)],
+    [C(colors.siding),C(0xF2C200)],[C(0x9fc7d6),C(0xF2C200)],[C(colors.roof),C(0xE5202A)],
+    [C(colors.base||0x6e5a3e),C(0x3DA34D)],[C(colors.door||0x3a2517),C(0xF07F1A)],[C(colors.accent||colors.roof),C(0x8E6FC4)]
+  ] : null;
+  const nearest=col=>{ let best=ramp[0][1],bd=1e9; for(const [src,dst] of ramp){ const d=(col.r-src.r)**2+(col.g-src.g)**2+(col.b-src.b)**2; if(d<bd){bd=d;best=dst;} } return best; };
+  const inkHex = v==='blueprint' ? 0xe2eeff : 0x141414;      // black ink on paper · bright lines on blue
   for(const o of meshes){
     const mat=o.material; if(!mat||!mat.color) continue;
     const wasT=!!mat.transparent, op=(mat.opacity==null?1:mat.opacity);
     let fill, opacity;
-    if(v==='manual'){ fill=new THREE.Color(mat.color.getHex()).lerp(white,0.72); opacity = wasT ? Math.min(op+0.4,0.6) : 1; }   // whiter fills (true line-drawing); glass stays a touch see-through
-    else { fill=new THREE.Color(0x1d4f88); opacity = wasT ? 0.30 : 0.9; }                                                       // uniform blueprint solid
+    if(v==='manual'){ fill=C(mat.color.getHex()).lerp(white,0.85); opacity = wasT ? Math.min(op+0.45,0.6) : 1; }      // near-white line drawing
+    else if(v==='color'){ fill=nearest(mat.color).clone(); opacity = wasT ? 0.5 : 1; }                                 // parts-coded primaries
+    else { fill=C(0x1d4f88); opacity = wasT ? 0.30 : 0.9; }                                                            // blueprint solid
     o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mat.side||THREE.FrontSide,
       polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
     o.castShadow=false; o.receiveShadow=false;
-    if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all the framing/siding/floor reads clean; skip extrude/sphere/cone to avoid triangulation noise
+    if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all framing/panels read clean; skip extrude/sphere/cone to avoid triangulation noise
       try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
         const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});
-        const ls=new THREE.LineSegments(eg,lm);
-        o.add(ls);
-        if(v==='manual'){ const ls2=new THREE.LineSegments(eg,lm); ls2.scale.setScalar(1.006); o.add(ls2); }   // doubled with a hair of offset to read as a heavier ink line (WebGL ignores linewidth)
+        o.add(new THREE.LineSegments(eg,lm));
+        if(v!=='blueprint'){ const ls2=new THREE.LineSegments(eg,lm); ls2.scale.setScalar(1.006); o.add(ls2); }   // doubled with a hair of offset → heavier ink line (WebGL ignores linewidth)
       }catch(e){} }
   }
 }
