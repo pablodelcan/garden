@@ -7,16 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --field:#E7E6E0;          /* page field — light warm paper, near white */
-    --paper:#FFFFFF;          /* panels are white instruction-sheet stock */
-    --shadow:0 2px 0 rgba(20,20,18,.10);
-    --tx:#141414; --tm:#5b5b57; --tf:#9a9a94; --ac:#D8261D;     /* instruction red accent */
-    --ink:#141414;            /* heavy black line work / frames */
-    --bd:rgba(20,20,18,0.16); --bd2:#141414; --pb:rgba(20,20,18,0.95);
-    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;   /* readable body sans */
-    --cond:'Oswald','Helvetica Neue',Arial,sans-serif;             /* bold condensed instruction headers */
-    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* technical drafting figures */
-    --good:#2f8a3e; --warn:#b97400; --bad:#D8261D; --blue:#15407a; --part1:#1C8FD6; --part2:#F2C200; --part3:#E5202A; --part4:#3DA34D;
+    --field:#E6E6E6;          /* flat neutral 10% gray — all backgrounds */
+    --paper:#E6E6E6;          /* panels same flat gray, defined by rules not fills */
+    --shadow:none;            /* flat — no drop shadows anywhere */
+    --tx:#141414; --tm:#666666; --tf:#9a9a9a; --ac:#E5202A;     /* swiss red */
+    --ink:#141414;            /* hairline + heavy rules */
+    --bd:rgba(20,20,20,0.18); --bd2:#141414; --pb:rgba(20,20,20,0.96);
+    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;   /* Swiss grotesque, body */
+    --cond:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;    /* Swiss grotesque, headers (set bold) */
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* tabular figures */
+    --good:#2f8a3e; --warn:#b97400; --bad:#E5202A; --blue:#15407a; --part1:#1C8FD6; --part2:#F2C200; --part3:#E5202A; --part4:#3DA34D;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden;background:var(--field);font-family:var(--serif);color:var(--tx)}
@@ -24,13 +24,23 @@
   ::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28);border-radius:4px}
   a{color:var(--ac);text-decoration:none}
 
-  #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field);
-    background-image:linear-gradient(rgba(20,20,18,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(20,20,18,.05) 1px,transparent 1px);
-    background-size:32px 32px}
-  body[data-view="blueprint"] #bg{background:var(--blue);
-    background-image:linear-gradient(rgba(255,255,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px)}
+  #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field)}
+  body[data-view="blueprint"] #bg{background:var(--blue)}
   .blob{display:none}
   #scene{position:fixed;inset:0;z-index:1}
+  /* drawing-sheet frame — double black rule + corner ticks, like a printed manual page */
+  #sheetframe{position:fixed;inset:13px;z-index:2;pointer-events:none;border:1.5px solid var(--ink)}
+  #sheetframe::after{content:'';position:absolute;inset:3.5px;border:0.5px solid var(--ink);opacity:.45}
+  #sheetframe .tk{position:absolute;width:13px;height:13px}
+  #sheetframe .tk::before,#sheetframe .tk::after{content:'';position:absolute;background:var(--ink)}
+  #sheetframe .tk::before{left:0;right:0;height:1.5px;top:0}
+  #sheetframe .tk::after{top:0;bottom:0;width:1.5px;left:0}
+  #sheetframe .tl{left:-1.5px;top:-1.5px} #sheetframe .tr{right:-1.5px;top:-1.5px}
+  #sheetframe .tr::after{left:auto;right:0} #sheetframe .bl{left:-1.5px;bottom:-1.5px} #sheetframe .bl::before{top:auto;bottom:0}
+  #sheetframe .br{right:-1.5px;bottom:-1.5px} #sheetframe .br::before{top:auto;bottom:0} #sheetframe .br::after{left:auto;right:0}
+  body[data-view="blueprint"] #sheetframe{border-color:rgba(255,255,255,.55)}
+  body[data-view="blueprint"] #sheetframe::after{border-color:rgba(255,255,255,.55)}
+  body[data-view="blueprint"] #sheetframe .tk::before,body[data-view="blueprint"] #sheetframe .tk::after{background:rgba(255,255,255,.7)}
 
   @keyframes b0{0%{transform:translate(-50%,-50%) translate(0,0) scale(1)}25%{transform:translate(-50%,-50%) translate(16vw,-10vh) scale(1.2)}50%{transform:translate(-50%,-50%) translate(-4vw,14vh) scale(.85)}75%{transform:translate(-50%,-50%) translate(-12vw,-6vh) scale(1.1)}100%{transform:translate(-50%,-50%) translate(8vw,4vh) scale(1.05)}}
   @keyframes b1{0%{transform:translate(-50%,-50%) translate(0,0) scale(1)}25%{transform:translate(-50%,-50%) translate(-18vw,8vh) scale(1.15)}50%{transform:translate(-50%,-50%) translate(12vw,-12vh) scale(.8)}75%{transform:translate(-50%,-50%) translate(6vw,10vh) scale(1.18)}100%{transform:translate(-50%,-50%) translate(-8vw,-10vh) scale(1.08)}}
@@ -42,14 +52,16 @@
 
   .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7;pointer-events:none}
   .topbar>*{pointer-events:auto}
-  .brand{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--tx);opacity:.78;font-weight:600}
-  .brand b{opacity:.5;font-weight:400}
-  body[data-view="blueprint"] .brand{color:#eaf1fb;opacity:.9}
+  .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--tx);font-weight:700;background:none;border:none;padding:0;line-height:1.05}
+  .brand b{opacity:.4;font-weight:400}
+  .brand::after{content:'ASSEMBLY GUIDE · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  body[data-view="blueprint"] .brand{color:#eaf1fb}
+  body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
   .topright{display:flex;align-items:center;gap:12px;pointer-events:auto}
   .unittog,.viewseg{display:flex;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--bd2);border-radius:3px;overflow:hidden;cursor:pointer;background:var(--paper)}
   .unittog b,.viewseg b{padding:4px 9px;font-weight:600;color:var(--tm);background:transparent;border-left:1px solid var(--bd)}
   .unittog b:first-child,.viewseg b:first-child{border-left:none}
-  .unittog b.on,.viewseg b.on{background:var(--tx);color:var(--paper)}
+  .unittog b.on,.viewseg b.on{background:var(--tx);color:#fff}
   body[data-view="blueprint"] .unittog,body[data-view="blueprint"] .viewseg{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3)}
   body[data-view="blueprint"] .unittog b,body[data-view="blueprint"] .viewseg b{color:#bcd4f2;border-color:rgba(255,255,255,.18)}
   body[data-view="blueprint"] .unittog b.on,body[data-view="blueprint"] .viewseg b.on{background:#eaf1fb;color:var(--blue)}
@@ -68,10 +80,11 @@
   #showL{left:0;border-radius:0 12px 12px 0;border-left:none} #showR{right:0;border-radius:12px 0 0 12px;border-right:none}
 
   .ptitle{font-family:var(--cond);font-size:21px;font-weight:700;letter-spacing:.015em;line-height:1.08;text-transform:uppercase}
+  .left .ptitle,.rhead .ptitle{background:none;color:var(--tx);display:block}
   .psub{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tm);margin-top:6px}
   .rule{height:1px;background:var(--bd);margin:16px 0}
 
-  .glabel{font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--ink);margin:0 0 13px;font-weight:600;padding:3px 8px;display:inline-block}
+  .glabel{font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx);background:none;margin:0 0 11px;font-weight:700;padding:0;display:block}
   .group{margin-bottom:22px}
 
   .ctl{margin-bottom:16px}
@@ -79,13 +92,13 @@
   .ctl label{font-size:14px;font-family:var(--serif)}
   .val{font-family:var(--mono);font-size:12.5px;color:var(--tx)}
   input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:3px;background:var(--bd);outline:none}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ac);cursor:pointer;border:3px solid var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--ac);cursor:pointer;border:2.5px solid var(--field);box-shadow:none}
 
   .seg{display:grid;gap:6px}
   .seg.two{grid-template-columns:1fr 1fr}
   .seg.four{grid-template-columns:1fr 1fr}
   .seg button{padding:9px 4px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:transparent;color:var(--tm);border:1px solid var(--bd);border-radius:8px;cursor:pointer;transition:.13s;text-transform:uppercase}
-  .seg button.on{background:var(--ac);color:var(--paper);border-color:var(--ac)}
+  .seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
   .seg button:hover:not(.on){color:var(--tx);border-color:var(--tf)}
 
   select{width:100%;background:transparent;color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px;font-family:var(--mono);font-size:12.5px}
@@ -110,20 +123,17 @@
   .totalbox .tval{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--ac);font-variant-numeric:tabular-nums}
   .rbody{overflow-y:auto;padding:0 20px 24px}
 
-  .note{margin:16px 0 4px;padding:13px 14px;border-radius:11px;font-size:13.5px;line-height:1.5;border:1px solid;font-family:var(--serif)}
-  .note .ntag{font-family:var(--mono);font-weight:500;display:block;margin-bottom:5px;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
-  .note.good{background:rgba(95,143,78,.10);border-color:rgba(95,143,78,.38);color:var(--tx)}
+  .note{margin:18px 0 4px;padding:0;border-radius:0;font-size:13.5px;line-height:1.5;border:none;background:none;color:var(--tx);font-family:var(--serif)}
+  .note .ntag{font-family:var(--cond);font-weight:700;display:block;margin-bottom:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:none;color:var(--tx);padding:0}
   .note.good .ntag{color:var(--good)}
-  .note.warn{background:rgba(176,125,40,.10);border-color:rgba(176,125,40,.4);color:var(--tx)}
   .note.warn .ntag{color:var(--warn)}
-  .note.bad{background:rgba(176,73,47,.12);border-color:rgba(176,73,47,.45);color:var(--tx)}
   .note.bad .ntag{color:var(--bad)}
 
-  .mgroup h3{font-family:var(--cond);font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--tx);margin:20px 0 8px;display:flex;justify-content:space-between;font-weight:600;border-bottom:2px solid var(--ink);padding-bottom:4px}
+  .mgroup h3{font-family:var(--cond);font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--tx);margin:22px 0 9px;display:flex;justify-content:space-between;font-weight:700;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
   .mgroup h3 .gsum{color:var(--tm);font-variant-numeric:tabular-nums}
   .item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px;cursor:pointer}
   .item .ck{flex-shrink:0;width:17px;height:17px;border:1.5px solid var(--bd);border-radius:5px;margin-top:1px;
-    font-family:var(--mono);font-size:11px;line-height:15px;text-align:center;color:var(--paper)}
+    font-family:var(--mono);font-size:11px;line-height:15px;text-align:center;color:#fff}
   .item .iinfo{flex:1;min-width:0}
   .item:hover .ck{border-color:var(--ac)}
   .item.ordered{opacity:.55}
@@ -146,7 +156,7 @@
   .dock{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:var(--paper);border:1px solid var(--bd2);border-radius:4px;padding:6px 8px;box-shadow:var(--shadow);animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
   .dock button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 11px;background:transparent;color:var(--tm);border:1px solid transparent;cursor:pointer;transition:.12s;font-weight:500}
   .dock button:hover{color:var(--tx);background:rgba(35,30,18,.06)}
-  .dock button.on{color:var(--paper);background:var(--tx);border-color:var(--tx)}
+  .dock button.on{color:#fff;background:var(--tx);border-color:var(--tx)}
   .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
 
   .badge{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:center;pointer-events:none;opacity:.85;line-height:1.7}
@@ -162,7 +172,7 @@
   .stepnav.on{display:flex}
   .stepnav .sbtn{flex-shrink:0;width:34px;height:34px;border-radius:9px;border:1px solid var(--bd);background:transparent;
     color:var(--tx);font-size:14px;cursor:pointer;transition:.12s}
-  .stepnav .sbtn:hover:not(:disabled){background:var(--ac);color:var(--paper);border-color:var(--ac)}
+  .stepnav .sbtn:hover:not(:disabled){background:var(--ac);color:#fff;border-color:var(--ac)}
   .stepnav .sbtn:disabled{opacity:.3;cursor:default}
   .stepnav .smid{flex:1;min-width:0}
   .stepnav .stitle{font-family:var(--serif);font-size:15px;line-height:1.15}
@@ -171,7 +181,7 @@
   .stepnav .sdetail{font-family:var(--mono);font-size:10.5px;color:var(--ac);margin-top:6px;letter-spacing:.02em}
   .stepnav .sfast{font-family:var(--mono);font-size:10px;color:var(--tm);margin-top:4px;line-height:1.45}
   .stepnav .playbtn{float:right;width:26px;height:24px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--ac);font-size:10px;cursor:pointer;line-height:1}
-  .stepnav .playbtn:hover{background:var(--ac);color:var(--paper)}
+  .stepnav .playbtn:hover{background:var(--ac);color:#fff}
   .stepnav .jrnl{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;color:var(--tm);margin-top:9px;cursor:pointer}
   .stepnav .jrnl input{accent-color:var(--good);width:14px;height:14px}
   .stepnav .jrnl span{margin-left:auto;color:var(--ac)}
@@ -189,7 +199,7 @@
 
   #dimLabelLayer{position:fixed;inset:0;z-index:4;pointer-events:none}
   .dimlbl{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:11px;
-    background:var(--ac);color:#fff;padding:2px 7px;border-radius:5px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+    background:#fff;color:var(--ink);padding:0 5px;border:none;border-radius:0;white-space:nowrap;box-shadow:none}
   .signinput{width:100%;background:transparent;color:var(--tx);border:1px solid var(--bd);border-radius:8px;
     padding:8px 9px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
   .signinput::placeholder{color:var(--tf);text-transform:none;letter-spacing:0;font-style:italic}
@@ -200,7 +210,7 @@
     padding:8px 9px;font-family:var(--serif);font-size:13px}
   .saverow input::placeholder{color:var(--tf);font-style:italic}
   .saverow button{flex-shrink:0;padding:8px 13px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;
-    background:var(--ac);color:var(--paper);border:none;border-radius:8px;cursor:pointer}
+    background:var(--ac);color:#fff;border:none;border-radius:8px;cursor:pointer}
   .saverow button:hover{filter:brightness(1.08)}
   .sharebtn{width:100%;margin-top:9px;padding:9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
     text-transform:uppercase;background:transparent;border:1px solid var(--bd);color:var(--ac);border-radius:8px;cursor:pointer}
@@ -230,7 +240,7 @@
 
   /* shopping-list button + modal */
   .shopbtn{width:100%;margin-top:14px;padding:11px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
-    text-transform:uppercase;background:var(--ac);color:var(--paper);border:none;border-radius:9px;cursor:pointer}
+    text-transform:uppercase;background:var(--ac);color:#fff;border:none;border-radius:9px;cursor:pointer}
   .shopbtn:hover{filter:brightness(1.08)}
   .shopmodal{position:fixed;inset:0;z-index:20;display:none;align-items:flex-start;justify-content:center;
     background:rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:40px 20px;overflow-y:auto}
@@ -254,10 +264,10 @@
   .shopfoot .snote{flex:1;font-family:var(--mono);font-size:10px;color:var(--tm)}
   .shopfoot button{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:9px 16px;border-radius:8px;cursor:pointer}
   .shopfoot .sclose{background:transparent;border:1px solid var(--bd);color:var(--tm)}
-  .shopfoot .sprint{background:var(--ac);border:none;color:var(--paper)}
+  .shopfoot .sprint{background:var(--ac);border:none;color:#fff}
   .planbtn{width:100%;margin-top:8px;padding:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
     text-transform:uppercase;background:transparent;border:1px solid var(--ac);color:var(--ac);border-radius:9px;cursor:pointer}
-  .planbtn:hover{background:var(--ac);color:var(--paper)}
+  .planbtn:hover{background:var(--ac);color:#fff}
   .planpanel{width:min(760px,100%)}
   .elevrow{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;padding:10px 0 4px}
   .elevbox{text-align:center}
@@ -371,14 +381,14 @@
   .ptitle{font-size:19px;letter-spacing:.01em}
   .psub{font-size:9px}
   .rhead .ptitle{font-size:15px}
-  .glabel{font-size:12px;margin-bottom:12px}
+  .glabel{font-size:11px;margin-bottom:13px}
   .ctl label{font-size:12px}
   .val{font-size:11px}
   .fincap{font-size:11.5px}
   .totalbox .tlabel{font-size:9px}
   .totalbox .tval{font-size:23px}
-  .note{font-size:11.5px;padding:11px 12px}
-  .note .ntag{font-size:9px}
+  .note{font-size:11.5px;padding:0}
+  .note .ntag{font-size:11px}
   .mgroup h3{font-size:12px}
   .item{font-size:12px}
   .item .mqty .q{font-size:11px}
@@ -417,17 +427,47 @@
   .cmptab{font-size:12.5px}
   .estrow b{font-size:15px}
   .elabel,.flabel{font-size:9px}
+
+  /* ===== Swiss grid: strip boxes, organize by alignment + whitespace ===== */
+  .paper{border:none!important}
+  #sheetframe{display:none!important}
+  .pcollapse{border:none!important;background:none!important;color:var(--tm)}
+  .revealtab{border:none!important;border-radius:0!important;background:rgba(0,0,0,.06)}
+  /* form fields → flat tonal, no borders */
+  .signinput,.saverow input,.archbox textarea,select,.budgetrow input,.winrow select,.cmpsel select,.colors input[type=color]{
+    border:none!important;border-radius:0!important;background:rgba(0,0,0,.06)!important}
+  /* option toggles → flat text, active filled, no box */
+  .seg button{border:none!important;border-radius:0!important;background:none!important;color:var(--tm)}
+  .seg button.on{background:var(--ink)!important;color:#fff!important}
+  .seg button:hover:not(.on){background:rgba(0,0,0,.06)!important;color:var(--tx)}
+  /* secondary buttons → flat tonal field, no outline */
+  .sharebtn,.miniBtn,.ordclear,.drow .ddel,.winrow .wdel,.planbtn,.shopfoot .sclose{
+    border:none!important;border-radius:0!important;background:rgba(0,0,0,.06)!important;color:var(--tx)!important}
+  .sharebtn:hover,.planbtn:hover{background:var(--ink)!important;color:#fff!important}
+  /* primary (red) buttons stay solid, squared */
+  .shopbtn,.saverow button,.shopfoot .sprint{border-radius:0!important}
+  /* top toggles + dock + panels → no boxes */
+  .unittog,.viewseg{border:none!important;background:none!important}
+  .unittog b,.viewseg b{border-left:none!important}
+  .unittog b.on,.viewseg b.on{background:var(--ink)!important;color:#fff!important}
+  .dock{border:none!important;border-radius:0!important}
+  .dock button{border-radius:0!important}
+  .stepnav,.intpanel,.shoppanel{border-radius:0!important}
+  /* keep only the lightest structural rules */
+  .mgroup h3{border-bottom-color:var(--bd)!important;border-bottom-width:1px!important}
+  .item .ck{border-radius:0}
 </style>
 </head>
 <body>
 <div id="bg"></div>
 <canvas id="scene"></canvas>
+<div id="sheetframe" aria-hidden="true"><span class="tk tl"></span><span class="tk tr"></span><span class="tk bl"></span><span class="tk br"></span></div>
 <div id="dimLabelLayer"></div>
 
 <div class="topbar">
   <div class="brand">Studio&nbsp;OS <b>·</b> Playhouse Builder</div>
   <div class="topright">
-    <div class="viewseg" id="viewSeg"><b data-view="shaded" class="on">Shaded</b><b data-view="manual">Line</b><b data-view="color">Color</b><b data-view="blueprint">Blueprint</b></div>
+    <div class="viewseg" id="viewSeg"><b data-view="shaded">Shaded</b><b data-view="manual">Line</b><b data-view="color" class="on">Color</b><b data-view="blueprint">Blueprint</b></div>
     <div class="unittog" id="unitTog"><b data-u="imp" class="on">ft</b><b data-u="met">m</b></div>
   </div>
 </div>
@@ -771,7 +811,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 /* ===== state (before render loop references it) ===== */
 const state={W:6,D:8,Hf:3.5,Hw:4,Dd:0,deckSide:'front',post:'4x4',roof:'lean',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
-  loft:false,porch:false,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'shaded',
+  loft:false,porch:false,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
   foundation:'blocks',access:'ladder',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
@@ -1175,8 +1215,10 @@ function rebuild3D(p){
       deckRafters((W/2+ov+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd);
       box(0.12,0.5,rd, -W/2-ov, leaveY-0.1, 0, P.struct); box(0.12,0.5,rd, W/2+ov, reaveY-0.1, 0, P.struct);  // fascia
       ridgeCap(rx,peakY+0.2,lang,rang,rd);                                                                    // angled ridge cap
-      const prof=[[-W/2-ov,leaveY-wallTop],[rx,rise],[W/2+ov,reaveY-wallTop]];
-      for(const sz of [1,-1]) tri(prof, sz*zEdge+sz*0.012, wallTop, wallCol(sz>0?'front':'back'), 0.07);                          // boxed gable ends (no see-through)
+      // gable END WALL sits ON the top plate at the wall plane (z=±D/2); the roof slabs overhang past it to D/2+ov
+      const gprof=[[-W/2,0],[rx,rise],[W/2,0]];
+      for(const sz of [1,-1]) tri(gprof, sz*(D/2)+sz*0.012, wallTop, wallCol(sz>0?'front':'back'), 0.07);
+      for(const sz of [1,-1]){ box(W,0.16,0.1, 0,wallTop-0.05,sz*(D/2), P.struct); }                          // top plate under the gable — the roof bears here
     } else if(isA){
       const peakH=Hw+W*0.45, ang=Math.atan2(peakH,W/2), slab=Math.hypot(W/2,peakH)+ov*0.6;
       deckRafters(-W/4, floorY+peakH/2, ang, slab, rd);
@@ -2862,7 +2904,7 @@ document.getElementById('cmpModal').addEventListener('click',e=>{ if(e.target.id
 renderDesigns();
 renderWindows();
 
-document.body.dataset.view='shaded';
+document.body.dataset.view='color';
 applyFinish('cedar',true);
 update();
 updateSun();
