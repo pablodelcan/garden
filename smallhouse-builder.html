@@ -271,6 +271,15 @@
   .shopfoot button{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:9px 16px;border-radius:8px;cursor:pointer}
   .shopfoot .sclose{background:transparent;border:1px solid var(--bd);color:var(--tm)}
   .shopfoot .sprint{background:var(--ac);border:none;color:#fff}
+  /* onboarding / how-it-works */
+  .oblist{margin:8px 0 2px;padding:0;list-style:none;counter-reset:ob}
+  .oblist li{counter-increment:ob;position:relative;padding:11px 0 11px 38px;border-bottom:1px solid var(--bd);font-size:14px;line-height:1.5}
+  .oblist li:last-child{border-bottom:none}
+  .oblist li::before{content:counter(ob,decimal-leading-zero);position:absolute;left:0;top:13px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--ac)}
+  .oblist li b{font-weight:600}
+  .oblist li em{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--ac)}
+  .howlink{cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .howlink:hover{color:var(--tx)}
   .planbtn{width:100%;margin-top:8px;padding:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
     text-transform:uppercase;background:transparent;border:1px solid var(--ac);color:var(--ac);border-radius:9px;cursor:pointer}
   .planbtn:hover{background:var(--ac);color:#fff}
@@ -495,7 +504,7 @@
   <button class="pcollapse" id="hideL" title="Hide controls (Esc restores)">‹</button>
   <div class="scroll">
     <div class="ptitle">Small House</div>
-    <div class="psub">Drag to orbit · tune the build</div>
+    <div class="psub">Drag to orbit · tune the build · <span class="howlink" id="howBtn">How it works</span></div>
     <div class="rule"></div>
 
     <div class="group archbox">
@@ -808,6 +817,31 @@
       <div id="cmpBody"></div>
     </div>
     <div class="shopfoot"><span class="snote">Differences are highlighted</span><button class="sclose" id="cmpClose">Close</button></div>
+  </div>
+</div>
+
+<div class="shopmodal" id="obModal">
+  <div class="shoppanel">
+    <div class="shophead">
+      <div>
+        <div class="stitle2">Small House Builder</div>
+        <div class="smeta">Design a small, code-built cabin or studio you can actually build — and price.</div>
+      </div>
+    </div>
+    <div class="shopbody">
+      <ol class="oblist">
+        <li><b>Tune the build.</b> Set size, roof, foundation (stilts or slab) and form with the controls on the left — the 3D model updates live.</li>
+        <li><b>Or just describe it.</b> Tell the <b>Architect</b> what you want — “a 10×12 insulated studio, gable roof for snow, one egress window, under $14k” — and it designs it.</li>
+        <li><b>Built to code.</b> Engineered for Callicoon, NY (climate zone 6A): 50 psf snow, 48″ frost footings, R-21/49/30 insulation and egress. See the <b>Code &amp; Structure</b> panel.</li>
+        <li><b>Materials &amp; cost.</b> A live cut list with a running total and a link to order each item. Tap <em>Permit-free</em> to cap the footprint under 144 sq ft.</li>
+        <li><b>See it your way.</b> Switch between Shaded / Line / Color / Blueprint, step through an exploded <b>Build-steps</b> walkthrough, or open the dollhouse <b>Interior</b>.</li>
+        <li><b>Take it with you.</b> Save a render, print the plan sheet, or download a <b>3D-print kit</b> — building body, lift-off roof &amp; model people.</li>
+      </ol>
+    </div>
+    <div class="shopfoot">
+      <span class="snote">Reopen anytime from “How it works”.</span>
+      <button class="sprint" id="obStart">Start designing →</button>
+    </div>
   </div>
 </div>
 
@@ -2334,6 +2368,16 @@ function export3DPrint(opts){
   }
 }
 document.getElementById('print3d').onclick=()=>export3DPrint();
+
+/* ===== onboarding / how-it-works ===== */
+const OBKEY='smallhouse:onboarded';
+function openOnboard(){ const m=document.getElementById('obModal'); if(m) m.classList.add('on'); }
+function closeOnboard(){ const m=document.getElementById('obModal'); if(m) m.classList.remove('on'); try{ localStorage.setItem(OBKEY,'1'); }catch(e){} }
+document.getElementById('obStart').onclick=closeOnboard;
+document.getElementById('obModal').addEventListener('click',e=>{ if(e.target.id==='obModal') closeOnboard(); });
+document.getElementById('howBtn').addEventListener('click',e=>{ e.preventDefault(); openOnboard(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const m=document.getElementById('obModal'); if(m&&m.classList.contains('on')) closeOnboard(); } });
+try{ if(!localStorage.getItem(OBKEY)) openOnboard(); }catch(e){}
 document.getElementById('optBed').addEventListener('change',e=>{ tog.bed=e.target.checked; update(); });
 document.getElementById('optKing').addEventListener('change',e=>{ tog.kingBed=e.target.checked;
   const l=document.getElementById('bedSizeLegend'); if(l) l.textContent=tog.kingBed?'King bed · 76 × 80″':'Queen bed · 60 × 80″'; update(); });
