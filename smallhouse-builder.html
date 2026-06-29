@@ -745,6 +745,7 @@
   <button id="recenter">⟲ Center</button>
   <button id="focusBtn" title="Hide both panels for a fuller view">⤢ Focus</button>
   <button id="saveImg" title="Download a PNG render">⤓ Save image</button>
+  <button id="print3d" title="Download a 3D-printable STL kit — body, lift-off roof & model people">⤓ 3D print</button>
 </div>
 
 <div class="intpanel" id="intPanel">
@@ -821,6 +822,8 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ===== state (before render loop references it) ===== */
 const state={W:12,D:14,Hf:3,Hw:8,Dd:0,deckSide:'front',post:'6x6',roof:'gable',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
@@ -2215,6 +2218,122 @@ document.getElementById('saveImg').onclick=()=>{ if(!renderer) return;
   renderer.render(scene,camera);
   const a=document.createElement('a'); a.href=renderer.domElement.toDataURL('image/png');
   a.download='smallhouse-'+state.W+'x'+state.D+'-'+state.roof+'.png'; a.click(); };
+
+/* ===== 3D-print export: STL kit (building body + lift-off roof + model people), store-only ZIP ===== */
+// normalize any built geometry to a clean position+normal, baked into world coords
+function _geoPN(src,matrix){
+  let g = src.index ? src.toNonIndexed() : src.clone();
+  if(matrix) g.applyMatrix4(matrix);
+  const out=new THREE.BufferGeometry();
+  out.setAttribute('position', g.getAttribute('position').clone());
+  const n=g.getAttribute('normal'); if(n) out.setAttribute('normal', n.clone()); else out.computeVertexNormals();
+  return out;
+}
+// split the live house into "below the eave" (body) and "above the eave" (lift-off roof) by mesh height
+function _collectShell(){
+  const floorY = (state.foundation==='slab'?0.45:state.Hf), wallTop = floorY + state.Hw;
+  const body=[], roof=[]; const bb=new THREE.Box3();
+  house.updateMatrixWorld(true);
+  house.traverse(o=>{
+    if(!o.isMesh || o.isLine || !o.geometry || !o.geometry.getAttribute('position')) return;
+    const g=_geoPN(o.geometry, o.matrixWorld);
+    bb.setFromBufferAttribute(g.getAttribute('position'));
+    ((bb.min.y+bb.max.y)/2 > wallTop+0.05 ? roof : body).push(g);
+  });
+  return {body, roof};
+}
+// printable scale figures (adult + child), generated independent of the on-screen toggles, feet/Y-up at ground=0
+function _buildPeople(){
+  const geos=[];
+  const box=(w,h,d,x,y,z)=>{ const g=new THREE.BoxGeometry(w,h,d); g.translate(x,y,z); geos.push(_geoPN(g)); };
+  const ball=(r,x,y,z)=>{ const g=new THREE.SphereGeometry(r,16,12); g.translate(x,y,z); geos.push(_geoPN(g)); };
+  const person=(h,x)=>{ const hr=h*0.075;                         // overlapping solids so it prints as one piece
+    for(const s of [-1,1]) box(h*0.085,h*0.5,h*0.12, x+s*h*0.055, h*0.25, 0);   // legs
+    box(h*0.24,h*0.36,h*0.15, x, h*0.62, 0);                                    // torso (overlaps legs)
+    for(const s of [-1,1]) box(h*0.06,h*0.34,h*0.08, x+s*h*0.14, h*0.6, 0);     // arms
+    box(h*0.08,h*0.10,h*0.08, x, h*0.83, 0);                                    // neck
+    ball(hr, x, h-hr*0.9, 0); };                                               // head (sits on neck)
+  person(5.83, 0);                                                              // adult ≈ 5'10"
+  person(4.0, 2.6);                                                             // child ≈ 4'0"
+  return geos;
+}
+// store-only (uncompressed) ZIP — no deps, deterministic
+const _crcTable=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; })();
+function _crc32(buf){ let c=0xFFFFFFFF; for(let i=0;i<buf.length;i++) c=_crcTable[(c^buf[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function _zipStore(files){
+  const enc=new TextEncoder();
+  const u16=v=>[v&255,(v>>8)&255], u32=v=>[v&255,(v>>8)&255,(v>>16)&255,(v>>>24)&255];
+  const parts=[], central=[]; let offset=0;
+  for(const f of files){
+    const name=enc.encode(f.name), data=f.data, crc=_crc32(data);
+    const lh=new Uint8Array([].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0)));
+    parts.push(lh,name,data);
+    central.push(new Uint8Array([].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset))), name);
+    offset += lh.length + name.length + data.length;
+  }
+  let cdSize=0; for(const c of central) cdSize+=c.length;
+  const eocd=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(offset),u16(0)));
+  return new Blob([...parts,...central,eocd],{type:'application/zip'});
+}
+function _kitReadme(k){
+  return ['SMALL HOUSE — 3D PRINT KIT','',
+    'Files',
+    '  01_building-body.stl    walls, floor & structure',
+    '  02_roof-detachable.stl  lifts off the body — print separately',
+    '  03_model-people.stl     scale figures (adult + child)','',
+    'Scale  ~1 ft = '+k.toFixed(2)+' mm   (about 1:'+Math.round(304.8/k)+')',
+    'Units  millimetres. Body, roof and people share one scale, so the',
+    '       roof drops onto the walls and the figures match.','',
+    'Print  body & roof are separate solids — print each on its own (or',
+    '       arrange both on the plate). Roof prints best flat-side down.',''].join('\n');
+}
+function export3DPrint(opts){
+  opts=opts||{}; if(!house) return null;
+  const btn=document.getElementById('print3d'), lbl=btn?btn.textContent:'';
+  if(btn && !opts.debug){ btn.textContent='⏳ Building STL…'; }
+  const snap={view:state.view,explode:state.explode,stepOn,_limit,
+    tInterior:tog.tInterior,tSiding:tog.tSiding,tRoof:tog.tRoof,tBraces:tog.tBraces,tLadder:tog.tLadder,tFraming:tog.tFraming};
+  try{
+    state.view='shaded'; state.explode=0; stepOn=false; _limit=Infinity;
+    tog.tInterior=false; tog.tSiding=tog.tRoof=tog.tBraces=tog.tLadder=tog.tFraming=true;
+    rebuild3D(state);
+    const {body,roof}=_collectShell(), people=_buildPeople();
+    // shared frame from body+roof so the roof registers onto the walls; scale longest plan dim → TARGET_MM
+    const bb=new THREE.Box3(); for(const g of body.concat(roof)) bb.union(new THREE.Box3().setFromBufferAttribute(g.getAttribute('position')));
+    const size=new THREE.Vector3(); bb.getSize(size);
+    const TARGET_MM=120, k=TARGET_MM/Math.max(size.x,size.z,0.001);
+    const cx=(bb.min.x+bb.max.x)/2, cz=(bb.min.z+bb.max.z)/2, minY=bb.min.y;
+    const Rx=new THREE.Matrix4().makeRotationX(Math.PI/2), S=new THREE.Matrix4().makeScale(k,k,k);
+    const bake=(geos,ownFrame)=>{
+      if(!geos.length) return null;
+      let ox=cx,oz=cz,oy=minY;
+      if(ownFrame){ const pb=new THREE.Box3(); for(const g of geos) pb.union(new THREE.Box3().setFromBufferAttribute(g.getAttribute('position'))); ox=(pb.min.x+pb.max.x)/2; oz=(pb.min.z+pb.max.z)/2; oy=pb.min.y; }
+      const M=new THREE.Matrix4().multiply(Rx).multiply(S).multiply(new THREE.Matrix4().makeTranslation(-ox,-oy,-oz));
+      const merged=BufferGeometryUtils.mergeGeometries(geos,false); merged.applyMatrix4(M);
+      const m=new THREE.Mesh(merged); m.updateMatrixWorld(true); return m;
+    };
+    const ex=new STLExporter(), tris=m=>m?m.geometry.getAttribute('position').count/3:0;
+    const bodyM=bake(body,false), roofM=bake(roof,false), pplM=bake(people,true);
+    const stl=m=>{ const dv=ex.parse(m,{binary:true}); return new Uint8Array(dv.buffer,dv.byteOffset,dv.byteLength).slice(); };
+    const files=[];
+    if(bodyM) files.push({name:'01_building-body.stl',data:stl(bodyM)});
+    if(roofM) files.push({name:'02_roof-detachable.stl',data:stl(roofM)});
+    if(pplM)  files.push({name:'03_model-people.stl',data:stl(pplM)});
+    files.push({name:'README.txt',data:new TextEncoder().encode(_kitReadme(k))});
+    const blob=_zipStore(files);
+    if(!opts.debug){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+      a.download='smallhouse-'+state.W+'x'+state.D+'-'+state.roof+'-3dprint.zip'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000); }
+    return {bodyTris:tris(bodyM),roofTris:tris(roofM),peopleTris:tris(pplM),scale_mm_per_ft:+k.toFixed(3),
+      files:files.map(f=>({name:f.name,bytes:f.data.length})), zipBytes:blob.size};
+  }catch(err){ console.error('[3dprint]',err); if(!opts.debug) alert('3D export failed: '+err.message); return {error:String(err&&err.message||err)}; }
+  finally{
+    Object.assign(state,{view:snap.view,explode:snap.explode}); stepOn=snap.stepOn; _limit=snap._limit;
+    Object.assign(tog,{tInterior:snap.tInterior,tSiding:snap.tSiding,tRoof:snap.tRoof,tBraces:snap.tBraces,tLadder:snap.tLadder,tFraming:snap.tFraming});
+    update(); if(btn && !opts.debug) btn.textContent=lbl;
+  }
+}
+document.getElementById('print3d').onclick=()=>export3DPrint();
 document.getElementById('optBed').addEventListener('change',e=>{ tog.bed=e.target.checked; update(); });
 document.getElementById('optKing').addEventListener('change',e=>{ tog.kingBed=e.target.checked;
   const l=document.getElementById('bedSizeLegend'); if(l) l.textContent=tog.kingBed?'King bed · 76 × 80″':'Queen bed · 60 × 80″'; update(); });
