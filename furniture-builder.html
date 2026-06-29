@@ -272,7 +272,7 @@
       <ol class="oblist">
         <li><b>Pick the piece.</b> Table, chair or bench — then tune size, leg style, and wood with the controls on the left. The 3D model updates live.</li>
         <li><b>Or just describe it.</b> Tell the <b>Architect</b> what you want (“a walnut dining table, 6 ft, tapered legs”) and it lays it out.</li>
-        <li><b>Read the cut list.</b> On the right: every board with its length, a running cost total, and a link to buy it. Tap <em>Cut List</em> for a tick-off shopping sheet.</li>
+        <li><b>Cost it out — free.</b> The running cost total and the build notes are always free. <b>Unlock the full board-by-board cut list + a printable plan (with a buy-link for every part) once for $9</b>; your design stays editable after.</li>
         <li><b>Check the build notes.</b> Joinery (pocket screws / dowels), ergonomics, and a stability/weight read for your dimensions.</li>
         <li><b>See it your way.</b> Shaded / Line / Color / Blueprint, spin it, and drop in a scale figure for proportion.</li>
         <li><b>Take it with you.</b> Save a render, or download a single <b>3D-print model</b> of the piece (with a scale figure beside it).</li>
@@ -323,6 +323,25 @@ const WOODS={
 };
 // Lowe's search link
 const lw=q=>'https://www.lowes.com/search?searchTerm='+encodeURIComponent(q);
+
+/* ===== unlock (soft paywall) — $9 unlocks the full cut list + printable PDF ===== */
+const UNLOCK_PRICE='$9';
+// ⬇⬇⬇  PASTE YOUR STRIPE PAYMENT LINK HERE. In Stripe → Payment Links → create one for "$9",
+//      then set its "After payment" redirect to:  https://timeline.delcan.tools/tools/furniture.html?unlocked=1
+const PAY_LINK='https://buy.stripe.com/REPLACE_WITH_YOUR_LINK';
+const ULKEY='furniture:unlocked';
+function paywallOn(){ return !!PAY_LINK && !/REPLACE/.test(PAY_LINK); }   // paywall stays OFF (everything free) until a real link is set
+function unlocked(){ if(!paywallOn()) return true; try{ return localStorage.getItem(ULKEY)==='1'; }catch(e){ return false; } }
+function goPay(){ if(!PAY_LINK || /REPLACE/.test(PAY_LINK)){ alert("Checkout isn't set up yet — paste your Stripe Payment Link into the tool."); return; }
+  window.open(PAY_LINK,'_blank','noopener'); }
+let _ulShown=false;
+// returning from Stripe → ?unlocked=1 sets the flag, then we strip it from the URL
+(function(){ try{ const u=new URLSearchParams(location.search);
+  if(u.get('unlocked')==='1'){ localStorage.setItem(ULKEY,'1'); u.delete('unlocked');
+    history.replaceState(null,'',location.pathname+(u.toString()?'?'+u.toString():'')+location.hash); } }catch(e){} })();
+// if payment completes in another tab (same origin), unlock live on return
+addEventListener('storage',e=>{ if(e.key===ULKEY && typeof update==='function') update(); });
+addEventListener('focus',()=>{ if(unlocked()!==_ulShown && typeof update==='function') update(); });
 
 /* ===== three.js ===== */
 let renderer,scene,camera,controls,model,sun,ground,spin=false;
@@ -551,19 +570,29 @@ function update(){
   const rb=document.getElementById('rbody');
   let html='';
   for(const n of notes()) html+=`<div class="note ${n.cls}"><span class="ntag">${n.tag}</span>${n.body}</div>`;
+  const unl=unlocked(); _ulShown=unl;
   for(const g of groups){ const gt=g.items.reduce((s,i)=>s+i.cost,0);
     html+=`<div class="mgroup"><h3>${g.name}<span class="gsum">$${gt.toLocaleString()}</span></h3>`;
-    for(const it of g.items){
+    if(unl){ for(const it of g.items){
       html+=`<div class="item"><div class="iinfo"><div class="mqty"><span class="q">${it.qty} ${it.unit}</span> · ${it.label}</div>`+
         `<div class="mdet">${it.detail} · <a href="${it.link}" target="_blank" rel="noopener">Lowe's ↗</a></div></div>`+
         `<div class="mcost">$${it.cost.toLocaleString()}</div></div>`;
+    } } else {
+      html+=`<div class="item"><div class="iinfo"><div class="mqty">${g.items.length} part${g.items.length>1?'s':''} · exact cuts + buy links</div></div><div class="mcost">🔒</div></div>`;
     }
     html+='</div>';
   }
-  html+='<button class="shopbtn" id="shopOpen">⎙ Cut list / shopping sheet</button>';
-  html+=`<div class="foot">Estimates only — actual lumber prices vary by store & wood. Buy a little extra for mistakes.</div>`;
+  if(unl){
+    html+='<button class="shopbtn" id="shopOpen">⎙ Cut list / shopping sheet</button>';
+    html+=`<div class="foot">Unlocked ✓ · Estimates only — lumber prices vary by store & wood. Buy a little extra for mistakes.</div>`;
+  } else {
+    html+=`<div class="note"><span class="ntag">🔒 Full cut list + printable plan</span>Board-by-board cut lengths and a Lowe's buy-link for every part, plus a one-tap printable PDF. The 3D design, the total above, and the build notes are always free.</div>`;
+    html+=`<button class="shopbtn" id="unlockBtn">Unlock cut list + PDF — ${UNLOCK_PRICE}</button>`;
+    html+=`<div class="foot">One-time ${UNLOCK_PRICE} · secure checkout via Stripe.</div>`;
+  }
   rb.innerHTML=html;
-  document.getElementById('shopOpen').onclick=openShop;
+  if(unl) document.getElementById('shopOpen').onclick=openShop;
+  else document.getElementById('unlockBtn').onclick=goPay;
   document.getElementById('woodCap').textContent=WOODS[state.wood].cap;
   document.getElementById('badge').innerHTML=`<b>${cap(state.type)}</b> · ${fmtLen(state.W)} W × ${fmtLen(state.D)} D × ${fmtLen(state.type==='chair'?state.backH:state.H)} H · <b>${WOODS[state.wood].label}</b>`;
 }
@@ -647,6 +676,7 @@ document.getElementById('saveImg').onclick=()=>{ renderer.render(scene,camera);
 
 /* ===== shopping modal ===== */
 function openShop(){
+  if(!unlocked()){ goPay(); return; }
   const {groups,total}=lastMats;
   document.getElementById('shopTitle').textContent=cap(state.type)+' — Cut List';
   document.getElementById('shopTot').textContent='$'+total.toLocaleString();
