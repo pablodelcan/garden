@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Furniture — Studio OS</title>
+<style>
+  :root{
+    --field:#E6E6E6; --paper:#E6E6E6; --shadow:none;
+    --tx:#141414; --tm:#666666; --tf:#9a9a9a; --ac:#E5202A;
+    --ink:#141414;
+    --bd:rgba(20,20,20,0.18); --bd2:#141414; --pb:rgba(20,20,20,0.96);
+    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;
+    --cond:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+    --good:#2f8a3e; --warn:#b97400; --bad:#E5202A; --blue:#15407a; --part1:#1C8FD6; --part2:#F2C200; --part3:#E5202A; --part4:#3DA34D;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--field);font-family:var(--serif);color:var(--tx)}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28);border-radius:4px}
+  a{color:var(--ac);text-decoration:none}
+  #scene{position:fixed;inset:0;z-index:1}
+  body[data-view="blueprint"]{background:var(--blue)}
+
+  .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7;pointer-events:none}
+  .topbar>*{pointer-events:auto}
+  .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--tx);font-weight:700;line-height:1.05}
+  .brand b{opacity:.4;font-weight:400}
+  .brand::after{content:'CUT LIST · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  body[data-view="blueprint"] .brand{color:#eaf1fb}
+  body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
+  .topright{display:flex;align-items:center;gap:12px;pointer-events:auto}
+  .unittog,.viewseg{display:flex;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .unittog b,.viewseg b{padding:4px 9px;font-weight:600;color:var(--tm)}
+  .unittog b.on,.viewseg b.on{background:var(--ink);color:#fff}
+  body[data-view="blueprint"] .unittog b,body[data-view="blueprint"] .viewseg b{color:#bcd4f2}
+  body[data-view="blueprint"] .unittog b.on,body[data-view="blueprint"] .viewseg b.on{background:#eaf1fb;color:var(--blue)}
+  .toolwrap{position:relative;display:inline-flex;align-items:center}
+  .toolwrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tm);pointer-events:none}
+  .toolsel{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--tx);background:rgba(0,0,0,.06);border:none;border-radius:0;padding:4px 22px 4px 9px;line-height:1.35;cursor:pointer;-webkit-appearance:none;appearance:none}
+  .toolsel:focus{outline:none}
+  body[data-view="blueprint"] .toolsel{background:rgba(255,255,255,.12);color:#bcd4f2}
+  body[data-view="blueprint"] .toolwrap::after{color:#bcd4f2}
+
+  .paper{display:flex;flex-direction:column;min-height:0;animation:fu .5s ease both}
+  .left{position:fixed;left:22px;top:62px;bottom:74px;width:300px;z-index:5;transition:left .4s cubic-bezier(.4,0,.2,1)}
+  .right{position:fixed;right:22px;top:62px;bottom:74px;width:346px;z-index:5;transition:right .4s cubic-bezier(.4,0,.2,1)}
+  body.lhide .left{left:-340px}
+  body.rhide .right{right:-380px}
+  .scroll{overflow-y:auto;padding:20px}
+  .pcollapse{position:absolute;top:12px;width:24px;height:24px;border:none;background:none;color:var(--tm);font-size:14px;line-height:1;cursor:pointer;z-index:7;display:flex;align-items:center;justify-content:center}
+  .left .pcollapse{right:12px} .right .pcollapse{left:12px}
+  .pcollapse:hover{color:var(--ac)}
+  .revealtab{position:fixed;top:50%;transform:translateY(-50%);width:25px;height:72px;background:rgba(0,0,0,.06);color:var(--ac);cursor:pointer;z-index:6;display:none;align-items:center;justify-content:center;font-size:15px;font-family:var(--mono)}
+  .revealtab.show{display:flex}
+  #showL{left:0} #showR{right:0}
+  @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fuC{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+  .ptitle{font-family:var(--cond);font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.08;text-transform:uppercase;color:var(--tx);display:block}
+  .psub{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--tm);margin-top:6px}
+  .rule{height:1px;background:var(--bd);margin:16px 0}
+  .glabel{font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx);margin:0 0 13px;font-weight:700;display:block}
+  .group{margin-bottom:22px}
+  .ctl{margin-bottom:16px}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .ctl label{font-size:12px;font-family:var(--serif)}
+  .val{font-family:var(--mono);font-size:11px;color:var(--tx)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:3px;background:var(--bd);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:2px;background:var(--ac);cursor:pointer;border:2.5px solid var(--field)}
+  .seg{display:grid;gap:6px}
+  .seg.three{grid-template-columns:1fr 1fr 1fr}
+  .seg.two{grid-template-columns:1fr 1fr}
+  .seg button{padding:8px 4px;font-family:var(--mono);font-size:10px;letter-spacing:.04em;background:none;color:var(--tm);border:none;border-radius:0;cursor:pointer;transition:.13s;text-transform:uppercase}
+  .seg button.on{background:var(--ink);color:#fff}
+  .seg button:hover:not(.on){background:rgba(0,0,0,.06);color:var(--tx)}
+  select{width:100%;background:rgba(0,0,0,.06);color:var(--tx);border:none;border-radius:0;padding:9px;font-family:var(--mono);font-size:11px}
+  select option{background:#fff;color:#222}
+  .togrow{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px}
+  .tog2{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer}
+  .tog2 input{accent-color:var(--ac);width:15px;height:15px}
+  .archbox textarea{width:100%;background:rgba(0,0,0,.06);border:none;border-radius:0;padding:9px 10px;font-family:var(--serif);font-size:12.5px;color:var(--tx);resize:vertical;min-height:52px;line-height:1.45}
+  .archbox textarea::placeholder{color:var(--tm);font-style:italic}
+  .sharebtn{width:100%;margin-top:9px;padding:9px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;background:rgba(0,0,0,.06);border:none;color:var(--ac);cursor:pointer}
+  .sharebtn:hover{background:var(--ink);color:#fff}
+  .archmsg{font-family:var(--mono);font-size:10px;color:var(--tm);margin-top:6px;line-height:1.5;min-height:0}
+  .archmsg.busy::after{content:'…';animation:archdots 1.2s steps(4) infinite}
+  @keyframes archdots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+  .archcard{padding:8px 0 0;margin-top:8px;font-size:12px;line-height:1.55;border-top:1px solid var(--bd)}
+  .archcard .tchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .archcard .tchips span{font-family:var(--mono);font-size:10px;color:var(--tx);background:var(--bd);padding:3px 8px;border-radius:0}
+
+  .rhead{padding:20px 20px 16px;border-bottom:1px solid var(--bd)}
+  .rhead .ptitle{font-size:15px}
+  .totalbox{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px}
+  .totalbox .tlabel{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tm)}
+  .totalbox .tval{font-family:var(--mono);font-size:23px;font-weight:600;color:var(--ac);font-variant-numeric:tabular-nums}
+  .rbody{overflow-y:auto;padding:0 20px 24px}
+  .note{margin:18px 0 4px;font-size:11.5px;line-height:1.5;color:var(--tx);font-family:var(--serif)}
+  .note .ntag{font-family:var(--cond);font-weight:700;display:block;margin-bottom:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx)}
+  .note.good .ntag{color:var(--good)} .note.warn .ntag{color:var(--warn)} .note.bad .ntag{color:var(--bad)}
+  .mgroup h3{font-family:var(--cond);font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--tx);margin:22px 0 9px;display:flex;justify-content:space-between;font-weight:700;border-bottom:1px solid var(--bd);padding-bottom:4px}
+  .mgroup h3 .gsum{color:var(--tm);font-variant-numeric:tabular-nums}
+  .item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px}
+  .item:last-child{border-bottom:none}
+  .item .iinfo{flex:1;min-width:0}
+  .item .mqty{font-family:var(--serif);line-height:1.25}
+  .item .mqty .q{font-family:var(--mono);font-size:11px;color:var(--tx)}
+  .item .mdet{font-size:11px;color:var(--tm);margin-top:2px;line-height:1.4}
+  .item .mdet a{font-family:var(--mono);font-size:10.5px;border-bottom:1px solid color-mix(in srgb,var(--ac) 35%,transparent);white-space:nowrap}
+  .item .mdet a:hover{border-bottom-color:var(--ac)}
+  .item .mcost{font-family:var(--mono);font-size:11.5px;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .foot{font-family:var(--mono);padding:18px 0 4px;font-size:10px;color:var(--tm);line-height:1.6}
+  .shopbtn{width:100%;margin-top:14px;padding:11px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;background:var(--ac);color:#fff;border:none;cursor:pointer}
+  .shopbtn:hover{filter:brightness(1.08)}
+
+  .dock{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:rgba(230,230,230,.85);backdrop-filter:blur(10px);padding:6px 8px;animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
+  .dock button{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;background:transparent;color:var(--tm);border:none;cursor:pointer;transition:.12s;font-weight:500}
+  .dock button:hover{color:var(--tx);background:rgba(0,0,0,.06)}
+  .dock button.on{color:#fff;background:var(--tx)}
+  .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
+  .badge{position:fixed;left:50%;transform:translateX(-50%);bottom:62px;z-index:6;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:center;pointer-events:none;opacity:.85;line-height:1.7}
+  .badge b{font-weight:600;color:var(--tx)}
+  body[data-view="blueprint"] .badge{color:#bcd4f2} body[data-view="blueprint"] .badge b{color:#eaf1fb}
+  .err{position:fixed;inset:0;z-index:8;display:none;align-items:center;justify-content:center;text-align:center;padding:40px;color:#fff;font-family:var(--mono);font-size:13px;line-height:1.7;background:rgba(0,0,0,.6)}
+
+  .shopmodal{position:fixed;inset:0;z-index:20;display:none;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:40px 20px;overflow-y:auto}
+  .shopmodal.on{display:flex}
+  .shoppanel{background:var(--paper);color:var(--tx);width:min(640px,100%);animation:fu .3s ease both;overflow:hidden}
+  .shophead{padding:22px 24px 18px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .shophead .stitle2{font-family:var(--cond);font-size:19px;font-weight:700;text-transform:uppercase}
+  .shophead .smeta{font-family:var(--mono);font-size:10px;color:var(--tm);margin-top:6px;letter-spacing:.03em;line-height:1.5}
+  .shophead .stot{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--ac);white-space:nowrap}
+  .shopbody{padding:6px 24px 18px;max-height:60vh;overflow-y:auto}
+  .shopbody h4{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);margin:18px 0 4px}
+  .shopitem{display:flex;align-items:flex-start;gap:11px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12.5px}
+  .shopitem .si-main{flex:1;min-width:0}
+  .shopitem .si-sub{font-size:11px;color:var(--tm);margin-top:1px}
+  .shopitem .si-sub a{font-family:var(--mono);font-size:10.5px;border-bottom:1px solid color-mix(in srgb,var(--ac) 35%,transparent)}
+  .shopitem .si-cost{font-family:var(--mono);font-size:12px;white-space:nowrap}
+  .shopfoot{padding:15px 24px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;align-items:center}
+  .shopfoot .snote{flex:1;font-family:var(--mono);font-size:10px;color:var(--tm)}
+  .shopfoot button{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:9px 16px;cursor:pointer}
+  .shopfoot .sclose{background:rgba(0,0,0,.06);border:none;color:var(--tx)}
+  .shopfoot .sprint{background:var(--ac);border:none;color:#fff}
+  .oblist{margin:8px 0 2px;padding:0;list-style:none;counter-reset:ob}
+  .oblist li{counter-increment:ob;position:relative;padding:11px 0 11px 38px;border-bottom:1px solid var(--bd);font-size:13.5px;line-height:1.5}
+  .oblist li:last-child{border-bottom:none}
+  .oblist li::before{content:counter(ob,decimal-leading-zero);position:absolute;left:0;top:13px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--ac)}
+  .oblist li b{font-weight:600}
+  .oblist li em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--ac)}
+  .howlink{cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  @media print{
+    html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+    body>*{display:none!important}
+    .shopmodal.on{display:block!important;position:static!important;overflow:visible!important;height:auto!important;background:none!important;backdrop-filter:none!important;padding:0!important}
+    .shoppanel{width:100%!important;overflow:visible!important}
+    .shopbody{max-height:none!important;overflow:visible!important}
+    .shopfoot{display:none!important}
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="topbar">
+  <div class="brand">Studio&nbsp;OS <b>·</b> Furniture Builder</div>
+  <div class="topright">
+    <div class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch builder" title="Switch builder">
+      <option value="Playhouse" data-file="playhouse.html">Playhouse</option>
+      <option value="Greenhouse" data-file="greenhouse.html">Greenhouse</option>
+      <option value="Small House" data-file="smallhouse.html">Small House</option>
+      <option value="Furniture" data-file="furniture.html" selected>Furniture</option>
+    </select></div>
+    <div class="viewseg" id="viewSeg"><b data-view="shaded">Shaded</b><b data-view="manual">Line</b><b data-view="color" class="on">Color</b><b data-view="blueprint">Blueprint</b></div>
+    <div class="unittog" id="unitTog"><b data-u="imp" class="on">in</b><b data-u="met">cm</b></div>
+  </div>
+</div>
+
+<aside class="paper left">
+  <button class="pcollapse" id="hideL" title="Hide controls (Esc restores)">‹</button>
+  <div class="scroll">
+    <div class="ptitle">Furniture</div>
+    <div class="psub">Drag to orbit · design &amp; cut · <span class="howlink" id="howBtn">How it works</span></div>
+    <div class="rule"></div>
+
+    <div class="group archbox">
+      <p class="glabel">Architect</p>
+      <textarea id="archInput" rows="2" placeholder="Describe it — “a walnut dining table, 6 ft, tapered legs” or “a low oak bench for an entryway”"></textarea>
+      <button class="sharebtn" id="archGo">✦ Design it</button>
+      <div class="archmsg" id="archMsg"></div>
+      <div id="archCard"></div>
+    </div>
+
+    <div class="group">
+      <p class="glabel">Piece</p>
+      <div class="seg three" id="typeSeg"><button data-t="table" class="on">Table</button><button data-t="chair">Chair</button><button data-t="bench">Bench</button></div>
+    </div>
+
+    <div class="group" id="dimGroup">
+      <p class="glabel">Dimensions</p>
+      <div class="ctl"><div class="row"><label id="lblW">Width</label><span class="val" id="vW"></span></div><input type="range" id="W"></div>
+      <div class="ctl"><div class="row"><label id="lblD">Depth</label><span class="val" id="vD"></span></div><input type="range" id="D"></div>
+      <div class="ctl"><div class="row"><label id="lblH">Height</label><span class="val" id="vH"></span></div><input type="range" id="H"></div>
+      <div class="ctl" id="ctlBack"><div class="row"><label>Back height</label><span class="val" id="vBack"></span></div><input type="range" id="backH"></div>
+      <div class="ctl"><div class="row"><label id="lblTop">Top thickness</label><span class="val" id="vTop"></span></div><input type="range" id="topT"></div>
+      <div class="ctl"><div class="row"><label>Leg thickness</label><span class="val" id="vLeg"></span></div><input type="range" id="legT"></div>
+    </div>
+
+    <div class="group">
+      <p class="glabel">Legs</p>
+      <div class="seg three" id="legSeg"><button data-l="straight" class="on">Straight</button><button data-l="tapered">Tapered</button><button data-l="splayed">Splayed</button></div>
+    </div>
+
+    <div class="group">
+      <p class="glabel">Options</p>
+      <div class="togrow">
+        <label class="tog2"><input type="checkbox" id="optApron" checked> Apron</label>
+        <label class="tog2"><input type="checkbox" id="optStretcher"> Stretcher</label>
+        <label class="tog2" id="wrapArms" style="display:none"><input type="checkbox" id="optArms"> Arms</label>
+      </div>
+      <div class="ctl" id="ctlSlats" style="display:none;margin-top:14px"><div class="row"><label>Back slats</label><span class="val" id="vSlats"></span></div><input type="range" id="slats" min="1" max="6" step="1" value="3"></div>
+    </div>
+
+    <div class="group">
+      <p class="glabel">Wood</p>
+      <select id="wood">
+        <option value="pine">Pine — paint-grade, cheapest</option>
+        <option value="oak" selected>Red oak — hard, classic</option>
+        <option value="maple">Maple — pale, tough</option>
+        <option value="walnut">Walnut — dark, premium</option>
+        <option value="birchply">Birch plywood — for the top</option>
+      </select>
+      <p class="archmsg" id="woodCap" style="margin-top:10px"></p>
+    </div>
+  </div>
+</aside>
+
+<aside class="paper right">
+  <button class="pcollapse" id="hideR" title="Hide cut list (Esc restores)">›</button>
+  <div class="rhead">
+    <div class="ptitle">Materials &amp; Cut List</div>
+    <div class="totalbox"><span class="tlabel">Est. lumber + hardware</span><span class="tval" id="total">—</span></div>
+  </div>
+  <div class="rbody scroll" id="rbody"></div>
+</aside>
+
+<div class="dock" id="dock">
+  <button id="spin">Spin</button>
+  <button id="recenter">⟲ Center</button>
+  <button id="focusBtn" title="Hide both panels">⤢ Focus</button>
+  <button id="figBtn" title="Show a scale figure beside it">🧍 Scale</button>
+  <span class="sep"></span>
+  <button id="saveImg" title="Download a PNG render">⤓ Save image</button>
+  <button id="print3d" title="Download a single 3D-printable STL of the piece + a scale figure">⤓ 3D print</button>
+</div>
+<div class="badge" id="badge"></div>
+
+<div class="shopmodal" id="shopModal">
+  <div class="shoppanel">
+    <div class="shophead"><div><div class="stitle2" id="shopTitle">Cut List</div><div class="smeta">Everything you need to build it · tap an item to tick it off</div></div><div class="stot" id="shopTot"></div></div>
+    <div class="shopbody" id="shopBody"></div>
+    <div class="shopfoot"><span class="snote">Prices are rough retail estimates.</span><button class="sclose" id="shopClose">Close</button><button class="sprint" id="shopPrint">Print / Save PDF</button></div>
+  </div>
+</div>
+
+<div class="shopmodal" id="obModal">
+  <div class="shoppanel">
+    <div class="shophead"><div><div class="stitle2">Furniture Builder</div><div class="smeta">Design a chair, table or bench you can actually build — and get the cut list.</div></div></div>
+    <div class="shopbody">
+      <ol class="oblist">
+        <li><b>Pick the piece.</b> Table, chair or bench — then tune size, leg style, and wood with the controls on the left. The 3D model updates live.</li>
+        <li><b>Or just describe it.</b> Tell the <b>Architect</b> what you want (“a walnut dining table, 6 ft, tapered legs”) and it lays it out.</li>
+        <li><b>Read the cut list.</b> On the right: every board with its length, a running cost total, and a link to buy it. Tap <em>Cut List</em> for a tick-off shopping sheet.</li>
+        <li><b>Check the build notes.</b> Joinery (pocket screws / dowels), ergonomics, and a stability/weight read for your dimensions.</li>
+        <li><b>See it your way.</b> Shaded / Line / Color / Blueprint, spin it, and drop in a scale figure for proportion.</li>
+        <li><b>Take it with you.</b> Save a render, or download a single <b>3D-print model</b> of the piece (with a scale figure beside it).</li>
+      </ol>
+    </div>
+    <div class="shopfoot"><span class="snote">Reopen anytime from “How it works”.</span><button class="sprint" id="obStart">Start designing →</button></div>
+  </div>
+</div>
+
+<div class="err" id="err"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* ===== state ===== */
+const PRESET={
+  table:{W:48,D:30,H:29,topT:1.5,legT:3,backH:34,legStyle:'tapered',apron:true,stretcher:false,arms:false,slats:3},
+  chair:{W:18,D:17,H:18,topT:1.25,legT:1.75,backH:34,legStyle:'straight',apron:true,stretcher:false,arms:false,slats:3},
+  bench:{W:48,D:14,H:18,topT:1.5,legT:2.5,backH:34,legStyle:'straight',apron:true,stretcher:true,arms:false,slats:3},
+};
+const RANGE={
+  table:{W:[30,96],D:[20,44],H:[26,38]},
+  chair:{W:14,D:[14,22],H:[15,20]},
+  bench:{W:[24,96],D:[10,22],H:[14,20]},
+};
+const RNG={
+  table:{W:[30,96],D:[20,44],H:[26,38]},
+  chair:{W:[14,26],D:[14,22],H:[15,20]},
+  bench:{W:[24,96],D:[10,22],H:[14,20]},
+};
+const state=Object.assign({type:'table',wood:'oak',view:'color',unit:'imp',showFig:false}, PRESET.table);
+
+const WOODS={
+  pine:   {label:'Pine',         color:'#d8b27a', mult:1.0, cap:'Soft, cheap, paint- or stain-grade. Easiest to cut; dents easily.'},
+  oak:    {label:'Red oak',      color:'#bd8a57', mult:2.1, cap:'Hard, open-grained, classic. Great all-rounder for tables & benches.'},
+  maple:  {label:'Hard maple',   color:'#e2c692', mult:2.0, cap:'Pale, dense, very tough. Takes a beating; a little harder to cut.'},
+  walnut: {label:'Walnut',       color:'#5e4636', mult:4.2, cap:'Dark, premium, beautiful grain. Best for a showpiece chair or table.'},
+  birchply:{label:'Birch ply',   color:'#e0c187', mult:1.4, cap:'Stable sheet good — best for the top/seat; edge-band the plies.'},
+};
+// Lowe's search link
+const lw=q=>'https://www.lowes.com/search?searchTerm='+encodeURIComponent(q);
+
+/* ===== three.js ===== */
+let renderer,scene,camera,controls,model,sun,ground,spin=false;
+function init(){
+  scene=new THREE.Scene();
+  const cv=document.createElement('canvas'); document.getElementById('scene').appendChild(cv);
+  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  camera=new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 1, 4000);
+  camera.position.set(78,62,116);
+  controls=new OrbitControls(camera,cv);
+  controls.enableDamping=true; controls.dampingFactor=0.09;
+  controls.minDistance=30; controls.maxDistance=420; controls.target.set(0,16,0);
+  scene.add(new THREE.HemisphereLight(0xfff3e0,0x6b5a44,0.95));
+  sun=new THREE.DirectionalLight(0xfff0dd,1.45);
+  sun.position.set(60,110,50); sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  const s=120,c=sun.shadow.camera; c.left=-s;c.right=s;c.top=s;c.bottom=-s;c.near=1;c.far=400; sun.shadow.bias=-0.0004; scene.add(sun);
+  const gp=new THREE.Mesh(new THREE.PlaneGeometry(900,900), new THREE.ShadowMaterial({opacity:0.12}));
+  gp.rotation.x=-Math.PI/2; gp.receiveShadow=true; scene.add(gp); ground=gp;
+  model=new THREE.Group(); scene.add(model);
+  addEventListener('resize',resize); resize();
+  (function loop(){ requestAnimationFrame(loop); controls.autoRotate=spin; controls.autoRotateSpeed=1.1; controls.update(); renderer.render(scene,camera); })();
+}
+function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+function clearModel(){ for(let i=model.children.length-1;i>=0;i--){ const o=model.children[i]; model.remove(o); if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); } }
+
+const C=()=>WOODS[state.wood].color;
+function box(w,h,d,x,y,z,color,part,o={}){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),
+    new THREE.MeshStandardMaterial({color,roughness:0.72,metalness:0.02}));
+  m.position.set(x,y,z);
+  if(o.rotX)m.rotation.x=o.rotX; if(o.rotY)m.rotation.y=o.rotY; if(o.rotZ)m.rotation.z=o.rotZ;
+  m.castShadow=true; m.receiveShadow=true; m.userData.part=part||'top'; model.add(m); return m;
+}
+function ball(r,x,y,z,color,part){
+  const m=new THREE.Mesh(new THREE.SphereGeometry(r,18,14), new THREE.MeshStandardMaterial({color,roughness:0.8}));
+  m.position.set(x,y,z); m.castShadow=true; m.userData.part=part||'figure'; model.add(m); return m;
+}
+// square 4-sided post, optionally tapered / splayed; foot at y=0, top at y=h
+function legPost(cx,cz,h,wd,color,part){
+  const taper=state.legStyle==='tapered';
+  const rT=wd/Math.SQRT2, rB=rT*(taper?0.5:1);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(rT,rB,h,4),
+    new THREE.MeshStandardMaterial({color,roughness:0.72}));
+  m.rotation.y=Math.PI/4; m.position.set(cx,h/2,cz);
+  if(state.legStyle==='splayed'){ const a=0.10; m.rotation.z=-Math.sign(cx||1)*a*(cx?1:0); m.rotation.x=Math.sign(cz||1)*a*(cz?1:0); }
+  m.castShadow=true; m.receiveShadow=true; m.userData.part=part||'leg'; model.add(m); return m;
+}
+
+function rebuild(){
+  clearModel();
+  const t=state.type, W=state.W, D=state.D, H=state.H, topT=state.topT, legT=state.legT;
+  const wood=C(), apronCol=wood, legCol=wood;
+  const inset=Math.max(legT/2+0.8, 2.2);          // leg centre inset from the edge
+  const lx=W/2-inset, lz=D/2-inset;
+  const legTop=H-topT;                            // legs run to the underside of the top/seat
+  const apronOn=state.apron, apH=Math.min(3.5, legTop*0.4), apT=0.85, apY=legTop-apH/2-0.4;
+
+  function fourLegs(toY){ for(const sx of [-1,1]) for(const sz of [-1,1]) legPost(sx*lx, sz*lz, toY, legT, legCol, 'leg'); }
+  function apron(){
+    if(!apronOn) return;
+    for(const sz of [-1,1]) box(W-2*inset-legT, apH, apT, 0, apY, sz*(lz-legT/2+apT/2), apronCol,'apron');   // front/back rails
+    for(const sx of [-1,1]) box(apT, apH, D-2*inset-legT, sx*(lx-legT/2+apT/2), apY, 0, apronCol,'apron');   // side rails
+  }
+  function stretchers(){
+    if(!state.stretcher) return;
+    const sy=Math.max(3.5, H*0.22), st=Math.max(1.2, legT*0.55);
+    for(const sx of [-1,1]) box(st, st, D-2*inset, sx*lx, sy, 0, legCol,'apron');   // side stretchers (front↔back)
+    box(W-2*inset, st, st, 0, sy, 0, legCol,'apron');                               // centre stretcher
+  }
+
+  if(t==='table' || t==='bench'){
+    fourLegs(legTop);
+    apron(); stretchers();
+    box(W, topT, D, 0, H-topT/2, 0, wood, 'top');                                   // top / seat slab
+  } else if(t==='chair'){
+    const seatH=H, backH=state.backH;
+    // front legs to seat, back legs continue up as the back posts
+    for(const sx of [-1,1]) legPost(sx*lx, lz, seatH-topT, legT, legCol,'leg');     // front
+    for(const sx of [-1,1]) legPost(sx*lx,-lz, backH,       legT, legCol,'back');   // rear posts (tall)
+    apron();
+    box(W, topT, D, 0, seatH-topT/2, 0, wood,'top');                                // seat
+    // backrest: slats + top rail spanning between the rear posts, leaning back slightly
+    const bx0=-(lx), bx1=lx, bw=(bx1-bx0), slatBot=seatH+2.5, slatTop=backH-2, recline=0.10;
+    const railY=backH-1.4, railZ=-lz - Math.tan(recline)*(railY-seatH);
+    box(bw+legT, 1.6, 1.0, 0, railY, railZ, wood,'back',{rotX:recline});            // top rail
+    const n=Math.max(1,Math.min(6,state.slats)), span=bw-1.5, slatW=Math.min(2.4, span/(n*1.6));
+    for(let i=0;i<n;i++){ const px=(n===1)?0:(-span/2+i*span/(n-1)); const my=(slatBot+slatTop)/2, mz=-lz-Math.tan(recline)*(my-seatH);
+      box(slatW, slatTop-slatBot, 0.7, px, my, mz, wood,'back',{rotX:recline}); }
+    if(state.arms){ const armY=seatH+8.5, armL=D-2.5;
+      for(const sx of [-1,1]){ box(1.4,1.0,armL, sx*lx, armY, -1, wood,'back');      // arm rail
+        box(1.4,armY-(seatH-topT),1.4, sx*lx, (seatH-topT+armY)/2, lz, wood,'leg'); } } // front arm post
+  }
+
+  if(state.showFig) buildFigure(W);
+  applyViewStyle();
+  controls.target.set(0, (t==='chair'?state.backH:H)*0.42, 0);
+}
+
+function buildFigure(W){
+  const h=66, x=W/2+18, z=0, hr=h*0.075, col='#7a7163';   // standing person, inches
+  for(const s of [-1,1]) box(h*0.085,h*0.5,h*0.12, x+s*h*0.055, h*0.25, z, col,'figure');
+  box(h*0.24,h*0.36,h*0.15, x, h*0.62, z, '#5d6b53','figure');
+  for(const s of [-1,1]) box(h*0.06,h*0.34,h*0.08, x+s*h*0.14, h*0.6, z, '#5d6b53','figure');
+  ball(hr, x, h-hr*0.9, z, '#caa178','figure');
+}
+
+/* ===== view styles (shaded / line / color / blueprint) ===== */
+function applyViewStyle(){
+  const v=state.view;
+  scene.background = v==='blueprint' ? new THREE.Color(0x16365c) : null;
+  ground.visible = (v==='shaded');
+  document.body.dataset.view=v;
+  if(v==='shaded') return;
+  const PART={ top:0xF2C200, leg:0x1C8FD6, apron:0xE5202A, back:0x3DA34D, figure:0x9aa0a3 };
+  model.traverse(o=>{
+    if(!o.isMesh) return;
+    const part=o.userData.part||'top';
+    let fill, op=1, edge=true;
+    if(v==='manual'){ fill=0xffffff; }
+    else if(v==='color'){ fill=PART[part]!=null?PART[part]:0xF2C200; }
+    else { fill=0x1d4f88; op=0.92; }
+    o.material=new THREE.MeshBasicMaterial({color:fill,transparent:op<1,opacity:op,
+      polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    o.castShadow=false; o.receiveShadow=false;
+    if(edge && o.geometry){ try{
+      const eg=new THREE.EdgesGeometry(o.geometry,28);
+      const lm=new THREE.LineBasicMaterial({color: v==='blueprint'?0xdce9ff:0x141414});
+      o.add(new THREE.LineSegments(eg,lm));
+    }catch(e){} }
+  });
+}
+
+/* ===== unit + format ===== */
+function fmtLen(inch){
+  if(state.unit==='met'){ return Math.round(inch*2.54)+' cm'; }
+  const f=Math.floor(inch/12), i=Math.round(inch-f*12);
+  if(f>0) return i? f+"'"+i+'"' : f+"'";
+  return Math.round(inch)+'"';
+}
+
+/* ===== materials / cut list ===== */
+function stockLen(inch){ const opts=[24,36,48,72,96]; for(const o of opts) if(inch+1<=o) return o; return Math.ceil((inch+2)/12)*12; }
+function computeMaterials(){
+  const t=state.type, W=state.W, D=state.D, H=state.H, topT=state.topT, legT=state.legT;
+  const wd=WOODS[state.wood], m=wd.mult, groups=[]; let total=0;
+  const inset=Math.max(legT/2+0.8,2.2);
+  function G(name){ const g={name,items:[]}; groups.push(g); return g; }
+  function add(g,qty,unit,label,detail,cost,link){ g.items.push({qty,unit,label,detail,cost:Math.round(cost),link}); total+=Math.round(cost); }
+
+  // legs
+  const legGroup=G('Legs & frame');
+  const legTopY = t==='chair' ? state.backH : H-topT;
+  const nLong = t==='chair'?2:0;
+  if(t==='chair'){
+    const lenF=H-topT, lenB=state.backH;
+    add(legGroup,2,'pcs',`Front legs — ${legT}×${legT}`,`cut to ${fmtLen(lenF)} · from ${legT}×${legT} stock`, 2*legPrice(legT,stockLen(lenF),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+    add(legGroup,2,'pcs',`Rear posts — ${legT}×${legT}`,`cut to ${fmtLen(lenB)} · these carry the back`, 2*legPrice(legT,stockLen(lenB),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+  } else {
+    const len=H-topT;
+    add(legGroup,4,'pcs',`Legs — ${legT}×${legT}`,`cut to ${fmtLen(len)}${state.legStyle!=='straight'?' · '+state.legStyle:''} · from ${legT}×${legT} stock`, 4*legPrice(legT,stockLen(len),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+  }
+  if(state.apron){ const fb=W-2*inset-legT, sd=D-2*inset-legT;
+    add(legGroup,2,'pcs','Apron rails (front/back)',`1×4 · cut to ${fmtLen(fb)}`, 2*railPrice(fb,m), lw(`1 x 4 ${wd.label.toLowerCase()} board`));
+    add(legGroup,2,'pcs','Apron rails (sides)',`1×4 · cut to ${fmtLen(sd)}`, 2*railPrice(sd,m), lw(`1 x 4 ${wd.label.toLowerCase()} board`)); }
+  if(state.stretcher){ const sd=D-2*inset, ce=W-2*inset;
+    add(legGroup,3,'pcs','Stretchers',`cut to ${fmtLen(sd)} (×2) + ${fmtLen(ce)} (×1)`, (2*railPrice(sd,m)+railPrice(ce,m)), lw(`1 x 3 ${wd.label.toLowerCase()} board`)); }
+
+  // top / seat
+  const topGroup=G(t==='chair'?'Seat & back':'Top');
+  const area=W*D, topCost = topPanelCost(area, topT, state.wood);
+  add(topGroup,1,'panel',`${t==='chair'?'Seat':'Top'} — ${fmtLen(W)} × ${fmtLen(D)}`,
+    `${topT}" thick · ${state.wood==='birchply'?'plywood, edge-banded':'glued-up boards or a panel'} (${Math.round(area)} sq in)`,
+    topCost, state.wood==='birchply'?lw('birch plywood 3/4 4x8'):lw(`${wd.label.toLowerCase()} board 1x6`));
+  if(t==='chair'){ const n=Math.max(1,state.slats);
+    add(topGroup, n+1,'pcs','Backrest slats + top rail',`${n} slat${n>1?'s':''} + 1 rail · between the rear posts`, (n+1)*railPrice(state.backH-state.H,m)*0.7, lw(`${wd.label.toLowerCase()} board 1x3`));
+    if(state.arms) add(topGroup,2,'pcs','Arms + front arm posts','shaped arm rail + a short front post each side', 2*railPrice(D,m), lw(`${wd.label.toLowerCase()} board 1x4`)); }
+
+  // hardware + finish
+  const hw=G('Joinery & finish');
+  add(hw,1,'box','Pocket screws (1¼–2½")','Kreg pocket-hole screws — the backbone of the joinery', 12, lw('kreg pocket screws'));
+  add(hw,1,'pk','Wood dowels + glue','⅜" fluted dowels + a bottle of wood glue', 14, lw('wood dowel pins 3/8'));
+  add(hw,4,'pcs','Levelling feet / glides','nail-in or threaded — keeps it from rocking', 6, lw('furniture leveling feet'));
+  add(hw,1,'qt','Finish — oil or poly',`${state.wood==='walnut'?'a wipe-on oil shows the grain best':'stain + a wipe-on poly, or just oil'}`, 24*Math.max(1,Math.sqrt(area/1400)), lw('wipe on polyurethane'));
+
+  return {groups, total};
+}
+function legPrice(t,len,m){ return (3 + (t/1.5)*1.4 + len*0.05) * m; }
+function railPrice(len,m){ return Math.max(4, len*0.16) * m; }
+function topPanelCost(area,th,wood){ const w=WOODS[wood];
+  if(wood==='birchply') return Math.max(38, area*0.028*(th/0.75));
+  return Math.max(30, area*0.052*(th/1.5)) * w.mult; }
+
+/* ===== build notes ===== */
+function notes(){
+  const t=state.type, W=state.W, D=state.D, H=state.H, out=[];
+  // ergonomics
+  if(t==='table'){ const ok=H>=28&&H<=31;
+    out.push({cls:ok?'good':'warn', tag:ok?'Comfortable height':'Check the height', body:`Dining/desk tables sit best at 29–30". At ${fmtLen(H)} ${ok?'chairs will tuck under a standard apron':H<28?'it reads low — fine for a coffee/console table':'it reads tall — pair with stools'}. Leave ≥24" of width per seat.`}); }
+  if(t==='bench'){ const ok=H>=16&&H<=19;
+    out.push({cls:ok?'good':'warn', tag:ok?'Comfortable seat':'Check the seat height', body:`Seat height is best 17–18". At ${fmtLen(H)} ${ok?'feet rest flat on the floor':'it may feel '+(H<16?'low':'high')+'.'} ${fmtLen(W)} fits ${Math.max(1,Math.floor(W/20))} comfortably.`}); }
+  if(t==='chair'){ const ok=H>=16&&H<=19, bok=state.backH-H>=14;
+    out.push({cls:(ok&&bok)?'good':'warn', tag:(ok&&bok)?'Comfortable chair':'Check the proportions', body:`Seat at ${fmtLen(H)} (best 17–18") and a back rising ${fmtLen(state.backH-H)} above it (≥15" supports the shoulders). The back leans back ~6° for comfort.`}); }
+  // joinery
+  out.push({cls:'', tag:'Joinery', body:`${state.apron?'Pocket-screw the apron rails into the legs, then ':''}attach the ${t==='chair'?'seat':'top'} from underneath with ${t==='chair'?'screws through the seat frame':'figure-8 / Z-clips so the top can move with the seasons'}. Glue + ⅜" dowels at the leg-to-rail joints add a lot of racking strength.${state.stretcher?' The stretcher kills wobble — good call on a tall/heavy piece.':(H>30||t==='table'?' Consider turning the stretcher on for stiffness at this height.':'')}`});
+  // stability
+  const tippy = t!=='chair' && (H > Math.min(W,D)*1.25);
+  out.push({cls:tippy?'warn':'', tag:'Stability', body: tippy
+    ? `Tall and narrow — footprint ${fmtLen(W)}×${fmtLen(D)} vs ${fmtLen(H)} high. Splay the legs or widen the base so it doesn't tip.`
+    : `Footprint ${fmtLen(W)}×${fmtLen(D)} gives a stable base for ${fmtLen(H)} of height. Add levelling feet if your floor is uneven.`});
+  // finish
+  out.push({cls:'', tag:'Finish', body:`${WOODS[state.wood].cap} Sand to 180–220 grit, ease every edge, then ${state.wood==='walnut'?'a couple coats of wipe-on oil':'stain to taste and seal with wipe-on poly'}.`});
+  return out;
+}
+
+/* ===== render right panel ===== */
+function update(){
+  readControls();
+  rebuild();
+  const {groups,total}=computeMaterials();
+  lastMats={groups,total};
+  document.getElementById('total').textContent='$'+total.toLocaleString();
+  const rb=document.getElementById('rbody');
+  let html='';
+  for(const n of notes()) html+=`<div class="note ${n.cls}"><span class="ntag">${n.tag}</span>${n.body}</div>`;
+  for(const g of groups){ const gt=g.items.reduce((s,i)=>s+i.cost,0);
+    html+=`<div class="mgroup"><h3>${g.name}<span class="gsum">$${gt.toLocaleString()}</span></h3>`;
+    for(const it of g.items){
+      html+=`<div class="item"><div class="iinfo"><div class="mqty"><span class="q">${it.qty} ${it.unit}</span> · ${it.label}</div>`+
+        `<div class="mdet">${it.detail} · <a href="${it.link}" target="_blank" rel="noopener">Lowe's ↗</a></div></div>`+
+        `<div class="mcost">$${it.cost.toLocaleString()}</div></div>`;
+    }
+    html+='</div>';
+  }
+  html+='<button class="shopbtn" id="shopOpen">⎙ Cut list / shopping sheet</button>';
+  html+=`<div class="foot">Estimates only — actual lumber prices vary by store & wood. Buy a little extra for mistakes.</div>`;
+  rb.innerHTML=html;
+  document.getElementById('shopOpen').onclick=openShop;
+  document.getElementById('woodCap').textContent=WOODS[state.wood].cap;
+  document.getElementById('badge').innerHTML=`<b>${cap(state.type)}</b> · ${fmtLen(state.W)} W × ${fmtLen(state.D)} D × ${fmtLen(state.type==='chair'?state.backH:state.H)} H · <b>${WOODS[state.wood].label}</b>`;
+}
+let lastMats={groups:[],total:0};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+/* ===== controls ===== */
+function setRange(id,[mn,mx],v,step){ const e=document.getElementById(id); e.min=mn; e.max=mx; e.step=step||1; e.value=v; }
+function syncRangesForType(){
+  const r=RNG[state.type];
+  setRange('W', r.W, state.W);
+  setRange('D', r.D, state.D);
+  setRange('H', r.H, state.H);
+  setRange('backH',[state.H+12, state.H+30], state.backH);
+  setRange('topT',[0.75,2.5], state.topT, 0.25);
+  setRange('legT',[1.25,4.5], state.legT, 0.25);
+  // labels + show/hide chair-only bits
+  const isChair=state.type==='chair';
+  document.getElementById('lblH').textContent = isChair?'Seat height':'Height';
+  document.getElementById('lblTop').textContent = isChair?'Seat thickness':'Top thickness';
+  document.getElementById('lblW').textContent = 'Width';
+  document.getElementById('lblD').textContent = 'Depth';
+  document.getElementById('ctlBack').style.display = isChair?'':'none';
+  document.getElementById('ctlSlats').style.display = isChair?'':'none';
+  document.getElementById('wrapArms').style.display = isChair?'':'none';
+  document.getElementById('slats').value=state.slats;
+}
+function readControls(){
+  state.W=+document.getElementById('W').value;
+  state.D=+document.getElementById('D').value;
+  state.H=+document.getElementById('H').value;
+  state.backH=Math.max(state.H+12,+document.getElementById('backH').value);
+  state.topT=+document.getElementById('topT').value;
+  state.legT=+document.getElementById('legT').value;
+  state.slats=+document.getElementById('slats').value;
+  state.apron=document.getElementById('optApron').checked;
+  state.stretcher=document.getElementById('optStretcher').checked;
+  state.arms=document.getElementById('optArms').checked;
+  // value readouts
+  document.getElementById('vW').textContent=fmtLen(state.W);
+  document.getElementById('vD').textContent=fmtLen(state.D);
+  document.getElementById('vH').textContent=fmtLen(state.H);
+  document.getElementById('vBack').textContent=fmtLen(state.backH);
+  document.getElementById('vTop').textContent=state.topT+'"';
+  document.getElementById('vLeg').textContent=state.legT+'×'+state.legT+'"';
+  document.getElementById('vSlats').textContent=state.slats;
+}
+function applyType(tp){
+  state.type=tp; Object.assign(state, PRESET[tp]);
+  document.querySelectorAll('#typeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===tp));
+  document.querySelectorAll('#legSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===state.legStyle));
+  document.getElementById('optApron').checked=state.apron;
+  document.getElementById('optStretcher').checked=state.stretcher;
+  document.getElementById('optArms').checked=state.arms;
+  syncRangesForType(); update();
+}
+
+/* ===== wire up ===== */
+init();
+document.querySelectorAll('#typeSeg button').forEach(b=>b.onclick=()=>applyType(b.dataset.t));
+document.querySelectorAll('#legSeg button').forEach(b=>b.onclick=()=>{ state.legStyle=b.dataset.l;
+  document.querySelectorAll('#legSeg button').forEach(x=>x.classList.toggle('on',x===b)); update(); });
+['W','D','H','backH','topT','legT','slats'].forEach(id=>document.getElementById(id).addEventListener('input',update));
+['optApron','optStretcher','optArms'].forEach(id=>document.getElementById(id).addEventListener('change',update));
+document.getElementById('wood').addEventListener('change',e=>{ state.wood=e.target.value; update(); });
+document.querySelectorAll('#viewSeg b').forEach(b=>b.onclick=()=>{ state.view=b.dataset.view;
+  document.querySelectorAll('#viewSeg b').forEach(x=>x.classList.toggle('on',x===b)); rebuild(); });
+document.querySelectorAll('#unitTog b').forEach(b=>b.onclick=()=>{ state.unit=b.dataset.u;
+  document.querySelectorAll('#unitTog b').forEach(x=>x.classList.toggle('on',x===b)); update(); });
+document.getElementById('spin').onclick=function(){ spin=!spin; this.classList.toggle('on',spin); };
+document.getElementById('recenter').onclick=()=>{ camera.position.set(78,62,116); controls.target.set(0,(state.type==='chair'?state.backH:state.H)*0.42,0); };
+document.getElementById('focusBtn').onclick=function(){ const f=!document.body.classList.contains('lhide'); document.body.classList.toggle('lhide',f); document.body.classList.toggle('rhide',f); this.classList.toggle('on',f); };
+document.getElementById('figBtn').onclick=function(){ state.showFig=!state.showFig; this.classList.toggle('on',state.showFig); rebuild(); };
+document.getElementById('hideL').onclick=()=>document.body.classList.add('lhide');
+document.getElementById('hideR').onclick=()=>document.body.classList.add('rhide');
+addEventListener('keydown',e=>{ if(e.key==='Escape'){ const ob=document.getElementById('obModal'); if(ob.classList.contains('on')){closeOnboard();return;}
+  document.getElementById('shopModal').classList.remove('on'); document.body.classList.remove('lhide','rhide'); document.getElementById('focusBtn').classList.remove('on'); } });
+document.getElementById('saveImg').onclick=()=>{ renderer.render(scene,camera);
+  const a=document.createElement('a'); a.href=renderer.domElement.toDataURL('image/png');
+  a.download='furniture-'+state.type+'-'+state.W+'x'+state.D+'.png'; a.click(); };
+
+/* ===== shopping modal ===== */
+function openShop(){
+  const {groups,total}=lastMats;
+  document.getElementById('shopTitle').textContent=cap(state.type)+' — Cut List';
+  document.getElementById('shopTot').textContent='$'+total.toLocaleString();
+  let h='';
+  for(const g of groups){ h+=`<h4>${g.name}</h4>`;
+    for(const it of g.items) h+=`<div class="shopitem"><div class="si-main"><div class="si-q">${it.qty} ${it.unit} · ${it.label}</div>`+
+      `<div class="si-sub">${it.detail} · <a href="${it.link}" target="_blank" rel="noopener">Lowe's ↗</a></div></div><div class="si-cost">$${it.cost.toLocaleString()}</div></div>`; }
+  document.getElementById('shopBody').innerHTML=h;
+  document.getElementById('shopModal').classList.add('on');
+}
+document.getElementById('shopClose').onclick=()=>document.getElementById('shopModal').classList.remove('on');
+document.getElementById('shopPrint').onclick=()=>window.print();
+document.getElementById('shopModal').addEventListener('click',e=>{ if(e.target.id==='shopModal') document.getElementById('shopModal').classList.remove('on'); });
+
+/* ===== architect ===== */
+const ARCH_API=(location.hostname.endsWith('delcan.tools')?'':'https://timeline.delcan.tools')+'/api/furniture-architect';
+document.getElementById('archGo').onclick=async function(){
+  const inp=document.getElementById('archInput'), msg=document.getElementById('archMsg'), card=document.getElementById('archCard');
+  const text=inp.value.trim(); if(!text) return;
+  msg.className='archmsg busy'; msg.textContent='Designing'; card.innerHTML='';
+  try{
+    const r=await fetch(ARCH_API,{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:text}],state})});
+    if(!r.ok) throw new Error('Architect unavailable ('+r.status+')');
+    const d=await r.json(); if(!d.design) throw new Error('No design returned');
+    applyDesign(d.design);
+    msg.className='archmsg'; msg.textContent='';
+    if(d.rationale) card.innerHTML=`<div class="archcard">${d.rationale}${(d.tradeoffs||[]).length?`<div class="tchips">${d.tradeoffs.map(t=>`<span>${t}</span>`).join('')}</div>`:''}</div>`;
+  }catch(e){ msg.className='archmsg'; msg.textContent=e.message+' — adjust the controls instead.'; }
+};
+function applyDesign(d){
+  if(d.type && PRESET[d.type]){ applyType(d.type); }
+  const clamp=(id,v)=>{ const e=document.getElementById(id); if(v==null)return; e.value=Math.max(+e.min,Math.min(+e.max,v)); };
+  clamp('W',d.W); clamp('D',d.D); clamp('H',d.H); clamp('backH',d.backH); clamp('topT',d.topT); clamp('legT',d.legT); clamp('slats',d.slats);
+  if(d.wood && WOODS[d.wood]){ state.wood=d.wood; document.getElementById('wood').value=d.wood; }
+  if(d.legStyle){ state.legStyle=d.legStyle; document.querySelectorAll('#legSeg button').forEach(x=>x.classList.toggle('on',x.dataset.l===d.legStyle)); }
+  if(d.apron!=null) document.getElementById('optApron').checked=!!d.apron;
+  if(d.stretcher!=null) document.getElementById('optStretcher').checked=!!d.stretcher;
+  if(d.arms!=null) document.getElementById('optArms').checked=!!d.arms;
+  update();
+}
+
+/* ===== 3D-print export: ONE fused STL (piece + scale figure) ===== */
+function _geoPN(src,matrix){
+  let g=src.index?src.toNonIndexed():src.clone();
+  if(matrix) g.applyMatrix4(matrix);
+  const out=new THREE.BufferGeometry();
+  out.setAttribute('position',g.getAttribute('position').clone());
+  const n=g.getAttribute('normal'); if(n) out.setAttribute('normal',n.clone()); else out.computeVertexNormals();
+  return out;
+}
+function _printFigure(x0,z0){
+  const geos=[]; const h=66;
+  const bx=(w,hh,d,x,y,z)=>{ const g=new THREE.BoxGeometry(w,hh,d); g.translate(x,y,z); geos.push(_geoPN(g)); };
+  const bl=(r,x,y,z)=>{ const g=new THREE.SphereGeometry(r,16,12); g.translate(x,y,z); geos.push(_geoPN(g)); };
+  const hr=h*0.075;
+  for(const s of [-1,1]) bx(h*0.085,h*0.5,h*0.12, x0+s*h*0.055, h*0.25, z0);
+  bx(h*0.24,h*0.36,h*0.15, x0, h*0.62, z0);
+  for(const s of [-1,1]) bx(h*0.06,h*0.34,h*0.08, x0+s*h*0.14, h*0.6, z0);
+  bx(h*0.08,h*0.10,h*0.08, x0, h*0.83, z0);
+  bl(hr, x0, h-hr*0.9, z0);
+  return geos;
+}
+function export3DPrint(opts){
+  opts=opts||{};
+  const btn=document.getElementById('print3d'), lbl=btn?btn.textContent:'';
+  const snap={view:state.view,showFig:state.showFig};
+  if(btn&&!opts.debug) btn.textContent='⏳ Building STL…';
+  try{
+    state.view='shaded'; state.showFig=false; rebuild();
+    model.updateMatrixWorld(true);
+    const all=[], bb=new THREE.Box3();
+    model.traverse(o=>{ if(!o.isMesh||o.isLine||!o.geometry||!o.geometry.getAttribute('position')) return;
+      const g=_geoPN(o.geometry,o.matrixWorld); all.push(g); bb.union(new THREE.Box3().setFromBufferAttribute(g.getAttribute('position'))); });
+    const fig=_printFigure(bb.max.x+10,(bb.min.z+bb.max.z)/2); all.push(...fig);
+    const size=new THREE.Vector3(); bb.getSize(size);
+    const TARGET_MM=120, k=TARGET_MM/Math.max(size.x,size.y,size.z,0.001);   // longest dimension → 120mm
+    const full=new THREE.Box3(); for(const g of all) full.union(new THREE.Box3().setFromBufferAttribute(g.getAttribute('position')));
+    const cx=(bb.min.x+bb.max.x)/2, cz=(bb.min.z+bb.max.z)/2, minY=Math.min(bb.min.y,full.min.y);
+    const M=new THREE.Matrix4().multiply(new THREE.Matrix4().makeRotationX(Math.PI/2))
+      .multiply(new THREE.Matrix4().makeScale(k,k,k))
+      .multiply(new THREE.Matrix4().makeTranslation(-cx,-minY,-cz));
+    const merged=BufferGeometryUtils.mergeGeometries(all,false); merged.applyMatrix4(M);
+    const mesh=new THREE.Mesh(merged); mesh.updateMatrixWorld(true);
+    const dv=new STLExporter().parse(mesh,{binary:true});
+    const data=new Uint8Array(dv.buffer,dv.byteOffset,dv.byteLength).slice();
+    if(!opts.debug){ const blob=new Blob([data],{type:'model/stl'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+      a.download='furniture-'+state.type+'-'+state.W+'x'+state.D+'-3dprint.stl'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000); }
+    return {tris:merged.getAttribute('position').count/3, bytes:data.length, scale_mm_per_in:+k.toFixed(3)};
+  }catch(err){ console.error('[3dprint]',err); if(!opts.debug) alert('3D export failed: '+err.message); return {error:String(err&&err.message||err)}; }
+  finally{ state.view=snap.view; state.showFig=snap.showFig; rebuild(); if(btn&&!opts.debug) btn.textContent=lbl; }
+}
+document.getElementById('print3d').onclick=()=>export3DPrint();
+
+/* ===== tool switcher ===== */
+(function(){ const sel=document.getElementById('toolSel'); if(!sel) return;
+  sel.addEventListener('change',function(){ const o=sel.options[sel.selectedIndex]; if(!o) return;
+    const name=o.value, file=o.getAttribute('data-file');
+    if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
+    window.location.href=file;
+  });
+})();
+
+/* ===== onboarding ===== */
+const OBKEY='furniture:onboarded';
+function openOnboard(){ document.getElementById('obModal').classList.add('on'); }
+function closeOnboard(){ document.getElementById('obModal').classList.remove('on'); try{ localStorage.setItem(OBKEY,'1'); }catch(e){} }
+document.getElementById('obStart').onclick=closeOnboard;
+document.getElementById('obModal').addEventListener('click',e=>{ if(e.target.id==='obModal') closeOnboard(); });
+document.getElementById('howBtn').addEventListener('click',e=>{ e.preventDefault(); openOnboard(); });
+try{ if(!localStorage.getItem(OBKEY)) openOnboard(); }catch(e){}
+
+/* hide brand bar when embedded in Studio OS */
+if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.style.display='none'; }
+
+/* ===== go ===== */
+syncRangesForType();
+update();
+</script>
+</body>
+</html>
