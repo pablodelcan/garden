@@ -65,6 +65,12 @@
   body[data-view="blueprint"] .unittog,body[data-view="blueprint"] .viewseg{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3)}
   body[data-view="blueprint"] .unittog b,body[data-view="blueprint"] .viewseg b{color:#bcd4f2;border-color:rgba(255,255,255,.18)}
   body[data-view="blueprint"] .unittog b.on,body[data-view="blueprint"] .viewseg b.on{background:#eaf1fb;color:var(--blue)}
+  .toolwrap{position:relative;display:inline-flex;align-items:center}
+  .toolwrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tm);pointer-events:none}
+  .toolsel{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--tx);background:var(--paper);border:1px solid var(--bd2);border-radius:3px;padding:4px 22px 4px 9px;line-height:1.35;cursor:pointer;-webkit-appearance:none;appearance:none}
+  .toolsel:focus{outline:none;border-color:var(--tx)}
+  body[data-view="blueprint"] .toolsel{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:#bcd4f2}
+  body[data-view="blueprint"] .toolwrap::after{color:#bcd4f2}
 
   .paper{background:var(--paper);border:1.5px solid var(--ink);border-radius:2px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;animation:fu .5s ease both}
   .left{position:fixed;left:22px;top:62px;bottom:84px;width:300px;z-index:5;transition:left .4s cubic-bezier(.4,0,.2,1)}
@@ -467,6 +473,11 @@
 <div class="topbar">
   <div class="brand">Studio&nbsp;OS <b>·</b> Playhouse Builder</div>
   <div class="topright">
+    <div class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch builder" title="Switch builder">
+      <option value="Playhouse" data-file="playhouse.html" selected>Playhouse</option>
+      <option value="Greenhouse" data-file="greenhouse.html">Greenhouse</option>
+      <option value="Small House" data-file="smallhouse.html">Small House</option>
+    </select></div>
     <div class="viewseg" id="viewSeg"><b data-view="shaded">Shaded</b><b data-view="manual">Line</b><b data-view="color" class="on">Color</b><b data-view="blueprint">Blueprint</b></div>
     <div class="unittog" id="unitTog"><b data-u="imp" class="on">ft</b><b data-u="met">m</b></div>
   </div>
@@ -2912,6 +2923,14 @@ if(controls) frame();
 loadFromHash();
 // hide the redundant brand bar when embedded as a Studio OS tool (overlay shows its own title)
 if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.style.display='none'; }
+// tool switcher: when framed in Studio OS, ask the shell to switch (updates its title bar, single load); else navigate directly
+(function(){ var sel=document.getElementById('toolSel'); if(!sel) return;
+  sel.addEventListener('change',function(){ var o=sel.options[sel.selectedIndex]; if(!o) return;
+    var name=o.value, file=o.getAttribute('data-file');
+    if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
+    window.location.href=file;
+  });
+})();
 </script>
 </body>
 </html>
