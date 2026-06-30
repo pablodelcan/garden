@@ -434,7 +434,7 @@ function rebuild(){
   clearModel();
   const t=state.type, W=state.W, D=state.D, H=state.H, topT=state.topT, legT=state.legT;
   const wood=C(), apronCol=wood, legCol=wood;
-  const inset=Math.max(legT/2+0.8, 2.2);          // leg centre inset from the edge
+  const inset=(t==='chair')?Math.max(legT*0.5+0.55,1.5):Math.max(legT/2+0.8, 2.2);   // tighter on chairs so the back sits near the seat edge
   const round=(t!=='chair') && state.topShape==='round';
   const topR=Math.min(W,D)/2;
   let lx=W/2-inset, lz=D/2-inset;
@@ -462,19 +462,20 @@ function rebuild(){
       box(2*lx, st, st, 0, sy, 0, legCol,'stretch');                               // centre stretcher
     }
   }
-  // backrest = raked posts + top rail + (slats | ladder | solid), all sharing one rake plane so nothing floats
-  function buildBack(seatH, backH){
-    const r=BACK_RAKE, bz=-lz, zAt=y=>bz - Math.tan(r)*(y-seatH);
-    const piece=(w,vBot,vTop,x,thick)=>{ const span=vTop-vBot, len=span/Math.cos(r), midY=(vBot+vTop)/2;
-      box(w,len,thick, x, midY, zAt(midY), wood,'back',{rotX:-r}); };
-    for(const sx of [-1,1]) piece(legT, seatH-topT, backH, sx*lx, legT);             // the two back posts (continue the rear legs)
-    box(2*lx+legT, 1.7, 1.1, 0, backH-1, zAt(backH-1), wood,'back',{rotX:-r});        // top rail
-    const innerW=2*lx-legT, st=state.backStyle;
-    if(st==='solid'){ piece(innerW-0.6, seatH+3, backH-2.2, 0, 0.7); }
-    else if(st==='ladder'){ const m=Math.max(2,Math.round((backH-seatH)/4));
+  // backrest — rear stiles/posts + top rail + (slats | ladder | solid), all on ONE rake plane through the seat-back corner.
+  // stileFromY = 0 → one continuous rear leg+post (chair); = seat underside → short posts mounted on the seat (bench)
+  function buildBack(seatH, backH, stileFromY){
+    const r=BACK_RAKE, pivotY=seatH-topT, zAt=y=>-lz - Math.tan(r)*(y-pivotY);
+    const piece=(w,vBot,vTop,x,thick,part)=>{ const len=(vTop-vBot)/Math.cos(r), midY=(vBot+vTop)/2;
+      box(w,len,thick, x, midY, zAt(midY), wood, part||'back', {rotX:-r}); };
+    for(const sx of [-1,1]) piece(legT, stileFromY, backH, sx*lx, legT, stileFromY<0.5?'leg':'back');   // rear stiles / back posts
+    box(2*lx+legT, 1.7, 1.1, 0, backH-1.2, zAt(backH-1.2), wood,'back',{rotX:-r});                       // top rail
+    const innerW=2*lx-legT, bs=state.backStyle;
+    if(bs==='solid'){ piece(innerW-0.6, seatH+3, backH-2.4, 0, 0.7,'back'); }
+    else if(bs==='ladder'){ const m=Math.max(2,Math.round((backH-seatH)/4));
       for(let i=0;i<m;i++){ const y=seatH+4 + i*(backH-seatH-7)/(m-1||1); box(innerW, 1.5, 0.7, 0, y, zAt(y), wood,'back',{rotX:-r}); } }
     else { const n=Math.max(1,Math.min(6,state.slats)), sp=innerW-1.5, sw=Math.min(2.4, sp/(n*1.5));
-      for(let i=0;i<n;i++){ const px=(n===1)?0:(-sp/2+i*sp/(n-1)); piece(sw, seatH+3, backH-2.2, px, 0.7); } }
+      for(let i=0;i<n;i++){ const px=(n===1)?0:(-sp/2+i*sp/(n-1)); piece(sw, seatH+3, backH-2.4, px, 0.7,'back'); } }
   }
   function arms(seatH){
     if(!state.arms) return; const armY=seatH+9, fz=lz-0.4;
@@ -486,13 +487,13 @@ function rebuild(){
     fourLegs(legTop);
     apron(); stretchers();
     addTop(W,D,topT,state.topShape, H, wood);
-    if(t==='bench' && state.benchBack) buildBack(H, state.backH);
+    if(t==='bench' && state.benchBack) buildBack(H, state.backH, H-topT);
   } else if(t==='chair'){
     const seatH=H, backH=state.backH;
-    fourLegs(seatH-topT);                                  // four vertical legs to the seat (splay = feet kick out)
+    for(const sx of [-1,1]) legPost(sx*lx, lz, seatH-topT, seatH-topT, legT, legCol,'leg');   // two front legs (vertical)
     apron();
     addTop(W,D,topT,state.topShape, seatH, wood);          // seat
-    buildBack(seatH, backH);
+    buildBack(seatH, backH, 0);                            // rear stiles run floor → back as one continuous piece
     arms(seatH);
   }
 
@@ -558,7 +559,7 @@ function stockLen(inch){ const opts=[24,36,48,72,96]; for(const o of opts) if(in
 function computeMaterials(){
   const t=state.type, W=state.W, D=state.D, H=state.H, topT=state.topT, legT=state.legT;
   const wd=WOODS[state.wood], m=wd.mult, groups=[]; let total=0;
-  const inset=Math.max(legT/2+0.8,2.2);
+  const inset=(t==='chair')?Math.max(legT*0.5+0.55,1.5):Math.max(legT/2+0.8,2.2);
   function G(name){ const g={name,items:[]}; groups.push(g); return g; }
   function add(g,qty,unit,label,detail,cost,link){ g.items.push({qty,unit,label,detail,cost:Math.round(cost),link}); total+=Math.round(cost); }
 
@@ -566,9 +567,15 @@ function computeMaterials(){
   const legGroup=G('Legs & frame');
   const round=(t!=='chair') && state.topShape==='round';
   const hasBack = (t==='chair') || (t==='bench' && state.benchBack);
-  const baseH = t==='chair'?H:H;                          // seat/top height the legs reach
+  const baseH = H;                                        // seat/top height the legs reach
   const legLen=baseH-topT;
-  add(legGroup,4,'pcs',`Legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${state.legStyle!=='straight'?' · '+state.legStyle:''} · from ${legT}×${legT} stock`, 4*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+  if(t==='chair'){
+    add(legGroup,2,'pcs',`Front legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${state.legStyle!=='straight'?' · '+state.legStyle:''} · from ${legT}×${legT} stock`, 2*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+    const stileLen=Math.round(state.backH/Math.cos(0.11));
+    add(legGroup,2,'pcs',`Rear stiles — ${legT}×${legT}`,`cut to ~${fmtLen(stileLen)} · leg + back post in one raked piece`, 2*legPrice(legT,stockLen(stileLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+  } else {
+    add(legGroup,4,'pcs',`Legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${state.legStyle!=='straight'?' · '+state.legStyle:''} · from ${legT}×${legT} stock`, 4*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+  }
   if(state.apron){
     if(round){ const circ=Math.PI*Math.min(W,D);
       add(legGroup,1,'skirt','Round apron skirt',`~${fmtLen(circ)} of 1×4 — bent lamination or segmented under the rim`, railPrice(circ*0.5,m)+10, lw(`1 x 4 ${wd.label.toLowerCase()} board`)); }
@@ -591,8 +598,8 @@ function computeMaterials(){
     `${shapeWord} · ${topT}" thick · ${state.wood==='birchply'?'plywood, edge-banded':'glued-up boards or a panel'} (${Math.round(area)} sq in)`,
     topCost, state.wood==='birchply'?lw('birch plywood 3/4 4x8'):lw(`${wd.label.toLowerCase()} board 1x6`));
   if(hasBack){
-    const postLen=(state.backH-baseH)+topT+3;
-    add(topGroup,2,'pcs','Back posts',`cut to ~${fmtLen(postLen)} · raked back ~6°`, 2*legPrice(legT,stockLen(postLen),m)*0.9, lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+    if(t!=='chair'){ const postLen=(state.backH-baseH)+topT+3;   // bench: posts mount on the seat (a chair's posts are the rear stiles above)
+      add(topGroup,2,'pcs','Back posts',`cut to ~${fmtLen(postLen)} · raked back ~6°`, 2*legPrice(legT,stockLen(postLen),m)*0.9, lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`)); }
     add(topGroup,1,'pc','Top rail',`cut to ${fmtLen(2*(W/2-inset)+legT)}`, railPrice(W,m)*0.55, lw(`${wd.label.toLowerCase()} board 1x3`));
     if(state.backStyle==='solid') add(topGroup,1,'panel','Back panel','a single thin panel between the posts', topPanelCost((state.backH-baseH)*(W-2*inset),0.7,state.wood)*0.5, lw(`${wd.label.toLowerCase()} 1x10 board`));
     else if(state.backStyle==='ladder'){ const k=Math.max(2,Math.round((state.backH-baseH)/4));
@@ -763,10 +770,19 @@ document.getElementById('spin').onclick=function(){ spin=!spin; this.classList.t
 document.getElementById('recenter').onclick=()=>{ camera.position.set(78,62,116); controls.target.set(0,(state.type==='chair'?state.backH:state.H)*0.42,0); };
 document.getElementById('focusBtn').onclick=function(){ const f=!document.body.classList.contains('lhide'); document.body.classList.toggle('lhide',f); document.body.classList.toggle('rhide',f); this.classList.toggle('on',f); };
 document.getElementById('figBtn').onclick=function(){ state.showFig=!state.showFig; this.classList.toggle('on',state.showFig); rebuild(); };
-let _expAnim=0, _expTarget=0;
-function animExplode(target){ cancelAnimationFrame(_expAnim); const start=state.explode; let f=0; const N=14;
-  (function step(){ f++; state.explode=start+(target-start)*(f/N); rebuild(); if(f<N) _expAnim=requestAnimationFrame(step); else { state.explode=target; rebuild(); } })(); }
-document.getElementById('explodeBtn').onclick=function(){ _expTarget=_expTarget?0:1; this.classList.toggle('on',!!_expTarget); if(_expTarget) spin=false, document.getElementById('spin').classList.remove('on'); animExplode(_expTarget); };
+let _expGen=0, _expTarget=0;
+function animExplode(target){               // time-based + generation token → robust if rAF is throttled or rapidly toggled
+  const gen=++_expGen, start=state.explode, t0=performance.now(), dur=320;
+  function step(now){
+    if(gen!==_expGen) return;               // superseded by a newer toggle — abort this frame chain
+    const k=Math.min(1,(now-t0)/dur);
+    state.explode=start+(target-start)*k; rebuild();
+    if(k<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+  setTimeout(()=>{ if(gen===_expGen && state.explode!==target){ state.explode=target; rebuild(); } }, dur+160);
+}
+document.getElementById('explodeBtn').onclick=function(){ _expTarget=_expTarget?0:1; this.classList.toggle('on',!!_expTarget); if(_expTarget){ spin=false; document.getElementById('spin').classList.remove('on'); } animExplode(_expTarget); };
 document.getElementById('hideL').onclick=()=>document.body.classList.add('lhide');
 document.getElementById('hideR').onclick=()=>document.body.classList.add('rhide');
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ const ob=document.getElementById('obModal'); if(ob.classList.contains('on')){closeOnboard();return;}
