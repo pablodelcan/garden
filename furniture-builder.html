@@ -198,6 +198,32 @@
       <div class="seg three" id="typeSeg"><button data-t="table" class="on">Table</button><button data-t="chair">Chair</button><button data-t="bench">Bench</button></div>
     </div>
 
+    <div class="group">
+      <p class="glabel">Style preset</p>
+      <select id="styleSel">
+        <option value="custom" selected>Custom — set it yourself</option>
+        <optgroup label="Tables">
+          <option value="farmhouse">Farmhouse — chunky &amp; sturdy</option>
+          <option value="parsons">Parsons — square &amp; minimal</option>
+          <option value="shaker-t">Shaker — tapered &amp; simple</option>
+          <option value="midcentury-t">Mid-century — splayed, walnut</option>
+          <option value="hairpin-t">Hairpin — thin steel legs</option>
+          <option value="pedestal-t">Pedestal — round top</option>
+          <option value="trestle-t">Trestle — twin-end base</option>
+        </optgroup>
+        <optgroup label="Chairs">
+          <option value="windsor">Windsor — spindle back, turned</option>
+          <option value="shaker-c">Shaker — ladder back</option>
+          <option value="midcentury-c">Mid-century — splayed + cushion</option>
+        </optgroup>
+        <optgroup label="Benches">
+          <option value="entry">Entry — low &amp; simple</option>
+          <option value="settle">Settle — bench with a back</option>
+          <option value="picnic">Picnic — trestle bench</option>
+        </optgroup>
+      </select>
+    </div>
+
     <div class="group" id="dimGroup">
       <p class="glabel">Dimensions</p>
       <div class="ctl"><div class="row"><label id="lblW">Width</label><span class="val" id="vW"></span></div><input type="range" id="W"></div>
@@ -206,16 +232,26 @@
       <div class="ctl" id="ctlBack"><div class="row"><label>Back height</label><span class="val" id="vBack"></span></div><input type="range" id="backH"></div>
       <div class="ctl"><div class="row"><label id="lblTop">Top thickness</label><span class="val" id="vTop"></span></div><input type="range" id="topT"></div>
       <div class="ctl"><div class="row"><label>Leg thickness</label><span class="val" id="vLeg"></span></div><input type="range" id="legT"></div>
+      <div class="ctl" id="ctlOverhang"><div class="row"><label>Top overhang</label><span class="val" id="vOver"></span></div><input type="range" id="overhang" min="0.5" max="8" step="0.5"></div>
     </div>
 
     <div class="group">
-      <p class="glabel">Legs</p>
-      <div class="seg three" id="legSeg"><button data-l="straight" class="on">Straight</button><button data-l="tapered">Tapered</button><button data-l="splayed">Splayed</button></div>
+      <p class="glabel" id="lblLegs">Legs &amp; base</p>
+      <select id="legSel">
+        <option value="straight">Straight</option>
+        <option value="tapered" selected>Tapered</option>
+        <option value="splayed">Splayed (angled)</option>
+        <option value="turned">Turned — lathe spindle</option>
+        <option value="hairpin">Hairpin — steel</option>
+        <option value="pedestal" data-nochair="1">Pedestal — centre column</option>
+        <option value="trestle" data-nochair="1">Trestle — twin ends</option>
+      </select>
     </div>
 
     <div class="group">
-      <p class="glabel" id="lblTopShape">Top shape</p>
+      <p class="glabel" id="lblTopShape">Top</p>
       <div class="seg three" id="topSeg"><button data-s="rect" class="on">Rect</button><button data-s="soft">Soft</button><button data-s="round">Round</button></div>
+      <div class="ctl" style="margin-top:12px"><div class="row"><label>Edge profile</label></div><div class="seg" style="grid-template-columns:repeat(4,1fr)" id="edgeSeg"><button data-e="square">Square</button><button data-e="eased" class="on">Eased</button><button data-e="chamfer">Cham.</button><button data-e="bullnose">Bull.</button></div></div>
     </div>
 
     <div class="group">
@@ -223,16 +259,20 @@
       <div class="togrow">
         <label class="tog2"><input type="checkbox" id="optApron" checked> Apron</label>
         <label class="tog2"><input type="checkbox" id="optStretcher"> Stretcher</label>
+        <label class="tog2" id="wrapShelf"><input type="checkbox" id="optShelf"> Lower shelf</label>
+        <label class="tog2" id="wrapCushion"><input type="checkbox" id="optCushion"> Cushion</label>
         <label class="tog2" id="wrapArms" style="display:none"><input type="checkbox" id="optArms"> Arms</label>
         <label class="tog2" id="wrapBenchBack" style="display:none"><input type="checkbox" id="optBenchBack"> Backrest</label>
+        <label class="tog2" id="wrapCrest" style="display:none"><input type="checkbox" id="optCrest"> Crest rail</label>
       </div>
       <div class="ctl" id="ctlStretchStyle" style="display:none;margin-top:14px"><div class="row"><label>Stretcher style</label></div><div class="seg two" id="stretchSeg"><button data-ss="h" class="on">H-frame</button><button data-ss="x">X-cross</button></div></div>
-      <div class="ctl" id="ctlBackStyle" style="display:none;margin-top:14px"><div class="row"><label>Back style</label></div><div class="seg three" id="backSeg"><button data-bs="slats" class="on">Slats</button><button data-bs="ladder">Ladder</button><button data-bs="solid">Solid</button></div></div>
-      <div class="ctl" id="ctlSlats" style="display:none;margin-top:14px"><div class="row"><label>Back slats</label><span class="val" id="vSlats"></span></div><input type="range" id="slats" min="1" max="6" step="1" value="3"></div>
+      <div class="ctl" id="ctlBackStyle" style="display:none;margin-top:14px"><div class="row"><label>Back style</label></div><div class="seg" style="grid-template-columns:repeat(4,1fr)" id="backSeg"><button data-bs="slats" class="on">Slats</button><button data-bs="ladder">Ladder</button><button data-bs="spindles">Spindle</button><button data-bs="solid">Solid</button></div></div>
+      <div class="ctl" id="ctlSlats" style="display:none;margin-top:14px"><div class="row"><label id="lblSlats">Back slats</label><span class="val" id="vSlats"></span></div><input type="range" id="slats" min="1" max="7" step="1" value="3"></div>
+      <div class="ctl" id="ctlFoot" style="margin-top:14px"><div class="row"><label>Feet</label></div><div class="seg" style="grid-template-columns:repeat(4,1fr)" id="footSeg"><button data-ft="plain" class="on">Plain</button><button data-ft="pad">Pad</button><button data-ft="leveler">Level</button><button data-ft="caster">Caster</button></div></div>
     </div>
 
     <div class="group">
-      <p class="glabel">Wood</p>
+      <p class="glabel">Wood &amp; finish</p>
       <select id="wood">
         <option value="pine">Pine — paint-grade, cheapest</option>
         <option value="oak" selected>Red oak — hard, classic</option>
@@ -240,6 +280,14 @@
         <option value="walnut">Walnut — dark, premium</option>
         <option value="birchply">Birch plywood — for the top</option>
       </select>
+      <div id="finRow" style="display:flex;gap:7px;margin-top:11px;align-items:center;flex-wrap:wrap">
+        <button class="finsw on" data-fin="natural" style="font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;padding:6px 9px;border:none;cursor:pointer;background:rgba(0,0,0,.06);color:var(--tx)">Natural</button>
+        <button class="finsw" data-fin="#efe9de" title="White" style="width:24px;height:24px;border:1px solid var(--bd);cursor:pointer;background:#efe9de"></button>
+        <button class="finsw" data-fin="#2c2c2e" title="Black" style="width:24px;height:24px;border:none;cursor:pointer;background:#2c2c2e"></button>
+        <button class="finsw" data-fin="#7f8b6f" title="Sage" style="width:24px;height:24px;border:none;cursor:pointer;background:#7f8b6f"></button>
+        <button class="finsw" data-fin="#33465e" title="Navy" style="width:24px;height:24px;border:none;cursor:pointer;background:#33465e"></button>
+        <button class="finsw" data-fin="#a9603f" title="Clay" style="width:24px;height:24px;border:none;cursor:pointer;background:#a9603f"></button>
+      </div>
       <p class="archmsg" id="woodCap" style="margin-top:10px"></p>
     </div>
   </div>
@@ -306,10 +354,11 @@ import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ===== state ===== */
+const BASE={overhang:2.5,edge:'eased',shelf:false,cushion:false,crest:false,foot:'plain'};
 const PRESET={
-  table:{W:48,D:30,H:29,topT:1.5,legT:3,backH:34,legStyle:'tapered',apron:true,stretcher:false,arms:false,slats:3,topShape:'rect',stretcherStyle:'h',backStyle:'slats',benchBack:false},
-  chair:{W:18,D:17,H:18,topT:1.25,legT:1.75,backH:34,legStyle:'straight',apron:true,stretcher:false,arms:false,slats:3,topShape:'soft',stretcherStyle:'h',backStyle:'slats',benchBack:false},
-  bench:{W:48,D:14,H:18,topT:1.5,legT:2.5,backH:34,legStyle:'straight',apron:true,stretcher:true,arms:false,slats:3,topShape:'rect',stretcherStyle:'h',backStyle:'slats',benchBack:false},
+  table:Object.assign({W:48,D:30,H:29,topT:1.5,legT:3,backH:34,legStyle:'tapered',apron:true,stretcher:false,arms:false,slats:3,topShape:'rect',stretcherStyle:'h',backStyle:'slats',benchBack:false},BASE,{overhang:2.5}),
+  chair:Object.assign({W:18,D:17,H:18,topT:1.25,legT:1.75,backH:34,legStyle:'straight',apron:true,stretcher:false,arms:false,slats:3,topShape:'soft',stretcherStyle:'h',backStyle:'slats',benchBack:false},BASE,{overhang:1.4}),
+  bench:Object.assign({W:48,D:14,H:18,topT:1.5,legT:2.5,backH:34,legStyle:'straight',apron:true,stretcher:true,arms:false,slats:3,topShape:'rect',stretcherStyle:'h',backStyle:'slats',benchBack:false},BASE,{overhang:2}),
 };
 const RANGE={
   table:{W:[30,96],D:[20,44],H:[26,38]},
@@ -321,7 +370,7 @@ const RNG={
   chair:{W:[14,26],D:[14,22],H:[15,20]},
   bench:{W:[24,96],D:[10,22],H:[14,20]},
 };
-const state=Object.assign({type:'table',wood:'oak',view:'color',unit:'imp',showFig:false,explode:0}, PRESET.table);
+const state=Object.assign({type:'table',wood:'oak',finishCol:'natural',view:'color',unit:'imp',showFig:false,explode:0}, PRESET.table);
 
 const WOODS={
   pine:   {label:'Pine',         color:'#d8b27a', mult:1.0, cap:'Soft, cheap, paint- or stain-grade. Easiest to cut; dents easily.'},
@@ -380,7 +429,8 @@ function init(){
 function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
 function clearModel(){ for(let i=model.children.length-1;i>=0;i--){ const o=model.children[i]; model.remove(o); if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); } }
 
-const C=()=>WOODS[state.wood].color;
+const C=()=>(state.finishCol && state.finishCol!=='natural') ? state.finishCol : WOODS[state.wood].color;
+function shade(hex,f){ const n=parseInt(hex.slice(1),16); const r=Math.min(255,Math.round(((n>>16)&255)*f)),g=Math.min(255,Math.round(((n>>8)&255)*f)),b=Math.min(255,Math.round((n&255)*f)); return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
 function box(w,h,d,x,y,z,color,part,o={}){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),
     new THREE.MeshStandardMaterial({color,roughness:0.72,metalness:0.02}));
@@ -393,20 +443,39 @@ function ball(r,x,y,z,color,part){
   m.position.set(x,y,z); m.castShadow=true; m.userData.part=part||'figure'; model.add(m); return m;
 }
 const BACK_RAKE=0.11;   // back leans back ~6.3°
-// square 4-sided post — PIVOTS AT THE TOP so the top stays put under the apron and the foot kicks out when splayed
-function legPost(cx,cz,topY,len,wd,color,part,opts={}){
+const METAL='#8b8f94';
+// square post — straight / tapered / splayed. PIVOTS AT THE TOP so the top stays put and the foot kicks out when splayed
+function postLeg(cx,cz,topY,len,wd,color,part,opts={}){
   const taper=state.legStyle==='tapered';
   const rT=wd/Math.SQRT2, rB=rT*(taper?0.5:1);
   const g=new THREE.CylinderGeometry(rT,rB,len,4);
-  g.translate(0,-len/2,0);            // top of the post sits at the local origin, body hangs down
-  g.rotateY(Math.PI/4);               // align the square faces to X/Z
+  g.translate(0,-len/2,0); g.rotateY(Math.PI/4);
   const m=new THREE.Mesh(g, new THREE.MeshStandardMaterial({color,roughness:0.72}));
   m.position.set(cx,topY,cz);
-  if(state.legStyle==='splayed' && !opts.noSplay){ const a=0.14;   // foot kicks outward, top stays at the corner
-    m.rotation.z=Math.sign(cx||1)*a; m.rotation.x=-Math.sign(cz||1)*a; }
+  if(state.legStyle==='splayed' && !opts.noSplay){ const a=0.14; m.rotation.z=Math.sign(cx||1)*a; m.rotation.x=-Math.sign(cz||1)*a; }
   m.castShadow=true; m.receiveShadow=true; m.userData.part=part||'leg'; model.add(m); return m;
 }
-// point-to-point strut (for X-stretchers)
+// lathe-turned spindle leg (beads + coves)
+function turnedLeg(cx,cz,topY,len,wd,color,part){
+  const R=wd/2, pts=[], P=(f,r)=>pts.push(new THREE.Vector2(Math.max(0.06,r), f*len));
+  P(0,R*0.5);P(0.03,R*0.82);P(0.07,R*0.5);P(0.12,R*0.44);P(0.2,R*0.66);P(0.28,R*0.5);
+  P(0.46,R*0.44);P(0.56,R*0.74);P(0.62,R*0.86);P(0.68,R*0.72);P(0.82,R*0.5);P(0.92,R*0.95);P(0.985,R);P(1,R);
+  const g=new THREE.LatheGeometry(pts,22);
+  const m=new THREE.Mesh(g, new THREE.MeshStandardMaterial({color,roughness:0.72}));
+  m.position.set(cx,topY-len,cz); m.castShadow=true; m.receiveShadow=true; m.userData.part=part||'leg'; model.add(m); return m;
+}
+// mid-century hairpin — two thin steel rods per corner
+function hairpinLeg(cx,cz,topY,len,part){
+  const r=Math.hypot(cx,cz)||1, tx=-cz/r, tz=cx/r, ux=cx/r, uz=cz/r, spread=Math.min(3,len*0.16);
+  box(2.4,0.35,2.4, cx,topY-0.18,cz, METAL,'leg');                       // top mounting plate
+  const top=new THREE.Vector3(cx,topY-0.35,cz);
+  for(const s of [-1,1]){ const foot=new THREE.Vector3(cx+tx*s*spread+ux*1.4, 0, cz+tz*s*spread+uz*1.4);
+    const dir=new THREE.Vector3().subVectors(foot,top), L=dir.length();
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,L,10), new THREE.MeshStandardMaterial({color:METAL,roughness:0.32,metalness:0.85}));
+    m.position.copy(top).addScaledVector(dir,0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+    m.castShadow=true; m.userData.part='leg'; model.add(m); }
+}
+// point-to-point strut (X-stretchers, hairpin rods, braces)
 function strut(p1,p2,thick,color,part){
   const a=new THREE.Vector3(p1[0],p1[1],p1[2]), b=new THREE.Vector3(p2[0],p2[1],p2[2]);
   const dir=new THREE.Vector3().subVectors(b,a), len=dir.length();
@@ -415,97 +484,146 @@ function strut(p1,p2,thick,color,part){
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
   m.castShadow=true; m.receiveShadow=true; m.userData.part=part||'apron'; model.add(m); return m;
 }
-function roundedRect(w,d,r){ const s=new THREE.Shape(), x=-w/2, y=-d/2;
+// round rod (turned spindle / dowel) between two points
+function rod(p1,p2,rad,color,part){
+  const a=new THREE.Vector3(p1[0],p1[1],p1[2]), b=new THREE.Vector3(p2[0],p2[1],p2[2]);
+  const dir=new THREE.Vector3().subVectors(b,a), len=dir.length();
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,len,10), new THREE.MeshStandardMaterial({color,roughness:0.7}));
+  m.position.copy(a).addScaledVector(dir,0.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+  m.castShadow=true; m.receiveShadow=true; m.userData.part=part||'back'; model.add(m); return m;
+}
+function roundedRect(w,d,r){ const s=new THREE.Shape(), x=-w/2, y=-d/2; r=Math.max(0.001,r);
   s.moveTo(x+r,y); s.lineTo(x+w-r,y); s.quadraticCurveTo(x+w,y,x+w,y+r);
   s.lineTo(x+w,y+d-r); s.quadraticCurveTo(x+w,y+d,x+w-r,y+d);
   s.lineTo(x+r,y+d); s.quadraticCurveTo(x,y+d,x,y+d-r);
   s.lineTo(x,y+r); s.quadraticCurveTo(x,y,x+r,y); return s; }
-// top / seat slab with shape = rect | soft (rounded corners) | round; top surface sits at topY
-function addTop(W,D,th,shape,topY,color){
-  let geo;
-  if(shape==='round'){ const r=Math.min(W,D)/2; geo=new THREE.CylinderGeometry(r,r,th,56); geo.translate(0,-th/2,0); }
-  else if(shape==='soft'){ geo=new THREE.ExtrudeGeometry(roundedRect(W,D,Math.min(W,D)*0.1),{depth:th,bevelEnabled:false}); geo.rotateX(-Math.PI/2); geo.translate(0,-th,0); }
-  else { geo=new THREE.BoxGeometry(W,th,D); geo.translate(0,-th/2,0); }
-  const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color,roughness:0.72}));
+function topShapePath(W,D,shape){
+  if(shape==='round'){ const s=new THREE.Shape(); s.absarc(0,0,Math.min(W,D)/2,0,Math.PI*2,false); return s; }
+  return roundedRect(W,D, shape==='soft'?Math.min(W,D)*0.1:0.001);
+}
+// top / seat slab: shape (rect|soft|round) × edge profile (square|eased|chamfer|bullnose); top surface at topY
+function addTop(W,D,th,shape,edge,topY,color){
+  const bev = edge==='square'?0 : edge==='chamfer'?Math.min(th*0.5,0.6) : edge==='bullnose'?Math.min(th*0.48,0.95) : 0.14;
+  const seg = edge==='bullnose'?4 : edge==='eased'?2 : 1;
+  const geo=new THREE.ExtrudeGeometry(topShapePath(W,D,shape), bev>0
+    ? {depth:Math.max(0.2,th-2*bev),bevelEnabled:true,bevelThickness:bev,bevelSize:bev,bevelSegments:seg,curveSegments:shape==='round'?52:12}
+    : {depth:th,bevelEnabled:false,curveSegments:shape==='round'?52:12});
+  geo.rotateX(-Math.PI/2); geo.computeBoundingBox(); geo.translate(0,-geo.boundingBox.max.y,0);   // top face → y=0
+  const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color,roughness:0.68}));
   m.position.set(0,topY,0); m.castShadow=true; m.receiveShadow=true; m.userData.part='top'; model.add(m); return m;
 }
 
 function rebuild(){
   clearModel();
   const t=state.type, W=state.W, D=state.D, H=state.H, topT=state.topT, legT=state.legT;
-  const wood=C(), apronCol=wood, legCol=wood;
-  const inset=(t==='chair')?Math.max(legT*0.5+0.55,1.5):Math.max(legT/2+0.8, 2.2);   // tighter on chairs so the back sits near the seat edge
+  const wood=C(), apronCol=wood, legCol=wood, ls=state.legStyle;
+  const pedestal=(ls==='pedestal') && t!=='chair', trestle=(ls==='trestle') && t!=='chair';
   const round=(t!=='chair') && state.topShape==='round';
   const topR=Math.min(W,D)/2;
+  const inset=(t==='chair')?Math.max(legT*0.5+0.55,1.4):Math.max(legT/2+0.5, state.overhang||2);   // overhang controls the leg inset
   let lx=W/2-inset, lz=D/2-inset;
-  if(round){ const lp=Math.max(2.5,(topR-legT*0.7)/Math.SQRT2); lx=lp; lz=lp; }   // tuck the 4 legs inside the round top
-  const legTop=H-topT;                            // legs run to the underside of the top/seat
-  const apronOn=state.apron, apH=Math.min(3.5, legTop*0.4), apT=0.85, apY=legTop-apH/2-0.4;
+  if(round && !pedestal){ const lp=Math.max(2.5,(topR-legT*0.7)/Math.SQRT2); lx=lp; lz=lp; }
+  const legTop=H-topT;
+  const apronOn=state.apron && !pedestal && !trestle, apH=Math.min(3.5, legTop*0.4), apT=0.85, apY=legTop-apH/2-0.4;
+  const sy=Math.max(3.5,H*0.22), sth=Math.max(1.2,legT*0.55);   // stretcher / shelf height & thickness
+  const FABRIC='#5f6f86';
 
-  function fourLegs(toY){ for(const sx of [-1,1]) for(const sz of [-1,1]) legPost(sx*lx, sz*lz, toY, toY, legT, legCol, 'leg'); }
+  const oneLeg=(cx,cz,topY,len,part)=> ls==='turned'?turnedLeg(cx,cz,topY,len,legT,legCol,part)
+    : ls==='hairpin'?hairpinLeg(cx,cz,topY,len,part) : postLeg(cx,cz,topY,len,legT,legCol,part);
+  function fourLegs(toY){ for(const sx of [-1,1]) for(const sz of [-1,1]) oneLeg(sx*lx, sz*lz, toY, toY, 'leg'); }
+  function footCaps(pos){
+    if(state.foot==='plain' || ls==='hairpin' || pedestal || trestle) return;
+    for(const [x,z] of pos){
+      if(state.foot==='pad') box(legT+0.7,0.4,legT+0.7, x,0.2,z, shade(wood,0.82),'foot');
+      else if(state.foot==='leveler') box(legT*0.7,0.3,legT*0.7, x,0.15,z, METAL,'foot');
+      else if(state.foot==='caster'){ box(legT*0.7,0.5,legT*0.7, x,0.75,z, '#2b2b2d','foot'); ball(0.62, x,0.42,z, '#38383b','foot'); }
+    }
+  }
   function apron(){
     if(!apronOn) return;
-    if(round){ const sr=topR-1.2, g=new THREE.CylinderGeometry(sr,sr,apH,44,1,true); g.translate(0,apY,0);   // round skirt under the top
+    if(round){ const sr=topR-1.2, g=new THREE.CylinderGeometry(sr,sr,apH,44,1,true); g.translate(0,apY,0);
       const m=new THREE.Mesh(g, new THREE.MeshStandardMaterial({color:apronCol,roughness:0.72,side:THREE.DoubleSide}));
       m.castShadow=true; m.receiveShadow=true; m.userData.part='apron'; model.add(m); return; }
-    for(const sz of [-1,1]) box(W-2*inset-legT, apH, apT, 0, apY, sz*(lz-legT/2+apT/2), apronCol,'apron');   // front/back rails
-    for(const sx of [-1,1]) box(apT, apH, D-2*inset-legT, sx*(lx-legT/2+apT/2), apY, 0, apronCol,'apron');   // side rails
+    for(const sz of [-1,1]) box(2*lx-legT, apH, apT, 0, apY, sz*(lz-legT/2+apT/2), apronCol,'apron');
+    for(const sx of [-1,1]) box(apT, apH, 2*lz-legT, sx*(lx-legT/2+apT/2), apY, 0, apronCol,'apron');
   }
   function stretchers(){
     if(!state.stretcher) return;
-    const sy=Math.max(3.5, H*0.22), st=Math.max(1.2, legT*0.55);
-    if(state.stretcherStyle==='x'){
-      strut([lx,sy,lz],[-lx,sy,-lz], st, legCol,'stretch');
-      strut([-lx,sy,lz],[lx,sy,-lz], st, legCol,'stretch');
-    } else {
-      for(const sx of [-1,1]) box(st, st, 2*lz, sx*lx, sy, 0, legCol,'stretch');   // side stretchers
-      box(2*lx, st, st, 0, sy, 0, legCol,'stretch');                               // centre stretcher
-    }
+    if(state.stretcherStyle==='x'){ strut([lx,sy,lz],[-lx,sy,-lz], sth, legCol,'stretch'); strut([-lx,sy,lz],[lx,sy,-lz], sth, legCol,'stretch'); }
+    else { for(const sx of [-1,1]) box(sth, sth, 2*lz, sx*lx, sy, 0, legCol,'stretch'); box(2*lx, sth, sth, 0, sy, 0, legCol,'stretch'); }
   }
-  // backrest — rear stiles/posts + top rail + (slats | ladder | solid), all on ONE rake plane through the seat-back corner.
-  // stileFromY = 0 → one continuous rear leg+post (chair); = seat underside → short posts mounted on the seat (bench)
+  function shelf(){ if(!state.shelf) return; box(2*lx+legT*0.5, 0.8, 2*lz+legT*0.5, 0, sy, 0, shade(wood,0.94),'shelf'); }
+  function pedestalBase(toY){
+    turnedLeg(0,0, toY, toY-legT, legT*1.7, wood, 'leg');                                   // central turned column
+    for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4, al=Math.min(W,D)*0.34;              // four splayed feet
+      const b=box(al,legT*1.1,legT*1.3, Math.cos(a)*al/2, legT*0.55, Math.sin(a)*al/2, wood,'leg'); b.rotation.y=-a; }
+    for(const ry of [0,Math.PI/2]){ const c=box(Math.min(W,D)*0.5, legT*0.9, legT*1.5, 0, toY-legT*0.45, 0, wood,'leg'); c.rotation.y=ry; }  // top spider
+  }
+  function trestleBase(toY){
+    const ex=Math.max(W/2-inset-1, W*0.28), beamY=toY-legT*0.6, footD=D*0.66;
+    for(const sx of [-1,1]){ box(legT*1.4, legT, footD, sx*ex, legT/2, 0, wood,'leg');        // floor foot
+      const upBot=legT, upTop=beamY-legT/2; box(legT*1.2, upTop-upBot, legT*1.8, sx*ex, (upBot+upTop)/2, 0, wood,'leg');   // upright
+      box(legT*1.4, legT, footD, sx*ex, beamY, 0, wood,'leg'); }                              // top cleat
+    box(2*ex, legT*1.1, legT*1.3, 0, toY*0.42, 0, wood,'stretch');                            // central beam
+  }
   function buildBack(seatH, backH, stileFromY){
     const r=BACK_RAKE, pivotY=seatH-topT, zAt=y=>-lz - Math.tan(r)*(y-pivotY);
     const piece=(w,vBot,vTop,x,thick,part)=>{ const len=(vTop-vBot)/Math.cos(r), midY=(vBot+vTop)/2;
       box(w,len,thick, x, midY, zAt(midY), wood, part||'back', {rotX:-r}); };
-    for(const sx of [-1,1]) piece(legT, stileFromY, backH, sx*lx, legT, stileFromY<0.5?'leg':'back');   // rear stiles / back posts
-    box(2*lx+legT, 1.7, 1.1, 0, backH-1.2, zAt(backH-1.2), wood,'back',{rotX:-r});                       // top rail
-    const innerW=2*lx-legT, bs=state.backStyle;
-    if(bs==='solid'){ piece(innerW-0.6, seatH+3, backH-2.4, 0, 0.7,'back'); }
+    for(const sx of [-1,1]) piece(legT, stileFromY, backH, sx*lx, legT, stileFromY<0.5?'leg':'back');   // rear stiles / posts
+    if(state.crest) box(2*lx+legT*1.5, 3.3, 1.4, 0, backH-1.7, zAt(backH-1.7), wood,'back',{rotX:-r});  // shaped crest
+    else box(2*lx+legT, 1.7, 1.1, 0, backH-1.2, zAt(backH-1.2), wood,'back',{rotX:-r});                 // plain top rail
+    const innerW=2*lx-legT, bs=state.backStyle, top2=backH-(state.crest?3.4:2.4);
+    if(bs==='solid'){ piece(innerW-0.6, seatH+3, top2, 0, 0.7,'back'); }
     else if(bs==='ladder'){ const m=Math.max(2,Math.round((backH-seatH)/4));
-      for(let i=0;i<m;i++){ const y=seatH+4 + i*(backH-seatH-7)/(m-1||1); box(innerW, 1.5, 0.7, 0, y, zAt(y), wood,'back',{rotX:-r}); } }
+      for(let i=0;i<m;i++){ const y=seatH+4 + i*(top2-seatH-4)/(m-1||1); box(innerW, 1.5, 0.7, 0, y, zAt(y), wood,'back',{rotX:-r}); } }
+    else if(bs==='spindles'){ const n=Math.max(4,Math.min(9,state.slats+3)), sp=innerW-1.2;
+      for(let i=0;i<n;i++){ const px=-sp/2+i*sp/(n-1), yb=seatH+2.5, yt=top2;
+        rod([px,yb,zAt(yb)],[px,yt,zAt(yt)], 0.42, wood,'back'); } }
     else { const n=Math.max(1,Math.min(6,state.slats)), sp=innerW-1.5, sw=Math.min(2.4, sp/(n*1.5));
-      for(let i=0;i<n;i++){ const px=(n===1)?0:(-sp/2+i*sp/(n-1)); piece(sw, seatH+3, backH-2.4, px, 0.7,'back'); } }
+      for(let i=0;i<n;i++){ const px=(n===1)?0:(-sp/2+i*sp/(n-1)); piece(sw, seatH+3, top2, px, 0.7,'back'); } }
+  }
+  function cushion(seatH){
+    box(2*lx-1, 1.9, 2*lz-1, 0, seatH+0.95, 0, FABRIC,'cushion');                             // seat pad
+    if(t==='chair' && state.backStyle!=='solid'){ const r=BACK_RAKE, y=seatH+9, z=-lz-Math.tan(r)*(y-(seatH-topT))-0.9;
+      box(2*lx-1.5, 9, 1.6, 0, y, z, FABRIC,'cushion',{rotX:-r}); }                            // back pad
   }
   function arms(seatH){
     if(!state.arms) return; const armY=seatH+9, fz=lz-0.4;
-    for(const sx of [-1,1]){ box(1.5,1.1, (fz+lz)+1.2, sx*lx, armY, (fz-lz)/2, wood,'back');   // arm rail front→back
-      box(1.5, armY-(seatH-topT), 1.5, sx*lx, (seatH-topT+armY)/2, fz, wood,'leg'); }           // front arm post
+    for(const sx of [-1,1]){ box(1.5,1.1, (fz+lz)+1.2, sx*lx, armY, (fz-lz)/2, wood,'back');
+      box(1.5, armY-(seatH-topT), 1.5, sx*lx, (seatH-topT+armY)/2, fz, wood,'leg'); }
   }
 
   if(t==='table' || t==='bench'){
-    fourLegs(legTop);
-    apron(); stretchers();
-    addTop(W,D,topT,state.topShape, H, wood);
+    if(pedestal) pedestalBase(legTop);
+    else if(trestle) trestleBase(legTop);
+    else { fourLegs(legTop); footCaps([[lx,lz],[-lx,lz],[lx,-lz],[-lx,-lz]]); apron(); stretchers(); shelf(); }
+    addTop(W,D,topT,state.topShape,state.edge, H, wood);
     if(t==='bench' && state.benchBack) buildBack(H, state.backH, H-topT);
+    if(t==='bench' && state.cushion) cushion(H);
   } else if(t==='chair'){
     const seatH=H, backH=state.backH;
-    for(const sx of [-1,1]) legPost(sx*lx, lz, seatH-topT, seatH-topT, legT, legCol,'leg');   // two front legs (vertical)
+    for(const sx of [-1,1]) oneLeg(sx*lx, lz, seatH-topT, seatH-topT, 'leg');   // front legs
+    footCaps([[lx,lz],[-lx,lz]]);
     apron();
-    addTop(W,D,topT,state.topShape, seatH, wood);          // seat
-    buildBack(seatH, backH, 0);                            // rear stiles run floor → back as one continuous piece
+    addTop(W,D,topT,state.topShape,state.edge, seatH, wood);
+    buildBack(seatH, backH, 0);
+    if(state.cushion) cushion(seatH);
     arms(seatH);
   }
 
   if(state.showFig && state.explode<=0) buildFigure(W);
-  if(state.explode>0){                                   // exploded assembly view — separate parts into layers
+  if(state.explode>0){
     const E=state.explode, g=11;
     model.children.forEach(o=>{ const p=o.userData.part;
-      if(p==='top') o.position.y += E*g*2.4;
+      if(p==='cushion') o.position.y += E*g*3.0;
+      else if(p==='top') o.position.y += E*g*2.4;
       else if(p==='back'){ o.position.y += E*g*3.4; o.position.z -= E*g*1.3; }
       else if(p==='apron') o.position.y += E*g*1.0;
-      else if(p==='stretch') o.position.y -= E*g*1.1;
-      else if(p==='leg'){ o.position.x += Math.sign(o.position.x||1)*E*g*0.55; o.position.z += Math.sign(o.position.z||1)*E*g*0.55; }
+      else if(p==='shelf') o.position.y -= E*g*0.7;
+      else if(p==='stretch') o.position.y -= E*g*1.2;
+      else if(p==='leg'||p==='foot'){ o.position.x += Math.sign(o.position.x||1)*E*g*0.55; o.position.z += Math.sign(o.position.z||1)*E*g*0.55; }
     });
   }
   applyViewStyle();
@@ -527,7 +645,7 @@ function applyViewStyle(){
   ground.visible = (v==='shaded');
   document.body.dataset.view=v;
   if(v==='shaded') return;
-  const PART={ top:0xF2C200, leg:0x1C8FD6, apron:0xE5202A, stretch:0xF07F1A, back:0x3DA34D, figure:0x9aa0a3 };
+  const PART={ top:0xF2C200, leg:0x1C8FD6, apron:0xE5202A, stretch:0xF07F1A, back:0x3DA34D, shelf:0x8E6FC4, cushion:0x15538A, foot:0x555555, figure:0x9aa0a3 };
   model.traverse(o=>{
     if(!o.isMesh) return;
     const part=o.userData.part||'top';
@@ -559,35 +677,49 @@ function stockLen(inch){ const opts=[24,36,48,72,96]; for(const o of opts) if(in
 function computeMaterials(){
   const t=state.type, W=state.W, D=state.D, H=state.H, topT=state.topT, legT=state.legT;
   const wd=WOODS[state.wood], m=wd.mult, groups=[]; let total=0;
-  const inset=(t==='chair')?Math.max(legT*0.5+0.55,1.5):Math.max(legT/2+0.8,2.2);
+  const inset=(t==='chair')?Math.max(legT*0.5+0.55,1.4):Math.max(legT/2+0.5, state.overhang||2);
+  const ix=W/2-inset, iz=D/2-inset;
   function G(name){ const g={name,items:[]}; groups.push(g); return g; }
   function add(g,qty,unit,label,detail,cost,link){ g.items.push({qty,unit,label,detail,cost:Math.round(cost),link}); total+=Math.round(cost); }
 
-  // legs
+  // legs / base
   const legGroup=G('Legs & frame');
   const round=(t!=='chair') && state.topShape==='round';
   const hasBack = (t==='chair') || (t==='bench' && state.benchBack);
-  const baseH = H;                                        // seat/top height the legs reach
-  const legLen=baseH-topT;
-  if(t==='chair'){
-    add(legGroup,2,'pcs',`Front legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${state.legStyle!=='straight'?' · '+state.legStyle:''} · from ${legT}×${legT} stock`, 2*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+  const baseH = H, legLen=baseH-topT, ls=state.legStyle;
+  const pedestal=ls==='pedestal'&&t!=='chair', trestle=ls==='trestle'&&t!=='chair';
+  const styleTag = ls!=='straight'?' · '+ls:'';
+  if(pedestal){
+    add(legGroup,1,'pcs','Turned pedestal column',`lathe-turned, ~${fmtLen(legLen)} · glued-up blank ~${(legT*1.7).toFixed(1)}" sq`, legPrice(legT*1.7,stockLen(legLen),m)*1.6, lw(`${wd.label.toLowerCase()} post 4x4`));
+    add(legGroup,4,'pcs','Splayed feet','feet radiating from the base', 4*railPrice(Math.min(W,D)*0.34,m), lw(`${wd.label.toLowerCase()} board 2x4`));
+    add(legGroup,2,'pcs','Top cleats','cross cleats screwed under the top', 2*railPrice(Math.min(W,D)*0.5,m), lw(`${wd.label.toLowerCase()} board 2x4`));
+  } else if(trestle){
+    add(legGroup,2,'ends','Trestle end assemblies','each = foot + upright + top cleat', 2*(legPrice(legT,stockLen(H),m)+2*railPrice(D*0.66,m)), lw(`${wd.label.toLowerCase()} board 2x8`));
+    add(legGroup,1,'pcs','Stretcher beam','runs the length, wedged through-tenons', railPrice(W*0.7,m)+8, lw(`${wd.label.toLowerCase()} board 2x4`));
+  } else if(ls==='hairpin'){
+    add(legGroup,4,'sets','Hairpin legs (steel)',`pre-made ~${Math.round(legLen)}" hairpin legs + mounting screws`, 4*22, lw(`${Math.round(legLen)} inch hairpin legs`));
+  } else if(t==='chair'){
+    add(legGroup,2,'pcs',`Front legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${styleTag} · from ${legT}×${legT} stock`, 2*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
     const stileLen=Math.round(state.backH/Math.cos(0.11));
-    add(legGroup,2,'pcs',`Rear stiles — ${legT}×${legT}`,`cut to ~${fmtLen(stileLen)} · leg + back post in one raked piece`, 2*legPrice(legT,stockLen(stileLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+    add(legGroup,2,'pcs',`Rear stiles — ${legT}×${legT}`,`cut to ~${fmtLen(stileLen)}${styleTag} · leg + back post in one raked piece`, 2*legPrice(legT,stockLen(stileLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
   } else {
-    add(legGroup,4,'pcs',`Legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${state.legStyle!=='straight'?' · '+state.legStyle:''} · from ${legT}×${legT} stock`, 4*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
+    add(legGroup,4,'pcs',`Legs — ${legT}×${legT}`,`cut to ${fmtLen(legLen)}${styleTag} · from ${legT}×${legT} stock`, 4*legPrice(legT,stockLen(legLen),m), lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`));
   }
-  if(state.apron){
+  if(state.apron && !pedestal && !trestle){
     if(round){ const circ=Math.PI*Math.min(W,D);
       add(legGroup,1,'skirt','Round apron skirt',`~${fmtLen(circ)} of 1×4 — bent lamination or segmented under the rim`, railPrice(circ*0.5,m)+10, lw(`1 x 4 ${wd.label.toLowerCase()} board`)); }
-    else { const fb=W-2*inset-legT, sd=D-2*inset-legT;
+    else { const fb=2*ix-legT, sd=2*iz-legT;
       add(legGroup,2,'pcs','Apron rails (front/back)',`1×4 · cut to ${fmtLen(fb)}`, 2*railPrice(fb,m), lw(`1 x 4 ${wd.label.toLowerCase()} board`));
       add(legGroup,2,'pcs','Apron rails (sides)',`1×4 · cut to ${fmtLen(sd)}`, 2*railPrice(sd,m), lw(`1 x 4 ${wd.label.toLowerCase()} board`)); }
   }
-  if(state.stretcher){
-    if(state.stretcherStyle==='x'){ const dl=Math.hypot(W-2*inset,D-2*inset);
+  if(state.stretcher && !pedestal && !trestle){
+    if(state.stretcherStyle==='x'){ const dl=Math.hypot(2*ix,2*iz);
       add(legGroup,2,'pcs','Cross stretchers (X)',`cut to ~${fmtLen(dl)} · half-lapped at the centre`, 2*railPrice(dl,m), lw(`1 x 3 ${wd.label.toLowerCase()} board`)); }
-    else { const sd=D-2*inset, ce=W-2*inset;
+    else { const sd=2*iz, ce=2*ix;
       add(legGroup,3,'pcs','Stretchers (H)',`cut to ${fmtLen(sd)} (×2) + ${fmtLen(ce)} (×1)`, (2*railPrice(sd,m)+railPrice(ce,m)), lw(`1 x 3 ${wd.label.toLowerCase()} board`)); }
+  }
+  if(state.shelf && !pedestal && !trestle && t!=='chair'){
+    add(legGroup,1,'panel','Lower shelf',`${fmtLen(2*ix)} × ${fmtLen(2*iz)} panel between the legs`, topPanelCost(4*ix*iz,0.8,state.wood)*0.6, lw(`${wd.label.toLowerCase()} board 1x8`));
   }
 
   // top / seat (+ back)
@@ -600,10 +732,12 @@ function computeMaterials(){
   if(hasBack){
     if(t!=='chair'){ const postLen=(state.backH-baseH)+topT+3;   // bench: posts mount on the seat (a chair's posts are the rear stiles above)
       add(topGroup,2,'pcs','Back posts',`cut to ~${fmtLen(postLen)} · raked back ~6°`, 2*legPrice(legT,stockLen(postLen),m)*0.9, lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`)); }
-    add(topGroup,1,'pc','Top rail',`cut to ${fmtLen(2*(W/2-inset)+legT)}`, railPrice(W,m)*0.55, lw(`${wd.label.toLowerCase()} board 1x3`));
-    if(state.backStyle==='solid') add(topGroup,1,'panel','Back panel','a single thin panel between the posts', topPanelCost((state.backH-baseH)*(W-2*inset),0.7,state.wood)*0.5, lw(`${wd.label.toLowerCase()} 1x10 board`));
+    add(topGroup,1,'pc',state.crest?'Crest rail (shaped)':'Top rail',`cut to ${fmtLen(2*ix+legT)}${state.crest?' · band-sawn curve':''}`, railPrice(W,m)*(state.crest?0.85:0.55), lw(`${wd.label.toLowerCase()} board 1x${state.crest?'4':'3'}`));
+    if(state.backStyle==='solid') add(topGroup,1,'panel','Back panel','a single thin panel between the posts', topPanelCost((state.backH-baseH)*(2*ix),0.7,state.wood)*0.5, lw(`${wd.label.toLowerCase()} 1x10 board`));
     else if(state.backStyle==='ladder'){ const k=Math.max(2,Math.round((state.backH-baseH)/4));
-      add(topGroup,k,'pcs','Ladder rungs',`${k} horizontal rungs across the back`, k*railPrice(W*0.7,m)*0.5, lw(`${wd.label.toLowerCase()} board 1x3`)); }
+      add(topGroup,k,'pcs','Ladder rungs',`${k} horizontal rungs across the back`, k*railPrice(2*ix,m)*0.5, lw(`${wd.label.toLowerCase()} board 1x3`)); }
+    else if(state.backStyle==='spindles'){ const n=Math.max(4,Math.min(9,state.slats+3));
+      add(topGroup,n,'pcs','Turned spindles',`${n} round spindles, lathe-turned or ¾" dowel`, n*railPrice(state.backH-baseH,m)*0.45, lw(`3/4 in wood dowel`)); }
     else { const n=Math.max(1,state.slats); add(topGroup,n,'pcs','Back slats',`${n} vertical slat${n>1?'s':''}`, n*railPrice(state.backH-baseH,m)*0.6, lw(`${wd.label.toLowerCase()} board 1x3`)); }
     if(state.arms) add(topGroup,2,'pcs','Arms + front posts','shaped arm rail + a short front post each side', 2*railPrice(D,m), lw(`${wd.label.toLowerCase()} board 1x4`));
   }
@@ -612,8 +746,14 @@ function computeMaterials(){
   const hw=G('Joinery & finish');
   add(hw,1,'box','Pocket screws (1¼–2½")','Kreg pocket-hole screws — the backbone of the joinery', 12, lw('kreg pocket screws'));
   add(hw,1,'pk','Wood dowels + glue','⅜" fluted dowels + a bottle of wood glue', 14, lw('wood dowel pins 3/8'));
-  add(hw,4,'pcs','Levelling feet / glides','nail-in or threaded — keeps it from rocking', 6, lw('furniture leveling feet'));
-  add(hw,1,'qt','Finish — oil or poly',`${state.wood==='walnut'?'a wipe-on oil shows the grain best':'stain + a wipe-on poly, or just oil'}`, 24*Math.max(1,Math.sqrt(area/1400)), lw('wipe on polyurethane'));
+  const FOOT={pad:['Wooden foot pads','glued-on hardwood pads',8], leveler:['Adjustable levelers','threaded T-nut levelers — kill the wobble',10], caster:['Casters (4)','locking swivel casters',26]};
+  if(state.foot!=='plain' && FOOT[state.foot] && state.legStyle!=='hairpin') add(hw,4,'pcs',FOOT[state.foot][0],FOOT[state.foot][1],FOOT[state.foot][2],lw(state.foot==='caster'?'furniture casters':state.foot==='leveler'?'furniture levelers':'wood furniture pads'));
+  else add(hw,4,'pcs','Felt / nail-in glides','protect the floor', 6, lw('furniture glides'));
+  if(state.cushion){ const cushArea=(2*ix)*(2*iz)+(t==='chair'?(2*ix)*9:0);
+    add(hw,1,'set','Cushion — foam + fabric',`2–3" foam + upholstery fabric${t==='chair'&&state.backStyle!=='solid'?' for seat + back':' for the seat'}`, Math.max(28, cushArea*0.02)+24, lw('upholstery foam 2 inch')); }
+  add(hw,1,'qt', state.finishCol&&state.finishCol!=='natural'?'Finish — paint':'Finish — oil or poly',
+    state.finishCol&&state.finishCol!=='natural'?'primer + 2 coats of furniture paint in your colour':`${state.wood==='walnut'?'a wipe-on oil shows the grain best':'stain + a wipe-on poly, or just oil'}`,
+    24*Math.max(1,Math.sqrt(area/1400)), lw(state.finishCol&&state.finishCol!=='natural'?'furniture paint':'wipe on polyurethane'));
 
   return {groups, total};
 }
@@ -681,8 +821,9 @@ function update(){
   else document.getElementById('unlockBtn').onclick=goPay;
   document.getElementById('woodCap').textContent=WOODS[state.wood].cap;
   document.getElementById('badge').innerHTML=`<b>${cap(state.type)}</b> · ${fmtLen(state.W)} W × ${fmtLen(state.D)} D × ${fmtLen(state.type==='chair'?state.backH:state.H)} H · <b>${WOODS[state.wood].label}</b>`;
+  if(!_applyingStyle){ const ss=document.getElementById('styleSel'); if(ss && ss.value!=='custom') ss.value='custom'; }   // manual edit → no longer a named preset
 }
-let lastMats={groups:[],total:0};
+let lastMats={groups:[],total:0}, _applyingStyle=false;
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 
 /* ===== controls ===== */
@@ -695,30 +836,47 @@ function syncRangesForType(){
   setRange('backH',[state.H+12, state.H+30], state.backH);
   setRange('topT',[0.75,2.5], state.topT, 0.25);
   setRange('legT',[1.25,4.5], state.legT, 0.25);
+  setRange('overhang',[0.5,8], state.overhang, 0.5);
   // labels
   const isChair=state.type==='chair';
   document.getElementById('lblH').textContent = isChair?'Seat height':'Height';
   document.getElementById('lblTop').textContent = isChair?'Seat thickness':'Top thickness';
-  document.getElementById('lblTopShape').textContent = isChair?'Seat shape':'Top shape';
+  document.getElementById('lblTopShape').textContent = isChair?'Seat shape':'Top';
   document.getElementById('lblW').textContent = 'Width';
   document.getElementById('lblD').textContent = 'Depth';
   document.getElementById('slats').value=state.slats;
   refreshVis();
 }
-// show/hide the conditional controls + sync segmented buttons to state
+// show/hide the conditional controls + sync selects/segmented buttons to state
 function refreshVis(){
-  const t=state.type, isChair=t==='chair';
+  const t=state.type, isChair=t==='chair', base=(state.legStyle==='pedestal'||state.legStyle==='trestle')&&!isChair;
   const showBack = isChair || (t==='bench' && state.benchBack);
-  document.getElementById('wrapArms').style.display = isChair?'':'none';
-  document.getElementById('wrapBenchBack').style.display = (t==='bench')?'':'none';
-  document.getElementById('ctlBack').style.display = showBack?'':'none';
-  document.getElementById('ctlBackStyle').style.display = showBack?'':'none';
-  document.getElementById('ctlSlats').style.display = (showBack && state.backStyle==='slats')?'':'none';
-  document.getElementById('ctlStretchStyle').style.display = state.stretcher?'':'none';
+  const showSlats = showBack && (state.backStyle==='slats'||state.backStyle==='spindles');
+  const V=(id,on)=>document.getElementById(id).style.display=on?'':'none';
+  V('wrapArms', isChair);
+  V('wrapBenchBack', t==='bench');
+  V('wrapCrest', showBack);
+  V('wrapShelf', !isChair && !base);
+  V('wrapCushion', showBack || t==='bench' || isChair);   // any seat can take a cushion
+  V('ctlBack', showBack);
+  V('ctlBackStyle', showBack);
+  V('ctlSlats', showSlats);
+  V('ctlStretchStyle', state.stretcher && !base);
+  V('ctlOverhang', !isChair && !base);
+  V('ctlFoot', !base && state.legStyle!=='hairpin');
+  // hairpin/pedestal/trestle can't take an apron or 4-leg stretcher
+  document.getElementById('optApron').disabled = base;
+  document.getElementById('optStretcher').disabled = base;
+  document.getElementById('lblSlats').textContent = state.backStyle==='spindles'?'Spindles':'Back slats';
+  // pedestal/trestle options are table/bench-only
+  [].forEach.call(document.querySelectorAll('#legSel option[data-nochair]'), o=>{ o.disabled = isChair; });
+  document.getElementById('legSel').value = state.legStyle;
   document.querySelectorAll('#topSeg button').forEach(b=>b.classList.toggle('on',b.dataset.s===state.topShape));
+  document.querySelectorAll('#edgeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.e===state.edge));
   document.querySelectorAll('#backSeg button').forEach(b=>b.classList.toggle('on',b.dataset.bs===state.backStyle));
   document.querySelectorAll('#stretchSeg button').forEach(b=>b.classList.toggle('on',b.dataset.ss===state.stretcherStyle));
-  document.querySelectorAll('#legSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===state.legStyle));
+  document.querySelectorAll('#footSeg button').forEach(b=>b.classList.toggle('on',b.dataset.ft===state.foot));
+  document.querySelectorAll('#finRow .finsw').forEach(b=>b.style.boxShadow=(b.dataset.fin===state.finishCol)?'0 0 0 2px var(--ac)':'none');
 }
 function readControls(){
   state.W=+document.getElementById('W').value;
@@ -728,10 +886,14 @@ function readControls(){
   state.topT=+document.getElementById('topT').value;
   state.legT=+document.getElementById('legT').value;
   state.slats=+document.getElementById('slats').value;
+  state.overhang=+document.getElementById('overhang').value;
   state.apron=document.getElementById('optApron').checked;
   state.stretcher=document.getElementById('optStretcher').checked;
   state.arms=document.getElementById('optArms').checked;
   state.benchBack=document.getElementById('optBenchBack').checked;
+  state.shelf=document.getElementById('optShelf').checked;
+  state.cushion=document.getElementById('optCushion').checked;
+  state.crest=document.getElementById('optCrest').checked;
   // value readouts
   document.getElementById('vW').textContent=fmtLen(state.W);
   document.getElementById('vD').textContent=fmtLen(state.D);
@@ -739,28 +901,65 @@ function readControls(){
   document.getElementById('vBack').textContent=fmtLen(state.backH);
   document.getElementById('vTop').textContent=state.topT+'"';
   document.getElementById('vLeg').textContent=state.legT+'×'+state.legT+'"';
+  document.getElementById('vOver').textContent=state.overhang+'"';
   document.getElementById('vSlats').textContent=state.slats;
 }
-function applyType(tp){
-  state.type=tp; Object.assign(state, PRESET[tp]);
-  document.querySelectorAll('#typeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===tp));
-  document.querySelectorAll('#legSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===state.legStyle));
+function syncChecks(){
   document.getElementById('optApron').checked=state.apron;
   document.getElementById('optStretcher').checked=state.stretcher;
   document.getElementById('optArms').checked=state.arms;
   document.getElementById('optBenchBack').checked=state.benchBack;
+  document.getElementById('optShelf').checked=state.shelf;
+  document.getElementById('optCushion').checked=state.cushion;
+  document.getElementById('optCrest').checked=state.crest;
+  document.getElementById('wood').value=state.wood;
+}
+function applyType(tp){
+  state.type=tp; Object.assign(state, PRESET[tp]);
+  document.querySelectorAll('#typeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===tp));
+  if(tp==='chair' && (state.legStyle==='pedestal'||state.legStyle==='trestle')) state.legStyle='straight';
+  syncChecks();
   syncRangesForType(); update();
+}
+
+/* ===== style presets ===== */
+const STYLES={
+  farmhouse:{type:'table',legStyle:'straight',legT:3.5,topT:1.75,H:30,W:72,D:36,topShape:'rect',edge:'eased',apron:true,stretcher:false,shelf:false,overhang:3,foot:'plain',wood:'pine',finishCol:'natural'},
+  parsons:{type:'table',legStyle:'straight',legT:3.5,topT:1.5,W:60,D:34,topShape:'rect',edge:'square',apron:true,overhang:0.5,foot:'plain',wood:'oak',finishCol:'#2c2c2e'},
+  'shaker-t':{type:'table',legStyle:'tapered',legT:2.5,topT:1.25,topShape:'rect',edge:'eased',apron:true,overhang:2.5,wood:'maple',finishCol:'natural'},
+  'midcentury-t':{type:'table',legStyle:'splayed',legT:2.5,topT:1.25,topShape:'soft',edge:'bullnose',apron:false,overhang:2,wood:'walnut',finishCol:'natural'},
+  'hairpin-t':{type:'table',legStyle:'hairpin',topT:1.25,topShape:'soft',edge:'eased',apron:false,stretcher:false,shelf:false,overhang:2,wood:'walnut',finishCol:'natural'},
+  'pedestal-t':{type:'table',legStyle:'pedestal',topShape:'round',edge:'bullnose',W:44,D:44,topT:1.5,apron:false,wood:'oak',finishCol:'natural'},
+  'trestle-t':{type:'table',legStyle:'trestle',legT:3,topT:1.75,W:72,D:34,topShape:'rect',edge:'eased',apron:false,wood:'pine',finishCol:'natural'},
+  windsor:{type:'chair',legStyle:'turned',backStyle:'spindles',crest:true,slats:5,topShape:'soft',edge:'bullnose',cushion:false,wood:'maple',finishCol:'natural'},
+  'shaker-c':{type:'chair',legStyle:'turned',backStyle:'ladder',crest:false,topShape:'soft',edge:'eased',cushion:false,wood:'maple',finishCol:'natural'},
+  'midcentury-c':{type:'chair',legStyle:'splayed',backStyle:'slats',slats:3,topShape:'soft',edge:'bullnose',cushion:true,wood:'walnut',finishCol:'natural'},
+  entry:{type:'bench',legStyle:'tapered',benchBack:false,topShape:'rect',edge:'eased',stretcher:true,wood:'oak',finishCol:'natural'},
+  settle:{type:'bench',legStyle:'straight',benchBack:true,backStyle:'slats',slats:4,topShape:'rect',edge:'eased',wood:'pine',finishCol:'natural'},
+  picnic:{type:'bench',legStyle:'trestle',legT:3,topT:1.75,topShape:'rect',edge:'square',wood:'pine',finishCol:'natural'},
+};
+function applyStyle(name){
+  const s=STYLES[name]; if(!s){ return; }                     // 'custom' → leave everything as-is
+  _applyingStyle=true;
+  state.type=s.type; Object.assign(state, PRESET[s.type], s); // type defaults, then the preset's overrides
+  document.querySelectorAll('#typeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===s.type));
+  syncChecks(); syncRangesForType(); update();
+  document.getElementById('styleSel').value=name; _applyingStyle=false;
 }
 
 /* ===== wire up ===== */
 init();
 document.querySelectorAll('#typeSeg button').forEach(b=>b.onclick=()=>applyType(b.dataset.t));
-document.querySelectorAll('#legSeg button').forEach(b=>b.onclick=()=>{ state.legStyle=b.dataset.l; update(); });
+document.getElementById('styleSel').addEventListener('change',e=>applyStyle(e.target.value));
+document.getElementById('legSel').addEventListener('change',e=>{ state.legStyle=e.target.value; update(); });
 document.querySelectorAll('#topSeg button').forEach(b=>b.onclick=()=>{ state.topShape=b.dataset.s; update(); });
+document.querySelectorAll('#edgeSeg button').forEach(b=>b.onclick=()=>{ state.edge=b.dataset.e; update(); });
 document.querySelectorAll('#backSeg button').forEach(b=>b.onclick=()=>{ state.backStyle=b.dataset.bs; update(); });
 document.querySelectorAll('#stretchSeg button').forEach(b=>b.onclick=()=>{ state.stretcherStyle=b.dataset.ss; update(); });
-['W','D','H','backH','topT','legT','slats'].forEach(id=>document.getElementById(id).addEventListener('input',update));
-['optApron','optStretcher','optArms','optBenchBack'].forEach(id=>document.getElementById(id).addEventListener('change',update));
+document.querySelectorAll('#footSeg button').forEach(b=>b.onclick=()=>{ state.foot=b.dataset.ft; update(); });
+document.querySelectorAll('#finRow .finsw').forEach(b=>b.onclick=()=>{ state.finishCol=b.dataset.fin; update(); });
+['W','D','H','backH','topT','legT','overhang','slats'].forEach(id=>document.getElementById(id).addEventListener('input',update));
+['optApron','optStretcher','optArms','optBenchBack','optShelf','optCushion','optCrest'].forEach(id=>document.getElementById(id).addEventListener('change',update));
 document.getElementById('wood').addEventListener('change',e=>{ state.wood=e.target.value; update(); });
 document.querySelectorAll('#viewSeg b').forEach(b=>b.onclick=()=>{ state.view=b.dataset.view;
   document.querySelectorAll('#viewSeg b').forEach(x=>x.classList.toggle('on',x===b)); rebuild(); });
