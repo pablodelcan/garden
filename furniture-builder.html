@@ -572,17 +572,19 @@ function rebuild(){
     const piece=(w,vBot,vTop,x,thick,part)=>{ const len=(vTop-vBot)/Math.cos(r), midY=(vBot+vTop)/2;
       box(w,len,thick, x, midY, zAt(midY), wood, part||'back', {rotX:-r}); };
     for(const sx of [-1,1]) piece(legT, stileFromY, backH, sx*lx, legT, stileFromY<0.5?'leg':'back');   // rear stiles / posts
-    if(state.crest) box(2*lx+legT*1.5, 3.3, 1.4, 0, backH-1.7, zAt(backH-1.7), wood,'back',{rotX:-r});  // shaped crest
-    else box(2*lx+legT, 1.7, 1.1, 0, backH-1.2, zAt(backH-1.2), wood,'back',{rotX:-r});                 // plain top rail
-    const innerW=2*lx-legT, bs=state.backStyle, top2=backH-(state.crest?3.4:2.4);
-    if(bs==='solid'){ piece(innerW-0.6, seatH+3, top2, 0, 0.7,'back'); }
-    else if(bs==='ladder'){ const m=Math.max(2,Math.round((backH-seatH)/4));
-      for(let i=0;i<m;i++){ const y=seatH+4 + i*(top2-seatH-4)/(m-1||1); box(innerW, 1.5, 0.7, 0, y, zAt(y), wood,'back',{rotX:-r}); } }
-    else if(bs==='spindles'){ const n=Math.max(4,Math.min(9,state.slats+3)), sp=innerW-1.2;
-      for(let i=0;i<n;i++){ const px=-sp/2+i*sp/(n-1), yb=seatH+2.5, yt=top2;
-        rod([px,yb,zAt(yb)],[px,yt,zAt(yt)], 0.42, wood,'back'); } }
-    else { const n=Math.max(1,Math.min(6,state.slats)), sp=innerW-1.5, sw=Math.min(2.4, sp/(n*1.5));
-      for(let i=0;i<n;i++){ const px=(n===1)?0:(-sp/2+i*sp/(n-1)); piece(sw, seatH+3, top2, px, 0.7,'back'); } }
+    // the back FRAME: a bottom rail + a top rail (or crest). The infill fits between them, overlapping both — never floating.
+    const botY=seatH+2.6, topY=backH-1.5;
+    box(2*lx, 1.6, 1.0, 0, botY, zAt(botY), wood,'back',{rotX:-r});                                     // bottom rail
+    if(state.crest) box(2*lx+legT*1.4, 3.2, 1.5, 0, topY-0.5, zAt(topY-0.5), wood,'back',{rotX:-r});    // shaped crest
+    else box(2*lx, 1.9, 1.1, 0, topY, zAt(topY), wood,'back',{rotX:-r});                                // plain top rail
+    const innerW=2*lx-legT, bs=state.backStyle, iB=botY, iT=topY+(state.crest?0.5:0);                   // run infill rail-centre → rail-centre so it tenons into both
+    if(bs==='solid'){ piece(innerW-0.6, iB, iT, 0, 0.7,'back'); }
+    else if(bs==='ladder'){ const gap=iT-iB, m=Math.max(2,Math.round(gap/4.5));
+      for(let i=0;i<m;i++){ const y=iB + (i+0.5)*gap/m; box(innerW, 1.5, 0.75, 0, y, zAt(y), wood,'back',{rotX:-r}); } }
+    else if(bs==='spindles'){ const n=Math.max(5,Math.min(11,state.slats+4)), sp=innerW-1.0;
+      for(let i=0;i<n;i++){ const px=-sp/2+i*sp/(n-1); rod([px,iB,zAt(iB)],[px,iT,zAt(iT)], 0.4, wood,'back'); } }
+    else { const n=Math.max(1,Math.min(6,state.slats)), sp=innerW-1.2, sw=Math.min(2.8, sp/(n*1.35));
+      for(let i=0;i<n;i++){ const px=(n===1)?0:(-sp/2+i*sp/(n-1)); piece(sw, iB, iT, px, 0.72,'back'); } }
   }
   function cushion(seatH){
     box(2*lx-1, 1.9, 2*lz-1, 0, seatH+0.95, 0, FABRIC,'cushion');                             // seat pad
@@ -732,7 +734,7 @@ function computeMaterials(){
   if(hasBack){
     if(t!=='chair'){ const postLen=(state.backH-baseH)+topT+3;   // bench: posts mount on the seat (a chair's posts are the rear stiles above)
       add(topGroup,2,'pcs','Back posts',`cut to ~${fmtLen(postLen)} · raked back ~6°`, 2*legPrice(legT,stockLen(postLen),m)*0.9, lw(`${legT} x ${legT} ${wd.label.toLowerCase()} board`)); }
-    add(topGroup,1,'pc',state.crest?'Crest rail (shaped)':'Top rail',`cut to ${fmtLen(2*ix+legT)}${state.crest?' · band-sawn curve':''}`, railPrice(W,m)*(state.crest?0.85:0.55), lw(`${wd.label.toLowerCase()} board 1x${state.crest?'4':'3'}`));
+    add(topGroup,2,'pcs',state.crest?'Top (crest) + bottom rails':'Top + bottom rails',`cut to ${fmtLen(2*ix)} · the slats tenon into both`, railPrice(2*ix,m)*(state.crest?1.2:0.95), lw(`${wd.label.toLowerCase()} board 1x${state.crest?'4':'3'}`));
     if(state.backStyle==='solid') add(topGroup,1,'panel','Back panel','a single thin panel between the posts', topPanelCost((state.backH-baseH)*(2*ix),0.7,state.wood)*0.5, lw(`${wd.label.toLowerCase()} 1x10 board`));
     else if(state.backStyle==='ladder'){ const k=Math.max(2,Math.round((state.backH-baseH)/4));
       add(topGroup,k,'pcs','Ladder rungs',`${k} horizontal rungs across the back`, k*railPrice(2*ix,m)*0.5, lw(`${wd.label.toLowerCase()} board 1x3`)); }
