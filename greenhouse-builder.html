@@ -1042,7 +1042,7 @@ function rebuild3D(p){
   const wallCol=k=>(colors.walls&&colors.walls[k])||colors.siding;   // per-wall paint override
   const th=post==='6x6'?0.46:0.29, base=0.26;
   const ex=W/2-th/2, ez=D/2-th/2;
-  const floorY=Hf, wallTop=Hf+Hw, ov=0.25, beamY=floorY-0.3;   // greenhouse: minimal roof overhang
+  const floorY=Hf, wallTop=Hf+Hw, ov=0.25, beamY=floorY-0.295;   // greenhouse: minimal roof overhang; beam top flush with the deck underside
   const isA=roof==='aframe', isGable=roof==='gable', isLean=roof==='lean', isSalt=roof==='saltbox', isGam=roof==='gambrel', isCleres=roof==='clerestory', isHip=roof==='hip', isFlat=roof==='flat', isShed=roof==='shed', isBfly=roof==='butterfly', isSaw=roof==='sawtooth', isBarrel=roof==='barrel';
   _explode = state.explode*1.6;                  // exploded-view lift per stage
   const interior=tog.tInterior&&!stepOn&&!isA&&!state.explode;   // dollhouse: ghost siding, drop roof, furnish
@@ -1085,7 +1085,12 @@ function rebuild3D(p){
       ball(0.042, bx, beamY+0.11, z, '#46413a'); ball(0.042, bx, beamY-0.11, z, '#46413a'); } });
   _stage=4;
   if(sF){ const n=Math.ceil(D*12/oc)+1;
-    for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1); box(W-0.2,0.46,0.13, 0,floorY-0.25,z, P.struct); } }
+    const jY=floorY-0.275, xOut=ex-th/2-bPly-0.01;                    // joists hang BETWEEN the beam sandwiches — clear span, tops flush
+    for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1);
+      if(state.midBeam){ const xIn=th/2+bPly+0.01, cxj=(xOut+xIn)/2;
+        for(const sx of [-1,1]) box(xOut-xIn,0.46,0.13, sx*cxj,jY,z, P.struct); }   // two spans: outer beam → center beam
+      else box(2*xOut,0.46,0.13, 0,jY,z, P.struct);
+    } }
   _stage=5; box(W+0.2,0.14,D+0.2, 0,floorY-0.05,0, '#b3ac98',{rough:1,cast:false});   // gravel / paver floor pad
 
   // ---- door & window sizing ----

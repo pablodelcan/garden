@@ -1097,7 +1097,7 @@ function rebuild3D(p){
   const th=post==='6x6'?0.46:0.29, base=0.26;
   const ex=W/2-th/2, ez=D/2-th/2;
   const onSlab=p.foundation==='slab';
-  const floorY=onSlab?0.45:Hf, wallTop=floorY+Hw, ov=1, beamY=floorY-0.32;   // slab sits on grade (no stilts)
+  const floorY=onSlab?0.45:Hf, wallTop=floorY+Hw, ov=1, beamY=floorY-0.295;   // slab sits on grade (no stilts); beam top flush with the deck underside
   const isA=roof==='aframe', isGable=roof==='gable', isLean=roof==='lean', isSalt=roof==='saltbox', isGam=roof==='gambrel', isCleres=roof==='clerestory', isHip=roof==='hip', isFlat=roof==='flat', isShed=roof==='shed', isBfly=roof==='butterfly', isSaw=roof==='sawtooth', isBarrel=roof==='barrel';
   _explode = state.explode*1.6;                  // exploded-view lift per stage
   const interior=tog.tInterior&&!stepOn&&!isA&&!state.explode;   // dollhouse: ghost siding, drop roof, furnish
@@ -1142,7 +1142,12 @@ function rebuild3D(p){
         ball(0.042, bx, beamY+0.11, z, '#46413a'); ball(0.042, bx, beamY-0.11, z, '#46413a'); } });
     _stage=4;
     if(sF){ const n=Math.ceil(D*12/oc)+1;
-      for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1); box(W-0.2,0.46,0.13, 0,floorY-0.25,z, P.struct); } }
+      const jY=floorY-0.275, xOut=ex-th/2-bPly-0.01;                    // joists hang BETWEEN the beam sandwiches — clear span, tops flush
+      for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1);
+        if(state.midBeam){ const xIn=th/2+bPly+0.01, cxj=(xOut+xIn)/2;
+          for(const sx of [-1,1]) box(xOut-xIn,0.46,0.13, sx*cxj,jY,z, P.struct); }   // two spans: outer beam → center beam
+        else box(2*xOut,0.46,0.13, 0,jY,z, P.struct);
+      } }
     _stage=5; box(W,0.09,D, 0,floorY,0, P.struct);
   }
 
@@ -2847,7 +2852,7 @@ function stepGuide(st,s){
     '✔ Check: beams level along their length AND level beam-to-beam across the span.'
   ];
   G[4]=[
-    `Hook your tape on one end and mark the beam FACES every ${oc}″ — ${joists} joists, cut to ${dim(W)}.`,
+    `Hook your tape on one end and mark the beam FACES every ${oc}″ — ${joists} joist lines${s.midBeam?", each in TWO spans (outer beam → center beam)":""}. Cut each to the MEASURED clear distance between the beam faces (buy ${stdLen(W)} ft stock, trim to fit) — they hang between the beams, they don't sit across them.`,
     'Hang each joist crown-up in a joist hanger at the marks, top flush with the beam top (a scrap across both beams is your flush gauge).',
     'Block between the joist ends (rim) so nothing can roll over.',
     s.midBeam?'The center beam carries the joists mid-span — make sure each joist bears on it and gets 2 screws there too.':null,
