@@ -891,7 +891,7 @@ const STAGES={
   6:{name:'Knee braces', desc:'Add the 45° braces from post to beam on all sides — this is what kills the wobble/racking.'},
   7:{name:'Back wall', desc:'One wall at a time, easiest first. Frame the back wall flat on the floor deck, tilt it up, brace it plumb.'},
   7.4:{name:'Front wall', desc:'Frame the front wall flat on the deck — headers and trimmers around its openings — then tilt it up and brace it.'},
-  7.7:{name:'Side walls & plates', desc:'Frame and raise the two side walls, tie all four corners together, then run the second top plate overlapping every joint.'},
+  7.7:{name:'Side walls & plates', desc:'Frame the two side walls SHORT — they fit BETWEEN the standing walls (no corner overlap) — raise them, tie the corners, then lap the second top plate across every joint.'},
   8:{name:'Roof framing', desc:'The roof structure only: ceiling joists, rafters cut to the pattern, ridge. No sheathing yet — get the skeleton right first.'},
   8.5:{name:'Sheathing & roofing', desc:'Skin the roof: sheathing across the rafters, drip edge + underlayment, then the roof covering and trim.'},
   9:{name:'Siding', desc:'Sheathe the walls with siding, cutting around the door and window openings.'},
@@ -1170,9 +1170,11 @@ function rebuild3D(p){
     const w=wInfo(k), len=w.uMax-w.uMin, mid=(w.uMin+w.uMax)/2;
     _stage = k==='back'?7 : k==='front'?7.4 : 7.7;   // walls go up one at a time: back → front → sides
     if(sF){
-      onWall(k,mid,floorY+0.06,len,0.12,0.3,P.struct); onWall(k,mid,wallTop-0.06,len,0.12,0.3,P.struct);
-      const n=Math.max(2,Math.round(len/1.333)+1), sp=(len-0.3)/(n-1);
-      for(let i=0;i<n;i++){ const u=w.uMin+0.15+i*sp; let segs=[[floorY+0.1,wallTop-0.1]];
+      // BUTT WALLS: the side walls are framed SHORTER — they fit BETWEEN the front/back through-walls, no corner interpenetration
+      const bIn=(k==='left'||k==='right')?0.31:0, fMin=w.uMin+bIn, fMax=w.uMax-bIn, fLen=fMax-fMin, fMid=(fMin+fMax)/2;
+      onWall(k,fMid,floorY+0.06,fLen,0.12,0.3,P.struct); onWall(k,fMid,wallTop-0.06,fLen,0.12,0.3,P.struct);
+      const n=Math.max(2,Math.round(fLen/1.333)+1), sp=(fLen-0.3)/(n-1);
+      for(let i=0;i<n;i++){ const u=fMin+0.15+i*sp; let segs=[[floorY+0.1,wallTop-0.1]];
         for(const op of ops) if(op.uc-op.hw-0.18<u && op.uc+op.hw+0.18>u) segs=subSeg(segs,op.vBot,op.vTop);
         for(const [a,b] of segs) if(b-a>0.12) onWall(k,u,(a+b)/2,0.12,b-a,0.29,P.struct); }
       for(const op of ops){
@@ -2403,7 +2405,7 @@ function stepDetail(c,s){
     6:`8× 2×4 knee braces, 45°`,
     7:`back wall · 2×6 studs @ 16"`,
     7.4:`front wall · studs + door header`,
-    7.7:`both side walls + 2nd top plate`,
+    7.7:`2× butt walls (fit between) + 2nd top plate`,
     8:`${Math.floor(s.D*12/16)+1}+ rafters · ${s.roof} roof — frame only`,
     8.5:`${Math.ceil(((s.W+1)*(s.D+1)*1.3)/32)}× OSB + ice-&-water + metal roof`,
     9:`siding · ${FINISH[s.finish].name}`,
@@ -2867,7 +2869,10 @@ function stepGuide(st,s){
   G[7]=wallCopy('back');
   G[7.4]=wallCopy('front');
   G[7.7]=(()=>{ const out=wallCopy('left','Repeat for the right wall — same length, mirror the openings.');
-    out.splice(out.length-1,0,'Tie the corners: screw the corner studs of adjacent walls together top-to-bottom, then run the SECOND top plate around the whole perimeter, overlapping every corner joint — this locks the four walls into one box.');
+    out[0]=`The side walls are BUTT walls — they fit BETWEEN the standing front + back walls, so they’re cut SHORTER than the deck: plates ≈ ${dim(D-0.92)} (deck depth minus two 5½″ wall thicknesses). The front/back walls run through; the side walls butt into them — nothing overlaps at the corners.`;
+    out.splice(1,0,'Don’t trust the number blindly — MEASURE the actual gap between the two standing walls at deck level, at BOTH ends. If the two measurements differ, the standing walls aren’t plumb/parallel: fix that first, then cut the side-wall plates ⅛″ under the measurement so they drop in.');
+    out.splice(out.length-1,0,'Tie the corners: the side wall’s END STUD lands flat against the front/back wall’s corner stud — clamp flush inside faces, then screw them together top-to-bottom (3″ screws every ~12″). On a 2×6 wall add a second interior corner stud so the drywall has backing (a “California corner”).');
+    out.splice(out.length-1,0,'Then the SECOND top plate around the whole perimeter: on the front/back walls it stops one wall-thickness SHORT of each end; on the side walls it runs one wall-thickness LONG past each end — so every lap crosses the corner joint below it and stitches the two walls together.');
     return out; })();
   G[8]=(()=>{ const r=s.roof, rd=Math.floor(D*12/16)+1, out=[];
     if(r==='lean'||r==='shed'){ const span=(s.slopeDir==='front'||s.slopeDir==='back')?D:W, rise=(r==='lean'?0.42:0.20)*span, ang=Math.atan2(rise,span);
