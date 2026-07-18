@@ -883,7 +883,7 @@ let stepOn=false, stepCur=1, _stage=0, _limit=Infinity, _explode=0;
 const eoff=()=>Math.max(0,Math.min(_stage-1,16))*_explode;   // exploded-view Y lift per build stage
 let dimLabels=[], dimPool=[];   // {x,y,z,text} projected to HTML each frame when dimension overlay is on
 const STAGES={
-  1:{name:'Footings', desc:'Set the footings — deck blocks on tamped gravel, or concrete piers with post bases. Level them all to each other.'},
+  1:{name:'Foundation', desc:'Stilts: set frost-depth footings with post bases, leveled to each other. Slab: form, insulate and pour the frost-protected slab.'},
   2:{name:'Posts', desc:'Stand the posts on the footings. Plumb each one and brace it temporarily until the beams tie them together.'},
   3:{name:'Beams', desc:'Sandwich each post row between a pair of 2×6 beam plies — one on each face — and through-bolt, don’t just screw. This is the main load path.'},
   4:{name:'Joists', desc:'Hang the joists across the beams at your spacing — these carry the floor. Hangers or blocking at the rim.'},
@@ -904,7 +904,9 @@ const STAGES={
   15:{name:'Access', desc:'Build the ladder or stairs — solid and to code; this is the daily path in.'},
   15.5:{name:'Finish & shake-down', desc:'Seal or paint, ease the edges, re-torque the bolts, then shake the whole thing down hard. Done.'}
 };
-const stepsFor=s=>[1,2,3,4,5,6,7,7.4,7.7,8,8.5,9,10].concat(s.windows.length?[10.5]:[]).concat(s.Dd>0?[11,12,13,14]:[]).concat([15,15.5]);
+const stepsFor=s=> s.foundation==='slab'
+  ? [1,7,7.4,7.7,8,8.5,9,10].concat(s.windows.length?[10.5]:[]).concat([15.5])   // slab: no stilts/joists/braces, no stairs — walls bear on the slab
+  : [1,2,3,4,5,6,7,7.4,7.7,8,8.5,9,10].concat(s.windows.length?[10.5]:[]).concat(s.Dd>0?[11,12,13,14]:[]).concat([15,15.5]);
 
 /* ===== finishes ===== */
 const FINISH={
@@ -1139,7 +1141,7 @@ function rebuild3D(p){
       for(const s2 of [-1,1]){ const bx=sx*ex+s2*(bOff+bPly/2+0.015);
         ball(0.042, bx, beamY+0.11, z, '#46413a'); ball(0.042, bx, beamY-0.11, z, '#46413a'); } });
     _stage=4;
-    if(sF){ const n=Math.floor(D*12/oc)+1;
+    if(sF){ const n=Math.ceil(D*12/oc)+1;
       for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1); box(W-0.2,0.46,0.13, 0,floorY-0.25,z, P.struct); } }
     _stage=5; box(W,0.09,D, 0,floorY,0, P.struct);
   }
@@ -1232,7 +1234,7 @@ function rebuild3D(p){
   // ---- ceiling: caps the box at wall height so high-angle / over-wall views never see into a dark attic ----
   if(!isA && !isFlat){
     _stage=8;
-    if(sF){ const nc=Math.max(2,Math.floor(D*12/oc)+1);                       // ceiling joists run across the width, tying the eave walls (resist rafter thrust)
+    if(sF){ const nc=Math.max(2,Math.ceil(D*12/oc)+1);                       // ceiling joists run across the width, tying the eave walls (resist rafter thrust)
       for(let i=0;i<nc;i++){ const z=-D/2+0.12+i*(D-0.24)/(nc-1); box(W-0.18,0.3,0.1, 0,wallTop-0.2,z, P.struct); } }
     if(sR&&!interior) box(W-0.06,0.08,D-0.06, 0,wallTop-0.05,0, shade(colors.struct,1.15),{cast:false});   // ceiling deck (hidden in dollhouse)
   }
@@ -1451,7 +1453,7 @@ function rebuild3D(p){
   if(state.anchor){ const tie='#9a9a96';
     for(const sx of [-1,1]) for(const sz of [-1,1]){
       _stage=1; box(0.05,0.5,0.16, sx*(ex+0.16),0.35,sz*ez, tie); box(0.16,0.5,0.05, sx*ex,0.35,sz*(ez+0.16), tie);   // footing anchor straps
-      _stage=8; box(0.05,0.4,0.3, sx*(ex+0.16),beamY+0.04,sz*ez, tie); box(0.3,0.4,0.05, sx*ex,beamY+0.04,sz*(ez+0.16), tie); }  // hurricane ties at post→beam
+      _stage=8; box(0.05,0.4,0.3, sx*(ex+0.295),beamY+0.04,sz*ez, tie); box(0.3,0.4,0.05, sx*ex,beamY+0.04,sz*(ez+0.16), tie); }  // hurricane ties at post→beam
   }
 
   // ---- side-agnostic frame: maps (a = along wall, o = outward dist) → world ----
@@ -1604,7 +1606,7 @@ function rebuild3D(p){
     for(const [px,pz] of [[x1,z0],[x1,z1],[x0,z1]]) pillar(px,pz,wf-0.08,th,99,99);   // outer + front-inner posts
     _stage=99;
     box(0.3,0.46,wD, x1,wbeamY,wcz, P.struct);                       // outer rim beam
-    const wn=Math.max(2,Math.floor(wD*12/oc)+1);
+    const wn=Math.max(2,Math.ceil(wD*12/oc)+1);
     for(let i=0;i<wn;i++){ const z=z0+0.1+i*(wD-0.2)/(wn-1); box(wW-0.1,0.42,0.12, wcx+0.05,wf-0.25,z, P.struct); }  // joists
     box(wW,0.09,wD, wcx,wf,wcz, P.struct);                           // floor deck
     box(0.1,wHw,wD, x1,wf+wHw/2,wcz, P.siding);                      // outer wall
@@ -1833,7 +1835,7 @@ function computeMaterials(p){
   const G=n=>{const g={name:n,items:[],sum:0};groups.push(g);return g;};
   const add=(g,qty,unit,label,detail,cost,link)=>{g.items.push({qty,unit,label,detail,cost,link});g.sum+=cost;total+=cost;};
 
-  const joists=Math.floor(D*12/oc)+1;   // function-scope: also used by joist-hanger hardware below
+  const joists=Math.ceil(D*12/oc)+1;   // function-scope: also used by joist-hanger hardware below
   let g=G('Foundation');
   if(p.foundation==='slab'){ const area=W*D, cy=Math.max(1,Math.round(area*0.5/27*10)/10), gb=Math.ceil(area*0.5), foam=Math.ceil(area/32), reb=Math.ceil(area*0.9), anc=Math.max(8,Math.ceil(2*(W+D)/4));
     add(g,gb,'bags','¾″ crushed stone base','4″ compacted under the slab (cheaper bulk by the yard)',gb*5.5,lw('all purpose gravel 0.5 cu ft'));
@@ -1890,14 +1892,14 @@ function computeMaterials(p){
 
   g=G('Roof ('+roof+')');
   let rafterLen,rafters,roofArea;
-  if(isA){ const peakH=Hw+W*0.45, slope=Math.hypot(W/2,peakH); rafterLen=stdLen(slope+0.5); rafters=(Math.floor(D*12/16)+1)*2; roofArea=2*slope*(D+1); }
-  else if(isFlat){ rafterLen=stdLen(W+1); rafters=Math.floor(D*12/16)+1; roofArea=(W+1)*(D+1)*1.05; }
-  else if(isGable||isSalt||isHip){ rafterLen=stdLen((W/2+0.5)*1.3); rafters=(Math.floor(D*12/16)+1)*(isHip?2:2)+(isHip?4:0); roofArea=(W+1)*(D+1)*(isSalt?1.4:isHip?1.5:1.28); }
-  else if(isGam||isCleres){ rafterLen=stdLen((W/2+0.5)*1.4); rafters=(Math.floor(D*12/16)+1)*(isGam?4:2); roofArea=(W+1)*(D+1)*(isGam?1.5:1.35); }
-  else if(isBfly){ rafterLen=stdLen((W/2+0.5)*1.2); rafters=(Math.floor(D*12/16)+1)*2; roofArea=(W+1)*(D+1)*1.3; }
-  else if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); rafterLen=stdLen(W/nT+0.5); rafters=(Math.floor(D*12/16)+1)*nT; roofArea=(W+1)*(D+1)*1.35; }
-  else if(isBarrel){ rafterLen=stdLen(W*1.25); rafters=(Math.floor(D*12/16)+1); roofArea=(W+1)*(D+1)*1.4; }
-  else { const f=isLean?1.22:1.06; rafterLen=stdLen((W+1)*f); rafters=Math.floor(D*12/16)+1; roofArea=(W+1)*(D+1)*f; }
+  if(isA){ const peakH=Hw+W*0.45, slope=Math.hypot(W/2,peakH); rafterLen=stdLen(slope+0.5); rafters=(Math.ceil(D*12/16)+1)*2; roofArea=2*slope*(D+1); }
+  else if(isFlat){ rafterLen=stdLen(W+1); rafters=Math.ceil(D*12/16)+1; roofArea=(W+1)*(D+1)*1.05; }
+  else if(isGable||isSalt||isHip){ rafterLen=stdLen((W/2+0.5)*1.3); rafters=(Math.ceil(D*12/16)+1)*(isHip?2:2)+(isHip?4:0); roofArea=(W+1)*(D+1)*(isSalt?1.4:isHip?1.5:1.28); }
+  else if(isGam||isCleres){ rafterLen=stdLen((W/2+0.5)*1.4); rafters=(Math.ceil(D*12/16)+1)*(isGam?4:2); roofArea=(W+1)*(D+1)*(isGam?1.5:1.35); }
+  else if(isBfly){ rafterLen=stdLen((W/2+0.5)*1.2); rafters=(Math.ceil(D*12/16)+1)*2; roofArea=(W+1)*(D+1)*1.3; }
+  else if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); rafterLen=stdLen(W/nT+0.5); rafters=(Math.ceil(D*12/16)+1)*nT; roofArea=(W+1)*(D+1)*1.35; }
+  else if(isBarrel){ rafterLen=stdLen(W*1.25); rafters=(Math.ceil(D*12/16)+1); roofArea=(W+1)*(D+1)*1.4; }
+  else { const f=isLean?1.22:1.06; rafterLen=stdLen((W+1)*f); rafters=Math.ceil(D*12/16)+1; roofArea=(W+1)*(D+1)*f; }
   const rDesc=isA?'A-frame slopes':isFlat?'flat — slope ¼"/ft to drain':isHip?'four hip slopes':isBfly?'two slopes to a centre valley':isSaw?'north-light sawtooth panels':isBarrel?'curved laminated ribs':isGable?'two slopes':'single slope';
   const rSize=p.rafter8?'2×8':'2×6', rPrice=p.rafter8?PRICE.joist*1.55:PRICE.joist;
   add(g,rafters,'pcs',`${isFlat?'Roof joists':isBarrel?'Curved ribs':'Rafters'} ${rSize} — ${rafterLen} ft`, rDesc+(p.rafter8?' · sized up for the span':''), rafters*rafterLen*rPrice, lw(isBarrel?'2x4':p.rafter8?'2x8':'2x6'));
@@ -1928,7 +1930,7 @@ function computeMaterials(p){
     const dPosts=W>9?3:2, dpLen=stdLen(Hf+0.3);
     add(g,dPosts,'×',`Deck posts ${post} — ${dpLen} ft`,'outer edge support',dPosts*dpLen*postPrice,lw(postTerm));
     add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),HW.block);
-    const dj=Math.max(2,Math.round(W/1.6))+1;
+    const dj=Math.ceil(W*12/16)+1;
     add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C.',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
     add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
     const railLF=W+2*Dd;
@@ -1950,7 +1952,7 @@ function computeMaterials(p){
     const wW=Math.min(W*0.7,5), wD=Math.min(D*0.6,5), wpLen=stdLen(Hf+Hw*0.9+1);
     add(g,3,'×',`Wing posts ${post} — ${wpLen} ft`,'outer + front-inner corners',3*wpLen*postPrice,lw(postTerm));
     add(g,3,'×','Deck blocks + ABA44Z bases','precast pier + post base, under the wing posts',3*(PRICE.deckBlock+PRICE.postBase),HW.block);
-    const wj=Math.max(2,Math.floor(wD*12/oc)+1);
+    const wj=Math.max(2,Math.ceil(wD*12/oc)+1);
     add(g,wj,'pcs',`Wing joists 2×6 — ${stdLen(wW)} ft`,`@ ${oc}" O.C.`,wj*stdLen(wW)*PRICE.joist,lw('pressure treated 2x6'));
     const wFloor=Math.ceil(wW*wD/32);
     add(g,wFloor,'×','¾" T&G plywood floor','wing deck, 4×8 sheets',wFloor*PRICE.plySheet,lw('3/4 plywood'));
@@ -2394,10 +2396,10 @@ function shade(hex,f){ const n=parseInt(hex.slice(1),16); const r=Math.min(255,M
 /* ===== build-step navigator ===== */
 function stepDetail(c,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2), mids=totalPosts-4;
-  const joists=Math.floor(s.D*12/s.oc)+1, sheets=Math.ceil(s.W*s.D/32);
+  const joists=Math.ceil(s.D*12/s.oc)+1, sheets=Math.ceil(s.W*s.D/32);
   const cl=stdLen(s.Hf+1);   // platform frame — posts stop under the deck
   return ({
-    1:`${totalPosts}× footing blocks + post bases`,
+    1: s.foundation==='slab' ? `formed + poured slab · ${s.W}×${s.D} ft · anchor bolts` : `${totalPosts}× footing blocks + post bases`,
     2:`4× corner (${cl} ft) + ${mids}× mid · ${s.post} PT`,
     3:`4× 2×6 beam plies (${s.D} ft) · sandwich the posts · through-bolt`,
     4:`${joists}× 2×6 joists @ ${s.oc}" O.C.`,
@@ -2406,13 +2408,13 @@ function stepDetail(c,s){
     7:`back wall · 2×6 studs @ 16"`,
     7.4:`front wall · studs + door header`,
     7.7:`2× butt walls (fit between) + 2nd top plate`,
-    8:`${Math.floor(s.D*12/16)+1}+ rafters · ${s.roof} roof — frame only`,
+    8:`${Math.ceil(s.D*12/16)+1}+ rafters · ${s.roof} roof — frame only`,
     8.5:`${Math.ceil(((s.W+1)*(s.D+1)*1.3)/32)}× OSB + ice-&-water + metal roof`,
     9:`siding · ${FINISH[s.finish].name}`,
     10:`1× insulated door (${s.door.size})`,
     10.5:`${s.windows.length}× window${s.windows.length===1?'':'s'} + flashing tape`,
     11:`${s.W>9?3:2}× deck posts + footings`,
-    12:`rim beam + ${Math.max(2,Math.round(s.W/1.6))+1}× deck joists`,
+    12:`rim beam + ${Math.ceil(s.W*12/16)+1}× deck joists`,
     13:`decking — ~${Math.round(s.W*s.Dd)} sq ft of 5/4 board`,
     14:`railing ~${Math.round(s.W+2*s.Dd)} ft + balusters`,
     15:`${s.access==='stairs'?'stairs + handrail':'ladder'}`,
@@ -2567,9 +2569,9 @@ function pieceLists(s){
   const isA=roof==='aframe',isG=roof==='gable',isL=roof==='lean';
   const L={}; const add=(t,len,n)=>{ (L[t]=L[t]||[]); for(let i=0;i<n;i++) L[t].push(Math.round(len*10)/10); };
   add('2×6 PT — beams & joists', D, s.midBeam?6:4);
-  const joists=Math.floor(D*12/oc)+1; add('2×6 PT — beams & joists', W, joists);
-  if(Dd>0){ const dj=Math.max(2,Math.round(W/1.6))+1; add('2×6 PT — beams & joists', Dd, dj); }
-  const rPer=Math.floor(D*12/16)+1;   // same rafter math as the materials list, per roof type
+  const joists=Math.ceil(D*12/oc)+1; add('2×6 PT — beams & joists', W, joists);
+  if(Dd>0){ const dj=Math.ceil(W*12/16)+1; add('2×6 PT — beams & joists', Dd, dj); }
+  const rPer=Math.ceil(D*12/16)+1;   // same rafter math as the materials list, per roof type
   let rl,rc; if(isA){const pH=Hw+W*0.45; rl=Math.hypot(W/2,pH)+0.5; rc=rPer*2;}
     else if(roof==='flat'){rl=W+1; rc=rPer;}
     else if(isG||roof==='saltbox'||roof==='hip'){rl=(W/2+0.5)*1.3; rc=rPer*2+(roof==='hip'?4:0);}
@@ -2734,7 +2736,7 @@ function framingPlan(s,mode,S,bare){      // top view: footings/posts (+ beams &
   let jz=[];
   if(mode!=='foundation'){
     for(const bx of rows) p+=`<rect class="plate" x="${X(bx)-0.16*S}" y="${Y(0)}" width="${0.32*S}" height="${D*S}"/>`;   // beams (long sides)
-    const nj=Math.floor(D*12/s.oc)+1; for(let i=0;i<nj;i++) jz.push(0.1+i*(D-0.2)/(nj-1));
+    const nj=Math.ceil(D*12/s.oc)+1; for(let i=0;i<nj;i++) jz.push(0.1+i*(D-0.2)/(nj-1));
     for(const z of jz) p+=`<rect class="mem" x="${X(0)}" y="${Y(z)-0.07*S}" width="${W*S}" height="${0.14*S}"/>`;          // joists across
     if(jz.length>1) p+=fdimV(Y(jz[0]),Y(jz[1]),padL-26,dim(jz[1]-jz[0]),X(0));
     p+=`<text class="dimt" x="${X(W/2)}" y="${Y(D)+34}" text-anchor="middle">${jz.length} joists @ ${ocLabel(jz.length>1?jz[1]-jz[0]:0)} O.C.</text>`;
@@ -2783,7 +2785,7 @@ function captureStepImages(s){
 // granular per-step spec chips derived from the design numbers
 function stepSpecs(st,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2);
-  const joists=Math.floor(s.D*12/s.oc)+1, isA=s.roof==='aframe', isFlat=s.roof==='flat';
+  const joists=Math.ceil(s.D*12/s.oc)+1, isA=s.roof==='aframe', isFlat=s.roof==='flat';
   const cornerLen=stdLen(s.Hf+1);   // platform frame
   const studs=Math.ceil(2*(s.W+s.D)*12/16)+4, floorSheets=Math.ceil(s.W*s.D/32), sideSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*s.Hw/32));
   const nw=(s.windows||[]).length;
@@ -2816,9 +2818,15 @@ function stepGuide(st,s){
   const deg=r=>Math.round(r*180/Math.PI)+'°', sm=ocLabel;     // small lengths honor the ft/m toggle
   const perSide=Math.max(2,Math.ceil(D/4)+1), rows=s.midBeam?3:2, totalPosts=perSide*rows;
   const pSpacing=(D-th)/(perSide-1), diag=Math.hypot(W-th,D-th);
-  const joists=Math.floor(D*12/oc)+1, grade=s.grade||0;
+  const joists=Math.ceil(D*12/oc)+1, grade=s.grade||0;
   const G={};
-  G[1]=[
+  G[1]= s.foundation==='slab' ? [
+    `Form the slab: ${dim(W+0.5)} × ${dim(D+0.5)} of 2×10 form boards, staked, leveled, diagonals equal — the slab IS your floor, so square and level here is everything.`,
+    'Excavate ~12″, then build up: 4–6″ compacted gravel → R-10 XPS foam board (frost-protected shallow foundation: also run foam vertically at the thickened edge) → 6-mil vapor barrier, seams taped.',
+    'Lay #4 rebar in a ~16″ grid on chairs; thicken the perimeter to ~12″ deep for the edge footing.',
+    `Pour ~4″ (order ready-mix — this slab is ~${Math.max(1,Math.round(W*D*0.124)/10)} yd³): screed flat, float, and set the ½″ anchor bolts in the wet edge every ~4 ft, 1¾″ in from where the wall face will be.`,
+    '✔ Check: slab level within ¼″ corner-to-corner, anchor bolts vertical and on your wall line. Cure a few days before framing.'
+  ] : [
     `Lay out the post grid: ${rows} rows of ${perSide}, a ${dim(W-th)} × ${dim(D-th)} rectangle of post centers (${dim(pSpacing)} between posts along each side).`,
     `Square it with strings: both diagonals must measure ${dim(diag)} — equal diagonals = square.`,
     s.foundation==='piers' ? 'Dig and pour each pier in a 10″ tube form; set the post bases in the wet concrete, tops all to one level line.'
@@ -2862,7 +2870,9 @@ function stepGuide(st,s){
     for(const o of wo.ops) out.push(`${o.kind[0].toUpperCase()+o.kind.slice(1)} rough opening: ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — king stud each side, jack studs under a doubled 2×6 header${o.vBot>0.3?', sill below':''}.`);
     if(!wo.ops.length) out.push('No openings in this wall — it’s the simplest one, which is why it goes first: you learn the rhythm on the easy wall.');
     out.push('Square the frame on the deck (equal diagonals), then tack a temporary diagonal 2×4 so it can’t rack while you lift.');
-    out.push(`Tilt it up, screw the bottom plate through the ply into the joists (3″ screws every ~16″), then brace it plumb to the deck with a 2×4. A 2×6 wall is HEAVY — walk it up in stages or get a second pair of hands for this one lift.`);
+    out.push(s.foundation==='slab'
+      ? 'Tilt it up over the anchor bolts (transfer-mark the bolt holes onto a PRESSURE-TREATED bottom plate over foam sill sealer first), drop it on, washers + nuts snug, then brace it plumb. A 2×6 wall is HEAVY — get a second pair of hands for the lift.'
+      : `Tilt it up, screw the bottom plate through the ply into the joists (3″ screws every ~16″), then brace it plumb to the deck with a 2×4. A 2×6 wall is HEAVY — walk it up in stages or get a second pair of hands for this one lift.`);
     if(extra) out.push(extra);
     out.push(`✔ Check: wall plumb both ways along its whole length — fix it NOW, not after the roof.`);
     return out; };
@@ -2874,7 +2884,7 @@ function stepGuide(st,s){
     out.splice(out.length-1,0,'Tie the corners: the side wall’s END STUD lands flat against the front/back wall’s corner stud — clamp flush inside faces, then screw them together top-to-bottom (3″ screws every ~12″). On a 2×6 wall add a second interior corner stud so the drywall has backing (a “California corner”).');
     out.splice(out.length-1,0,'Then the SECOND top plate around the whole perimeter: on the front/back walls it stops one wall-thickness SHORT of each end; on the side walls it runs one wall-thickness LONG past each end — so every lap crosses the corner joint below it and stitches the two walls together.');
     return out; })();
-  G[8]=(()=>{ const r=s.roof, rd=Math.floor(D*12/16)+1, out=[];
+  G[8]=(()=>{ const r=s.roof, rd=Math.ceil(D*12/16)+1, out=[];
     if(r==='lean'||r==='shed'){ const span=(s.slopeDir==='front'||s.slopeDir==='back')?D:W, rise=(r==='lean'?0.42:0.20)*span, ang=Math.atan2(rise,span);
       out.push(`Single ${deg(ang)} slope, downhill toward the ${s.slopeDir||'right'}: the high wall is framed ${dim(rise)} taller (already in the wall step).`);
       out.push(`Cut ${rd} rafters ~${dim((span+2)/Math.cos(ang))} with a ${deg(ang)} plumb cut each end and a birdsmouth (1½″ seat) over each plate; 1 ft overhang both eaves.`);
