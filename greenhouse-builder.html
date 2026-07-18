@@ -1076,10 +1076,13 @@ function rebuild3D(p){
   if(state.midBeam) zPos.forEach(z=>pillar(0,z,floorY-0.08));   // center post row under the mid beam
 
   // beams + joists + floor deck
-  _stage=3; for(const sx of [-1,1]) box(0.32,0.5,D, sx*ex,beamY,0, P.struct);
-  if(state.midBeam) box(0.32,0.5,D, 0,beamY,0, P.struct);       // center beam — halves the joist span
-  for(const sx of [-1,1]) zPos.forEach(z=>{                     // visible carriage-bolt heads at every beam-post crossing
-    ball(0.042, sx*(ex+0.17), beamY+0.11, z, '#46413a'); ball(0.042, sx*(ex+0.17), beamY-0.11, z, '#46413a'); });
+  // beam = a 2×6 ply on EACH FACE of the post row (sandwich) — clamps the posts, then through-bolted
+  _stage=3; const bPly=0.13, bOff=th/2+bPly/2;
+  for(const sx of [-1,1]) for(const s2 of [-1,1]) box(bPly,0.5,D, sx*ex+s2*bOff, beamY,0, P.struct);
+  if(state.midBeam) for(const s2 of [-1,1]) box(bPly,0.5,D, s2*bOff, beamY,0, P.struct);
+  for(const sx of [-1,1]) zPos.forEach(z=>{                     // carriage-bolt heads/nuts on both faces at every post
+    for(const s2 of [-1,1]){ const bx=sx*ex+s2*(bOff+bPly/2+0.015);
+      ball(0.042, bx, beamY+0.11, z, '#46413a'); ball(0.042, bx, beamY-0.11, z, '#46413a'); } });
   _stage=4;
   if(sF){ const n=Math.floor(D*12/oc)+1;
     for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1); box(W-0.2,0.46,0.13, 0,floorY-0.25,z, P.struct); } }

@@ -849,7 +849,7 @@ let dimLabels=[], dimPool=[];   // {x,y,z,text} projected to HTML each frame whe
 const STAGES={
   1:{name:'Footings', desc:'Set the footings — deck blocks on tamped gravel, or concrete piers with post bases. Level them all to each other.'},
   2:{name:'Posts', desc:'Stand the posts on the footings. Plumb each one and brace it temporarily until the beams tie them together.'},
-  3:{name:'Beams', desc:'Bolt the doubled beams across the post tops — through-bolt, don’t just screw. This is the main load path.'},
+  3:{name:'Beams', desc:'Sandwich each post row between a pair of 2×6 beam plies — one on each face — and through-bolt, don’t just screw. This is the main load path.'},
   4:{name:'Joists', desc:'Hang the joists across the beams at your spacing — these carry the floor. Hangers or blocking at the rim.'},
   5:{name:'Floor deck', desc:'Screw down the ¾" plywood floor deck over the joists.'},
   6:{name:'Knee braces', desc:'Add the 45° braces from post to beam on all sides — this is what kills the wobble/racking.'},
@@ -1085,10 +1085,13 @@ function rebuild3D(p){
   if(state.midBeam) zPos.forEach(z=>pillar(0,z,floorY-0.08));   // center post row under the mid beam
 
   // beams + joists + floor deck
-  _stage=3; for(const sx of [-1,1]) box(0.32,0.5,D, sx*ex,beamY,0, P.struct);
-  if(state.midBeam) box(0.32,0.5,D, 0,beamY,0, P.struct);       // center beam — halves the joist span
-  for(const sx of [-1,1]) zPos.forEach(z=>{                     // visible carriage-bolt heads at every beam-post crossing
-    ball(0.042, sx*(ex+0.17), beamY+0.11, z, '#46413a'); ball(0.042, sx*(ex+0.17), beamY-0.11, z, '#46413a'); });
+  // beam = a 2×6 ply on EACH FACE of the post row (sandwich) — clamps the posts, then through-bolted. No notching, no magic overlap.
+  _stage=3; const bPly=0.13, bOff=th/2+bPly/2;
+  for(const sx of [-1,1]) for(const s2 of [-1,1]) box(bPly,0.5,D, sx*ex+s2*bOff, beamY,0, P.struct);
+  if(state.midBeam) for(const s2 of [-1,1]) box(bPly,0.5,D, s2*bOff, beamY,0, P.struct);
+  for(const sx of [-1,1]) zPos.forEach(z=>{                     // carriage-bolt heads/nuts on both faces at every post
+    for(const s2 of [-1,1]){ const bx=sx*ex+s2*(bOff+bPly/2+0.015);
+      ball(0.042, bx, beamY+0.11, z, '#46413a'); ball(0.042, bx, beamY-0.11, z, '#46413a'); } });
   _stage=4;
   if(sF){ const n=Math.floor(D*12/oc)+1;
     for(let i=0;i<n;i++){ const z=-D/2+0.1+i*(D-0.2)/(n-1); box(W-0.2,0.46,0.13, 0,floorY-0.25,z, P.struct); } }
@@ -1843,8 +1846,8 @@ function computeMaterials(p){
   g=G('Bracing & hardware');
   const braceL=stdLen(Hf*0.9);
   add(g,8,'pcs',`Knee braces 2×4 — ${braceL} ft`,'anti-racking, all corners',8*braceL*PRICE.brace,lw('2x4x8 lumber'));
-  const bolts=totalPosts*2;
-  add(g,bolts,'×','½″ × 6″ carriage bolts','galvanized, beam-to-post (+ nuts/washers)',bolts*PRICE.bolt,lw('1/2 x 6 galvanized carriage bolt'));
+  const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
+  add(g,bolts,'×',`½″ × ${boltLen}″ carriage bolts`,'galvanized, through the beam sandwich + post (+ nuts/washers)',bolts*PRICE.bolt,lw(`1/2 x ${boltLen} galvanized carriage bolt`));
   add(g,joists,'×','Joist hangers — Simpson LUS26Z','ZMAX double-shear face-mount hanger',joists*PRICE.hanger,HW.hanger);
   add(g,1,'lot','Exterior screws + misc','3″ & 2″ structural / deck screws',PRICE.misc,lw('exterior structural wood screws'));
   if(p.anchor){ add(g,totalPosts,'×','Hurricane ties — Simpson H2.5A','galvanized rafter/post uplift tie',totalPosts*PRICE.hanger,HW.htie);
@@ -2252,7 +2255,7 @@ function stepDetail(c,s){
   return ({
     1:`${totalPosts}× footing blocks + post bases`,
     2:`4× corner (${cl} ft) + ${mids}× mid · ${s.post} PT`,
-    3:`4× 2×6 beams (${s.D} ft), doubled · through-bolt`,
+    3:`4× 2×6 beam plies (${s.D} ft) · sandwich the posts · through-bolt`,
     4:`${joists}× 2×6 joists @ ${s.oc}" O.C.`,
     5:`${sheets}× ¾" plywood sheet${sheets>1?'s':''}`,
     6:`8× 2×4 knee braces, 45°`,
@@ -2270,7 +2273,7 @@ function stepDetail(c,s){
 const FASTENERS={
   1:'Post bases → piers: ¼"×3" concrete screws (or anchor bolts set in wet concrete).',
   2:'Posts → base brackets: 1½" Simpson SD structural screws or 10d nails, 4 per bracket.',
-  3:'Beam → each post: 2× ½"×6" galvanized carriage bolts + washers + nuts (through-bolt).',
+  3:'Beam plies → each post: 2× ½" galvanized carriage bolts through ply–post–ply — 8" long for 4×4 posts, 10" for 6×6 (+ washers + nuts).',
   4:'Joists → beam: Simpson LUS joist hangers + 1½" hanger nails (or 3" toe screws).',
   5:'Plywood → joists: 2" exterior/deck screws @ 8" on edges, 12" in the field.',
   6:'Each brace end: 2× ⅜"×4" lag screws (or 3" structural screws).',
@@ -2676,9 +2679,9 @@ function stepGuide(st,s){
     '✔ Check: every post plumb in two planes before the beams go on.'
   ];
   G[3]=[
-    `Build ${rows} doubled beams: pairs of 2×6 × ${stdLen(D)} ft, crowns BOTH up, screwed together in a zigzag every 12″.`,
+    `Each beam is a PAIR of 2×6 × ${stdLen(D)} ft — one ply on EACH face of the post row, so the posts are sandwiched between them (no notching). Crowns up.`,
     `Mark the beam height on the posts: top of beam at ${dim(Hf-0.07)} (finished floor ${dim(Hf)} minus the ¾″ decking — the joists hang FLUSH with the beams, they don't sit on top). Clamp, level end-to-end, then through-bolt.`,
-    'Drill ½″ holes and fit 2 carriage bolts per post — washers + nuts on the inside face.',
+    'Clamp both plies to the posts at your marks, drill ½″ straight through ply–post–ply, and fit 2 carriage bolts per post — washers + nuts, snug tight. The bolts do the holding; the sandwich does the aligning.',
     '✔ Check: beams level along their length AND level beam-to-beam across the span.'
   ];
   G[4]=[
