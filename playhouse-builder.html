@@ -1080,10 +1080,8 @@ function rebuild3D(p){
   // posts along the two long sides
   const perSide=Math.max(2,Math.ceil(D/4)+1), zPos=[];
   for(let i=0;i<perSide;i++) zPos.push(-ez+i*(2*ez)/(perSide-1));
-  for(const sx of [-1,1]) zPos.forEach((z,i)=>{
-    const corner=(i===0||i===perSide-1);
-    pillar(sx*ex,z,(corner&&!isA)?wallTop:floorY-0.08);
-  });
+  // platform framing: EVERY post stops just under the floor deck — the walls are framed separately on the platform
+  for(const sx of [-1,1]) zPos.forEach(z=>pillar(sx*ex,z,floorY-0.08));
   if(state.midBeam) zPos.forEach(z=>pillar(0,z,floorY-0.08));   // center post row under the mid beam
 
   // beams + joists + floor deck
@@ -1756,7 +1754,7 @@ function computeMaterials(p){
   const postPrice=post==='6x6'?PRICE.p6x6:PRICE.p4x4;
   const postTerm=post==='6x6'?'pressure treated 6x6':'pressure treated 4x4';
   const grade=state.grade||0, gSpan=(state.gradeDir==='front'||state.gradeDir==='back')?(D-0.5):(W-0.5), gExtra=grade*gSpan;  // downhill posts run longer
-  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gExtra), midLen=stdLen(Hf+0.5+gExtra);
+  const cornerLen=stdLen(Hf+1+gExtra), midLen=stdLen(Hf+0.5+gExtra);   // platform frame — every post stops under the floor deck
 
   const groups=[]; let total=0;
   const G=n=>{const g={name:n,items:[],sum:0};groups.push(g);return g;};
@@ -1776,7 +1774,7 @@ function computeMaterials(p){
   }
 
   g=G('Posts ('+post+' PT)');
-  add(g,4,'×',`Corner posts — ${cornerLen} ft`,isA?'to platform':'full height → roof',4*cornerLen*postPrice,lw(postTerm));
+  add(g,4,'×',`Corner posts — ${cornerLen} ft`,'to just under the floor deck — walls frame on the platform',4*cornerLen*postPrice,lw(postTerm));
   if(mids>0) add(g,mids,'×',`Mid-span posts — ${midLen} ft`,'support the beams',mids*midLen*postPrice,lw(postTerm));
   if(grade>0) add(g,'⚑','','Sloped site — cut each post to a level line',`${Math.round(grade*100)}% grade · downhill posts run ~${dim(gExtra)} longer; buy long, scribe to a level string`,0,lw('post level string line'));
 
@@ -2250,7 +2248,7 @@ function shade(hex,f){ const n=parseInt(hex.slice(1),16); const r=Math.min(255,M
 function stepDetail(c,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2), mids=totalPosts-4;
   const joists=Math.floor(s.D*12/s.oc)+1, sheets=Math.ceil(s.W*s.D/32);
-  const cl=stdLen(s.Hf+s.Hw+1.5);
+  const cl=stdLen(s.Hf+1);   // platform frame — posts stop under the deck
   return ({
     1:`${totalPosts}× footing blocks + post bases`,
     2:`4× corner (${cl} ft) + ${mids}× mid · ${s.post} PT`,
@@ -2427,7 +2425,7 @@ function pieceLists(s){
   const perim=2*(W+D), studN=Math.ceil(perim*12/16)+4;
   add('2×4 — studs & braces', Hw, studN); add('2×4 — studs & braces', Math.min(Hf*0.8*1.41,3.5), 8);
   const gEx=(s.grade||0)*(((s.gradeDir==='front'||s.gradeDir==='back')?D:W)-0.5);   // sloped site: downhill posts run longer
-  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gEx), midLen=stdLen(Hf+0.5+gEx);
+  const cornerLen=stdLen(Hf+1+gEx), midLen=stdLen(Hf+0.5+gEx);   // platform frame — posts stop under the deck
   add(post+' PT — posts (buy to length)', cornerLen, 4); if(mids>0) add(post+' PT — posts (buy to length)', midLen, mids);
   return L;
 }
@@ -2629,12 +2627,12 @@ function captureStepImages(s){
 function stepSpecs(st,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2);
   const joists=Math.floor(s.D*12/s.oc)+1, isA=s.roof==='aframe', isFlat=s.roof==='flat';
-  const cornerLen=stdLen(isA?(s.Hf+1):(s.Hf+s.Hw+1.5));
+  const cornerLen=stdLen(s.Hf+1);   // platform frame
   const studs=Math.ceil(2*(s.W+s.D)*12/16)+4, floorSheets=Math.ceil(s.W*s.D/32), sideSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*s.Hw/32));
   const nw=(s.windows||[]).length;
   const M={
     1:[`${totalPosts} footings`, s.foundation==='piers'?'concrete piers':s.foundation==='buried'?'buried in concrete':'deck blocks', 'level to each other'],
-    2:[`${totalPosts}× ${s.post} posts`, `corners ~${cornerLen} ft`, `floor ${dim(s.Hf)} up`],
+    2:[`${totalPosts}× ${s.post} posts`, `all ~${cornerLen} ft`, `floor ${dim(s.Hf)} up`],
     3:['doubled 2×6 beams', `${dim(s.D)} per side`, 'through-bolted'],
     4:[`${joists} joists`, `@ ${s.oc}" O.C.`, `${dim(s.W)} span`],
     5:[`${floorSheets}× ¾" plywood`, '4×8 T&G sheets'],
@@ -2673,19 +2671,19 @@ function stepGuide(st,s){
     '✔ Check: diagonals equal within ¼″, every footing level both ways.'
   ];
   G[2]=[
-    `Cut posts to length: corners reach the roof line (~${dim(Hf+Hw)} above grade), mid posts reach the beam (~${dim(Hf)}). ${grade>0?'On the slope, cut each post to a level string line — downhill posts run longer.':'Buy long, trim in place.'}`,
+    `Cut posts to length: every post runs to just under the floor deck (~${dim(Hf)} above grade) — the posts carry the platform only; the walls get framed on top of it later. ${grade>0?'On the slope, cut each post to a level string line — downhill posts run longer.':'Buy long, trim in place.'}`,
     'Stand each post in its base, plumb it in BOTH directions with a 4-ft level, then tack a temporary 2×4 diagonal to a stake so it can’t move.',
     '✔ Check: every post plumb in two planes before the beams go on.'
   ];
   G[3]=[
     `Build ${rows} doubled beams: pairs of 2×6 × ${stdLen(D)} ft, crowns BOTH up, screwed together in a zigzag every 12″.`,
-    `Mark the beam height on the posts: top of beam at ${dim(Hf-0.07)} (finished floor ${dim(Hf)} minus joist + ply). Clamp, level end-to-end, then through-bolt.`,
+    `Mark the beam height on the posts: top of beam at ${dim(Hf-0.07)} (finished floor ${dim(Hf)} minus the ¾″ decking — the joists hang FLUSH with the beams, they don't sit on top). Clamp, level end-to-end, then through-bolt.`,
     'Drill ½″ holes and fit 2 carriage bolts per post — washers + nuts on the inside face.',
     '✔ Check: beams level along their length AND level beam-to-beam across the span.'
   ];
   G[4]=[
-    `Hook your tape on one end and mark the beam tops every ${oc}″ — ${joists} joists, cut to ${dim(W)}.`,
-    'Set each joist crown-up on the marks; fasten with a hanger or 2 toe-screws per side.',
+    `Hook your tape on one end and mark the beam FACES every ${oc}″ — ${joists} joists, cut to ${dim(W)}.`,
+    'Hang each joist crown-up in a joist hanger at the marks, top flush with the beam top (a scrap across both beams is your flush gauge).',
     'Block between the joist ends (rim) so nothing can roll over.',
     s.midBeam?'The center beam carries the joists mid-span — make sure each joist bears on it and gets 2 screws there too.':null,
     '✔ Check: joist tops flush — lay a straightedge across; shim any low hanger.'

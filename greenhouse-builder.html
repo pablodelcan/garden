@@ -2410,7 +2410,7 @@ function pieceLists(s){
   const perim=2*(W+D), studN=Math.ceil(perim*12/16)+4;
   add('2×4 — glazing bars & braces', Hw, studN); add('2×4 — glazing bars & braces', Math.min(Hf*0.8*1.41,3.5), 8);
   const gEx=(s.grade||0)*(((s.gradeDir==='front'||s.gradeDir==='back')?D:W)-0.5);   // sloped site: downhill posts run longer
-  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gEx), midLen=stdLen((isA?(Hf+1):(Hf+Hw))+gEx);
+  const cornerLen=stdLen((isA?(Hf+1):(Hf+Hw+1.5))+gEx), midLen=stdLen(Hf+0.5+gEx);   // mid posts only support the floor beam — don't overbuy them at roof height
   add(post+' PT — posts (buy to length)', cornerLen, 4); if(mids>0) add(post+' PT — posts (buy to length)', midLen, mids);
   return L;
 }
