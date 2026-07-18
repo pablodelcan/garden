@@ -853,17 +853,22 @@ const STAGES={
   4:{name:'Joists', desc:'Hang the joists across the beams at your spacing — these carry the floor. Hangers or blocking at the rim.'},
   5:{name:'Floor deck', desc:'Screw down the ¾" plywood floor deck over the joists.'},
   6:{name:'Knee braces', desc:'Add the 45° braces from post to beam on all sides — this is what kills the wobble/racking.'},
-  7:{name:'Wall framing', desc:'Frame the walls: bottom & top plates, studs, plus headers and trimmer studs around each opening.'},
-  8:{name:'Roof', desc:'Set the rafters and roof slope, with an overhang to keep rain off the walls.'},
+  7:{name:'Back wall', desc:'One wall at a time, easiest first. Frame the back wall flat on the floor deck, tilt it up, brace it plumb.'},
+  7.4:{name:'Front wall', desc:'Frame the front wall flat on the deck — headers and trimmers around its openings — then tilt it up and brace it.'},
+  7.7:{name:'Side walls & plates', desc:'Frame and raise the two side walls, tie all four corners together, then run the second top plate overlapping every joint.'},
+  8:{name:'Roof framing', desc:'The roof structure only: ceiling joists, rafters cut to the pattern, ridge. No sheathing yet — get the skeleton right first.'},
+  8.5:{name:'Sheathing & roofing', desc:'Skin the roof: sheathing across the rafters, drip edge + underlayment, then the roof covering and trim.'},
   9:{name:'Siding', desc:'Sheathe the walls with siding, cutting around the door and window openings.'},
-  10:{name:'Door & windows', desc:'Set the window(s) in their frames and hang the door.'},
+  10:{name:'Door', desc:'Hang the door plumb in its opening and trim it out.'},
+  10.5:{name:'Windows', desc:'Set each window in its opening, flash it properly, and trim it out.'},
   11:{name:'Deck footings & posts', desc:'Set the deck’s outer footings and stand its posts, leveled to the house floor.'},
   12:{name:'Deck frame', desc:'Run the rim beam along the outer edge and hang the deck joists across to the house.'},
   13:{name:'Decking', desc:'Lay the deck boards across the joists with ~⅛" gaps for drainage.'},
   14:{name:'Deck railing', desc:'Set railing posts, top rails, and balusters — leave the gap where the ladder lands.'},
-  15:{name:'Access & finish', desc:'Set the ladder or stairs for access, add your finish/sealer. Done — go compare it to yours.'}
+  15:{name:'Access', desc:'Build the ladder or stairs — this is the piece kids grab first, so make it solid.'},
+  15.5:{name:'Finish & shake-down', desc:'Seal or paint, ease every edge little hands can reach, then shake the whole thing down hard. Done — go compare it to yours.'}
 };
-const stepsFor=s=>[1,2,3,4,5,6,7,8,9,10].concat(s.Dd>0?[11,12,13,14]:[]).concat([15]);
+const stepsFor=s=>[1,2,3,4,5,6,7,7.4,7.7,8,8.5,9,10].concat(s.windows.length?[10.5]:[]).concat(s.Dd>0?[11,12,13,14]:[]).concat([15,15.5]);
 
 /* ===== finishes ===== */
 const FINISH={
@@ -1121,7 +1126,7 @@ function rebuild3D(p){
     return {k,uc,hw,vBot,vTop:vBot+oh}; }
   function renderWall(k,ops){
     const w=wInfo(k), len=w.uMax-w.uMin, mid=(w.uMin+w.uMax)/2;
-    _stage=7;
+    _stage = k==='back'?7 : k==='front'?7.4 : 7.7;   // walls go up one at a time: back → front → sides
     if(sF){
       onWall(k,mid,floorY+0.06,len,0.12,0.3,P.struct); onWall(k,mid,wallTop-0.06,len,0.12,0.3,P.struct);
       const n=Math.max(2,Math.round(len/1.333)+1), sp=(len-0.3)/(n-1);
@@ -1143,7 +1148,7 @@ function rebuild3D(p){
     }
   }
   function renderOpening(op,type,spec){
-    _stage=10;
+    _stage = type==='door'?10:10.5;
     const top=op.vTop,bot=op.vBot,mid=(top+bot)/2,ww=op.hw*2,h=top-bot;
     onWall(op.k,op.uc,top+0.05,ww+0.22,0.1,0.1,P.trim,{off:0.05,cast:false});
     onWall(op.k,op.uc,bot-0.05,ww+0.22,0.1,0.1,P.trim,{off:0.05,cast:false});
@@ -1191,11 +1196,13 @@ function rebuild3D(p){
   // ---- roofs: sheathing + visible rafters + fascia + ridge ----
   const seamCol=shade(colors.roof,1.5);
   function deckRafters(cx,cy,rotZ,slabW,depth,noRake){
+    _stage=8;                                                                            // structure first: the rafters
+    const nR=Math.max(2,Math.round(depth/1.6)+1), sp=(depth-0.2)/(nR-1);
+    for(let i=0;i<nR;i++){ const z=-depth/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ}); }  // rafters
+    _stage=8.5;                                                                          // then the skin
     box(slabW,0.1,depth, cx,cy+0.05,0, P.roof,{rotZ});                                   // sheathing deck
     const nS=Math.max(3,Math.round(depth/0.8));
     for(let i=0;i<=nS;i++){ const z=-depth/2+i*depth/nS; box(slabW,0.07,0.05, cx,cy+0.14,z, seamCol,{rotZ,cast:false}); }  // standing-seam ribs
-    const nR=Math.max(2,Math.round(depth/1.6)+1), sp=(depth-0.2)/(nR-1);
-    for(let i=0;i<nR;i++){ const z=-depth/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ}); }  // rafters
     box(slabW,0.06,depth, cx,cy-0.34,0, P.trim,{rotZ,cast:false});                         // soffit — closes the underside
     if(!noRake) for(const sz of [-1,1]) box(slabW,0.62,0.08, cx,cy-0.08,sz*(depth/2+0.04), P.trim,{rotZ});   // rake fascia — covers the slab edge sandwich
   }
@@ -1207,16 +1214,19 @@ function rebuild3D(p){
       for(const sx of [1,-1]) box(0.34,0.16,D,    sx*(W/2),wallTop-0.08,0, P.struct);     // left/right plate (rafters bear here)
     }
     function deckRaftersZ(cy,rotX,slabZ,widthX){            // mono-pitch slab sloping along Z (depth)
+      _stage=8;
+      const nR=Math.max(2,Math.round(widthX/1.6)+1), sp=(widthX-0.2)/(nR-1);
+      for(let i=0;i<nR;i++){ const x=-widthX/2+0.1+i*sp; box(0.1,0.34,slabZ, x,cy-0.18,0, P.struct,{rotX}); }
+      _stage=8.5;
       box(widthX,0.1,slabZ, 0,cy+0.05,0, P.roof,{rotX});
       const nS=Math.max(3,Math.round(widthX/0.8));
       for(let i=0;i<=nS;i++){ const x=-widthX/2+i*widthX/nS; box(0.05,0.07,slabZ, x,cy+0.14,0, seamCol,{rotX,cast:false}); }
-      const nR=Math.max(2,Math.round(widthX/1.6)+1), sp=(widthX-0.2)/(nR-1);
-      for(let i=0;i<nR;i++){ const x=-widthX/2+0.1+i*sp; box(0.1,0.34,slabZ, x,cy-0.18,0, P.struct,{rotX}); }
       box(widthX,0.06,slabZ, 0,cy-0.34,0, P.trim,{rotX,cast:false});                        // soffit — closes the underside
       for(const sx of [-1,1]) box(0.08,0.62,slabZ, sx*(widthX/2+0.04),cy-0.08,0, P.trim,{rotX});   // rake fascia
     }
     // angled ridge cap — two plates meeting over the peak (replaces the square ridge box look)
     function ridgeCap(px,py,angL,angR,depth){
+      _stage=8.5;
       box(0.55,0.07,depth, px-0.26*Math.cos(angL),py-0.26*Math.sin(angL),0, P.roof,{rotZ:angL,cast:false});
       box(0.55,0.07,depth, px+0.26*Math.cos(angR),py-0.26*Math.sin(angR),0, P.roof,{rotZ:-angR,cast:false});
       box(0.07,0.09,depth, px,py+0.01,0, seamCol,{cast:false});                              // crown seam
@@ -1239,7 +1249,7 @@ function rebuild3D(p){
       // gable END WALL sits ON the top plate at the wall plane (z=±D/2); the roof slabs overhang past it to D/2+ov
       const gprof=[[-W/2,0],[rx,rise],[W/2,0]];
       for(const sz of [1,-1]) tri(gprof, sz*(D/2)+sz*0.012, wallTop, wallCol(sz>0?'front':'back'), 0.07);
-      box(0.14,0.9,rd, rx,peakY-0.42,0, P.struct);                                                            // ridge board — the rafter heads die into it
+      _stage=8; box(0.14,0.9,rd, rx,peakY-0.42,0, P.struct);                                                  // ridge board — the rafter heads die into it (structure)
       if(isGable){ const nT=Math.max(2,Math.round(D/3)), cY=wallTop+rise*0.6, cHalf=(W/2)*0.4+0.18;           // collar ties between opposing rafters
         for(let i=0;i<nT;i++){ const z=-D/2+(i+0.5)*D/nT; box(cHalf*2,0.12,0.3, 0,cY,z, P.struct); } }
     } else if(isA){
@@ -1247,7 +1257,7 @@ function rebuild3D(p){
       deckRafters(-W/4, floorY+peakH/2, ang, slab, rd);
       deckRafters(W/4, floorY+peakH/2, -ang, slab, rd);
       ridgeCap(0,floorY+peakH+0.2,ang,ang,rd);                                                                // angled ridge cap
-      box(0.14,0.9,rd, 0,floorY+peakH-0.42,0, P.struct);                                                      // ridge board
+      _stage=8; box(0.14,0.9,rd, 0,floorY+peakH-0.42,0, P.struct);                                            // ridge board (structure)
       { const nT=Math.max(2,Math.round(D/3)), cY=floorY+peakH*0.62, cHalf=(W/2)*0.4+0.18;                     // collar ties — the A-frame loft tie
         for(let i=0;i<nT;i++){ const z=-D/2+(i+0.5)*D/nT; box(cHalf*2,0.12,0.3, 0,cY,z, P.struct); } }
       const triHalf=y=>(W/2)*(1-y/peakH);
@@ -2259,15 +2269,20 @@ function stepDetail(c,s){
     4:`${joists}× 2×6 joists @ ${s.oc}" O.C.`,
     5:`${sheets}× ¾" plywood sheet${sheets>1?'s':''}`,
     6:`8× 2×4 knee braces, 45°`,
-    7:`2×4 studs @ 16" + headers over openings`,
-    8:`rafters + sheathing · ${s.roof} roof`,
+    7:`back wall · 2×4 studs @ 16"`,
+    7.4:`front wall · studs + door header`,
+    7.7:`both side walls + 2nd top plate`,
+    8:`${Math.floor(s.D*12/16)+1}+ rafters · ${s.roof} roof — frame only`,
+    8.5:`${Math.ceil(((s.W+1)*(s.D+1)*1.3)/32)}× OSB + underlayment + roofing`,
     9:`siding · ${FINISH[s.finish].name}`,
-    10:`${s.windows.length} window${s.windows.length===1?'':'s'} + 1 door`,
+    10:`1× door (${s.door.size})`,
+    10.5:`${s.windows.length}× window${s.windows.length===1?'':'s'} + flashing tape`,
     11:`${s.W>9?3:2}× deck posts + footings`,
     12:`rim beam + ${Math.max(2,Math.round(s.W/1.6))+1}× deck joists`,
     13:`decking — ~${Math.round(s.W*s.Dd)} sq ft of 5/4 board`,
     14:`railing ~${Math.round(s.W+2*s.Dd)} ft + balusters`,
-    15:`${s.access==='stairs'?'stairs + handrail':'ladder'} + finish/sealer`
+    15:`${s.access==='stairs'?'stairs + handrail':'ladder'}`,
+    15.5:`finish/sealer + edge-easing + bolt re-torque`
   })[c]||'';
 }
 const FASTENERS={
@@ -2277,15 +2292,20 @@ const FASTENERS={
   4:'Joists → beam: Simpson LUS joist hangers + 1½" hanger nails (or 3" toe screws).',
   5:'Plywood → joists: 2" exterior/deck screws @ 8" on edges, 12" in the field.',
   6:'Each brace end: 2× ⅜"×4" lag screws (or 3" structural screws).',
-  7:'Studs → plates: 3" framing screws or 16d nails, 2 per end; headers the same.',
-  8:'Rafters → top plate: hurricane ties + 1½" nails; sheathing: 2" nails/screws @ 6".',
+  7:'Studs → plates: 3" framing screws or 16d nails, 2 per end; bottom plate → joists: 3" screws @ 16".',
+  7.4:'Same as the back wall; headers: 3" screws through kings into the header ends.',
+  7.7:'Corner studs → each other: 3" screws @ 12"; 2nd top plate → 1st: 3" screws @ 16", lapping corners.',
+  8:'Rafters → top plate: hurricane ties + 1½" ties nails; rafters → ridge: 3" screws toe-driven.',
+  8.5:'Sheathing → rafters: 2" nails/screws @ 6" edges; metal roofing: 1¼" gasketed screws beside each rib.',
   9:'Siding → studs: 2" galvanized/exterior screws or ring-shank nails @ 8".',
-  10:'Window flange: 1½" roofing nails/screws; door: hinge screws; trim: 2" finish screws.',
+  10:'Door: 3" screws through hinges + shims into the jack stud; trim: 2" finish screws.',
+  10.5:'Window flange: 1½" roofing nails/screws into sheathing; flashing tape needs a roller, not fingers.',
   11:'Deck post bases → piers: ¼"×3" concrete screws; posts → bases: 1½" SD screws.',
   12:'Ledger → house wall: ½"×4" lag screws @ 16"; joists: hangers + 1½" hanger nails.',
   13:'Deck boards → joists: 2½" deck screws, 2 per joist crossing.',
   14:'Rail posts → rim: 2× ⅜"×4" lag screws or carriage bolts each; balusters: 2½" screws.',
-  15:'Stairs/ladder → deck: 3" structural screws or ⅜" lags; treads/rungs: 2½" screws.'
+  15:'Stairs/ladder → deck: 3" structural screws or ⅜" lags; treads/rungs: 2½" screws.',
+  15.5:'No new fasteners — a wrench for the beam bolts, a driver for proud heads, sandpaper for edges.'
 };
 function loadJournal(){ try{ return new Set(JSON.parse(localStorage.getItem('playhouse:journal'))||[]); }catch(e){ return new Set(); } }
 function saveJournal(set){ try{ localStorage.setItem('playhouse:journal',JSON.stringify([...set])); }catch(e){} }
@@ -2703,17 +2723,25 @@ function stepGuide(st,s){
     'Fasten each end with 2× ⅜″ lag screws into pre-drilled holes.',
     '✔ Check: shove the structure hard — racking should feel dead.'
   ];})();
-  G[7]=(()=>{ const out=[`Frame each wall flat on the floor deck, then tilt up: bottom + top plate cut to the wall length, studs every ~16″.`];
-    for(const k of ['front','back','left','right']){ const wo=wallOpenings(s,k); if(!wo.ops.length) continue;
-      for(const o of wo.ops) out.push(`${k[0].toUpperCase()+k.slice(1)} wall ${o.kind}: rough opening ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — king stud each side, jack studs under a doubled 2×6 header${o.vBot>0.3?', sill below':''}.`); }
-    out.push('Tilt each wall up, screw the bottom plate through the floor into joists, brace plumb, then tie corners together and add the second top plate overlapping the joints.');
-    out.push('✔ Check: walls plumb + corners square before the roof.');
+  const wallCopy=(k,extra)=>{ const wo=wallOpenings(s,k), out=[
+      `Frame the ${k} wall FLAT on the floor deck: bottom + top plate cut to the wall length, studs every ~16″, crowns all facing the same way.`];
+    for(const o of wo.ops) out.push(`${o.kind[0].toUpperCase()+o.kind.slice(1)} rough opening: ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — king stud each side, jack studs under a doubled 2×6 header${o.vBot>0.3?', sill below':''}.`);
+    if(!wo.ops.length) out.push('No openings in this wall — it’s the simplest one, which is why it goes first: you learn the rhythm on the easy wall.');
+    out.push('Square the frame on the deck (equal diagonals), then sheath-tack a temporary diagonal 2×4 so it can’t rack while you lift.');
+    out.push(`Tilt it up, toenail-hold, screw the bottom plate through the ply into the joists (3″ screws every ~16″), then brace it plumb to the deck with a 2×4.`);
+    if(extra) out.push(extra);
+    out.push(`✔ Check: wall plumb both ways along its whole length — fix it NOW, not after the roof.`);
+    return out; };
+  G[7]=wallCopy('back');
+  G[7.4]=wallCopy('front');
+  G[7.7]=(()=>{ const out=wallCopy('left','Repeat for the right wall — same length, mirror the openings.');
+    out.splice(out.length-1,0,'Tie the corners: screw the corner studs of adjacent walls together top-to-bottom, then run the SECOND top plate around the whole perimeter, overlapping every corner joint — this locks the four walls into one box.');
     return out; })();
   G[8]=(()=>{ const r=s.roof, rd=Math.floor(D*12/16)+1, out=[];
     if(r==='lean'||r==='shed'){ const span=(s.slopeDir==='front'||s.slopeDir==='back')?D:W, rise=(r==='lean'?0.42:0.20)*span, ang=Math.atan2(rise,span);
       out.push(`Single ${deg(ang)} slope, downhill toward the ${s.slopeDir||'right'}: the high wall is framed ${dim(rise)} taller (already in the wall step).`);
       out.push(`Cut ${rd} rafters ~${dim((span+2)/Math.cos(ang))} with a ${deg(ang)} plumb cut each end and a birdsmouth (1½″ seat) over each plate; 1 ft overhang both eaves.`);
-      out.push('Hurricane tie every rafter; fascia on both eave ends; sheath, then roof.');
+      out.push('Hurricane tie every rafter to the plate — uplift is what removes little roofs.');
     } else if(r==='gable'||r==='saltbox'){ const rx=r==='saltbox'?-W*0.2:0, rise=W*(r==='saltbox'?0.46:0.30);
       const lrun=W/2+rx, rrun=W/2-rx, la=Math.atan2(rise,lrun), ra=Math.atan2(rise,rrun);
       out.push(`Set the ridge board (2× material, ${dim(D+2)}) ${dim(rise)} above the plates${r==='saltbox'?`, offset ${dim(W*0.2)} toward the back`:' on centre'} — prop it on two temporary posts.`);
@@ -2753,17 +2781,20 @@ function stepGuide(st,s){
       out.push('Stand the ribs every 16″ like rafters; sheath with two layers of ¼″ ply bent over the curve, seams staggered, glued + screwed.');
       out.push('Flexible membrane or metal over the top; arched infill panels close the two ends.');
     }
-    // ---- finishing the roof: the same for every shape ----
-    if(r!=='flat'&&r!=='barrel'){
+    // structure step closes with layout discipline + a frame check
+    if(r!=='flat'&&r!=='barrel')
       out.push('Layout: mark BOTH plates (or the ridge) every 16″ from the same end so rafters land in matched pairs — cut ONE pattern rafter, test-fit it at both ends, then batch-cut the rest from it.');
+    out.push('✔ Check: crowns all up, overhangs equal at both ends, and the ridge dead straight (sight down it) — square the skeleton BEFORE any sheathing goes on.');
+    return out; })();
+  G[8.5]=(()=>{ const r=s.roof, out=[];
+    if(r!=='flat'&&r!=='barrel')
       out.push(`Sheathing: ${Math.ceil(((W+1)*(D+1)*1.3)/32)}× 7/16″ OSB, long edge ACROSS the rafters, seams staggered and landing mid-rafter; nail 6″ on edges / 12″ in the field.`);
-    }
     out.push('Weather, in this order: metal drip edge on the EAVES first → underlayment up the slope, each course overlapping 4″ → drip edge on the RAKES on top. Then the covering: metal panels (1¼″ gasketed screws in the flat beside each rib) or shingles (starter strip, then 5″ exposure, nails above the slot).');
     out.push('Trim: fascia covers the rafter tails, soffit closes the underside, frieze blocking seals each rafter bay at the wall — screen any vent gaps or wasps move in.');
     out.push(r==='aframe' ? 'Ceiling: the rafters ARE the ceiling — seal/finish the underside of the sheathing between them.'
-      : ['gable','saltbox','gambrel'].includes(r) ? 'Ceiling: leave the rafters exposed (seal the sheathing underside), or screw collar ties across every other pair ~12″ below the ridge and skin them with thin ply for a flat ceiling strip.'
+      : ['gable','saltbox','gambrel'].includes(r) ? 'Ceiling: leave the rafters exposed (seal the sheathing underside), or skin the collar ties with thin ply for a flat ceiling strip.'
       : 'Ceiling: leave the rafters exposed and seal the sheathing underside, or skin the rafter undersides with ¼″ ply for a finished ceiling.');
-    out.push('✔ Check: measure overhangs at both ends — equal means the roof is square to the walls. Then hose-test before trim: any drip inside now is cheap to fix.');
+    out.push('✔ Check: hose-test before trim — any drip inside now is cheap to fix.');
     return out; })();
   G[9]=[
     'Hang siding sheets vertically, bottom edge ½″ below the floor framing as a drip; leave ⅛″ between sheets.',
@@ -2772,10 +2803,15 @@ function stepGuide(st,s){
     '✔ Check: no fastener missed a stud (you’ll hear it).'
   ];
   G[10]=[
-    'Windows: set each in its opening on the sill, flange screwed to the sheathing, flashing tape over the top + sides (top piece LAST, over the side pieces).',
     s.door.size==='dutch'?'Dutch door: hang the bottom leaf first, get its gap even, then the top leaf; a small shelf on the bottom leaf hides the meeting joint.':'Hang the door on its hinges to the jack stud, shim until the gap is even all round, then drive long screws through the shims.',
-    'Trim every opening — it covers the shims and the RO gaps.',
+    'Trim the door — casing covers the shims and the RO gap; a sill/threshold keeps water walking out, not in.',
     '✔ Check: door swings closed and STAYS (not self-opening = plumb).'
+  ];
+  G[10.5]=[
+    `Set each of the ${s.windows.length} window${s.windows.length===1?'':'s'} in its opening on the sill, flange screwed to the sheathing.`,
+    'Flash in the right order: sill pan tape first, then the side pieces, then the TOP piece over the sides — water always laps DOWNHILL over the layer below.',
+    'Trim each window; back-caulk the top casing, leave the bottom edge open so any water can drain.',
+    '✔ Check: spray each window with a hose from below and above — dry inside.'
   ];
   G[11]=[`Deck footings exactly like step 1: ${(s.deckSide==='front'||s.deckSide==='back')?(W>9?3:2):(D>9?3:2)} posts at the deck’s outer edge, ${dim(s.Dd)} out from the house wall.`,
     'Cut the deck posts so the deck floor lands flush with the house floor.','✔ Check: outer posts in line with the house wall posts.'];
@@ -2800,7 +2836,12 @@ function stepGuide(st,s){
       'Round over every rung edge — kid hands.',
       '✔ Check: rungs take full weight without flex; top can’t slide sideways.'
     ]; })();
-  if(st===15) G[15].splice(G[15].length-1,0, s.finish==='pt'?'Finish: let PT weather a few weeks, then a penetrating oil if you want.':s.finish==='paint'?'Finish: prime + 2 coats exterior paint; caulk trim joints first.':'Finish: clear penetrating sealer on '+FINISH[s.finish].name.toLowerCase()+'; recoat yearly-ish.');
+  G[15.5]=[
+    s.finish==='pt'?'Finish: let PT weather a few weeks, then a penetrating oil if you want.':s.finish==='paint'?'Finish: prime + 2 coats exterior paint; caulk trim joints first.':'Finish: clear penetrating sealer on '+FINISH[s.finish].name.toLowerCase()+'; recoat yearly-ish.',
+    'Kid pass: round over every edge a hand can reach — sills, rungs, rail ends, corners. 120-grit, two minutes per edge.',
+    'Hardware pass: re-torque the beam bolts (wood shrinks), sink any proud screw heads, check every hanger has all its nails.',
+    '✔ Check: shake the whole thing HARD, bounce the floor, hang off the rail — then hand over the keys.'
+  ];
   return (G[st]||[]).filter(Boolean);
 }
 function openPlan(){
