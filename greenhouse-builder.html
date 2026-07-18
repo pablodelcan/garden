@@ -463,6 +463,54 @@
   /* keep only the lightest structural rules */
   .mgroup h3{border-bottom-color:var(--bd)!important;border-bottom-width:1px!important}
   .item .ck{border-radius:0}
+  /* ===== phone / on-site build-guide mode ===== */
+  #mbar{display:none;position:fixed;left:0;right:0;bottom:0;height:60px;z-index:50;background:var(--pb);
+    font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:10px}
+  #mbar button{flex:1;background:none;border:none;color:rgba(255,255,255,.72);font:inherit;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding-bottom:env(safe-area-inset-bottom,0)}
+  #mbar button.on{color:#fff;background:rgba(255,255,255,.14)}
+  #mbar button b{font-size:17px;font-weight:400}
+  button,input,select,.stepnav .sbtn,.dock button{touch-action:manipulation}
+  @media (max-width:700px), (pointer:coarse) and (max-width:1000px){
+    .topbar{padding:0 10px;height:44px}
+    .brand{display:none}
+    .toolwrap{display:none}
+    .viewseg b,.unittog b{padding:5px 7px;font-size:9.5px}
+    /* panels become full-screen sheets above the tab bar */
+    .left,.right{left:0!important;right:0!important;top:44px;bottom:60px;width:auto;z-index:40;background:var(--field);transition:transform .28s ease}
+    body.lhide .left{left:0!important;transform:translateX(-105%)}
+    body.rhide .right{right:0!important;transform:translateX(105%)}
+    .pcollapse{width:40px;height:40px;font-size:22px}
+    .revealtab{display:none!important}
+    .badge{display:none}
+    .scroll{padding:16px;-webkit-overflow-scrolling:touch}
+    .ctl label{font-size:14px} .val{font-size:13px}
+    input[type=range]{height:6px}
+    input[type=range]::-webkit-slider-thumb{width:24px;height:24px}
+    .seg button{padding:12px 4px;font-size:11px}
+    .item{font-size:13.5px} .item .mdet{font-size:12px} .item .ck{width:22px;height:22px;line-height:20px}
+    .note{font-size:13px}
+    /* dock hidden behind the Views tab */
+    .dock{display:none;bottom:66px;max-width:calc(100vw - 8px)}
+    body.mdock .dock{display:flex}
+    .dock button{padding:10px 12px;font-size:11px}
+    /* step nav docks to the bottom — the on-site guide */
+    .stepnav{top:auto;bottom:66px;width:calc(100vw - 10px);padding:12px;z-index:35;max-height:60vh;overflow-y:auto}
+    .stepnav .sbtn{width:54px;height:54px;font-size:22px;flex-shrink:0}
+    .stepnav .stitle{font-size:17px}
+    .stepnav .stitle .snum{font-size:13px}
+    .stepnav .sdesc{font-size:14px;margin-top:5px}
+    .stepnav .sdetail{font-size:13px}
+    .stepnav .sfast{font-size:12px}
+    .stepnav .jrnl{font-size:13px;margin-top:11px}
+    .stepnav .jrnl input{width:24px;height:24px}
+    .stepnav input[type=range]{height:8px;margin-top:11px}
+    .stepnav .playbtn{width:34px;height:32px;font-size:13px}
+    .intpanel{bottom:66px;left:8px;z-index:36}
+    .shopmodal{padding:8px 4px}
+    .shophead{padding:16px 14px 12px} .shopbody{padding:4px 14px 14px;max-height:none}
+    #mbar{display:flex}
+  }
 </style>
 </head>
 <body>
@@ -760,6 +808,13 @@
 </div>
 
 <div class="badge" id="badge"></div>
+
+<div id="mbar">
+  <button id="mSteps"><b>◳</b>Steps</button>
+  <button id="mList"><b>≣</b>Cut list</button>
+  <button id="mDesign"><b>⚙</b>Design</button>
+  <button id="mView"><b>⌸</b>Views</button>
+</div>
 <div class="shopmodal" id="shopModal">
   <div class="shoppanel">
     <div class="shophead">
@@ -928,7 +983,7 @@ function box(w,h,d,x,y,z,color,o={}){
     new THREE.MeshStandardMaterial({color,roughness:o.rough??0.92,metalness:0,transparent:o.opacity!=null,opacity:o.opacity??1}));
   m.position.set(x,y+eoff(),z);
   if(o.rotX)m.rotation.x=o.rotX; if(o.rotZ)m.rotation.z=o.rotZ;
-  m.castShadow=o.cast!==false; m.receiveShadow=true; house.add(m); return m;
+  m.castShadow=o.cast!==false; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 // point-to-point strut — always connects p1→p2 cleanly (used for braces, rails, ladder)
 function strut(p1,p2,thick,color){
@@ -940,7 +995,7 @@ function strut(p1,p2,thick,color){
     new THREE.MeshStandardMaterial({color,roughness:.9}));
   m.position.copy(a).addScaledVector(dir,0.5);
   m.quaternion.setFromUnitVectors(_up,dir.clone().normalize());
-  m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 function tri(pts,zpos,yBase,color,depth){
   if(!house||_stage>_limit)return;
@@ -974,7 +1029,7 @@ function poly3(pts,color){
     pos.push(a[0],a[1]+eo,a[2], b[0],b[1]+eo,b[2], c[0],c[1]+eo,c[2]); }
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.9,side:THREE.DoubleSide}));
-  m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 // gate raw THREE.Mesh adds the same way box/strut/tri are gated (build-step + exploded view)
 function addRaw(m){ if(!house||_stage>_limit) return null; m.castShadow=true; m.receiveShadow=true; house.add(m); return m; }
@@ -1194,22 +1249,24 @@ function rebuild3D(p){
   // ---- roofs: glazed panels on a frame of glazing bars + rafters ----
   const ROP=()=>interior?0.12:((FINISH[state.finish]||{}).op||0.4);
   const seamCol=colors.struct;   // glazing bars / ridge caps read as the aluminium-or-cedar frame
-  function deckRafters(cx,cy,rotZ,slabW,depth,noRake){
+  function deckRafters(cx,cy,rotZ,slabW,depth,noRake,fieldD){
+    const fd=fieldD||depth;   // rafters live OVER the walls — the small rake overhang is glazing + rake bar
     box(slabW*0.99,0.05,depth, cx,cy+0.04,0, colors.roof,{rotZ,opacity:ROP(),cast:false});   // translucent glazing panel
     const nS=Math.max(3,Math.round(depth/1.1));
     for(let i=0;i<=nS;i++){ const z=-depth/2+i*depth/nS; box(slabW,0.09,0.07, cx,cy+0.07,z, P.struct,{rotZ}); }  // glazing bars (down-slope)
-    const nR=Math.max(2,Math.round(depth/1.6)+1), sp=(depth-0.2)/(nR-1);
-    for(let i=0;i<nR;i++){ const z=-depth/2+0.1+i*sp; box(slabW,0.2,0.08, cx,cy-0.1,z, P.struct,{rotZ}); }  // rafters under
+    const nR=Math.max(2,Math.round(fd/1.6)+1), sp=(fd-0.2)/(nR-1);
+    for(let i=0;i<nR;i++){ const z=-fd/2+0.1+i*sp; box(slabW,0.2,0.08, cx,cy-0.1,z, P.struct,{rotZ}); }  // rafters under
     if(!noRake) for(const sz of [-1,1]) box(slabW,0.16,0.07, cx,cy-0.02,sz*(depth/2+0.03), P.struct,{rotZ});   // slim rake bar (frame)
   }
   if(sR){
     _stage=8; const rd=D+2*ov, zEdge=D/2+ov, xEdge=W/2+ov;
-    function deckRaftersZ(cy,rotX,slabZ,widthX){            // mono-pitch glazed slab sloping along Z (depth)
+    function deckRaftersZ(cy,rotX,slabZ,widthX,fieldW){            // mono-pitch glazed slab sloping along Z (depth)
+      const fw=fieldW||widthX;
       box(widthX,0.05,slabZ*0.99, 0,cy+0.04,0, colors.roof,{rotX,opacity:ROP(),cast:false});   // translucent glazing panel
       const nS=Math.max(3,Math.round(slabZ/1.1));
       for(let i=0;i<=nS;i++){ const z=-slabZ/2+i*slabZ/nS; box(widthX,0.07,0.07, 0,cy+0.07,z, P.struct,{rotX}); }  // glazing bars (down-slope)
-      const nR=Math.max(2,Math.round(widthX/1.6)+1), sp=(widthX-0.2)/(nR-1);
-      for(let i=0;i<nR;i++){ const x=-widthX/2+0.1+i*sp; box(0.08,0.2,slabZ, x,cy-0.1,0, P.struct,{rotX}); }  // rafters under
+      const nR=Math.max(2,Math.round(fw/1.6)+1), sp=(fw-0.2)/(nR-1);
+      for(let i=0;i<nR;i++){ const x=-fw/2+0.1+i*sp; box(0.08,0.2,slabZ, x,cy-0.1,0, P.struct,{rotX}); }  // rafters under
       for(const sx of [-1,1]) box(0.07,0.16,slabZ, sx*(widthX/2+0.03),cy-0.02,0, P.struct,{rotX});   // slim rake bar (frame)
     }
     // angled ridge cap — a solid aluminium/cedar cap straddling the peak
@@ -1228,9 +1285,9 @@ function rebuild3D(p){
     } else if(isGable||isSalt){
       const rx=isSalt?-W*0.2:0, rise=W*(isSalt?0.46:0.30), peakY=wallTop+rise;
       const lrun=W/2+ov+rx, lang=Math.atan2(rise,lrun), lslab=lrun/Math.cos(lang), leaveY=wallTop-ov*Math.tan(lang);
-      deckRafters((-W/2-ov+rx)/2,(peakY+leaveY)/2,lang,lslab,rd);
+      deckRafters((-W/2-ov+rx)/2,(peakY+leaveY)/2,lang,lslab,rd,false,D-0.15);
       const rrun=W/2+ov-rx, rang=Math.atan2(rise,rrun), rslab=rrun/Math.cos(rang), reaveY=wallTop-ov*Math.tan(rang);
-      deckRafters((W/2+ov+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd);
+      deckRafters((W/2+ov+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd,false,D-0.15);
       box(0.12,0.5,rd, -W/2-ov, leaveY-0.1, 0, P.struct); box(0.12,0.5,rd, W/2+ov, reaveY-0.1, 0, P.struct);  // fascia
       ridgeCap(rx,peakY+0.2,lang,rang,rd);                                                                    // angled ridge cap
       // gable END WALL sits ON the top plate at the wall plane (z=±D/2); the roof slabs overhang past it to D/2+ov
@@ -1239,8 +1296,8 @@ function rebuild3D(p){
       for(const sz of [1,-1]){ box(W,0.16,0.1, 0,wallTop-0.05,sz*(D/2), P.struct); }                          // top plate under the gable — the roof bears here
     } else if(isA){
       const peakH=Hw+W*0.45, ang=Math.atan2(peakH,W/2), slab=Math.hypot(W/2,peakH)+ov*0.6;
-      deckRafters(-W/4, floorY+peakH/2, ang, slab, rd);
-      deckRafters(W/4, floorY+peakH/2, -ang, slab, rd);
+      deckRafters(-W/4, floorY+peakH/2, ang, slab, rd,false,D-0.15);
+      deckRafters(W/4, floorY+peakH/2, -ang, slab, rd,false,D-0.15);
       ridgeCap(0,floorY+peakH+0.2,ang,ang,rd);                                                                // angled ridge cap
       const triHalf=y=>(W/2)*(1-y/peakH);
       const dH=Math.min(dS.h, Hw-0.25, peakH*0.46);
@@ -1278,8 +1335,8 @@ function rebuild3D(p){
       const kx=W*0.27, rise1=W*0.33, rise2=W*0.17, kY=wallTop+rise1, peakY=kY+rise2;
       const a1=Math.atan2(rise1,W/2-kx), s1=Math.hypot(W/2-kx,rise1)+0.5;
       const a2=Math.atan2(rise2,kx), s2=Math.hypot(kx,rise2)+0.2;
-      deckRafters(-(W/2+kx)/2,(wallTop+kY)/2, a1, s1, rd);  deckRafters((W/2+kx)/2,(wallTop+kY)/2, -a1, s1, rd);
-      deckRafters(-kx/2,(kY+peakY)/2, a2, s2, rd);          deckRafters(kx/2,(kY+peakY)/2, -a2, s2, rd);
+      deckRafters(-(W/2+kx)/2,(wallTop+kY)/2, a1, s1, rd,false,D-0.15);  deckRafters((W/2+kx)/2,(wallTop+kY)/2, -a1, s1, rd,false,D-0.15);
+      deckRafters(-kx/2,(kY+peakY)/2, a2, s2, rd,false,D-0.15);          deckRafters(kx/2,(kY+peakY)/2, -a2, s2, rd,false,D-0.15);
       box(0.12,0.5,rd, -W/2-0.1, wallTop-0.05, 0, P.struct); box(0.12,0.5,rd, W/2+0.1, wallTop-0.05, 0, P.struct);
       ridgeCap(0,peakY+0.2,a2,a2,rd);                                                                         // angled ridge cap
       box(0.1,0.1,rd, -kx, kY+0.2, 0, seamCol,{cast:false}); box(0.1,0.1,rd, kx, kY+0.2, 0, seamCol,{cast:false});   // knuckle trim
@@ -1288,8 +1345,8 @@ function rebuild3D(p){
     } else if(isCleres){   // clerestory / monitor — raised center band of windows
       const monW=W*0.36, lowRise=W*0.12, baseY=wallTop+lowRise, monH=W*0.24, monTop=baseY+monH;
       const run=W/2+ov-monW/2, la=Math.atan2(lowRise,run), sl=Math.hypot(run,lowRise);
-      deckRafters((-monW/2-(W/2+ov))/2,(wallTop+baseY)/2, la, sl, rd);
-      deckRafters((monW/2+(W/2+ov))/2,(wallTop+baseY)/2, -la, sl, rd);
+      deckRafters((-monW/2-(W/2+ov))/2,(wallTop+baseY)/2, la, sl, rd,false,D-0.15);
+      deckRafters((monW/2+(W/2+ov))/2,(wallTop+baseY)/2, -la, sl, rd,false,D-0.15);
       box(0.12,0.5,rd, -W/2-ov, wallTop-0.05, 0, P.struct); box(0.12,0.5,rd, W/2+ov, wallTop-0.05, 0, P.struct);
       box(monW,monH,D, 0, baseY+monH/2, 0, P.siding);
       for(const sz of [1,-1]) box(monW*0.84,monH*0.5,0.05, 0, baseY+monH*0.6, sz*(D/2+0.02), P.glass,{opacity:0.6,cast:false});
@@ -1311,7 +1368,7 @@ function rebuild3D(p){
     } else if(isSaw){   // sawtooth — repeated north-light mono-pitch panels, solid-backed glazed risers
       const nT=Math.max(2,Math.round(W/3.2)), tw=W/nT, rise=tw*0.6, ang=Math.atan2(rise,tw), slab=tw/Math.cos(ang);
       for(let i=0;i<nT;i++){ const x0=-W/2+i*tw, xc=x0+tw/2;
-        deckRafters(xc, wallTop+rise/2, ang, slab, rd, true);                                  // tooth slab (no rake clutter)
+        deckRafters(xc, wallTop+rise/2, ang, slab, rd, true, D-0.15);                          // tooth slab (no rake clutter)
         if(i<nT-1){ const rx=x0+tw;
           box(0.1,rise,D, rx, wallTop+rise/2, 0, wallCol('front'));                            // SOLID riser — no dark void behind the glass
           box(0.05,rise*0.52,D-0.4, rx-0.06, wallTop+rise*0.6, 0, P.glass,{opacity:0.55,cast:false});  // glazing on the riser face, backed by the solid riser
@@ -1345,7 +1402,7 @@ function rebuild3D(p){
           for(let i=0;i<nS;i++){ const uc=-len/2+(i+0.5)*sw; onWall(k,uc,wallTop+h/2,sw*0.93,h,0.06,col,{off:0.03,opacity:interior?0.16:null}); } } };  // board-and-batten siding, matching the wall below
       if(alongX){
         const lowS=(dir==='right')?1:-1, hiS=-lowS, eaveOv=(W/2+ov)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
-        deckRafters(0, midY, -lowS*ang, (W+2*ov)/Math.cos(ang), rd);
+        deckRafters(0, midY, -lowS*ang, (W+2*ov)/Math.cos(ang), rd, false, D-0.15);
         box(0.12,0.5,rd, lowS*(W/2+ov), loE-0.05, 0, P.struct);          // low-eave fascia
         box(0.12,0.5,rd, hiS*(W/2+ov), hiE-0.05, 0, P.struct);           // high-eave fascia
         highWall(hiS>0?'right':'left', D, rise);                          // tall wall continues up, sided
@@ -1354,7 +1411,7 @@ function rebuild3D(p){
           poly3([[lowS*(W/2+ov),wallTop,sz*zEdge],[lowS*(W/2+ov),loE,sz*zEdge],[hiS*(W/2+ov),hiE,sz*zEdge],[hiS*(W/2+ov),wallTop,sz*zEdge]], wallCol(sz>0?'front':'back'));  // boxed rake end
       } else {
         const lowS=(dir==='front')?1:-1, hiS=-lowS, eaveOv=(D/2+ov)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
-        deckRaftersZ(midY, lowS*ang, (D+2*ov)/Math.cos(ang), W+2*ov);
+        deckRaftersZ(midY, lowS*ang, (D+2*ov)/Math.cos(ang), W+2*ov, W-0.15);
         box(W+2*ov,0.5,0.12, 0, loE-0.05, lowS*(D/2+ov), P.struct);      // low-eave fascia
         box(W+2*ov,0.5,0.12, 0, hiE-0.05, hiS*(D/2+ov), P.struct);       // high-eave fascia
         highWall(hiS>0?'front':'back', W, rise);                          // tall wall continues up, sided
@@ -2992,6 +3049,68 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
     var name=o.value, file=o.getAttribute('data-file');
     if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
     window.location.href=file;
+  });
+})();
+
+/* ===== phone build-guide mode: full-screen sheets + bottom tab bar ===== */
+(function(){
+  const phone=matchMedia('(max-width:700px), (pointer:coarse) and (max-width:1000px)').matches;
+  if(!phone) return;
+  document.body.classList.add('lhide','rhide');            // 3D + steps first; panels are sheets behind the tabs
+  const el=id=>document.getElementById(id);
+  const setOn=(id,on)=>{ const b=el(id); if(b) b.classList.toggle('on',on); };
+  const closeSheets=()=>{ document.body.classList.add('lhide','rhide'); setOn('mDesign',false); setOn('mList',false); };
+  el('mDesign').addEventListener('click',()=>{ const show=document.body.classList.contains('lhide');
+    closeSheets(); if(show){ document.body.classList.remove('lhide'); setOn('mDesign',true); } });
+  el('mList').addEventListener('click',()=>{ const show=document.body.classList.contains('rhide');
+    closeSheets(); if(show){ document.body.classList.remove('rhide'); setOn('mList',true); } });
+  el('mSteps').addEventListener('click',()=>{ closeSheets(); el('stepToggle').click();
+    setOn('mSteps', el('stepnav').classList.contains('on')); });
+  el('mView').addEventListener('click',()=>{ const on=document.body.classList.toggle('mdock'); setOn('mView',on); });
+  el('hideL').addEventListener('click',()=>setOn('mDesign',false));   // panel chevrons return to the 3D
+  el('hideR').addEventListener('click',()=>setOn('mList',false));
+})();
+
+/* ===== tap-a-piece inspector: tap any member → its size, the stock it's cut from, and its fasteners ===== */
+(function(){
+  const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+  let picked=null, pickedColor=0, downX=0, downY=0;
+  const card=document.createElement('div'); card.id='pickCard';
+  card.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:56px;z-index:45;display:none;max-width:min(440px,calc(100vw - 14px));background:var(--pb);color:#fff;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.6;letter-spacing:.02em;border-radius:2px';
+  document.body.appendChild(card);
+  const IN=x=>x*12;
+  const fIn=v=>{ const i=Math.round(v*8)/8; return (i%1?(''+i).replace(/(\.\d\d).*$/,'$1'):i)+'″'; };
+  const fLen=ft=>{ const f=Math.floor(ft), i=Math.round((ft-f)*12); return i>=12?(f+1)+'′':(f? f+'′'+(i?i+'″':'') : fIn(ft*12)); };
+  function stockOf(a,b){                                     // cross-section in inches, a<=b
+    const near=(x,t,tol)=>Math.abs(x-t)<=tol;
+    if(a<=0.95) return b>12?'sheet stock — glazing / panel':'glazing bar / trim stock';
+    if(a<=2.1){ if(near(b,3.5,0.95))return '2×4'; if(near(b,5.5,1.15))return '2×6'; if(near(b,7.25,1))return '2×8'; if(b<=3)return '2×2 / 2×3'; if(b<=12)return '2×10'; return 'dimensional lumber'; }
+    if(near(a,3.5,0.8)&&near(b,3.5,0.8)) return '4×4';
+    if(a>4.3&&b>4.3) return '6×6';
+    return fIn(a)+'×'+fIn(b);
+  }
+  function show(m){
+    if(picked){ try{picked.material.color.setHex(pickedColor);}catch(e){} }
+    picked=m; try{ pickedColor=m.material.color.getHex(); m.material.color.setHex(0xE5202A); }catch(e){}
+    const p=(m.geometry&&m.geometry.parameters)||{};
+    let dims=[p.width,p.height,p.depth].filter(x=>typeof x==='number');
+    if(dims.length!==3){ const bb=new THREE.Box3().setFromObject(m), sz=new THREE.Vector3(); bb.getSize(sz); dims=[sz.x,sz.y,sz.z]; }
+    dims=dims.slice().sort((x,y)=>y-x);
+    const st=m.userData.stage||0, meta=STAGES[st]||STAGES[Math.floor(st)]||{name:'Piece'};
+    card.innerHTML='<b style="color:#ff7a70">'+(meta.name||'Piece').toUpperCase()+'</b> · '+stockOf(IN(dims[2]),IN(dims[1]))+
+      '<br>cut length ≈ <b>'+fLen(dims[0])+'</b> · section '+fIn(IN(dims[1]))+' × '+fIn(IN(dims[2]))+
+      (FASTENERS[st]?'<br><span style="opacity:.75">🔩 '+FASTENERS[st]+'</span>':'')+
+      '<br><span style="opacity:.5">tap empty space to dismiss</span>';
+    card.style.display='block';
+  }
+  function hide(){ if(picked){ try{picked.material.color.setHex(pickedColor);}catch(e){} picked=null; } card.style.display='none'; }
+  cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; });
+  cv.addEventListener('pointerup',e=>{
+    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
+    ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
+    ray.setFromCamera(ptr,camera);
+    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh&&h.object.geometry);
+    if(hits.length) show(hits[0].object); else hide();
   });
 })();
 </script>

@@ -479,6 +479,54 @@
   .permitchip.locked{background:var(--good);border-color:var(--good);color:#fff}
   .permitchip.warn{border-color:var(--warn);color:var(--warn)}
   .permitchip.no{border-color:var(--ac);color:var(--ac)}
+  /* ===== phone / on-site build-guide mode ===== */
+  #mbar{display:none;position:fixed;left:0;right:0;bottom:0;height:60px;z-index:50;background:var(--pb);
+    font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:10px}
+  #mbar button{flex:1;background:none;border:none;color:rgba(255,255,255,.72);font:inherit;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding-bottom:env(safe-area-inset-bottom,0)}
+  #mbar button.on{color:#fff;background:rgba(255,255,255,.14)}
+  #mbar button b{font-size:17px;font-weight:400}
+  button,input,select,.stepnav .sbtn,.dock button{touch-action:manipulation}
+  @media (max-width:700px), (pointer:coarse) and (max-width:1000px){
+    .topbar{padding:0 10px;height:44px}
+    .brand{display:none}
+    .toolwrap{display:none}
+    .viewseg b,.unittog b{padding:5px 7px;font-size:9.5px}
+    /* panels become full-screen sheets above the tab bar */
+    .left,.right{left:0!important;right:0!important;top:44px;bottom:60px;width:auto;z-index:40;background:var(--field);transition:transform .28s ease}
+    body.lhide .left{left:0!important;transform:translateX(-105%)}
+    body.rhide .right{right:0!important;transform:translateX(105%)}
+    .pcollapse{width:40px;height:40px;font-size:22px}
+    .revealtab{display:none!important}
+    .badge{display:none}
+    .scroll{padding:16px;-webkit-overflow-scrolling:touch}
+    .ctl label{font-size:14px} .val{font-size:13px}
+    input[type=range]{height:6px}
+    input[type=range]::-webkit-slider-thumb{width:24px;height:24px}
+    .seg button{padding:12px 4px;font-size:11px}
+    .item{font-size:13.5px} .item .mdet{font-size:12px} .item .ck{width:22px;height:22px;line-height:20px}
+    .note{font-size:13px}
+    /* dock hidden behind the Views tab */
+    .dock{display:none;bottom:66px;max-width:calc(100vw - 8px)}
+    body.mdock .dock{display:flex}
+    .dock button{padding:10px 12px;font-size:11px}
+    /* step nav docks to the bottom — the on-site guide */
+    .stepnav{top:auto;bottom:66px;width:calc(100vw - 10px);padding:12px;z-index:35;max-height:60vh;overflow-y:auto}
+    .stepnav .sbtn{width:54px;height:54px;font-size:22px;flex-shrink:0}
+    .stepnav .stitle{font-size:17px}
+    .stepnav .stitle .snum{font-size:13px}
+    .stepnav .sdesc{font-size:14px;margin-top:5px}
+    .stepnav .sdetail{font-size:13px}
+    .stepnav .sfast{font-size:12px}
+    .stepnav .jrnl{font-size:13px;margin-top:11px}
+    .stepnav .jrnl input{width:24px;height:24px}
+    .stepnav input[type=range]{height:8px;margin-top:11px}
+    .stepnav .playbtn{width:34px;height:32px;font-size:13px}
+    .intpanel{bottom:66px;left:8px;z-index:36}
+    .shopmodal{padding:8px 4px}
+    .shophead{padding:16px 14px 12px} .shopbody{padding:4px 14px 14px;max-height:none}
+    #mbar{display:flex}
+  }
 </style>
 </head>
 <body>
@@ -539,6 +587,7 @@
         <input type="range" id="Hw" min="6" max="10" step="0.5" value="8"></div>
       <div class="ctl"><div class="row"><label>Deck depth</label><span class="val" id="vDd">none</span></div>
         <input type="range" id="Dd" min="0" max="6" step="0.5" value="0"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:-6px 0 10px"><input type="checkbox" id="optRoofOver" style="accent-color:var(--ac);width:15px;height:15px"> Roof extends over the deck <span style="color:var(--tm);font-size:10px">(gable/shed, front or back deck)</span></label>
       <div class="ctl"><div class="row"><label>Deck side</label></div>
         <div class="seg four" id="deckSide">
           <button data-v="front" class="on">Front</button>
@@ -781,6 +830,13 @@
 </div>
 
 <div class="badge" id="badge"></div>
+
+<div id="mbar">
+  <button id="mSteps"><b>◳</b>Steps</button>
+  <button id="mList"><b>≣</b>Cut list</button>
+  <button id="mDesign"><b>⚙</b>Design</button>
+  <button id="mView"><b>⌸</b>Views</button>
+</div>
 <div class="shopmodal" id="shopModal">
   <div class="shoppanel">
     <div class="shophead">
@@ -862,7 +918,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 
 /* ===== state (before render loop references it) ===== */
 const state={W:12,D:14,Hf:3,Hw:8,Dd:0,deckSide:'front',post:'6x6',roof:'gable',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
-  loft:false,porch:false,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',permitFree:false,
+  loft:false,porch:false,roofOver:false,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',permitFree:false,
   foundation:'piers',access:'stairs',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:true,rafter8:true,anchor:true,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
@@ -982,7 +1038,7 @@ function box(w,h,d,x,y,z,color,o={}){
     new THREE.MeshStandardMaterial({color,roughness:o.rough??0.92,metalness:0,transparent:o.opacity!=null,opacity:o.opacity??1}));
   m.position.set(x,y+eoff(),z);
   if(o.rotX)m.rotation.x=o.rotX; if(o.rotZ)m.rotation.z=o.rotZ;
-  m.castShadow=o.cast!==false; m.receiveShadow=true; house.add(m); return m;
+  m.castShadow=o.cast!==false; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 // point-to-point strut — always connects p1→p2 cleanly (used for braces, rails, ladder)
 function strut(p1,p2,thick,color){
@@ -994,7 +1050,7 @@ function strut(p1,p2,thick,color){
     new THREE.MeshStandardMaterial({color,roughness:.9}));
   m.position.copy(a).addScaledVector(dir,0.5);
   m.quaternion.setFromUnitVectors(_up,dir.clone().normalize());
-  m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 function tri(pts,zpos,yBase,color,depth){
   if(!house||_stage>_limit)return;
@@ -1028,7 +1084,7 @@ function poly3(pts,color){
     pos.push(a[0],a[1]+eo,a[2], b[0],b[1]+eo,b[2], c[0],c[1]+eo,c[2]); }
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.9,side:THREE.DoubleSide}));
-  m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 // gate raw THREE.Mesh adds the same way box/strut/tri are gated (build-step + exploded view)
 function addRaw(m){ if(!house||_stage>_limit) return null; m.castShadow=true; m.receiveShadow=true; house.add(m); return m; }
@@ -1241,33 +1297,40 @@ function rebuild3D(p){
     _stage=8;
     if(sF){ const nc=Math.max(2,Math.ceil(D*12/oc)+1);                       // ceiling joists run across the width, tying the eave walls (resist rafter thrust)
       for(let i=0;i<nc;i++){ const z=-D/2+0.12+i*(D-0.24)/(nc-1); box(W-0.18,0.3,0.1, 0,wallTop-0.2,z, P.struct); } }
-    if(sR&&!interior) box(W-0.06,0.08,D-0.06, 0,wallTop-0.05,0, shade(colors.struct,1.15),{cast:false});   // ceiling deck (hidden in dollhouse)
+    if(sR&&!interior){ _stage=8.5; box(W-0.06,0.05,D-0.06, 0,wallTop-0.025,0, shade(colors.struct,1.15),{cast:false}); _stage=8; }   // thin ceiling skin ON the joists — shows with sheathing, never floats over the frame
   }
 
   // ---- roofs: sheathing + visible rafters + fascia + ridge ----
   const seamCol=shade(colors.roof,1.5);
-  function deckRafters(cx,cy,rotZ,slabW,depth,noRake){
-    _stage=8;                                                                            // structure first: the rafters
-    const nR=Math.max(2,Math.round(depth/1.6)+1), sp=(depth-0.2)/(nR-1);
-    for(let i=0;i<nR;i++){ const z=-depth/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ}); }  // rafters
+  function deckRafters(cx,cy,rotZ,slabW,depth,noRake,fieldD,zo){
+    _stage=8; zo=zo||0;                                                                  // structure first: the rafters
+    const fd=fieldD||depth;                                  // rafters live OVER the walls — the rake overhang is sheathing + barge, not floating rafters
+    const nR=Math.max(2,Math.round(fd/1.6)+1), sp=(fd-0.2)/(nR-1);
+    for(let i=0;i<nR;i++){ const z=zo-fd/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ}); }  // rafters
     _stage=8.5;                                                                          // then the skin
-    box(slabW,0.1,depth, cx,cy+0.05,0, P.roof,{rotZ});                                   // sheathing deck
+    box(slabW,0.1,depth, cx,cy+0.05,zo, P.roof,{rotZ});                                  // sheathing deck
     const nS=Math.max(3,Math.round(depth/0.8));
-    for(let i=0;i<=nS;i++){ const z=-depth/2+i*depth/nS; box(slabW,0.07,0.05, cx,cy+0.14,z, seamCol,{rotZ,cast:false}); }  // standing-seam ribs
-    box(slabW,0.06,depth, cx,cy-0.34,0, P.trim,{rotZ,cast:false});                         // soffit — closes the underside
-    if(!noRake) for(const sz of [-1,1]) box(slabW,0.62,0.08, cx,cy-0.08,sz*(depth/2+0.04), P.trim,{rotZ});   // rake fascia — covers the slab edge sandwich
+    for(let i=0;i<=nS;i++){ const z=zo-depth/2+i*depth/nS; box(slabW,0.07,0.05, cx,cy+0.14,z, seamCol,{rotZ,cast:false}); }  // standing-seam ribs
+    box(slabW,0.06,depth, cx,cy-0.34,zo, P.trim,{rotZ,cast:false});                        // soffit — closes the underside
+    if(!noRake) for(const sz of [-1,1]) box(slabW,0.62,0.08, cx,cy-0.08,zo+sz*(depth/2+0.04), P.trim,{rotZ});   // rake fascia — covers the slab edge sandwich
   }
   if(sR){
-    _stage=8; const rd=D+2*ov, zEdge=D/2+ov, xEdge=W/2+ov;
+    _stage=8;
+    const alongXS=(state.slopeDir==='left'||state.slopeDir==='right');
+    const extOK=(isGable||isSalt||((isShed||isLean)&&alongXS));
+    const dExtOn=state.roofOver && state.Dd>0 && (state.deckSide==='front'||state.deckSide==='back') && extOK;
+    const dSign=state.deckSide==='front'?1:-1, dExt=dExtOn?state.Dd+0.4:0, zOff=dSign*dExt/2;   // roof runs past the wall to cover the deck
+    const rd=D+2*ov+dExt, zEdge=D/2+ov, xEdge=W/2+ov;
     // double top plate around the whole perimeter — the bearing seat the roof sits on (shown with the roof, not just framing)
     if(!isFlat && !isA){
       for(const sz of [1,-1]) box(W+0.02,0.16,0.34, 0,wallTop-0.08,sz*(D/2), P.struct);   // front/back plate
       for(const sx of [1,-1]) box(0.34,0.16,D,    sx*(W/2),wallTop-0.08,0, P.struct);     // left/right plate (rafters bear here)
     }
-    function deckRaftersZ(cy,rotX,slabZ,widthX){            // mono-pitch slab sloping along Z (depth)
+    function deckRaftersZ(cy,rotX,slabZ,widthX,fieldW){            // mono-pitch slab sloping along Z (depth)
       _stage=8;
-      const nR=Math.max(2,Math.round(widthX/1.6)+1), sp=(widthX-0.2)/(nR-1);
-      for(let i=0;i<nR;i++){ const x=-widthX/2+0.1+i*sp; box(0.1,0.34,slabZ, x,cy-0.18,0, P.struct,{rotX}); }
+      const fw=fieldW||widthX;                              // rafters live OVER the walls, not out in the side overhangs
+      const nR=Math.max(2,Math.round(fw/1.6)+1), sp=(fw-0.2)/(nR-1);
+      for(let i=0;i<nR;i++){ const x=-fw/2+0.1+i*sp; box(0.1,0.34,slabZ, x,cy-0.18,0, P.struct,{rotX}); }
       _stage=8.5;
       box(widthX,0.1,slabZ, 0,cy+0.05,0, P.roof,{rotX});
       const nS=Math.max(3,Math.round(widthX/0.8));
@@ -1276,11 +1339,11 @@ function rebuild3D(p){
       for(const sx of [-1,1]) box(0.08,0.62,slabZ, sx*(widthX/2+0.04),cy-0.08,0, P.trim,{rotX});   // rake fascia
     }
     // angled ridge cap — two plates meeting over the peak (replaces the square ridge box look)
-    function ridgeCap(px,py,angL,angR,depth){
-      _stage=8.5;
-      box(0.55,0.07,depth, px-0.26*Math.cos(angL),py-0.26*Math.sin(angL),0, P.roof,{rotZ:angL,cast:false});
-      box(0.55,0.07,depth, px+0.26*Math.cos(angR),py-0.26*Math.sin(angR),0, P.roof,{rotZ:-angR,cast:false});
-      box(0.07,0.09,depth, px,py+0.01,0, seamCol,{cast:false});                              // crown seam
+    function ridgeCap(px,py,angL,angR,depth,zo){
+      _stage=8.5; zo=zo||0;
+      box(0.55,0.07,depth, px-0.26*Math.cos(angL),py-0.26*Math.sin(angL),zo, P.roof,{rotZ:angL,cast:false});
+      box(0.55,0.07,depth, px+0.26*Math.cos(angR),py-0.26*Math.sin(angR),zo, P.roof,{rotZ:-angR,cast:false});
+      box(0.07,0.09,depth, px,py+0.01,zo, seamCol,{cast:false});                             // crown seam
     }
     if(isFlat){                                             // flat roof + parapet — tower / rooftop-deck look
       box(W+0.3,0.16,D+0.3, 0, wallTop+0.08, 0, P.roof);
@@ -1292,21 +1355,21 @@ function rebuild3D(p){
     } else if(isGable||isSalt){
       const rx=isSalt?-W*0.2:0, rise=W*(isSalt?0.46:0.30), peakY=wallTop+rise;
       const lrun=W/2+ov+rx, lang=Math.atan2(rise,lrun), lslab=lrun/Math.cos(lang), leaveY=wallTop-ov*Math.tan(lang);
-      deckRafters((-W/2-ov+rx)/2,(peakY+leaveY)/2,lang,lslab,rd);
+      deckRafters((-W/2-ov+rx)/2,(peakY+leaveY)/2,lang,lslab,rd,false,D-0.15+dExt,zOff);
       const rrun=W/2+ov-rx, rang=Math.atan2(rise,rrun), rslab=rrun/Math.cos(rang), reaveY=wallTop-ov*Math.tan(rang);
-      deckRafters((W/2+ov+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd);
-      box(0.12,0.5,rd, -W/2-ov, leaveY-0.1, 0, P.struct); box(0.12,0.5,rd, W/2+ov, reaveY-0.1, 0, P.struct);  // fascia
-      ridgeCap(rx,peakY+0.2,lang,rang,rd);                                                                    // angled ridge cap
+      deckRafters((W/2+ov+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd,false,D-0.15+dExt,zOff);
+      box(0.12,0.5,rd, -W/2-ov, leaveY-0.1, zOff, P.struct); box(0.12,0.5,rd, W/2+ov, reaveY-0.1, zOff, P.struct);  // fascia
+      ridgeCap(rx,peakY+0.2,lang,rang,rd,zOff);                                                               // angled ridge cap
       // gable END WALL sits ON the top plate at the wall plane (z=±D/2); the roof slabs overhang past it to D/2+ov
       const gprof=[[-W/2,0],[rx,rise],[W/2,0]];
       for(const sz of [1,-1]) tri(gprof, sz*(D/2)+sz*0.012, wallTop, wallCol(sz>0?'front':'back'), 0.07);
-      _stage=8; box(0.14,0.9,rd, rx,peakY-0.42,0, P.struct);                                                  // ridge board — the rafter heads die into it (structure)
+      _stage=8; box(0.14,0.9,rd, rx,peakY-0.42,zOff, P.struct);                                               // ridge board — the rafter heads die into it (structure)
       if(isGable){ const nT=Math.max(2,Math.round(D/3)), cY=wallTop+rise*0.6, cHalf=(W/2)*0.4+0.18;           // collar ties between opposing rafters
         for(let i=0;i<nT;i++){ const z=-D/2+(i+0.5)*D/nT; box(cHalf*2,0.12,0.3, 0,cY,z, P.struct); } }
     } else if(isA){
       const peakH=Hw+W*0.45, ang=Math.atan2(peakH,W/2), slab=Math.hypot(W/2,peakH)+ov*0.6;
-      deckRafters(-W/4, floorY+peakH/2, ang, slab, rd);
-      deckRafters(W/4, floorY+peakH/2, -ang, slab, rd);
+      deckRafters(-W/4, floorY+peakH/2, ang, slab, rd,false,D-0.15);
+      deckRafters(W/4, floorY+peakH/2, -ang, slab, rd,false,D-0.15);
       ridgeCap(0,floorY+peakH+0.2,ang,ang,rd);                                                                // angled ridge cap
       _stage=8; box(0.14,0.9,rd, 0,floorY+peakH-0.42,0, P.struct);                                            // ridge board (structure)
       { const nT=Math.max(2,Math.round(D/3)), cY=floorY+peakH*0.62, cHalf=(W/2)*0.4+0.18;                     // collar ties — the A-frame loft tie
@@ -1347,8 +1410,8 @@ function rebuild3D(p){
       const kx=W*0.27, rise1=W*0.33, rise2=W*0.17, kY=wallTop+rise1, peakY=kY+rise2;
       const a1=Math.atan2(rise1,W/2-kx), s1=Math.hypot(W/2-kx,rise1)+0.5;
       const a2=Math.atan2(rise2,kx), s2=Math.hypot(kx,rise2)+0.2;
-      deckRafters(-(W/2+kx)/2,(wallTop+kY)/2, a1, s1, rd);  deckRafters((W/2+kx)/2,(wallTop+kY)/2, -a1, s1, rd);
-      deckRafters(-kx/2,(kY+peakY)/2, a2, s2, rd);          deckRafters(kx/2,(kY+peakY)/2, -a2, s2, rd);
+      deckRafters(-(W/2+kx)/2,(wallTop+kY)/2, a1, s1, rd,false,D-0.15);  deckRafters((W/2+kx)/2,(wallTop+kY)/2, -a1, s1, rd,false,D-0.15);
+      deckRafters(-kx/2,(kY+peakY)/2, a2, s2, rd,false,D-0.15);          deckRafters(kx/2,(kY+peakY)/2, -a2, s2, rd,false,D-0.15);
       box(0.12,0.5,rd, -W/2-0.1, wallTop-0.05, 0, P.struct); box(0.12,0.5,rd, W/2+0.1, wallTop-0.05, 0, P.struct);
       ridgeCap(0,peakY+0.2,a2,a2,rd);                                                                         // angled ridge cap
       box(0.1,0.1,rd, -kx, kY+0.2, 0, seamCol,{cast:false}); box(0.1,0.1,rd, kx, kY+0.2, 0, seamCol,{cast:false});   // knuckle trim
@@ -1357,8 +1420,8 @@ function rebuild3D(p){
     } else if(isCleres){   // clerestory / monitor — raised center band of windows
       const monW=W*0.36, lowRise=W*0.12, baseY=wallTop+lowRise, monH=W*0.24, monTop=baseY+monH;
       const run=W/2+ov-monW/2, la=Math.atan2(lowRise,run), sl=Math.hypot(run,lowRise);
-      deckRafters((-monW/2-(W/2+ov))/2,(wallTop+baseY)/2, la, sl, rd);
-      deckRafters((monW/2+(W/2+ov))/2,(wallTop+baseY)/2, -la, sl, rd);
+      deckRafters((-monW/2-(W/2+ov))/2,(wallTop+baseY)/2, la, sl, rd,false,D-0.15);
+      deckRafters((monW/2+(W/2+ov))/2,(wallTop+baseY)/2, -la, sl, rd,false,D-0.15);
       box(0.12,0.5,rd, -W/2-ov, wallTop-0.05, 0, P.struct); box(0.12,0.5,rd, W/2+ov, wallTop-0.05, 0, P.struct);
       box(monW,monH,D, 0, baseY+monH/2, 0, P.siding);
       for(const sz of [1,-1]) box(monW*0.84,monH*0.5,0.05, 0, baseY+monH*0.6, sz*(D/2+0.02), P.glass,{opacity:0.6,cast:false});
@@ -1380,7 +1443,7 @@ function rebuild3D(p){
     } else if(isSaw){   // sawtooth — repeated north-light mono-pitch panels, solid-backed glazed risers
       const nT=Math.max(2,Math.round(W/3.2)), tw=W/nT, rise=tw*0.6, ang=Math.atan2(rise,tw), slab=tw/Math.cos(ang);
       for(let i=0;i<nT;i++){ const x0=-W/2+i*tw, xc=x0+tw/2;
-        deckRafters(xc, wallTop+rise/2, ang, slab, rd, true);                                  // tooth slab (no rake clutter)
+        deckRafters(xc, wallTop+rise/2, ang, slab, rd, true, D-0.15);                          // tooth slab (no rake clutter)
         if(i<nT-1){ const rx=x0+tw;
           box(0.1,rise,D, rx, wallTop+rise/2, 0, wallCol('front'));                            // SOLID riser — no dark void behind the glass
           box(0.05,rise*0.52,D-0.4, rx-0.06, wallTop+rise*0.6, 0, P.glass,{opacity:0.55,cast:false});  // glazing on the riser face, backed by the solid riser
@@ -1414,16 +1477,16 @@ function rebuild3D(p){
           for(let i=0;i<nS;i++){ const uc=-len/2+(i+0.5)*sw; onWall(k,uc,wallTop+h/2,sw*0.93,h,0.06,col,{off:0.03,opacity:interior?0.16:null}); } } };  // board-and-batten siding, matching the wall below
       if(alongX){
         const lowS=(dir==='right')?1:-1, hiS=-lowS, eaveOv=(W/2+ov)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
-        deckRafters(0, midY, -lowS*ang, (W+2*ov)/Math.cos(ang), rd);
-        box(0.12,0.5,rd, lowS*(W/2+ov), loE-0.05, 0, P.struct);          // low-eave fascia
-        box(0.12,0.5,rd, hiS*(W/2+ov), hiE-0.05, 0, P.struct);           // high-eave fascia
+        deckRafters(0, midY, -lowS*ang, (W+2*ov)/Math.cos(ang), rd, false, D-0.15+dExt, zOff);
+        box(0.12,0.5,rd, lowS*(W/2+ov), loE-0.05, zOff, P.struct);          // low-eave fascia
+        box(0.12,0.5,rd, hiS*(W/2+ov), hiE-0.05, zOff, P.struct);           // high-eave fascia
         highWall(hiS>0?'right':'left', D, rise);                          // tall wall continues up, sided
         _stage=8.5;   // rake-end infill closes with the roof skin
         for(const sz of [1,-1])
           poly3([[lowS*(W/2+ov),wallTop,sz*zEdge],[lowS*(W/2+ov),loE,sz*zEdge],[hiS*(W/2+ov),hiE,sz*zEdge],[hiS*(W/2+ov),wallTop,sz*zEdge]], wallCol(sz>0?'front':'back'));  // boxed rake end
       } else {
         const lowS=(dir==='front')?1:-1, hiS=-lowS, eaveOv=(D/2+ov)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
-        deckRaftersZ(midY, lowS*ang, (D+2*ov)/Math.cos(ang), W+2*ov);
+        deckRaftersZ(midY, lowS*ang, (D+2*ov)/Math.cos(ang), W+2*ov, W-0.15);
         box(W+2*ov,0.5,0.12, 0, loE-0.05, lowS*(D/2+ov), P.struct);      // low-eave fascia
         box(W+2*ov,0.5,0.12, 0, hiE-0.05, hiS*(D/2+ov), P.struct);       // high-eave fascia
         highWall(hiS>0?'front':'back', W, rise);                          // tall wall continues up, sided
@@ -1431,6 +1494,11 @@ function rebuild3D(p){
         for(const sx of [1,-1])
           poly3([[sx*xEdge,wallTop,lowS*(D/2+ov)],[sx*xEdge,loE,lowS*(D/2+ov)],[sx*xEdge,hiE,hiS*(D/2+ov)],[sx*xEdge,wallTop,hiS*(D/2+ov)]], wallCol(sx>0?'right':'left'));
       }
+    }
+    if(dExtOn){ _stage=8;                                  // the extension is CARRIED: doubled header across porch posts at the deck edge
+      const zP=dSign*(D/2+state.Dd-0.2), hY=wallTop-0.45, ph=hY-0.14-floorY;
+      box(W-0.3,0.28,0.28, 0,hY,zP, P.struct);                                          // porch header (doubled 2×6)
+      for(const sx of [-1,1]) box(0.29,ph,0.29, sx*(W/2-0.35), floorY+ph/2, zP, P.struct);   // porch posts standing on the deck
     }
     // ---- cupola / roof lantern ----
     if(state.cupola && !isA && !isGam && !isCleres && !isSaw && !isBfly){
@@ -1899,14 +1967,16 @@ function computeMaterials(p){
 
   g=G('Roof ('+roof+')');
   let rafterLen,rafters,roofArea;
+  const extOKM=isGable||isSalt||((roof==='shed'||roof==='lean')&&(state.slopeDir==='left'||state.slopeDir==='right'));
+  const dExtM=(state.roofOver&&state.Dd>0&&(state.deckSide==='front'||state.deckSide==='back')&&extOKM)?state.Dd+0.4:0, De=D+dExtM;   // roof-over-deck: longer roof, same slope
   if(isA){ const peakH=Hw+W*0.45, slope=Math.hypot(W/2,peakH); rafterLen=stdLen(slope+0.5); rafters=(Math.ceil(D*12/16)+1)*2; roofArea=2*slope*(D+1); }
   else if(isFlat){ rafterLen=stdLen(W+1); rafters=Math.ceil(D*12/16)+1; roofArea=(W+1)*(D+1)*1.05; }
-  else if(isGable||isSalt||isHip){ rafterLen=stdLen((W/2+0.5)*1.3); rafters=(Math.ceil(D*12/16)+1)*(isHip?2:2)+(isHip?4:0); roofArea=(W+1)*(D+1)*(isSalt?1.4:isHip?1.5:1.28); }
+  else if(isGable||isSalt||isHip){ rafterLen=stdLen((W/2+0.5)*1.3); rafters=(Math.ceil(De*12/16)+1)*2+(isHip?4:0); roofArea=(W+1)*(De+1)*(isSalt?1.4:isHip?1.5:1.28); }
   else if(isGam||isCleres){ rafterLen=stdLen((W/2+0.5)*1.4); rafters=(Math.ceil(D*12/16)+1)*(isGam?4:2); roofArea=(W+1)*(D+1)*(isGam?1.5:1.35); }
   else if(isBfly){ rafterLen=stdLen((W/2+0.5)*1.2); rafters=(Math.ceil(D*12/16)+1)*2; roofArea=(W+1)*(D+1)*1.3; }
   else if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); rafterLen=stdLen(W/nT+0.5); rafters=(Math.ceil(D*12/16)+1)*nT; roofArea=(W+1)*(D+1)*1.35; }
   else if(isBarrel){ rafterLen=stdLen(W*1.25); rafters=(Math.ceil(D*12/16)+1); roofArea=(W+1)*(D+1)*1.4; }
-  else { const f=isLean?1.22:1.06; rafterLen=stdLen((W+1)*f); rafters=Math.ceil(D*12/16)+1; roofArea=(W+1)*(D+1)*f; }
+  else { const f=isLean?1.22:1.06; rafterLen=stdLen((W+1)*f); rafters=Math.ceil(De*12/16)+1; roofArea=(W+1)*(De+1)*f; }
   const rDesc=isA?'A-frame slopes':isFlat?'flat — slope ¼"/ft to drain':isHip?'four hip slopes':isBfly?'two slopes to a centre valley':isSaw?'north-light sawtooth panels':isBarrel?'curved laminated ribs':isGable?'two slopes':'single slope';
   const rSize=p.rafter8?'2×8':'2×6', rPrice=p.rafter8?PRICE.joist*1.55:PRICE.joist;
   add(g,rafters,'pcs',`${isFlat?'Roof joists':isBarrel?'Curved ribs':'Rafters'} ${rSize} — ${rafterLen} ft`, rDesc+(p.rafter8?' · sized up for the span':''), rafters*rafterLen*rPrice, lw(isBarrel?'2x4':p.rafter8?'2x8':'2x6'));
@@ -1939,6 +2009,10 @@ function computeMaterials(p){
     add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),HW.block);
     const dj=Math.ceil(W*12/16)+1;
     add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C.',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
+    if(dExtM>0){
+      add(g,2,'×','Porch posts 4×4 — 8 ft','carry the roof extension at the deck edge',2*8*postPrice,lw('pressure treated 4x4'));
+      add(g,2,'×',`Porch header 2×6 — ${stdLen(W)} ft`,'doubled across the porch posts — the extended rafters land here',2*stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
+    }
     add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
     const railLF=W+2*Dd;
     add(g,Math.round(railLF),'ft','Railing + balusters','3 sides, ~36" tall',railLF*PRICE.railLF,lw('deck railing baluster'));
@@ -2937,6 +3011,7 @@ function stepGuide(st,s){
       out.push('Stand the ribs every 16″ like rafters; sheath with two layers of ¼″ ply bent over the curve, seams staggered, glued + screwed.');
       out.push('Flexible membrane or metal over the top; arched infill panels close the two ends.');
     }
+    if(s.roofOver&&s.Dd>0&&(s.deckSide==='front'||s.deckSide==='back')) out.push(`Roof over the deck: every rafter runs ${dim(s.Dd+0.4)} past the ${s.deckSide} wall. Set a doubled 2×6 header across two 4×4 porch posts at the deck's outer edge FIRST (post bases lagged to the deck frame, posts plumbed), then land the rafter tails on it — the extension is carried, not cantilevered.`);
     // structure step closes with layout discipline + a frame check
     if(r!=='flat'&&r!=='barrel')
       out.push('Layout: mark BOTH plates (or the ridge) every 16″ from the same end so rafters land in matched pairs — cut ONE pattern rafter, test-fit it at both ends, then batch-cut the rest from it.');
@@ -3202,6 +3277,74 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
     var name=o.value, file=o.getAttribute('data-file');
     if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
     window.location.href=file;
+  });
+})();
+
+/* ===== phone build-guide mode: full-screen sheets + bottom tab bar ===== */
+(function(){
+  const phone=matchMedia('(max-width:700px), (pointer:coarse) and (max-width:1000px)').matches;
+  if(!phone) return;
+  document.body.classList.add('lhide','rhide');            // 3D + steps first; panels are sheets behind the tabs
+  const el=id=>document.getElementById(id);
+  const setOn=(id,on)=>{ const b=el(id); if(b) b.classList.toggle('on',on); };
+  const closeSheets=()=>{ document.body.classList.add('lhide','rhide'); setOn('mDesign',false); setOn('mList',false); };
+  el('mDesign').addEventListener('click',()=>{ const show=document.body.classList.contains('lhide');
+    closeSheets(); if(show){ document.body.classList.remove('lhide'); setOn('mDesign',true); } });
+  el('mList').addEventListener('click',()=>{ const show=document.body.classList.contains('rhide');
+    closeSheets(); if(show){ document.body.classList.remove('rhide'); setOn('mList',true); } });
+  el('mSteps').addEventListener('click',()=>{ closeSheets(); el('stepToggle').click();
+    setOn('mSteps', el('stepnav').classList.contains('on')); });
+  el('mView').addEventListener('click',()=>{ const on=document.body.classList.toggle('mdock'); setOn('mView',on); });
+  el('hideL').addEventListener('click',()=>setOn('mDesign',false));   // panel chevrons return to the 3D
+  el('hideR').addEventListener('click',()=>setOn('mList',false));
+})();
+
+/* roof-over-deck option */
+(function(){ const cb=document.getElementById('optRoofOver'); if(!cb) return;
+  cb.checked=!!state.roofOver;
+  cb.addEventListener('change',()=>{ state.roofOver=cb.checked; update(); });
+})();
+
+/* ===== tap-a-piece inspector: tap any member → its size, the stock it's cut from, and its fasteners ===== */
+(function(){
+  const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+  let picked=null, pickedColor=0, downX=0, downY=0;
+  const card=document.createElement('div'); card.id='pickCard';
+  card.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:56px;z-index:45;display:none;max-width:min(440px,calc(100vw - 14px));background:var(--pb);color:#fff;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.6;letter-spacing:.02em;border-radius:2px';
+  document.body.appendChild(card);
+  const IN=x=>x*12;
+  const fIn=v=>{ const i=Math.round(v*8)/8; return (i%1?(''+i).replace(/(\.\d\d).*$/,'$1'):i)+'″'; };
+  const fLen=ft=>{ const f=Math.floor(ft), i=Math.round((ft-f)*12); return i>=12?(f+1)+'′':(f? f+'′'+(i?i+'″':'') : fIn(ft*12)); };
+  function stockOf(a,b){                                     // cross-section in inches, a<=b
+    const near=(x,t,tol)=>Math.abs(x-t)<=tol;
+    if(a<=0.95) return b>12?'sheet stock — ply / panel':'1× trim / panel stock';
+    if(a<=2.1){ if(near(b,3.5,0.95))return '2×4'; if(near(b,5.5,1.15))return '2×6'; if(near(b,7.25,1))return '2×8'; if(b<=3)return '2×2 / 2×3'; if(b<=12)return '2×10'; return 'dimensional lumber'; }
+    if(near(a,3.5,0.8)&&near(b,3.5,0.8)) return '4×4';
+    if(a>4.3&&b>4.3) return '6×6';
+    return fIn(a)+'×'+fIn(b);
+  }
+  function show(m){
+    if(picked){ try{picked.material.color.setHex(pickedColor);}catch(e){} }
+    picked=m; try{ pickedColor=m.material.color.getHex(); m.material.color.setHex(0xE5202A); }catch(e){}
+    const p=(m.geometry&&m.geometry.parameters)||{};
+    let dims=[p.width,p.height,p.depth].filter(x=>typeof x==='number');
+    if(dims.length!==3){ const bb=new THREE.Box3().setFromObject(m), sz=new THREE.Vector3(); bb.getSize(sz); dims=[sz.x,sz.y,sz.z]; }
+    dims=dims.slice().sort((x,y)=>y-x);
+    const st=m.userData.stage||0, meta=STAGES[st]||STAGES[Math.floor(st)]||{name:'Piece'};
+    card.innerHTML='<b style="color:#ff7a70">'+(meta.name||'Piece').toUpperCase()+'</b> · '+stockOf(IN(dims[2]),IN(dims[1]))+
+      '<br>cut length ≈ <b>'+fLen(dims[0])+'</b> · section '+fIn(IN(dims[1]))+' × '+fIn(IN(dims[2]))+
+      (FASTENERS[st]?'<br><span style="opacity:.75">🔩 '+FASTENERS[st]+'</span>':'')+
+      '<br><span style="opacity:.5">tap empty space to dismiss</span>';
+    card.style.display='block';
+  }
+  function hide(){ if(picked){ try{picked.material.color.setHex(pickedColor);}catch(e){} picked=null; } card.style.display='none'; }
+  cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; });
+  cv.addEventListener('pointerup',e=>{
+    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
+    ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
+    ray.setFromCamera(ptr,camera);
+    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh&&h.object.geometry);
+    if(hits.length) show(hits[0].object); else hide();
   });
 })();
 </script>
