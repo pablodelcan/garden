@@ -1338,10 +1338,10 @@ function rebuild3D(p){
       const span=alongX?W:D, rise=(isLean?0.42:0.20)*span, ang=Math.atan2(rise,span), tn=Math.tan(ang), midY=wallTop+rise/2;
       // the tall side is a real framed wall section continuing up to the roof — studs, plates, siding (full depth, not a thin skin)
       const highWall=(k,len,h)=>{ const col=wallCol(k);
-        if(sF){ const ns=Math.max(2,Math.round(len/1.333)+1), sp2=(len-0.3)/(ns-1);
+        if(sF){ _stage=8; const ns=Math.max(2,Math.round(len/1.333)+1), sp2=(len-0.3)/(ns-1);
           for(let i=0;i<ns;i++){ const u=-len/2+0.15+i*sp2; onWall(k,u,wallTop+h/2,0.12,h,0.29,P.struct); }   // studs give it real wall depth
-          onWall(k,0,wallTop+0.06,len,0.12,0.3,P.struct); onWall(k,0,wallTop+h-0.06,len,0.12,0.3,P.trim); }   // bottom plate + top plate (caps to the roof)
-        if(sS){ const nS=Math.max(4,Math.round(len/0.55)), sw=len/nS;
+          onWall(k,0,wallTop+0.06,len,0.12,0.3,P.struct); onWall(k,0,wallTop+h-0.06,len,0.12,0.3,P.trim); }   // bottom plate + top plate (the rafters bear here)
+        if(sS){ _stage=9; const nS=Math.max(4,Math.round(len/0.55)), sw=len/nS;
           for(let i=0;i<nS;i++){ const uc=-len/2+(i+0.5)*sw; onWall(k,uc,wallTop+h/2,sw*0.93,h,0.06,col,{off:0.03,opacity:interior?0.16:null}); } } };  // board-and-batten siding, matching the wall below
       if(alongX){
         const lowS=(dir==='right')?1:-1, hiS=-lowS, eaveOv=(W/2+ov)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
@@ -1349,6 +1349,7 @@ function rebuild3D(p){
         box(0.12,0.5,rd, lowS*(W/2+ov), loE-0.05, 0, P.struct);          // low-eave fascia
         box(0.12,0.5,rd, hiS*(W/2+ov), hiE-0.05, 0, P.struct);           // high-eave fascia
         highWall(hiS>0?'right':'left', D, rise);                          // tall wall continues up, sided
+        _stage=8.5;   // rake-end infill closes with the roof skin
         for(const sz of [1,-1])
           poly3([[lowS*(W/2+ov),wallTop,sz*zEdge],[lowS*(W/2+ov),loE,sz*zEdge],[hiS*(W/2+ov),hiE,sz*zEdge],[hiS*(W/2+ov),wallTop,sz*zEdge]], wallCol(sz>0?'front':'back'));  // boxed rake end
       } else {
@@ -1357,6 +1358,7 @@ function rebuild3D(p){
         box(W+2*ov,0.5,0.12, 0, loE-0.05, lowS*(D/2+ov), P.struct);      // low-eave fascia
         box(W+2*ov,0.5,0.12, 0, hiE-0.05, hiS*(D/2+ov), P.struct);       // high-eave fascia
         highWall(hiS>0?'front':'back', W, rise);                          // tall wall continues up, sided
+        _stage=8.5;
         for(const sx of [1,-1])
           poly3([[sx*xEdge,wallTop,lowS*(D/2+ov)],[sx*xEdge,loE,lowS*(D/2+ov)],[sx*xEdge,hiE,hiS*(D/2+ov)],[sx*xEdge,wallTop,hiS*(D/2+ov)]], wallCol(sx>0?'right':'left'));
       }
