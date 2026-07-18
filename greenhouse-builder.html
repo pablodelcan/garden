@@ -477,7 +477,7 @@
     .toolwrap{display:none}
     .viewseg b,.unittog b{padding:5px 7px;font-size:9.5px}
     /* panels become full-screen sheets above the tab bar */
-    .left,.right{left:0!important;right:0!important;top:44px;bottom:60px;width:auto;z-index:40;background:var(--field);transition:transform .28s ease}
+    .left,.right{left:0!important;right:0!important;top:44px;bottom:60px;width:auto;z-index:40;background:var(--field);transition:transform .28s ease;animation:none}   /* animation:none — the entry animation's forwards fill would override the translateX hide */
     body.lhide .left{left:0!important;transform:translateX(-105%)}
     body.rhide .right{right:0!important;transform:translateX(105%)}
     .pcollapse{width:40px;height:40px;font-size:22px}
@@ -1392,7 +1392,8 @@ function rebuild3D(p){
       box(0.12,0.4,dep, -half, wallTop-0.05, 0, P.struct); box(0.12,0.4,dep, half, wallTop-0.05, 0, P.struct);
     } else { // shed / lean — single slope; slopeDir = the LOW (downhill) side
       const dir=state.slopeDir||'right', alongX=(dir==='right'||dir==='left');
-      const span=alongX?W:D, rise=(isLean?0.42:0.20)*span, ang=Math.atan2(rise,span), tn=Math.tan(ang), midY=wallTop+rise/2;
+      const span=alongX?W:D, rise=(isLean?0.42:0.20)*span, ang=Math.atan2(rise,span), tn=Math.tan(ang),
+        midY=wallTop+rise/2+0.28;   // lift the field so rafter UNDERSIDES land on the plates (0.07 into the plate = the birdsmouth seat), instead of slicing through them
       // the tall side is a real framed wall section continuing up to the roof — studs, plates, siding (full depth, not a thin skin)
       const highWall=(k,len,h)=>{ const col=wallCol(k);
         if(sF){ _stage=8; const ns=Math.max(2,Math.round(len/1.333)+1), sp2=(len-0.3)/(ns-1);
@@ -3084,7 +3085,7 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
   function stockOf(a,b){                                     // cross-section in inches, a<=b
     const near=(x,t,tol)=>Math.abs(x-t)<=tol;
     if(a<=0.95) return b>12?'sheet stock — glazing / panel':'glazing bar / trim stock';
-    if(a<=2.1){ if(near(b,3.5,0.95))return '2×4'; if(near(b,5.5,1.15))return '2×6'; if(near(b,7.25,1))return '2×8'; if(b<=3)return '2×2 / 2×3'; if(b<=12)return '2×10'; return 'dimensional lumber'; }
+    if(a<=2.1){ if(near(b,3.5,0.49))return '2×4'; if(b>3.99&&b<6.8)return '2×6'; if(near(b,7.25,0.6))return '2×8'; if(b<=3)return '2×2 / 2×3'; if(b<=12)return '2×10'; return 'dimensional lumber'; }
     if(near(a,3.5,0.8)&&near(b,3.5,0.8)) return '4×4';
     if(a>4.3&&b>4.3) return '6×6';
     return fIn(a)+'×'+fIn(b);
