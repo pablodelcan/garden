@@ -1438,24 +1438,25 @@ function rebuild3D(p){
         box(0.12,0.5,rd, lowS*(W/2+ov), loE-0.05, zOff, P.struct);          // low-eave fascia
         box(0.12,0.5,rd, hiS*(W/2+ov), hiE-0.05, zOff, P.struct);           // high-eave fascia
         highWall(hiS>0?'right':'left', D, rise);                          // tall wall continues up, sided
-        _stage=8.5;   // rake-end infill closes with the roof skin
-        for(const sz of [1,-1])
-          poly3([[lowS*(W/2+ov),wallTop,sz*zEdge],[lowS*(W/2+ov),loE,sz*zEdge],[hiS*(W/2+ov),hiE,sz*zEdge],[hiS*(W/2+ov),wallTop,sz*zEdge]], wallCol(sz>0?'front':'back'));  // boxed rake end
+        _stage=8.5;   // rake-end infill sits ON THE WALL PLANE (like a gable end) and tapers with the rafter underside — never floats at the overhang line
+        { const uLo=midY-(W/2)*tn-0.35, uHi=midY+(W/2)*tn-0.35;
+          for(const sz of [1,-1])
+            poly3([[lowS*(W/2),wallTop,sz*(D/2+0.012)],[lowS*(W/2),uLo,sz*(D/2+0.012)],[hiS*(W/2),uHi,sz*(D/2+0.012)],[hiS*(W/2),wallTop,sz*(D/2+0.012)]], wallCol(sz>0?'front':'back')); }
       } else {
         const lowS=(dir==='front')?1:-1, hiS=-lowS, eaveOv=(D/2+ov)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
         deckRaftersZ(midY, lowS*ang, (D+2*ov)/Math.cos(ang), W+2*ov, W-0.15);
         box(W+2*ov,0.5,0.12, 0, loE-0.05, lowS*(D/2+ov), P.struct);      // low-eave fascia
         box(W+2*ov,0.5,0.12, 0, hiE-0.05, hiS*(D/2+ov), P.struct);       // high-eave fascia
         highWall(hiS>0?'front':'back', W, rise);                          // tall wall continues up, sided
-        _stage=8.5;
-        for(const sx of [1,-1])
-          poly3([[sx*xEdge,wallTop,lowS*(D/2+ov)],[sx*xEdge,loE,lowS*(D/2+ov)],[sx*xEdge,hiE,hiS*(D/2+ov)],[sx*xEdge,wallTop,hiS*(D/2+ov)]], wallCol(sx>0?'right':'left'));
+        _stage=8.5;   // rake-end infill on the wall plane, tapering with the rafter underside
+        { const uLo=midY-(D/2)*tn-0.35, uHi=midY+(D/2)*tn-0.35;
+          for(const sx of [1,-1])
+            poly3([[sx*(W/2+0.012),wallTop,lowS*(D/2)],[sx*(W/2+0.012),uLo,lowS*(D/2)],[sx*(W/2+0.012),uHi,hiS*(D/2)],[sx*(W/2+0.012),wallTop,hiS*(D/2)]], wallCol(sx>0?'right':'left')); }
       }
     }
-    if(dExtOn){ _stage=8;                                  // the extension is CARRIED: doubled header across porch posts at the deck edge
-      const zP=dSign*(D/2+state.Dd-0.2), hY=wallTop-0.45, ph=hY-0.14-floorY;
-      box(W-0.3,0.28,0.28, 0,hY,zP, P.struct);                                          // porch header (doubled 2×6)
-      for(const sx of [-1,1]) box(0.29,ph,0.29, sx*(W/2-0.35), floorY+ph/2, zP, P.struct);   // porch posts standing on the deck
+    if(dExtOn){ _stage=8;                                  // the extension is CARRIED: doubled header landing on the deck's CONTINUED corner posts
+      const zP=dSign*(D/2+state.Dd-th/2), hY=wallTop-0.45;
+      box(W+0.02,0.28,0.28, 0,hY,zP, P.struct);                                         // porch header (doubled 2×6) — bolts across the post tops
     }
     // ---- cupola / roof lantern ----
     if(state.cupola && !isA && !isGam && !isCleres && !isSaw && !isBfly){
@@ -1512,25 +1513,32 @@ function rebuild3D(p){
     const rh=3, rtY=floorY+rh, gapH=1.0;
     const oblong=(aLen,oLen,yh,a,o,y,color)=>{ const t=sm.tw(a,o);
       if(sm.fb) box(aLen,yh,oLen,t[0],y,t[1],color); else box(oLen,yh,aLen,t[0],y,t[1],color); };
-    (along>9?[-along/2,0,along/2]:[-along/2,along/2]).forEach(a=>{ const t=sm.tw(a,oOut-th/2); pillar(t[0],t[1],floorY-0.08,th,11,11); });
-    _stage=12; oblong(along,0.3,0.4, 0,oOut-0.15,beamY, P.struct);             // outer rim beam
+    // CONTINUOUS corner posts: footing → rail top (or → porch header when the roof extends over the deck) — one rigid piece, the fence hangs off structure
+    const dExtDeck = sR && state.roofOver && (p.deckSide==='front'||p.deckSide==='back') &&
+      ((isGable||isSalt)||((isShed||isLean)&&(state.slopeDir==='left'||state.slopeDir==='right')));
+    const oP=oOut-th/2, postTopY = dExtDeck ? (wallTop-0.45-0.14) : rtY;
+    [-along/2,along/2].forEach(a=>{ const t=sm.tw(a,oP); pillar(t[0],t[1],postTopY,th,11,11); });
+    if(along>9){ const t=sm.tw(0,oP); pillar(t[0],t[1],floorY-0.08,th,11,11); }   // mid post stops under the rim
+    _stage=12;
+    oblong(along,0.28,0.4, 0,oIn+0.14,beamY, P.struct);                        // ledger at the house — carries the inner joist ends
+    oblong(along,0.3,0.4, 0,oOut-0.15,beamY, P.struct);                        // outer rim beam, bolted to the post faces
     if(sF){ const n=Math.max(2,Math.round(along/1.6));
-      for(let i=0;i<=n;i++){ const a=-along/2+i*along/n; oblong(0.12,Dd,0.4, a,oMid,beamY, P.struct); } }
+      for(let i=0;i<=n;i++){ const a=-along/2+i*along/n; oblong(0.12,Dd-0.62,0.4, a,oMid-0.02,beamY, P.struct); } }   // joists BUTT ledger→rim in hangers, no pass-through
     _stage=13; oblong(along,Dd,0.09, 0,oMid,floorY, P.struct);                 // decking
     _stage=14;
-    strut(sm.W3(-along/2,oIn,rtY), sm.W3(-along/2,oOut,rtY), 0.12,P.struct);   // side rails
-    strut(sm.W3(along/2,oIn,rtY),  sm.W3(along/2,oOut,rtY),  0.12,P.struct);
+    strut(sm.W3(-along/2,oIn,rtY), sm.W3(-along/2,oP,rtY), 0.12,P.struct);     // side rails run to the corner posts
+    strut(sm.W3(along/2,oIn,rtY),  sm.W3(along/2,oP,rtY),  0.12,P.struct);
     if(deckGapC!=null){                                                       // outer rail split where the stair lands
-      strut(sm.W3(-along/2,oOut,rtY),sm.W3(deckGapC-gapH,oOut,rtY), 0.12,P.struct);
-      strut(sm.W3(deckGapC+gapH,oOut,rtY), sm.W3(along/2,oOut,rtY), 0.12,P.struct);
-    } else strut(sm.W3(-along/2,oOut,rtY), sm.W3(along/2,oOut,rtY), 0.12,P.struct);
-    [[-along/2,oOut],[along/2,oOut],[-along/2,oIn],[along/2,oIn]].concat(deckGapC!=null?[[deckGapC-gapH,oOut],[deckGapC+gapH,oOut]]:[])
+      strut(sm.W3(-along/2,oP,rtY),sm.W3(deckGapC-gapH,oP,rtY), 0.12,P.struct);
+      strut(sm.W3(deckGapC+gapH,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
+    } else strut(sm.W3(-along/2,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
+    [[-along/2,oIn],[along/2,oIn]].concat(deckGapC!=null?[[deckGapC-gapH,oP],[deckGapC+gapH,oP]]:[])   // house-side + stair-gap posts; the outer corners ARE the 4×4s
       .forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });
     const nb=Math.max(2,Math.round(along/0.7));
     for(let i=1;i<nb;i++){ const a=-along/2+i*along/nb; if(deckGapC!=null && Math.abs(a-deckGapC)<gapH+0.1) continue;
-      const t=sm.tw(a,oOut); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }
+      const t=sm.tw(a,oP); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }
     const nbs=Math.max(1,Math.round(Dd/0.7));
-    for(const sa of [-along/2,along/2]) for(let i=1;i<nbs;i++){ const o=oIn+(oOut-oIn)*i/nbs;
+    for(const sa of [-along/2,along/2]) for(let i=1;i<nbs;i++){ const o=oIn+(oP-oIn)*i/nbs;
       const t=sm.tw(sa,o); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }
     if(state.porch){ _stage=99;                       // covered-porch roof over the deck
       const peY=floorY+Hw-0.1;
@@ -1923,14 +1931,15 @@ function computeMaterials(p){
 
   if(Dd>0){
     g=G('Deck ('+Dd+' ft)');
-    const dPosts=W>9?3:2, dpLen=stdLen(Hf+0.3);
-    add(g,dPosts,'×',`Deck posts ${post} — ${dpLen} ft`,'outer edge support',dPosts*dpLen*postPrice,lw(postTerm));
+    const dcLen=stdLen(Hf+(dExtM>0?Hw:3)+1), dMids=W>9?1:0, dPosts=2+dMids;
+    add(g,2,'×',`Deck corner posts ${post} — ${dcLen} ft`, dExtM>0?'CONTINUOUS: footing → porch header, one piece':'CONTINUOUS: footing → rail top — the fence hangs off structure, not spindles',2*dcLen*postPrice,lw(postTerm));
+    if(dMids) add(g,1,'×',`Deck mid post ${post} — ${stdLen(Hf+0.3)} ft`,'under the rim, mid-span',stdLen(Hf+0.3)*postPrice,lw(postTerm));
     add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),HW.block);
     const dj=Math.ceil(W*12/16)+1;
-    add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C.',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
+    add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C. · hung ledger-to-rim',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
+    add(g,1,'pcs',`Deck ledger 2×6 — ${stdLen(W)} ft`,'lagged to the house rim at deck height',stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
     if(dExtM>0){
-      add(g,2,'×','Porch posts 4×4 — 8 ft','carry the roof extension at the deck edge',2*8*postPrice,lw('pressure treated 4x4'));
-      add(g,2,'×',`Porch header 2×6 — ${stdLen(W)} ft`,'doubled across the porch posts — the extended rafters land here',2*stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
+      add(g,2,'×',`Porch header 2×6 — ${stdLen(W)} ft`,'doubled across the continued corner-post tops — the extended rafters land here',2*stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
     }
     add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
     const railLF=W+2*Dd;
@@ -2870,7 +2879,7 @@ function stepGuide(st,s){
       out.push('Stand the ribs every 16″ like rafters; sheath with two layers of ¼″ ply bent over the curve, seams staggered, glued + screwed.');
       out.push('Flexible membrane or metal over the top; arched infill panels close the two ends.');
     }
-    if(s.roofOver&&s.Dd>0&&(s.deckSide==='front'||s.deckSide==='back')) out.push(`Roof over the deck: every rafter runs ${dim(s.Dd+0.4)} past the ${s.deckSide} wall. Set a doubled 2×6 header across two 4×4 porch posts at the deck's outer edge FIRST (post bases lagged to the deck frame, posts plumbed), then land the rafter tails on it — the extension is carried, not cantilevered.`);
+    if(s.roofOver&&s.Dd>0&&(s.deckSide==='front'||s.deckSide==='back')) out.push(`Roof over the deck: every rafter runs ${dim(s.Dd+0.4)} past the ${s.deckSide} wall. The deck's CONTINUOUS corner posts already reach header height — bolt the doubled 2×6 header across their tops (2 carriage bolts per post), then land the rafter tails on it. The extension is carried, not cantilevered.`);
     // structure step closes with layout discipline + a frame check
     if(r!=='flat'&&r!=='barrel')
       out.push('Layout: mark BOTH plates (or the ridge) every 16″ from the same end so rafters land in matched pairs — cut ONE pattern rafter, test-fit it at both ends, then batch-cut the rest from it.');
@@ -2904,12 +2913,13 @@ function stepGuide(st,s){
     '✔ Check: spray each window with a hose from below and above — dry inside.'
   ];
   G[11]=[`Deck footings exactly like step 1: ${(s.deckSide==='front'||s.deckSide==='back')?(W>9?3:2):(D>9?3:2)} posts at the deck’s outer edge, ${dim(s.Dd)} out from the house wall.`,
-    'Cut the deck posts so the deck floor lands flush with the house floor.','✔ Check: outer posts in line with the house wall posts.'];
+    s.roofOver&&(s.deckSide==='front'||s.deckSide==='back')?'The two CORNER posts run in ONE piece from their footings all the way to the porch-roof header — cut them long, trim at header height after the roof line is strung. Any mid post stops at the rim.':'The two CORNER posts run in ONE piece from their footings up to the RAIL TOP (36″ above the deck) — the railing bolts to solid posts, not spindly stubs. Any mid post stops at the rim.',
+    'Cut the mid/rim height so the deck floor lands flush with the house floor.','✔ Check: outer posts plumb both ways and in line with the house wall posts.'];
   G[12]=['Bolt the rim beam across the outer posts; hang a ledger-style rim on the house side at the same height.',
     'Run deck joists between them @ ~16″ with hangers both ends.','✔ Check: deck frame level with the house floor in both directions.'];
   G[13]=[`Lay 5/4×6 decking ACROSS the joists with ⅛″ gaps (a 16d nail is a perfect spacer) — ${Math.ceil(s.Dd*12/5.7)} rows.`,
     'Two screws per board per joist; let ends run wild, then saw one straight line.','✔ Check: gaps even, no proud screw heads.'];
-  G[14]=['Bolt the 4×4 rail posts inside the rim (2 carriage bolts each), max 4 ft apart, leaving the stair opening.',
+  G[14]=['The outer corners are already done — they’re the continued 4×4 deck posts. Bolt any intermediate 4×4 rail posts inside the rim (2 carriage bolts each), max 4 ft apart, leaving the stair opening.',
     'Top rail at 36″; balusters spaced under 4″ clear (a scrap block as a spacer keeps it even).','✔ Check: a 4″ ball can’t pass anywhere; rail takes a hard shake.'];
   G[15]=(()=>{ const gF=grade?-(grade*(((s.stairSide==='front'||s.stairSide==='back')?D:W)/2+1)):0;
     if(s.access==='stairs'){ const N=Math.max(3,Math.ceil((Hf-Math.min(0,gF))/0.6)), riseIn=(Hf-Math.min(0,gF))*12/N;
