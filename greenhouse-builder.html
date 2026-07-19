@@ -1495,8 +1495,19 @@ function rebuild3D(p){
       strut(sm.W3(-along/2,oP,rtY),sm.W3(deckGapC-gapH,oP,rtY), 0.12,P.struct);
       strut(sm.W3(deckGapC+gapH,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
     } else strut(sm.W3(-along/2,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
-    [[-along/2,oIn],[along/2,oIn]].concat(deckGapC!=null?[[deckGapC-gapH,oP],[deckGapC+gapH,oP]]:[])   // house-side + stair-gap posts; the outer corners ARE the 4×4s
-      .forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });
+    [[-along/2,oIn],[along/2,oIn]].forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });   // house-side posts
+    if(deckGapC!=null) for(const s2 of [-1,1]){                                // stair-opening posts: FULL 4×4s dropped past the rim + through-bolted — kids swing on these
+      const t=sm.tw(deckGapC+s2*gapH,oP);
+      box(th,rh+0.55,th, t[0],floorY+(rh-0.55)/2,t[1], P.struct);
+      ball(0.042, t[0]+(sm.fb?0:0.17), floorY-0.2, t[1]+(sm.fb?0.17:0), '#46413a'); }
+    if(deckGapC!=null && state.stairGate!==false){                             // self-closing gate across the opening — latch on the OUTSIDE, out of kid reach
+      const gw=gapH*2-0.34, gy0=floorY+0.25, gy1=rtY-0.1, gmid=(gy0+gy1)/2;
+      for(const s2 of [-1,1]) oblong(0.11,0.11,gy1-gy0, deckGapC+s2*(gw/2-0.055), oP+0.09, gmid, P.struct);   // stiles
+      oblong(gw-0.1,0.1,0.11, deckGapC, oP+0.09, gy1-0.055, P.struct);         // top rail
+      oblong(gw-0.1,0.1,0.11, deckGapC, oP+0.09, gy0+0.055, P.struct);         // bottom rail
+      for(let gk=-1;gk<=1;gk++) oblong(0.055,0.07,gy1-gy0-0.24, deckGapC+gk*gw/4, oP+0.09, gmid, P.struct);   // pickets <4" apart
+      const lt=sm.tw(deckGapC+gw/2-0.05, oP+0.16); ball(0.05, lt[0], gy1-0.12, lt[1], '#46413a');             // latch, outside face
+    }
     const nb=Math.max(2,Math.round(along/0.7));
     for(let i=1;i<nb;i++){ const a=-along/2+i*along/nb; if(deckGapC!=null && Math.abs(a-deckGapC)<gapH+0.1) continue;
       const t=sm.tw(a,oP); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }

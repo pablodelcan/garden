@@ -588,6 +588,7 @@
       <div class="ctl"><div class="row"><label>Deck depth</label><span class="val" id="vDd">none</span></div>
         <input type="range" id="Dd" min="0" max="6" step="0.5" value="0"></div>
       <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:-6px 0 10px"><input type="checkbox" id="optRoofOver" style="accent-color:var(--ac);width:15px;height:15px"> Roof extends over the deck <span style="color:var(--tm);font-size:10px">(gable/shed, front or back deck)</span></label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:-2px 0 10px"><input type="checkbox" id="optStairGate" checked style="accent-color:var(--ac);width:15px;height:15px"> Self-closing stair gate <span style="color:var(--tm);font-size:10px">(latch outside, kid-safe)</span></label>
       <div class="ctl"><div class="row"><label>Deck side</label></div>
         <div class="seg four" id="deckSide">
           <button data-v="front" class="on">Front</button>
@@ -918,7 +919,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 
 /* ===== state (before render loop references it) ===== */
 const state={W:12,D:14,Hf:3,Hw:8,Dd:0,deckSide:'front',post:'6x6',roof:'gable',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
-  loft:false,porch:false,roofOver:false,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',permitFree:false,
+  loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',permitFree:false,
   foundation:'piers',access:'stairs',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:true,rafter8:true,anchor:true,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
@@ -1576,8 +1577,19 @@ function rebuild3D(p){
       strut(sm.W3(-along/2,oP,rtY),sm.W3(deckGapC-gapH,oP,rtY), 0.12,P.struct);
       strut(sm.W3(deckGapC+gapH,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
     } else strut(sm.W3(-along/2,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
-    [[-along/2,oIn],[along/2,oIn]].concat(deckGapC!=null?[[deckGapC-gapH,oP],[deckGapC+gapH,oP]]:[])   // house-side + stair-gap posts; the outer corners ARE the 4×4s
-      .forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });
+    [[-along/2,oIn],[along/2,oIn]].forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });   // house-side posts
+    if(deckGapC!=null) for(const s2 of [-1,1]){                                // stair-opening posts: FULL 4×4s dropped past the rim + through-bolted — kids swing on these
+      const t=sm.tw(deckGapC+s2*gapH,oP);
+      box(th,rh+0.55,th, t[0],floorY+(rh-0.55)/2,t[1], P.struct);
+      ball(0.042, t[0]+(sm.fb?0:0.17), floorY-0.2, t[1]+(sm.fb?0.17:0), '#46413a'); }
+    if(deckGapC!=null && state.stairGate!==false){                             // self-closing gate across the opening — latch on the OUTSIDE, out of kid reach
+      const gw=gapH*2-0.34, gy0=floorY+0.25, gy1=rtY-0.1, gmid=(gy0+gy1)/2;
+      for(const s2 of [-1,1]) oblong(0.11,0.11,gy1-gy0, deckGapC+s2*(gw/2-0.055), oP+0.09, gmid, P.struct);   // stiles
+      oblong(gw-0.1,0.1,0.11, deckGapC, oP+0.09, gy1-0.055, P.struct);         // top rail
+      oblong(gw-0.1,0.1,0.11, deckGapC, oP+0.09, gy0+0.055, P.struct);         // bottom rail
+      for(let gk=-1;gk<=1;gk++) oblong(0.055,0.07,gy1-gy0-0.24, deckGapC+gk*gw/4, oP+0.09, gmid, P.struct);   // pickets <4" apart
+      const lt=sm.tw(deckGapC+gw/2-0.05, oP+0.16); ball(0.05, lt[0], gy1-0.12, lt[1], '#46413a');             // latch, outside face
+    }
     const nb=Math.max(2,Math.round(along/0.7));
     for(let i=1;i<nb;i++){ const a=-along/2+i*along/nb; if(deckGapC!=null && Math.abs(a-deckGapC)<gapH+0.1) continue;
       const t=sm.tw(a,oP); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }
@@ -2026,6 +2038,8 @@ function computeMaterials(p){
     add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
     const railLF=W+2*Dd;
     add(g,Math.round(railLF),'ft','Railing + balusters','3 sides, ~36" tall',railLF*PRICE.railLF,lw('deck railing baluster'));
+    add(g,2,'×',`Stair-opening posts ${post} — 4 ft`,'FULL 4×4s past the rim, 2 carriage bolts each — rail ends + gate hang on these',2*4*postPrice,lw(postTerm));
+    if(state.stairGate!==false) add(g,1,'kit','Stair gate — self-closing','2 spring hinges + gravity latch, mounted on the OUTSIDE top rail (out of kid reach)',38,lw('self closing gate hardware kit'));
   }
 
   g=G('Bracing & hardware');
@@ -3060,6 +3074,8 @@ function stepGuide(st,s){
   G[13]=[`Lay 5/4×6 decking ACROSS the joists with ⅛″ gaps (a 16d nail is a perfect spacer) — ${Math.ceil(s.Dd*12/5.7)} rows.`,
     'Two screws per board per joist; let ends run wild, then saw one straight line.','✔ Check: gaps even, no proud screw heads.'];
   G[14]=['The outer corners are already done — they’re the continued 4×4 deck posts. Bolt any intermediate 4×4 rail posts inside the rim (2 carriage bolts each), max 4 ft apart, leaving the stair opening.',
+    'The STAIR OPENING gets the beefiest posts on the deck: a full 4×4 each side, dropped past the rim and through-bolted with 2× ½″ carriage bolts — kids grab, lean and swing exactly here. Rail ends die INTO these posts (screwed from the post side), never a free-floating rail end.',
+    s.stairGate!==false?'Hang the self-closing gate between the opening posts: 2 spring hinges on one post, gravity latch on the OTHER — mounted on the OUTSIDE top, where little arms can’t reach over. Swing it INWARD over the deck (never out over the stairs).':null,
     'Top rail at 36″; balusters spaced under 4″ clear (a scrap block as a spacer keeps it even).','✔ Check: a 4″ ball can’t pass anywhere; rail takes a hard shake.'];
   G[15]=(()=>{ const gF=grade?-(grade*(((s.stairSide==='front'||s.stairSide==='back')?D:W)/2+1)):0;
     if(s.access==='stairs'){ const N=Math.max(3,Math.ceil((Hf-Math.min(0,gF))/0.6)), riseIn=(Hf-Math.min(0,gF))*12/N;
@@ -3314,6 +3330,10 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
 (function(){ const cb=document.getElementById('optRoofOver'); if(!cb) return;
   cb.checked=!!state.roofOver;
   cb.addEventListener('change',()=>{ state.roofOver=cb.checked; update(); });
+})();
+(function(){ const cb=document.getElementById('optStairGate'); if(!cb) return;
+  cb.checked=state.stairGate!==false;
+  cb.addEventListener('change',()=>{ state.stairGate=cb.checked; update(); });
 })();
 
 /* ===== tap-a-piece inspector: tap any member → its size, the stock it's cut from, and its fasteners ===== */
