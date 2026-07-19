@@ -1521,10 +1521,11 @@ function rebuild3D(p){
     [-along/2,along/2].forEach(a=>{ const t=sm.tw(a,oP); pillar(t[0],t[1],postTopY,th,11,11); });
     if(along>9){ const t=sm.tw(0,oP); pillar(t[0],t[1],floorY-0.08,th,11,11); }   // mid post stops under the rim
     _stage=12;
-    oblong(along,0.28,0.4, 0,oIn+0.14,beamY, P.struct);                        // ledger at the house — carries the inner joist ends
-    oblong(along,0.3,0.4, 0,oOut-0.15,beamY, P.struct);                        // outer rim beam, bolted to the post faces
+    const dBY=floorY-0.245;   // deck band rides UP against the decking underside — no floating gap
+    oblong(along,0.28,0.4, 0,oIn+0.14,dBY, P.struct);                        // ledger at the house — carries the inner joist ends
+    oblong(along,0.3,0.4, 0,oOut-0.15,dBY, P.struct);                        // outer rim beam, bolted to the post faces
     if(sF){ const n=Math.max(2,Math.round(along/1.6));
-      for(let i=0;i<=n;i++){ const a=-along/2+i*along/n; oblong(0.12,Dd-0.62,0.4, a,oMid-0.02,beamY, P.struct); } }   // joists BUTT ledger→rim in hangers, no pass-through
+      for(let i=0;i<=n;i++){ const a=-along/2+i*along/n; oblong(0.12,Dd-0.62,0.4, a,oMid-0.02,dBY, P.struct); } }   // joists BUTT ledger→rim in hangers, no pass-through
     _stage=13; oblong(along,Dd,0.09, 0,oMid,floorY, P.struct);                 // decking
     _stage=14;
     strut(sm.W3(-along/2,oIn,rtY), sm.W3(-along/2,oP,rtY), 0.12,P.struct);     // side rails run to the corner posts
