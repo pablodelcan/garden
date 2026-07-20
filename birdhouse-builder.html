@@ -407,9 +407,9 @@ const SPECIES={
 const SPORDER=['bluebird','chickadee','titmouse','wren','nuthatch','downy','swallow','flicker','screech','woodduck','robin'];
 
 const WOODS={
-  cedar:{name:'Cedar', body:0x9a6f47, floor:0x9a6f47, roof:0x7c5636, mult:1.0, note:'naturally rot-resistant — the classic; leave it unfinished or a clear oil'},
-  pine:{name:'Pine', body:0xd8b382, floor:0xd8b382, roof:0xc39c66, mult:0.65, note:'cheapest — seal the outside well; it’ll weather grey in a couple of seasons'},
-  reclaimed:{name:'Reclaimed', body:0x8a7a63, floor:0x8a7a63, roof:0x6f6150, mult:0.5, note:'a weathered fence board is perfect — just no painted/treated faces on the inside'}
+  cedar:{name:'Cedar', body:0xC79764, floor:0xBE8C58, roof:0xA9713F, mult:1.0, note:'naturally rot-resistant — the classic; leave it unfinished or a clear oil'},
+  pine:{name:'Pine', body:0xE3C18C, floor:0xDAB77F, roof:0xC9A468, mult:0.65, note:'cheapest — seal the outside well; it’ll weather grey in a couple of seasons'},
+  reclaimed:{name:'Reclaimed', body:0xA79279, floor:0x9E896F, roof:0x83705A, mult:0.5, note:'a weathered fence board is perfect — just no painted/treated faces on the inside'}
 };
 const PART={ body:0xF2C200, floor:0x3DA34D, roof:0xE5202A, front:0xF07F1A, mount:0x1C8FD6, hole:0x1a1512, guard:0x8E6FC4 };
 const WOODDK=0x6d5636, MET=0x9a9a9a;   // post/cleat wood · metal fasteners (shaded-mode literal colors)
@@ -459,10 +459,11 @@ try{
   controls.enableDamping=true; controls.dampingFactor=0.08;
   controls.minDistance=6; controls.maxDistance=140; controls.maxPolarAngle=Math.PI/2+0.15;
   controls.target.set(0,4,0);
-  scene.add(new THREE.HemisphereLight(0xfff0dd,0x4a3a2a,0.95));
-  sun=new THREE.DirectionalLight(0xfff2e2,1.15);
-  sun.position.set(18,30,16); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+  scene.add(new THREE.HemisphereLight(0xffe9cc,0x6a5238,1.15));
+  sun=new THREE.DirectionalLight(0xfff4e6,1.5);
+  sun.position.set(16,26,20); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.radius=3;
   const cc=40,c=sun.shadow.camera; c.left=-cc;c.right=cc;c.top=cc;c.bottom=-cc;c.near=1;c.far=120; sun.shadow.bias=-0.0004; scene.add(sun);
+  const fill=new THREE.DirectionalLight(0xdCE6ff,0.45); fill.position.set(-14,8,-10); scene.add(fill);  // cool sky fill on the shadow side
   house=new THREE.Group(); scene.add(house);
   function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
   addEventListener('resize',resize); resize();
@@ -623,9 +624,9 @@ function triPanel(pts,zC,thick,color,o={}){
 function buildMount(d){
   const W=d.W, bottom=d.bottom;
   if(state.mount==='post'){
-    const cleatY=bottom-0.6, postLen=12, post=3.0;
-    box(W*0.66,1.1,d.D*0.6, 0, cleatY, 0, WOODDK,{part:'mount'});          // mounting cleat under the floor
-    box(post,postLen,post, 0, cleatY-0.55-postLen/2, 0, WOODDK,{part:'mount'}); // 4×4 post stub (top flush under the cleat)
+    const cleatY=bottom-0.5, postLen=Math.max(5.5,d.ih*0.6), post=2.6;
+    box(W*0.6,0.9,d.D*0.55, 0, cleatY, 0, WOODDK,{part:'mount'});           // mounting cleat under the floor
+    box(post,postLen,post, 0, cleatY-0.45-postLen/2, 0, WOODDK,{part:'mount'}); // 4×4 post stub (top flush under the cleat)
   } else if(state.mount==='hang'){
     const topY=roofTopY(d);
     torus(0.8,0.16, 0,topY+1.0,0, MET,{part:'mount'});                     // eye screw
@@ -879,11 +880,11 @@ function updateDimLabels(){
 function frameModel(reset){
   if(!house||!controls) return;
   const d=derive();
-  const ctr=new THREE.Vector3(0, d.ih*0.45, 0);          // frame the box, not the post/hanger tail
+  const ctr=new THREE.Vector3(0, d.ih*0.40, 0);          // frame the box, not the post/hanger tail
   controls.target.lerp(ctr, reset?1:0.15);
   if(reset){
-    const dist=Math.max(d.W,d.ih,d.D)*2.7+9;
-    camera.position.copy(ctr).add(new THREE.Vector3(0.58,0.42,0.82).normalize().multiplyScalar(dist));
+    const dist=Math.max(d.W,d.ih,d.D)*4.3+16;            // pull back so the whole box + a little post sit in frame with air
+    camera.position.copy(ctr).add(new THREE.Vector3(0.5,0.34,0.9).normalize().multiplyScalar(dist));
   }
 }
 
