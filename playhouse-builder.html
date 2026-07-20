@@ -1245,8 +1245,8 @@ function rebuild3D(p){
         box(0.05,Hw-0.06,0.16, sx*(W/2+0.085),floorY+Hw/2,sz*(D/2-0.1), P.trim,{cast:false});
       }
     }
-    if(sF&&!isA){ _stage=7.7;   // 3-stud corner assemblies — solid wood behind BOTH siding edges at every corner
-      for(const csx of [-1,1]) for(const csz of [-1,1]) box(0.29,Hw-0.28,0.29, csx*(W/2-0.145), floorY+Hw/2, csz*(D/2-0.145), P.struct); }
+    if(sF&&!isA){ _stage=7.7;   // California-corner backing: ONE flat 2×4 per corner on the side-wall plane — gives the side siding's overhang a nailer (was a fat 4×4 that swallowed the studs)
+      for(const csx of [-1,1]) for(const csz of [-1,1]) box(0.12,Hw-0.28,0.29, csx*(W/2-0.06), floorY+Hw/2, csz*(D/2-0.145), P.struct); }
     renderOpening(dR,'door',dS);
     for(const r of wRects) renderOpening(r,'window',r._ws);
   }
