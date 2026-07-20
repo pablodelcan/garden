@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Birdhouse — Studio OS</title>
+<style>
+  :root{
+    --field:#E6E6E6; --paper:#E6E6E6; --shadow:none;
+    --tx:#141414; --tm:#666666; --tf:#9a9a9a; --ac:#E5202A;
+    --ink:#141414; --bd:rgba(20,20,20,0.18); --bd2:#141414; --pb:rgba(20,20,20,0.96);
+    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;
+    --cond:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+    --good:#2f8a3e; --warn:#b97400; --bad:#E5202A; --blue:#15407a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--field);font-family:var(--serif);color:var(--tx)}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28);border-radius:4px}
+  a{color:var(--ac);text-decoration:none}
+  @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fuC{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+  #scene{position:fixed;inset:0;z-index:1}
+  body[data-view="blueprint"]{background:var(--blue)}
+
+  .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7;pointer-events:none}
+  .topbar>*{pointer-events:auto}
+  .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--tx);font-weight:700;background:none;border:none;padding:0;line-height:1.05}
+  .brand b{opacity:.4;font-weight:400}
+  .brand::after{content:'NEST-BOX PLANS · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  body[data-view="blueprint"] .brand{color:#eaf1fb}
+  body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
+  .topright{display:flex;align-items:center;gap:12px}
+  .unittog,.viewseg{display:flex;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .unittog b,.viewseg b{padding:4px 9px;font-weight:600;color:var(--tm);background:transparent}
+  .unittog b.on,.viewseg b.on{background:var(--ink);color:#fff}
+  body[data-view="blueprint"] .unittog b,body[data-view="blueprint"] .viewseg b{color:#bcd4f2}
+  body[data-view="blueprint"] .unittog b.on,body[data-view="blueprint"] .viewseg b.on{background:#eaf1fb;color:var(--blue)}
+  .toolwrap{position:relative;display:inline-flex;align-items:center}
+  .toolwrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tm);pointer-events:none}
+  .toolsel{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--tx);background:rgba(0,0,0,.06);border:none;border-radius:2px;padding:5px 22px 5px 9px;cursor:pointer;-webkit-appearance:none;appearance:none}
+  body[data-view="blueprint"] .toolsel{background:rgba(255,255,255,.12);color:#bcd4f2}
+  body[data-view="blueprint"] .toolwrap::after{color:#bcd4f2}
+
+  .paper{background:var(--paper);display:flex;flex-direction:column;min-height:0;animation:fu .5s ease both}
+  .left{position:fixed;left:22px;top:62px;bottom:84px;width:300px;z-index:5;transition:left .4s cubic-bezier(.4,0,.2,1)}
+  .right{position:fixed;right:22px;top:62px;bottom:84px;width:340px;z-index:5;transition:right .4s cubic-bezier(.4,0,.2,1)}
+  body.lhide .left{left:-340px}
+  body.rhide .right{right:-380px}
+  .scroll{overflow-y:auto;padding:20px}
+  .pcollapse{position:absolute;top:12px;width:24px;height:24px;border:none;background:none;color:var(--tm);font-size:14px;line-height:1;cursor:pointer;z-index:7;display:flex;align-items:center;justify-content:center}
+  .left .pcollapse{right:8px} .right .pcollapse{left:8px}
+  .pcollapse:hover{color:var(--ac)}
+  .revealtab{position:fixed;top:50%;transform:translateY(-50%);width:25px;height:72px;border:none;background:rgba(0,0,0,.06);color:var(--ac);cursor:pointer;z-index:6;display:none;align-items:center;justify-content:center;font-size:15px;font-family:var(--mono)}
+  .revealtab.show{display:flex}
+  #showL{left:0} #showR{right:0}
+
+  .ptitle{font-family:var(--cond);font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.08;text-transform:uppercase;display:block;color:var(--tx)}
+  .psub{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--tm);margin-top:6px}
+  .rule{height:1px;background:var(--bd);margin:16px 0}
+  .glabel{font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx);margin:0 0 12px;font-weight:700;display:block}
+  .group{margin-bottom:22px}
+
+  .ctl{margin-bottom:16px}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .ctl label{font-size:12px}
+  .val{font-family:var(--mono);font-size:11px;color:var(--tx)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:3px;background:var(--bd);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:2px;background:var(--ac);cursor:pointer;border:2.5px solid var(--field)}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:2px;background:var(--ac);cursor:pointer;border:2px solid var(--field)}
+
+  .seg{display:grid;gap:6px}
+  .seg.two{grid-template-columns:1fr 1fr}
+  .seg.three{grid-template-columns:1fr 1fr 1fr}
+  .seg button{padding:8px 4px;font-family:var(--mono);font-size:10px;letter-spacing:.03em;background:none;color:var(--tm);border:none;cursor:pointer;transition:.13s;text-transform:uppercase}
+  .seg button.on{background:var(--ink);color:#fff}
+  .seg button:hover:not(.on){background:rgba(0,0,0,.06);color:var(--tx)}
+  select{width:100%;background:rgba(0,0,0,.06);color:var(--tx);border:none;padding:9px;font-family:var(--mono);font-size:11px}
+  select option{background:#fff;color:#222}
+  .tog2{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:9px 0}
+  .tog2 input{accent-color:var(--ac);width:15px;height:15px}
+
+  .archbox textarea{width:100%;background:rgba(0,0,0,.06);border:none;padding:9px 10px;font-family:var(--serif);font-size:12.5px;color:var(--tx);resize:vertical;min-height:46px;line-height:1.45}
+  .archbox textarea::placeholder{color:var(--tm);font-style:italic}
+  .archbtn{width:100%;margin-top:7px;padding:9px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;background:rgba(0,0,0,.06);border:none;color:var(--tx);cursor:pointer}
+  .archbtn:hover{background:var(--ink);color:#fff}
+  .archmsg{font-family:var(--mono);font-size:10px;color:var(--ac);margin-top:7px;line-height:1.5;min-height:0}
+
+  .rhead{padding:20px 20px 16px;border-bottom:1px solid var(--bd)}
+  .rhead .ptitle{font-size:15px}
+  .totalbox{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px}
+  .totalbox .tlabel{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tm)}
+  .totalbox .tval{font-family:var(--mono);font-size:23px;font-weight:600;color:var(--ac);font-variant-numeric:tabular-nums}
+  .rbody{overflow-y:auto;padding:0 20px 24px}
+  .note{margin:16px 0 4px;font-size:11.5px;line-height:1.5;color:var(--tx)}
+  .note .ntag{font-family:var(--cond);font-weight:700;display:block;margin-bottom:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .note.good .ntag{color:var(--good)} .note.warn .ntag{color:var(--warn)} .note.bad .ntag{color:var(--bad)}
+  .spec{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 4px}
+  .spec span{font-family:var(--mono);font-size:10px;color:var(--tx);background:rgba(0,0,0,.06);padding:3px 8px}
+
+  .mgroup h3{font-family:var(--cond);font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--tx);margin:22px 0 9px;display:flex;justify-content:space-between;font-weight:700;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
+  .mgroup h3 .gsum{color:var(--tm);font-variant-numeric:tabular-nums}
+  .item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;cursor:pointer}
+  .item .ck{flex-shrink:0;width:17px;height:17px;border:1.5px solid var(--bd);margin-top:1px;font-family:var(--mono);font-size:11px;line-height:15px;text-align:center;color:#fff}
+  .item .iinfo{flex:1;min-width:0}
+  .item:hover .ck{border-color:var(--ac)}
+  .item.ordered{opacity:.5} .item.ordered .ck{background:var(--ac);border-color:var(--ac)}
+  .item.ordered .mqty,.item.ordered .mcost{text-decoration:line-through}
+  .item .mqty .q{font-family:var(--mono);font-size:11px;color:var(--tx)}
+  .item .mdet{font-size:11px;color:var(--tm);margin-top:2px;line-height:1.4}
+  .item .mdet a{font-family:var(--mono);font-size:10.5px;border-bottom:1px solid color-mix(in srgb,var(--ac) 35%,transparent);white-space:nowrap}
+  .item .mcost{font-family:var(--mono);font-size:11.5px;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .foot{font-family:var(--mono);padding:16px 0 4px;font-size:10px;color:var(--tm);line-height:1.6}
+  .planbtn{width:100%;margin-top:12px;padding:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;background:transparent;border:1px solid var(--ac);color:var(--ac);cursor:pointer}
+  .planbtn:hover{background:var(--ac);color:#fff}
+  .shopbtn{width:100%;margin-top:8px;padding:11px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--ac);color:#fff;border:none;cursor:pointer}
+
+  .dock{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:var(--paper);padding:6px 8px;animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
+  .dock button{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;background:transparent;color:var(--tm);border:none;cursor:pointer;transition:.12s;font-weight:500}
+  .dock button:hover{color:var(--tx);background:rgba(0,0,0,.06)}
+  .dock button.on{color:#fff;background:var(--ink)}
+  .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
+  body[data-view="blueprint"] .dock{background:rgba(255,255,255,.08)}
+  body[data-view="blueprint"] .dock button{color:#bcd4f2}
+
+  .badge{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;z-index:6;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:center;pointer-events:none;opacity:.85;line-height:1.7}
+  .badge b{font-weight:600;color:var(--tx)}
+  body[data-view="blueprint"] .badge{color:#bcd4f2} body[data-view="blueprint"] .badge b{color:#eaf1fb}
+
+  .stepnav{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:12px;width:min(460px,calc(100vw - 48px));background:var(--paper);padding:12px 14px;animation:fuC .35s ease both}
+  .stepnav.on{display:flex}
+  .stepnav .sbtn{flex-shrink:0;width:34px;height:34px;border:none;background:rgba(0,0,0,.06);color:var(--tx);font-size:14px;cursor:pointer;transition:.12s}
+  .stepnav .sbtn:hover:not(:disabled){background:var(--ac);color:#fff}
+  .stepnav .sbtn:disabled{opacity:.3;cursor:default}
+  .stepnav .smid{flex:1;min-width:0}
+  .stepnav .stitle{font-family:var(--cond);font-size:14px;line-height:1.15;text-transform:uppercase;letter-spacing:.01em}
+  .stepnav .stitle .snum{font-family:var(--mono);font-size:11px;color:var(--ac)}
+  .stepnav .sdesc{font-size:11.5px;color:var(--tm);line-height:1.4;margin-top:3px}
+  .stepnav .sdetail{font-family:var(--mono);font-size:10.5px;color:var(--ac);margin-top:6px}
+  .stepnav .sfast{font-family:var(--mono);font-size:10px;color:var(--tm);margin-top:4px;line-height:1.45}
+  .stepnav .jrnl{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;color:var(--tm);margin-top:9px;cursor:pointer}
+  .stepnav .jrnl input{accent-color:var(--good);width:14px;height:14px}
+  .stepnav .jrnl span{margin-left:auto;color:var(--ac)}
+  .stepnav input[type=range]{margin-top:9px;width:100%;height:3px}
+
+  #pickCard{position:fixed;left:50%;transform:translateX(-50%);top:56px;z-index:8;display:none;max-width:min(440px,calc(100vw - 14px));background:var(--pb);color:#fff;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.6;letter-spacing:.02em}
+
+  #dimLayer{position:fixed;inset:0;z-index:4;pointer-events:none}
+  .dimlbl{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:11px;background:#fff;color:var(--ink);padding:0 5px;white-space:nowrap}
+
+  .err{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;text-align:center;padding:40px;color:#fff;font-family:var(--mono);font-size:13px;line-height:1.7;background:rgba(0,0,0,.6)}
+
+  /* plan modal */
+  .modal{position:fixed;inset:0;z-index:20;display:none;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:40px 20px;overflow-y:auto}
+  .modal.on{display:flex}
+  .mpanel{background:var(--paper);color:var(--tx);width:min(760px,100%);animation:fu .3s ease both}
+  .mhead{padding:22px 24px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .mhead .mt{font-family:var(--cond);font-size:19px;font-weight:700;text-transform:uppercase}
+  .mhead .mm{font-family:var(--mono);font-size:10px;color:var(--tm);margin-top:6px;letter-spacing:.03em;line-height:1.5}
+  .mhead .mtot{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--ac);white-space:nowrap}
+  .mbody{padding:6px 24px 20px;max-height:64vh;overflow-y:auto}
+  .mbody h4{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);margin:20px 0 6px}
+  .mfoot{padding:15px 24px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end}
+  .mfoot button{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border:none}
+  .mfoot .mc{background:rgba(0,0,0,.06);color:var(--tm)} .mfoot .mp{background:var(--ac);color:#fff}
+  .elevrow{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;padding:8px 0}
+  .elevbox{text-align:center}
+  .esvg{height:172px;width:auto;max-width:240px}   /* fixed height so front & side elevations read at one scale */
+  .esvg rect,.esvg polygon,.esvg path{fill:color-mix(in srgb,var(--ac) 9%,transparent);stroke:var(--tx);stroke-width:1.5}
+  .esvg circle{fill:#222;stroke:var(--tx);stroke-width:1.2}
+  .esvg line{stroke:var(--tm);stroke-width:.8}
+  .esvg text{font-family:var(--mono);font-size:10px;fill:var(--tx)}
+  .elabel{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-top:2px}
+  .cutrow{padding:8px 0;border-bottom:1px solid var(--bd)}
+  .cutrow .ct{font-family:var(--serif);font-size:13px}
+  .cutrow .ct span{font-family:var(--mono);font-size:11px;color:var(--tm)}
+  .stepcard{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--bd);padding:12px;margin-top:10px;background:color-mix(in srgb,var(--ac) 3%,transparent);break-inside:avoid}
+  .stepdiag{width:150px;flex-shrink:0}
+  .stepinfo{flex:1;min-width:0}
+  .stepnum{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
+  .stepinfo h5{font-family:var(--cond);font-size:14px;margin:1px 0 5px;font-weight:700;text-transform:uppercase}
+  .stepinfo p{font-size:12px;line-height:1.5;margin:0 0 7px}
+  .substeps{margin:2px 0 8px;padding-left:18px;font-size:12px;line-height:1.55}
+  .substeps li{margin-bottom:4px}
+  .stepfast{font-family:var(--mono);font-size:10.5px;color:var(--tm);line-height:1.45;border-top:1px dashed var(--bd);padding-top:7px}
+  @media print{
+    html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+    body>*{display:none!important}
+    .modal.on{display:block!important;position:static!important;background:none!important;backdrop-filter:none!important;padding:0!important;overflow:visible!important}
+    .mpanel{width:100%!important} .mbody{max-height:none!important;overflow:visible!important}
+    .mfoot{display:none!important}
+    .stepcard,.esvg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+
+  /* phone */
+  #mbar{display:none;position:fixed;left:0;right:0;bottom:0;height:60px;z-index:50;background:var(--pb)}
+  #mbar button{flex:1;background:none;border:none;color:rgba(255,255,255,.72);font:inherit;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:9px}
+  #mbar button.on{color:#fff;background:rgba(255,255,255,.14)}
+  #mbar button b{font-size:17px;font-weight:400}
+  button,input,select,.dock button,.stepnav .sbtn{touch-action:manipulation}
+  @media (max-width:760px),(pointer:coarse) and (max-width:1000px){
+    .topbar{padding:0 10px;height:44px}
+    .brand{display:none} .toolwrap{display:none}
+    .viewseg b,.unittog b{padding:5px 7px;font-size:9.5px}
+    .left,.right{left:0!important;right:0!important;top:44px;bottom:60px;width:auto;z-index:40;background:var(--field);transition:transform .28s ease;animation:none}
+    body.lhide .left{left:0!important;transform:translateX(-105%)}
+    body.rhide .right{right:0!important;transform:translateX(105%)}
+    .pcollapse{width:40px;height:40px;font-size:22px}
+    .revealtab{display:none!important} .badge{display:none}
+    .dock{display:none} .dock.mshow{display:flex;bottom:66px;max-width:calc(100vw - 8px)}
+    .stepnav{top:auto;bottom:66px;width:calc(100vw - 10px);z-index:35;max-height:60vh;overflow-y:auto}
+    .stepnav .sbtn{width:54px;height:54px;font-size:22px}
+    .stepnav .stitle{font-size:17px} .stepnav .sdesc{font-size:14px}
+    #mbar{display:flex}
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="dimLayer"></div>
+
+<div class="topbar">
+  <button class="brand" id="brand">STUDIO OS · <b>BIRDHOUSE</b> BUILDER</button>
+  <div class="topright">
+    <span class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch builder" title="Switch builder">
+      <option value="Birdhouse" data-file="birdhouse.html" selected>Birdhouse</option>
+      <option value="Playhouse" data-file="playhouse.html">Playhouse</option>
+      <option value="Greenhouse" data-file="greenhouse.html">Greenhouse</option>
+      <option value="Small House" data-file="smallhouse.html">Small House</option>
+      <option value="Furniture" data-file="furniture.html">Furniture</option>
+    </select></span>
+    <div class="viewseg" id="viewseg">
+      <b data-v="shaded" class="on">Shaded</b><b data-v="manual">Line</b><b data-v="color">Color</b><b data-v="blueprint">Blue</b>
+    </div>
+    <div class="unittog" id="unittog"><b data-u="imp" class="on">IN</b><b data-u="met">CM</b></div>
+  </div>
+</div>
+
+<div class="left paper" id="leftPanel">
+  <button class="pcollapse" id="hideL">‹</button>
+  <div class="scroll">
+    <span class="ptitle" id="pTitle">NEST BOX</span>
+    <div class="psub" id="pSub">RIGHT BIRD · RIGHT HOUSE</div>
+    <div class="rule"></div>
+
+    <div class="group archbox">
+      <span class="glabel">Pick my bird</span>
+      <textarea id="archIn" placeholder="Describe your yard or the bird — “open field, bluebirds”, “woods, chickadees”, “a shelf for robins under the eave”…"></textarea>
+      <button class="archbtn" id="archGo">→ Suggest a box</button>
+      <div class="archmsg" id="archMsg"></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Species</span>
+      <select id="species"></select>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Wood</span>
+      <div class="seg three" id="woodSeg"></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Roof</span>
+      <div class="seg three" id="roofSeg">
+        <button data-v="slope" class="on">Sloped</button><button data-v="gable">Gable</button><button data-v="flat">Flat</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Mount</span>
+      <div class="seg three" id="mountSeg">
+        <button data-v="post" class="on">Post</button><button data-v="wall">Tree / fence</button><button data-v="hang">Hanging</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Board stock</span>
+      <div class="seg" id="boardSeg" style="grid-template-columns:1fr 1fr 1fr 1fr"></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Details</span>
+      <label class="tog2"><input type="checkbox" id="optGuard"> Predator-guard portal <span style="color:var(--tm);font-size:10px">(2× wood, kills reach-in)</span></label>
+      <div class="ctl">
+        <div class="row"><label>Roof overhang</label><span class="val" id="ovVal">2.5″</span></div>
+        <input type="range" id="ov" min="1" max="5" step="0.5" value="2.5">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="right paper" id="rightPanel">
+  <button class="pcollapse" id="hideR">›</button>
+  <div class="rhead">
+    <span class="ptitle">Cut list &amp; care</span>
+    <div class="totalbox"><span class="tlabel">Est. lumber + hardware</span><span class="tval" id="total">$0</span></div>
+    <button class="shopbtn" id="shopBtn">◱ Shopping list</button>
+    <button class="planbtn" id="planBtn">◹ Plan sheet + cut list</button>
+  </div>
+  <div class="rbody" id="rbody"></div>
+</div>
+
+<div class="badge" id="badge"></div>
+
+<div class="stepnav" id="stepnav">
+  <button class="sbtn" id="sPrev">◀</button>
+  <div class="smid">
+    <div class="stitle"><span class="snum" id="sNum">1 / 7</span> <span id="sName">Floor</span>
+      <button class="playbtn" id="sPlay" title="play" style="float:right;width:26px;height:24px;border:none;background:rgba(0,0,0,.06);color:var(--ac);font-size:10px;cursor:pointer">▶</button></div>
+    <div class="sdesc" id="sDesc"></div>
+    <div class="sdetail" id="sDetail"></div>
+    <div class="sfast" id="sFast"></div>
+    <label class="jrnl"><input type="checkbox" id="sBuilt"> Built this step <span id="sCount">0/7 built</span></label>
+    <input type="range" id="sRange" min="1" max="7" step="1" value="1">
+  </div>
+  <button class="sbtn" id="sNext">▶</button>
+</div>
+
+<div class="dock" id="dock">
+  <button data-t="tBody" class="on">Body</button>
+  <button data-t="tRoof" class="on">Roof</button>
+  <button data-t="tMount" class="on">Mount</button>
+  <button data-t="tInterior">Cutaway</button>
+  <span class="sep"></span>
+  <button data-t="tDims">Dims</button>
+  <button id="stepToggle">Build steps</button>
+  <span class="sep"></span>
+  <button id="spinBtn">Spin</button>
+  <button id="focusBtn">Center</button>
+  <span class="sep"></span>
+  <button id="saveImg">Save image</button>
+  <button id="stlBtn">3D print</button>
+</div>
+
+<div id="pickCard"></div>
+
+<div class="modal" id="planModal">
+  <div class="mpanel">
+    <div class="mhead">
+      <div><div class="mt" id="planTitle">Nest-box plan</div><div class="mm" id="planMeta"></div></div>
+      <div class="mtot" id="planTot">$0</div>
+    </div>
+    <div class="mbody" id="planBody"></div>
+    <div class="mfoot"><button class="mc" id="planClose">Close</button><button class="mp" onclick="window.print()">Print / PDF</button></div>
+  </div>
+</div>
+
+<div class="modal" id="shopModal">
+  <div class="mpanel">
+    <div class="mhead"><div><div class="mt">Shopping list</div><div class="mm" id="shopMeta"></div></div><div class="mtot" id="shopTot">$0</div></div>
+    <div class="mbody" id="shopBody"></div>
+    <div class="mfoot"><button class="mc" id="shopClose">Close</button><button class="mp" onclick="window.print()">Print</button></div>
+  </div>
+</div>
+
+<div id="mbar">
+  <button id="mSteps"><b>◳</b>Steps</button>
+  <button id="mList"><b>≣</b>Cut list</button>
+  <button id="mDesign"><b>⚙</b>Design</button>
+  <button id="mView"><b>⌸</b>Views</button>
+</div>
+
+<div class="err" id="err"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* ===================== domain: the species engine ===================== */
+// interior floor fw×fd (in), interior height ih (floor→ceiling front), hole height above floor,
+// hole diameter, mount height ft [lo,hi], facing, habitat, bedding, cleanout timing. shelf=open front.
+const SPECIES={
+  bluebird:{name:'Eastern Bluebird', fw:5,fd:5, ih:9,  holeH:6,  hole:1.5,   mount:[4,6],  face:'entrance to the EAST, toward open ground',
+    habitat:'open lawn, field edge or orchard — perch/tree 25–100 ft away for fledglings', bed:'', clean:'clean out after each brood (they raise 2–3 a year)',
+    space:'100 ft between boxes, or pair 15–25 ft apart for a bluebird + swallow'},
+  chickadee:{name:'Black-capped Chickadee', fw:4,fd:4, ih:9, holeH:7, hole:1.125, mount:[5,15], face:'sheltered, any direction',
+    habitat:'small woods, thickets, brushy edges', bed:'add 1″ of wood shavings — chickadees like to “excavate”', clean:'clean out each fall', space:'~1 per acre'},
+  titmouse:{name:'Tufted Titmouse', fw:4,fd:4, ih:10, holeH:8, hole:1.25, mount:[5,15], face:'sheltered',
+    habitat:'woods and shady yards with mature trees', bed:'a handful of wood shavings', clean:'clean out each fall', space:'~1 per acre'},
+  wren:{name:'House Wren', fw:4,fd:4, ih:7, holeH:5, hole:1.125, mount:[5,10], face:'any; near cover',
+    habitat:'yards, gardens, brush piles', bed:'', clean:'clean between broods — wrens fill boxes with twigs', space:'they’re feisty; 1 per small yard'},
+  nuthatch:{name:'White-breasted Nuthatch', fw:4,fd:4, ih:9, holeH:7.5, hole:1.375, mount:[12,20], face:'toward open woods',
+    habitat:'mature deciduous woods', bed:'a little bark mulch', clean:'clean out each fall', space:'~1 per few acres'},
+  downy:{name:'Downy Woodpecker', fw:4,fd:4, ih:10, holeH:8, hole:1.25, mount:[6,20], face:'sheltered',
+    habitat:'woodland edges, old orchards', bed:'PACK it full of wood shavings — woodpeckers excavate down to the floor', clean:'refill shavings each year', space:'~1 per few acres'},
+  swallow:{name:'Tree Swallow', fw:5,fd:5, ih:7, holeH:5, hole:1.5, mount:[5,8], face:'toward open space, away from prevailing wind',
+    habitat:'open fields near water', bed:'', clean:'clean after each brood', space:'30+ ft apart (territorial), or pair with bluebirds 15 ft apart'},
+  flicker:{name:'Northern Flicker', fw:7,fd:7, ih:17, holeH:15, hole:2.5, mount:[6,20], face:'toward open ground',
+    habitat:'open woods, parks, large yards', bed:'PACK solidly with sawdust — the flicker must dig it out', clean:'refill sawdust yearly', space:'widely spaced'},
+  screech:{name:'Screech-Owl / Kestrel', fw:8,fd:8, ih:14, holeH:11, hole:3, mount:[10,30], face:'toward a clearing',
+    habitat:'woodland edge, farm country — mount high', bed:'2–3″ of wood shavings on the floor', clean:'clean out in late winter, before nesting', space:'well separated'},
+  woodduck:{name:'Wood Duck', fw:10,fd:10, ih:19, holeH:15, hole:4, oval:true, mount:[6,20], face:'toward the water',
+    habitat:'over or beside a pond, lake or slow river', bed:'4″ of wood shavings; an interior ladder below the hole is ESSENTIAL', clean:'clean & refill each late winter', space:'one per water body edge'},
+  robin:{name:'American Robin (nest shelf)', fw:7,fd:8, shelf:true, mount:[6,15], face:'sheltered under an eave',
+    habitat:'under a porch roof, eave or shed overhang — robins won’t enter an enclosed box', bed:'', clean:'hose off between broods', space:'one per sheltered spot'}
+};
+const SPORDER=['bluebird','chickadee','titmouse','wren','nuthatch','downy','swallow','flicker','screech','woodduck','robin'];
+
+const WOODS={
+  cedar:{name:'Cedar', body:0x9a6f47, floor:0x9a6f47, roof:0x7c5636, mult:1.0, note:'naturally rot-resistant — the classic; leave it unfinished or a clear oil'},
+  pine:{name:'Pine', body:0xd8b382, floor:0xd8b382, roof:0xc39c66, mult:0.65, note:'cheapest — seal the outside well; it’ll weather grey in a couple of seasons'},
+  reclaimed:{name:'Reclaimed', body:0x8a7a63, floor:0x8a7a63, roof:0x6f6150, mult:0.5, note:'a weathered fence board is perfect — just no painted/treated faces on the inside'}
+};
+const PART={ body:0xF2C200, floor:0x3DA34D, roof:0xE5202A, front:0xF07F1A, mount:0x1C8FD6, hole:0x1a1512, guard:0x8E6FC4 };
+const WOODDK=0x6d5636, MET=0x9a9a9a;   // post/cleat wood · metal fasteners (shaded-mode literal colors)
+const lw=q=>'https://www.lowes.com/search?searchTerm='+encodeURIComponent(q);
+const BOARDS={ '1x6':5.5, '1x8':7.25, '1x10':9.25, '1x12':11.25 };
+
+/* ===================== state ===================== */
+const state={ species:'bluebird', wood:'cedar', roof:'slope', mount:'post', board:'auto',
+  guard:false, ov:2.5, view:'shaded', unit:'imp', explode:0 };
+const tog={ tBody:true, tRoof:true, tMount:true, tInterior:false, tDims:false, tSpin:false };
+
+/* ===================== derived geometry dims ===================== */
+const TH=0.75;                                  // 1× board actual thickness
+function derive(){
+  const sp=SPECIES[state.species];
+  const fw=sp.fw, fd=sp.fd, shelf=!!sp.shelf;
+  const ih=shelf? Math.max(6,fd*0.9) : sp.ih;
+  const W=fw+2*TH, D=fd+2*TH;                    // exterior — front/back full width, sides between
+  const slope = state.roof==='slope' ? Math.max(1.5,W*0.24) : 0;
+  const gable = state.roof==='gable' ? Math.max(2,W*0.4) : 0;
+  const backTop = ih+slope+gable;               // top of back board (world y, floor-top=0)
+  const bottom = -1.0;                           // side/wall bottoms (floor recessed ¼ above)
+  return {sp,fw,fd,shelf,ih,W,D,slope,gable,backTop,bottom,
+    hole:sp.hole||0, holeH:sp.holeH||0, oval:!!sp.oval, ov:state.ov};
+}
+function boardWidth(){ const d=derive();
+  if(state.board!=='auto' && BOARDS[state.board]) return {key:state.board,w:BOARDS[state.board]};
+  for(const k of ['1x6','1x8','1x10','1x12']) if(BOARDS[k]>=d.W-0.02) return {key:k,w:BOARDS[k]};
+  return {key:'1x12',w:11.25};
+}
+
+/* ===================== three bootstrap ===================== */
+let renderer,scene,camera,controls,house,sun;
+const errEl=document.getElementById('err');
+let _stage=0,_limit=Infinity;
+let stepOn=false, stepCur=1, journal=loadJournal();
+const dimLabels=[], dimPool=[];
+try{
+  const canvas=document.getElementById('scene');
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(42,1,0.1,400); camera.position.set(20,15,24);
+  controls=new OrbitControls(camera,canvas);
+  controls.enableDamping=true; controls.dampingFactor=0.08;
+  controls.minDistance=6; controls.maxDistance=140; controls.maxPolarAngle=Math.PI/2+0.15;
+  controls.target.set(0,4,0);
+  scene.add(new THREE.HemisphereLight(0xfff0dd,0x4a3a2a,0.95));
+  sun=new THREE.DirectionalLight(0xfff2e2,1.15);
+  sun.position.set(18,30,16); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+  const cc=40,c=sun.shadow.camera; c.left=-cc;c.right=cc;c.top=cc;c.bottom=-cc;c.near=1;c.far=120; sun.shadow.bias=-0.0004; scene.add(sun);
+  house=new THREE.Group(); scene.add(house);
+  function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+  addEventListener('resize',resize); resize();
+  (function loop(){ requestAnimationFrame(loop);
+    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=0.9; controls.update();
+    renderer.render(scene,camera); updateDimLabels(); })();
+}catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The cut list still works.'; }
+
+/* ===================== geometry helpers ===================== */
+function mat(color){ return new THREE.MeshStandardMaterial({color,roughness:.9,metalness:0}); }
+function box(w,h,d,x,y,z,color,o={}){
+  if(!house||_stage>_limit) return null;
+  const g=new THREE.BoxGeometry(w,h,d);
+  const m=new THREE.Mesh(g,mat(color));
+  m.position.set(x,y,z);
+  if(o.rotX)m.rotation.x=o.rotX; if(o.rotZ)m.rotation.z=o.rotZ; if(o.rotY)m.rotation.y=o.rotY;
+  m.castShadow=o.cast!==false; m.receiveShadow=true; m.userData.stage=_stage; m.userData.part=o.part; house.add(m); return m;
+}
+function cyl(r,h,x,y,z,color,o={}){
+  if(!house||_stage>_limit) return null;
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,o.seg||28,1,!!o.open),mat(color));
+  m.position.set(x,y,z);
+  if(o.axis==='z')m.rotation.x=Math.PI/2; if(o.axis==='x')m.rotation.z=Math.PI/2;
+  if(o.sy)m.scale.y=o.sy;
+  m.castShadow=o.cast!==false; m.receiveShadow=true; m.userData.stage=_stage; m.userData.part=o.part; house.add(m); return m;
+}
+function torus(r,t,x,y,z,color,o={}){
+  if(!house||_stage>_limit) return null;
+  const m=new THREE.Mesh(new THREE.TorusGeometry(r,t,12,28),mat(color));
+  m.position.set(x,y,z); if(o.axis==='z'){} else m.rotation.x=Math.PI/2;
+  if(o.sy)m.scale.y=o.sy;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; m.userData.part=o.part; house.add(m); return m;
+}
+// side board: polygon in (z,y) extruded along x, centered at xC
+function sidePanel(pts, xC, thick, color, o={}){
+  if(!house||_stage>_limit) return null;
+  const sh=new THREE.Shape(); sh.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) sh.lineTo(pts[i][0],pts[i][1]); sh.closePath();
+  const g=new THREE.ExtrudeGeometry(sh,{depth:thick,bevelEnabled:false}); g.translate(0,0,-thick/2);
+  const m=new THREE.Mesh(g,mat(color)); m.rotation.y=-Math.PI/2; m.position.x=xC;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; m.userData.part=o.part; house.add(m); return m;
+}
+function dim(a,b,txt){ dimLabels.push({x:(a[0]+b[0])/2,y:(a[1]+b[1])/2,z:(a[2]+b[2])/2,text:txt}); }
+
+/* ===================== build ===================== */
+function build(){
+  if(!house) return;
+  while(house.children.length) house.remove(house.children[0]);
+  dimLabels.length=0;
+  const d=derive(), W=d.W, D=d.D, ih=d.ih, bottom=d.bottom, ov=d.ov;
+  const wc=WOODS[state.wood];
+  const bodyC=wc.body, floorC=wc.floor, roofC=wc.roof;
+  const cut = tog.tInterior;                    // cutaway hides the near side + front for viewing
+  const xL=-(W/2-TH/2), xR=(W/2-TH/2);
+  const zBack=-(D/2-TH/2), zFront=(D/2-TH/2);
+
+  // ---- 1 · FLOOR (recessed ¼", small drainage gap) ----
+  _stage=1;
+  if(tog.tBody) box(d.fw-0.3, TH, d.fd-0.3, 0, bottom+0.25+TH/2, 0, floorC,{part:'floor'});
+
+  // ---- 2 · BACK ----
+  _stage=2;
+  if(tog.tBody){
+    let backTop=d.backTop, backBot=bottom;
+    if(state.mount==='wall'){ backTop+=2.6; backBot-=2.6; }        // mount tabs above & below
+    box(W, backTop-backBot, TH, 0, (backTop+backBot)/2, zBack, bodyC,{part:'body'});
+    if(state.mount==='wall'){                                       // screw holes in the tabs
+      box(0.5,0.5,0.2,0,d.backTop+1.5,zBack-0.03,MET,{part:'mount',cast:false});
+      box(0.5,0.5,0.2,0,bottom-1.5,zBack-0.03,MET,{part:'mount',cast:false});
+    }
+  }
+
+  // ---- 3 · SIDES (sloped tops) ----
+  _stage=3;
+  const sideProfile=[[zBack,bottom],[zFront,bottom],[zFront,ih],[zBack,ih+d.slope]];
+  if(tog.tBody){
+    if(!cut) sidePanel(sideProfile, xL, TH, bodyC,{part:'body'});   // near side hidden in cutaway
+    sidePanel(sideProfile, xR, TH, bodyC,{part:'body'});
+  }
+
+  // ---- 4 · FRONT + entrance ----
+  _stage=4;
+  const frontTop=ih;
+  if(tog.tBody && !cut){
+    if(d.shelf){                                                    // robin: open-front, low front rail only
+      box(W, 2.2, TH, 0, bottom+1.1, zFront, PART.front,{part:'front'});
+    } else {
+      box(W, frontTop-bottom, TH, 0, (frontTop+bottom)/2, zFront, bodyC,{part:'front'});
+      // entrance hole — dark cylinder bored THROUGH the board (sticks a hair proud so it reads as the opening)
+      const hy=d.holeH, hr=d.hole/2;
+      cyl(hr,TH+0.25, 0,hy,zFront, PART.hole,{axis:'z',sy:d.oval?1.35:1,cast:false,part:'hole'});
+      if(state.guard){                                             // predator-guard portal: 2nd thickness ring
+        torus(hr+0.28,0.28, 0,hy,zFront+0.18, roofC,{axis:'z',sy:d.oval?1.35:1,part:'guard'});
+      }
+      // kerf "ladder" scratches below the hole (fledglings climb out)
+      for(let i=0;i<3;i++) box(W*0.5,0.05,0.04, 0, hy-1.1-i*0.7, zFront-0.35, 0x5b4630,{cast:false,part:'front'});
+    }
+  }
+
+  // ---- 5 · ROOF ----
+  _stage=5;
+  if(tog.tRoof) buildRoof(d,roofC);
+
+  // ---- 6 · MOUNT + cleanout pivot ----
+  _stage=6;
+  if(tog.tMount) buildMount(d);
+  // cleanout pivot screws (front pivots open) — two dots near the top of the front
+  if(tog.tBody && !cut && !d.shelf) for(const sx of [xL+0.2,xR-0.2]) box(0.28,0.28,0.16, sx, ih-0.9, zFront+0.02, MET,{cast:false,part:'mount'});
+
+  // dims
+  if(tog.tDims){
+    dim([ -W/2,bottom,zFront ],[ W/2,bottom,zFront ], fmt(W)+' wide');
+    dim([ W/2,bottom,zFront ],[ W/2,ih,zFront ], fmt(ih+1)+' front');
+    if(!d.shelf) dim([ W/2,d.holeH,zFront ],[ W/2,0,zFront ], 'hole '+fmt(d.holeH)+' up');
+    if(!d.shelf) dim([ 0,d.holeH,zFront+1 ],[ 0,d.holeH,zFront+1 ], 'Ø '+fmt(d.hole));
+  }
+
+  applyViewStyle();
+  frameModel(false);
+}
+
+function buildRoof(d,roofC){
+  const W=d.W,D=d.D,ih=d.ih,ov=d.ov;
+  const frontOv=ov, sideOv=Math.max(0.8,ov*0.5);
+  if(state.roof==='flat'){
+    box(W+2*sideOv, TH, D+frontOv+0.8, 0, ih+TH/2, (frontOv-0.8)/2, roofC,{part:'roof',rotX:-0.06});
+  } else if(state.roof==='gable'){
+    const rise=d.gable, ridgeY=ih+rise, halfW=W/2+sideOv;
+    const ang=Math.atan2(rise,halfW), pl=Math.hypot(halfW,rise);
+    for(const sx of [-1,1]) box(pl, TH, D+2*frontOv, sx*halfW/2, (ih+ridgeY)/2, 0, roofC,{part:'roof',rotZ:sx*(-ang)});
+    // gable triangles front & back
+    for(const sz of [zface(d,1),zface(d,-1)]){}
+    tri3(d,ridgeY,rise);
+  } else { // slope (shed): one tilted panel resting on the sloped side tops (high at back, low over the entrance)
+    const ang=Math.atan2(d.slope, D-TH);                 // rise over run along z
+    const seatY = ih + d.slope/2;                        // side-top height at z=0
+    const len = (D + frontOv + 0.8)/Math.cos(ang);
+    box(W+2*sideOv, TH, len, 0, seatY + (TH/2)/Math.cos(ang), frontOv/2 - 0.4, roofC,{part:'roof',rotX:ang});
+  }
+}
+function zface(d,s){ return s*(d.D/2); }
+function tri3(d,ridgeY,rise){ // gable end fills front & back
+  const W=d.W, halfW=W/2;
+  for(const sz of [1,-1]){
+    const z=sz*(d.D/2-TH/2);
+    _stage=5;
+    if(!(tog.tInterior && sz>0)) triPanel([[-halfW,d.ih],[halfW,d.ih],[0,ridgeY]], z, TH, WOODS[state.wood].body,{part:'body'});
+  }
+}
+function triPanel(pts,zC,thick,color,o={}){
+  if(!house||_stage>_limit) return null;
+  const sh=new THREE.Shape(); sh.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) sh.lineTo(pts[i][0],pts[i][1]); sh.closePath();
+  const g=new THREE.ExtrudeGeometry(sh,{depth:thick,bevelEnabled:false}); g.translate(0,0,-thick/2);
+  const m=new THREE.Mesh(g,mat(color)); m.position.z=zC;
+  m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; m.userData.part=o.part; house.add(m); return m;
+}
+function buildMount(d){
+  const W=d.W, bottom=d.bottom;
+  if(state.mount==='post'){
+    const cleatY=bottom-0.6, postLen=12, post=3.0;
+    box(W*0.66,1.1,d.D*0.6, 0, cleatY, 0, WOODDK,{part:'mount'});          // mounting cleat under the floor
+    box(post,postLen,post, 0, cleatY-0.55-postLen/2, 0, WOODDK,{part:'mount'}); // 4×4 post stub (top flush under the cleat)
+  } else if(state.mount==='hang'){
+    const topY=roofTopY(d);
+    torus(0.8,0.16, 0,topY+1.0,0, MET,{part:'mount'});                     // eye screw
+    for(const s of [-1,1]) box(0.1,3.6,0.1, s*1.5, topY+2.7, 0, MET,{part:'mount',rotZ:s*0.42});  // wire
+    box(0.7,0.7,d.D+2.5, 0, topY+4.5, 0, WOODDK,{part:'mount'});           // branch stub
+  }
+  // wall mount tabs handled in the back board (stage 2)
+}
+function roofTopY(d){ return d.ih + (state.roof==='gable'?d.gable:state.roof==='slope'?d.slope:0) + 0.5; }
+
+/* ===================== view styles ===================== */
+function applyViewStyle(){
+  const v=state.view||'shaded';
+  if(scene) scene.background = v==='blueprint'? new THREE.Color(0x16365c): null;
+  if(document.body) document.body.dataset.view=v;
+  if(v==='shaded'||!house) return;
+  const meshes=[]; house.traverse(o=>{ if(o.isMesh) meshes.push(o); });
+  const C=h=>new THREE.Color(h), white=C(0xffffff);
+  const ramp = v==='color' ? Object.values(PART).map(h=>C(h)) : null;
+  const partHex = v==='color' ? Object.values(PART) : null;
+  const inkHex = v==='blueprint'?0xe2eeff:0x141414;
+  for(const o of meshes){
+    const mtl=o.material; if(!mtl||!mtl.color) continue;
+    let fill,opacity; const wasT=!!mtl.transparent, op=(mtl.opacity==null?1:mtl.opacity);
+    if(v==='manual'){ fill=C(mtl.color.getHex()).lerp(white,0.86); opacity=wasT?0.5:1; }
+    else if(v==='color'){ const pk=o.userData.part; fill = pk&&PART[pk]!=null?C(PART[pk]):C(mtl.color.getHex()); opacity=wasT?0.55:1; }
+    else { fill=C(0x1d4f88); opacity=wasT?0.3:0.9; }
+    o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mtl.side||THREE.FrontSide,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    o.castShadow=false;o.receiveShadow=false;
+    if(o.geometry&&o.geometry.type==='BoxGeometry'){
+      try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
+        const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});
+        o.add(new THREE.LineSegments(eg,lm));
+      }catch(e){}
+    }
+  }
+}
+
+/* ===================== formatting ===================== */
+function fmt(inch){
+  if(state.unit==='met'){ const cm=inch*2.54; return (Math.round(cm*10)/10)+' cm'; }
+  const i=Math.round(inch*8)/8, whole=Math.floor(i), frac=i-whole;
+  const fr={0:'',0.125:'⅛',0.25:'¼',0.375:'⅜',0.5:'½',0.625:'⅝',0.75:'¾',0.875:'⅞'}[frac]||'';
+  return (whole||!fr?whole:'')+(fr?fr:'')+'″';
+}
+function fmtLen(inch){ // longer runs → ft-in
+  if(state.unit==='met') return (Math.round(inch*2.54)/1|0)+' cm';
+  if(inch<12) return fmt(inch);
+  const f=Math.floor(inch/12), r=Math.round(inch-f*12);
+  return f+'′'+(r?' '+r+'″':'');
+}
+
+/* ===================== cut list / materials ===================== */
+function computeMaterials(){
+  const d=derive(), bw=boardWidth(), wc=WOODS[state.wood];
+  const groups=[]; let total=0;
+  const G=(name)=>{ const g={name,items:[],sum:0}; groups.push(g); return g; };
+  const add=(g,qty,unit,label,detail,cost,link)=>{ g.items.push({qty,unit,label,detail,cost,link}); g.sum+=cost||0; total+=cost||0; };
+
+  // --- boards ---
+  const gb=G('Boards — '+wc.name+' '+bw.key);
+  const backTop = d.backTop + (state.mount==='wall'?5.2:0);
+  const pieces=[];
+  pieces.push(['Back', W_(d), backTop-d.bottom]);
+  if(!d.shelf) pieces.push(['Front', W_(d), d.ih-d.bottom]);
+  else pieces.push(['Front rail', W_(d), 2.2]);
+  pieces.push(['Side', d.fd, d.ih+d.slope-d.bottom]);
+  pieces.push(['Side', d.fd, d.ih+d.slope-d.bottom]);
+  pieces.push(['Floor', d.fw-0.3, d.fd-0.3]);
+  if(state.roof==='gable'){ const pl=Math.hypot(d.W/2+d.ov*0.5,d.gable); pieces.push(['Roof panel',d.W/2+d.ov,pl]); pieces.push(['Roof panel',d.W/2+d.ov,pl]); }
+  else if(state.roof==='flat') pieces.push(['Roof',d.W+d.ov,d.D+d.ov]);
+  else pieces.push(['Roof',d.W+d.ov, (d.D+d.ov+0.8)]);
+  const runIn = pieces.reduce((s,p)=>s+p[2],0)*1.12 + 3;   // +12% waste + kerf
+  const ft = Math.ceil(runIn/12);
+  const stock = ft<=6?6:ft<=8?8:ft<=10?10:12;
+  const perFt = (bw.key==='1x6'?1.5:bw.key==='1x8'?1.9:bw.key==='1x10'?2.4:2.9)*wc.mult;
+  add(gb, 1, '×', bw.key+' × '+stock+' ft '+wc.name, 'one board yields the whole box ('+fmtLen(runIn)+' of cuts) — '+wc.note.split('—')[0].trim(), Math.round(stock*perFt), lw(wc.name+' '+bw.key+' board'));
+
+  // --- hardware ---
+  const gh=G('Hardware');
+  const screws = d.shelf?10: (state.mount==='post'?26:22);
+  add(gh, screws, '×', '#8 × 1¼″ exterior screws', 'stainless or coated — box assembly + roof', 7, lw('exterior wood screw 1-1/4 stainless'));
+  add(gh, 2, '×', 'Pivot screws (cleanout)', 'one each side near the top — the front swings open to clean', 2, lw('galvanized deck screw 2 inch'));
+  if(state.mount==='post') add(gh, 1, '×', '4×4 cedar/PT post — 6–8 ft', 'set ~24″ deep; box lands '+d.sp.mount[0]+'–'+d.sp.mount[1]+' ft up', 22, lw('4x4x8 cedar post'));
+  if(state.mount==='post') add(gh, 2, '×', '⅜″ × 4″ lag screws', 'through the mounting cleat into the post top', 4, lw('lag screw 3/8 x 4'));
+  if(state.mount==='wall') add(gh, 2, '×', '#10 × 2½″ exterior screws', 'through the top & bottom back tabs into the tree/fence/post', 3, lw('exterior wood screw 2-1/2'));
+  if(state.mount==='hang') add(gh, 1, '×', 'Screw eye + 3 ft coated wire', 'hang from a branch, well away from the trunk (squirrels)', 6, lw('screw eye coated wire kit'));
+  if(state.guard) add(gh, 1, '×', 'Predator-guard portal', 'a 2nd ¾″ ring (or metal plate) over the hole — doubles the depth so raccoons can’t reach in', 5, lw('birdhouse predator guard portal '+d.hole+' inch'));
+
+  // --- finish ---
+  const gf=G('Finish (outside only)');
+  add(gf, 1, 'can', wc.name==='Cedar'?'Clear penetrating oil':'Exterior stain / sealer', 'seal the OUTSIDE only — never paint or treat the inside; light colors keep it cooler', 12, lw(wc.name==='Cedar'?'clear penetrating deck oil':'exterior semi transparent stain'));
+
+  return {groups,total,pieces,stock,bw};
+}
+function W_(d){ return d.W; }
+
+/* ===================== recommendations + cut list render ===================== */
+function renderRight(){
+  const d=derive(), sp=d.sp, m=computeMaterials();
+  document.getElementById('total').textContent='$'+m.total.toLocaleString();
+  const holeTxt = d.shelf?'open front (no hole)':'Ø '+fmt(d.hole)+(d.oval?' oval':'')+' hole, '+fmt(d.holeH)+' above the floor';
+  let h='';
+  h+='<div class="note good"><span class="ntag">Right bird, right house — '+sp.name+'</span>'
+    +'<div class="spec"><span>floor '+fmt(sp.fw)+'×'+fmt(sp.fd)+'</span>'
+    +(d.shelf?'<span>open shelf</span>':'<span>'+holeTxt+'</span>')
+    +'<span>mount '+sp.mount[0]+'–'+sp.mount[1]+' ft</span></div>'
+    +sp.habitat+'. Face the '+(d.shelf?'open side':'entrance')+' '+sp.face+'.</div>';
+  h+='<div class="note"><span class="ntag" style="color:var(--tm)">Placing it</span>'
+    +'Mount '+sp.mount[0]+'–'+sp.mount[1]+' ft up. '+cap(sp.space)+'. '+cap(sp.clean)+'.'
+    +(sp.bed?' <b>Bedding:</b> '+sp.bed+'.':'')+'</div>';
+  h+='<div class="note good"><span class="ntag">Built in — the details that matter</span>'
+    +'<b>No perch</b> (a dowel just hands predators a grip). '
+    +'Floor recessed ¼″ with drainage gaps, vent slots under the roof, and saw-kerf “ladder” below the hole so fledglings can climb out. The front pivots on two screws for cleaning.</div>';
+  h+='<div class="note warn"><span class="ntag">Don’t</span>Never use pressure-treated or painted wood on the <i>inside</i>, and skip any factory perch. Seal only the exterior; a light exterior color keeps a summer box from cooking.</div>';
+  if(state.mount==='hang') h+='<div class="note warn"><span class="ntag">Hanging</span>A swinging box unsettles some birds — hang it short and steady, away from the trunk so squirrels can’t jump to it.</div>';
+
+  // cut list
+  ordered = ordered || new Set();
+  for(const g of m.groups){
+    h+='<div class="mgroup"><h3>'+g.name+' <span class="gsum">$'+g.sum+'</span></h3>';
+    g.items.forEach((it,i)=>{ const id=g.name+'|'+i, on=ordered.has(id);
+      h+='<div class="item'+(on?' ordered':'')+'" data-oid="'+esc(id)+'"><div class="ck">'+(on?'✓':'')+'</div>'
+        +'<div class="iinfo"><div class="mqty"><span class="q">'+it.qty+' '+it.unit+'</span> · '+it.label+'</div>'
+        +'<div class="mdet">'+it.detail+(it.link?' · <a href="'+it.link+'" target="_blank" rel="noopener">Lowe’s ↗</a>':'')+'</div></div>'
+        +'<div class="mcost">$'+(it.cost||0)+'</div></div>';
+    });
+    h+='</div>';
+  }
+  h+='<div class="foot">Design for one small nest box · '+m.bw.key+' '+WOODS[state.wood].name+' · '+fmtLen(m.pieces.reduce((s,p)=>s+p[2],0))+' of cuts from one '+m.stock+'-ft board.<br>Right-bird dimensions after NestWatch / Audubon “Right Bird, Right House.”</div>';
+  const rb=document.getElementById('rbody'); rb.innerHTML=h;
+  rb.querySelectorAll('.item').forEach(el=>el.onclick=()=>{ const id=el.dataset.oid; ordered.has(id)?ordered.delete(id):ordered.add(id); renderRight(); });
+}
+let ordered=new Set();
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+const esc=s=>s.replace(/"/g,'&quot;');
+
+/* ===================== build steps ===================== */
+const STAGES={
+  1:{name:'Floor', desc:'Cut the floor and drop it in ¼″ up from the bottom, with the corners nipped for drainage.'},
+  2:{name:'Back', desc:'The back board — taller than the box, it’s your mounting spine.'},
+  3:{name:'Sides', desc:'The two sloped sides set the roof pitch and the box height.'},
+  4:{name:'Front & entrance', desc:'The front with the species-sized hole, saw-kerf ladder inside, and NO perch.'},
+  5:{name:'Roof', desc:'An overhanging roof to throw rain clear of the entrance, vent gaps left under it.'},
+  6:{name:'Mount & cleanout', desc:'Set it up on its post/tree/hanger, and confirm the front pivots open to clean.'},
+  7:{name:'Finish & place', desc:'Seal the outside, face it right, and put it at the correct height. Done.'}
+};
+const stepsFor=()=>[1,2,3,4,5,6,7];
+function stepDetail(c){
+  const d=derive(),bw=boardWidth();
+  return ({
+    1:fmt(d.fw-0.3)+'×'+fmt(d.fd-0.3)+' floor · ¼″ recess · drainage',
+    2:fmt(d.W)+' × '+fmtLen(d.backTop-d.bottom+(state.mount==='wall'?5.2:0))+' back',
+    3:'2× sloped sides · '+fmt(d.fd)+' deep',
+    4:d.shelf?'open front rail':'Ø '+fmt(d.hole)+' hole · '+fmt(d.holeH)+' up · no perch',
+    5:state.roof+' roof · '+fmt(d.ov)+' overhang · vent gaps',
+    6:state.mount+' mount · front pivots open',
+    7:WOODS[state.wood].name+' · seal outside · face '+(d.sp.face.split(',')[0])
+  })[c]||'';
+}
+const FASTENERS={
+  1:'Floor → sides: 4× 1¼″ screws up through the sides; nip the 4 corners ~⅜″ for drainage.',
+  2:'Back → sides: 1¼″ screws every ~2″. Pre-drill cedar near ends so it doesn’t split.',
+  3:'Sides → back: 1¼″ screws. Crown/​grain out. Cut the top on the roof angle.',
+  4:'Front: pivots on 2 screws near the top (1 each side) — bottom just latches with 1 screw.',
+  5:'Roof → back + a cleat: 1¼″ screws. Leave a ⅛–¼″ vent gap at the top of each side, under the roof.',
+  6:'Post: 2× ⅜″ lags through the cleat. Tree/fence: 2× 2½″ screws through the tabs. Hanging: screw-eye + wire.',
+  7:'No new fasteners — a wrench isn’t needed; just seal, mount, and watch.'
+};
+function G(st){
+  const d=derive(), sp=d.sp;
+  const A={
+    1:['Cut the floor '+fmt(d.fw-0.3)+' × '+fmt(d.fd-0.3)+' so it drops between the sides.',
+       'Nip ~⅜″ off all four corners — that’s the drainage. Set it ¼″ up from the bottom edges of the sides (an air gap keeps the floor from rotting).',
+       '✔ Check: water poured in runs straight out the corners.'],
+    2:['Cut the back '+fmt(d.W)+' wide. Height '+fmtLen(d.backTop-d.bottom+(state.mount==='wall'?5.2:0))+(state.mount==='wall'?' — the extra top & bottom are the mounting tabs.':' — it runs from below the floor to the roof line.'),
+       'This board is the spine everything screws to. Get its edges square.',
+       '✔ Check: back is dead flat and square.'],
+    3:['Cut both sides '+fmt(d.fd)+' deep. Cut the TOP edge on the '+(state.roof==='flat'?'level':state.roof+' ')+'angle so the roof beds down flat.',
+       'Screw the sides to the back, then screw the floor up into the sides.',
+       '✔ Check: the box is square — measure both diagonals across the top.'],
+    4:d.shelf?['Robins want an OPEN front — just a low '+fmt(2.2)+' rail across the bottom to hold the nest in.',
+       'No hole, no roof-to-floor front. Mount it sheltered under an eave.',
+       '✔ Check: the front is open and the shelf is solid.']
+      :['Cut the front, then bore the entrance: Ø '+fmt(d.hole)+(d.oval?' (oval)':'')+', centered, its BOTTOM '+fmt(d.holeH)+' above the floor. Use a spade or Forstner bit / hole saw.',
+       'Inside, run 3–4 saw kerfs (or staple hardware cloth) below the hole — a ladder so fledglings can climb out. Rough side of the wood faces IN.',
+       'NO perch — a dowel only gives predators a foothold. Hang the front on 2 pivot screws near the top so it swings open to clean.'+(state.guard?' Add the guard portal — a 2nd ¾″ ring over the hole.':''),
+       '✔ Check: hole diameter exact ('+fmt(d.hole)+'), front pivots open and latches shut.'],
+    5:['Cut the roof to overhang the front by '+fmt(d.ov)+' (keeps rain off the hole) and the sides a little.',
+       state.roof==='gable'?'Two panels meet at the ridge; seal the joint.':state.roof==='flat'?'Give it a slight forward tilt so water runs off the front.':'The single panel follows the side slope, high at the back.',
+       'Leave a ⅛–¼″ VENT gap at the very top of each side, under the roof — heat kills more nestlings than cold.',
+       '✔ Check: roof throws a drip line well past the entrance; vents open.'],
+    6:['Mount it: '+(state.mount==='post'?'lag the cleat to a 4×4 set ~24″ deep, box '+sp.mount[0]+'–'+sp.mount[1]+' ft up.':state.mount==='wall'?'two screws through the top & bottom tabs into a tree, fence or wall, '+sp.mount[0]+'–'+sp.mount[1]+' ft up.':'screw-eye and wire from a branch, out away from the trunk.'),
+       'A stovepipe or cone baffle under a post box stops climbing predators — worth it.',
+       'Face the entrance '+sp.face+'.',
+       '✔ Check: solid, level, and the front still swings open with it mounted.'],
+    7:['Seal the OUTSIDE only ('+(WOODS[state.wood].name==='Cedar'?'a clear oil, or leave cedar to silver':'exterior stain — light color')+'). Never coat the inside.',
+       cap(sp.clean)+'. '+cap(sp.space)+'.'+(sp.bed?' '+cap(sp.bed)+'.':''),
+       '✔ Check: come spring, entrance faced right, box clean and dry. Then watch.']
+  };
+  return A[st]||[];
+}
+
+/* ===================== step nav ===================== */
+function totalBuilt(){ let n=0; for(const s of stepsFor()) if(journal.has(state.species+':'+s)) n++; return n; }
+function renderStep(){
+  const steps=stepsFor(), idx=steps.indexOf(stepCur); if(idx<0){ stepCur=steps[0]; }
+  const meta=STAGES[stepCur]||{};
+  document.getElementById('sNum').textContent=(steps.indexOf(stepCur)+1)+' / '+steps.length;
+  document.getElementById('sName').textContent=meta.name||'';
+  document.getElementById('sDesc').textContent=meta.desc||'';
+  document.getElementById('sDetail').textContent=stepDetail(stepCur);
+  document.getElementById('sFast').textContent='🔩 '+(FASTENERS[stepCur]||'');
+  const jid=state.species+':'+stepCur;
+  document.getElementById('sBuilt').checked=journal.has(jid);
+  document.getElementById('sCount').textContent=totalBuilt()+'/'+steps.length+' built';
+  const rg=document.getElementById('sRange'); rg.min=1; rg.max=steps.length; rg.value=steps.indexOf(stepCur)+1;
+  document.getElementById('sPrev').disabled=idx<=0; document.getElementById('sNext').disabled=idx>=steps.length-1;
+  _limit = stepOn? stepCur : Infinity;
+  build();
+  updateBadge();
+}
+function updateBadge(){
+  const d=derive();
+  document.getElementById('badge').innerHTML = stepOn
+    ? 'STEP <b>'+(stepsFor().indexOf(stepCur)+1)+'</b> OF '+stepsFor().length+' · '+(STAGES[stepCur]||{}).name
+    : '<b>'+d.sp.name+'</b> · floor '+fmt(d.fw)+'×'+fmt(d.fd)+(d.shelf?' · open shelf':' · Ø '+fmt(d.hole));
+}
+
+/* ===================== update ===================== */
+function update(){
+  build(); renderRight(); updateBadge();
+  syncControls();
+}
+function syncControls(){
+  document.getElementById('ovVal').textContent=fmt(state.ov);
+}
+
+/* ===================== dims labels ===================== */
+function updateDimLabels(){
+  const cont=document.getElementById('dimLayer'); if(!cont||!camera) return;
+  while(dimPool.length<dimLabels.length){ const dv=document.createElement('div'); dv.className='dimlbl'; cont.appendChild(dv); dimPool.push(dv); }
+  for(let i=0;i<dimPool.length;i++){ const el=dimPool[i];
+    if(i>=dimLabels.length){ el.style.display='none'; continue; }
+    const L=dimLabels[i], v=new THREE.Vector3(L.x,L.y,L.z).project(camera);
+    if(v.z>1){ el.style.display='none'; continue; }
+    el.style.display='block'; el.textContent=L.text;
+    el.style.left=((v.x*.5+.5)*innerWidth)+'px'; el.style.top=((-v.y*.5+.5)*innerHeight)+'px';
+  }
+}
+function frameModel(reset){
+  if(!house||!controls) return;
+  const d=derive();
+  const ctr=new THREE.Vector3(0, d.ih*0.45, 0);          // frame the box, not the post/hanger tail
+  controls.target.lerp(ctr, reset?1:0.15);
+  if(reset){
+    const dist=Math.max(d.W,d.ih,d.D)*2.7+9;
+    camera.position.copy(ctr).add(new THREE.Vector3(0.58,0.42,0.82).normalize().multiplyScalar(dist));
+  }
+}
+
+/* ===================== controls wiring ===================== */
+// species dropdown
+const spSel=document.getElementById('species');
+SPORDER.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=SPECIES[k].name; spSel.appendChild(o); });
+spSel.value=state.species;
+spSel.onchange=()=>{ state.species=spSel.value; stepCur=1; update(); if(stepOn) renderStep(); };
+// wood seg
+const woodSeg=document.getElementById('woodSeg');
+Object.keys(WOODS).forEach(k=>{ const b=document.createElement('button'); b.textContent=WOODS[k].name; b.dataset.v=k; if(k===state.wood)b.classList.add('on'); woodSeg.appendChild(b); });
+woodSeg.onclick=e=>{ const b=e.target.closest('button'); if(!b)return; state.wood=b.dataset.v; [...woodSeg.children].forEach(x=>x.classList.toggle('on',x===b)); update(); };
+// board seg
+const boardSeg=document.getElementById('boardSeg');
+['auto','1x6','1x8','1x10'].forEach(k=>{ const b=document.createElement('button'); b.textContent=k==='auto'?'Auto':k; b.dataset.v=k; if(k===state.board)b.classList.add('on'); boardSeg.appendChild(b); });
+boardSeg.onclick=e=>{ const b=e.target.closest('button'); if(!b)return; state.board=b.dataset.v; [...boardSeg.children].forEach(x=>x.classList.toggle('on',x===b)); update(); };
+// roof / mount segs
+function segWire(id,key){ const el=document.getElementById(id);
+  el.onclick=e=>{ const b=e.target.closest('button'); if(!b)return; state[key]=b.dataset.v; [...el.children].forEach(x=>x.classList.toggle('on',x===b)); update(); if(stepOn)renderStep(); }; }
+segWire('roofSeg','roof'); segWire('mountSeg','mount');
+// guard + overhang
+document.getElementById('optGuard').onchange=e=>{ state.guard=e.target.checked; update(); };
+document.getElementById('ov').oninput=e=>{ state.ov=+e.target.value; update(); };
+// view + unit
+document.getElementById('viewseg').onclick=e=>{ const b=e.target.closest('b'); if(!b)return; state.view=b.dataset.v; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); build(); };
+document.getElementById('unittog').onclick=e=>{ const b=e.target.closest('b'); if(!b)return; state.unit=b.dataset.u; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); update(); if(stepOn)renderStep(); };
+// tool switcher — when framed in Studio OS, ask the shell to switch; else navigate directly
+(function(){ const sel=document.getElementById('toolSel'); if(!sel) return;
+  sel.addEventListener('change',function(){ const o=sel.options[sel.selectedIndex]; if(!o||o.value==='Birdhouse') return;
+    const name=o.value, file=o.getAttribute('data-file');
+    if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
+    window.location.href=file;
+  });
+})();
+// dock
+document.getElementById('dock').onclick=e=>{ const b=e.target.closest('button[data-t]'); if(!b)return;
+  const t=b.dataset.t; tog[t]=!tog[t]; b.classList.toggle('on',tog[t]); build(); };
+document.getElementById('spinBtn').onclick=e=>{ tog.tSpin=!tog.tSpin; e.currentTarget.classList.toggle('on',tog.tSpin); };
+document.getElementById('focusBtn').onclick=()=>frameModel(true);
+document.getElementById('brand').onclick=()=>frameModel(true);
+// panel collapse
+document.getElementById('hideL').onclick=()=>{ document.body.classList.toggle('lhide'); };
+document.getElementById('hideR').onclick=()=>{ document.body.classList.toggle('rhide'); };
+
+/* ===================== step controls ===================== */
+document.getElementById('stepToggle').onclick=()=>{ stepOn=!stepOn;
+  document.getElementById('stepnav').classList.toggle('on',stepOn);
+  document.getElementById('stepToggle').classList.toggle('on',stepOn);
+  if(stepOn){ stepCur=stepsFor()[0]; renderStep(); } else { _limit=Infinity; build(); updateBadge(); } };
+document.getElementById('sPrev').onclick=()=>{ const s=stepsFor(),i=s.indexOf(stepCur); if(i>0){stepCur=s[i-1];renderStep();} };
+document.getElementById('sNext').onclick=()=>{ const s=stepsFor(),i=s.indexOf(stepCur); if(i<s.length-1){stepCur=s[i+1];renderStep();} };
+document.getElementById('sRange').oninput=e=>{ const s=stepsFor(); stepCur=s[Math.min(s.length-1,+e.target.value-1)]; renderStep(); };
+document.getElementById('sBuilt').onchange=e=>{ const jid=state.species+':'+stepCur; e.target.checked?journal.add(jid):journal.delete(jid); saveJournal(journal); renderStep(); };
+let playT=null;
+document.getElementById('sPlay').onclick=()=>{ if(playT){clearInterval(playT);playT=null;return;}
+  const s=stepsFor(); stepCur=s[0]; renderStep();
+  playT=setInterval(()=>{ const i=s.indexOf(stepCur); if(i>=s.length-1){clearInterval(playT);playT=null;return;} stepCur=s[i+1]; renderStep(); },1100); };
+function loadJournal(){ try{ return new Set(JSON.parse(localStorage.getItem('birdhouse:journal'))||[]); }catch(e){ return new Set(); } }
+function saveJournal(s){ try{ localStorage.setItem('birdhouse:journal',JSON.stringify([...s])); }catch(e){} }
+
+/* ===================== tap-a-piece inspector ===================== */
+(function(){
+  if(!renderer) return;
+  const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+  let picked=null, pc=0, dx=0,dy=0;
+  const card=document.getElementById('pickCard');
+  const partName={body:'Side / back / gable',floor:'Floor',roof:'Roof',front:'Front (entrance)',mount:'Mount / cleanout',hole:'Entrance hole',guard:'Predator guard'};
+  function show(m){
+    if(picked){ try{picked.material.color.setHex(pc);}catch(e){} }
+    picked=m; try{ pc=m.material.color.getHex(); m.material.color.setHex(0xE5202A); }catch(e){}
+    const bb=new THREE.Box3().setFromObject(m), s=new THREE.Vector3(); bb.getSize(s);
+    const dims=[s.x,s.y,s.z].sort((a,b)=>b-a);
+    const pk=m.userData.part, bw=boardWidth();
+    const stock = pk==='mount'?'hardware / post':pk==='hole'?'—':bw.key+' '+WOODS[state.wood].name;
+    card.innerHTML='<b style="color:#ff7a70">'+((partName[pk]||'Piece').toUpperCase())+'</b> · '+stock
+      + (pk==='hole'? '<br>Ø '+fmt(derive().hole)+' entrance — bore it, don’t cut a perch below it'
+        : '<br>≈ '+fmt(dims[0])+' × '+fmt(dims[1])+(dims[2]>0.2?' × '+fmt(dims[2]):'')+' ('+WOODS[state.wood].name+', ¾″ stock)')
+      + '<br><span style="opacity:.5">tap empty space to dismiss</span>';
+    card.style.display='block';
+  }
+  function hide(){ if(picked){ try{picked.material.color.setHex(pc);}catch(e){} picked=null; } card.style.display='none'; }
+  cv.addEventListener('pointerdown',e=>{ dx=e.clientX; dy=e.clientY; });
+  cv.addEventListener('pointerup',e=>{ if(Math.hypot(e.clientX-dx,e.clientY-dy)>7) return;
+    ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(ptr,camera);
+    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh);
+    if(hits.length) show(hits[0].object); else hide(); });
+})();
+
+/* ===================== save image / STL ===================== */
+document.getElementById('saveImg').onclick=()=>{
+  if(!renderer) return; renderer.render(scene,camera);
+  const a=document.createElement('a'); a.download='birdhouse-'+state.species+'.png'; a.href=renderer.domElement.toDataURL('image/png'); a.click();
+};
+document.getElementById('stlBtn').onclick=()=>{
+  if(!house) return;
+  try{
+    const geos=[]; house.traverse(o=>{ if(o.isMesh&&o.geometry){ const g=o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
+      for(const k of Object.keys(g.attributes)) if(k!=='position'&&k!=='normal') g.deleteAttribute(k);
+      if(!g.attributes.normal) g.computeVertexNormals(); geos.push(g); } });
+    const merged=BufferGeometryUtils.mergeGeometries(geos,false);
+    const mesh=new THREE.Mesh(merged); const dv=new STLExporter().parse(mesh,{binary:true});
+    const blob=new Blob([dv],{type:'application/octet-stream'});
+    const a=document.createElement('a'); a.download='birdhouse-'+state.species+'.stl'; a.href=URL.createObjectURL(blob); a.click();
+  }catch(e){ alert('Could not export STL: '+e.message); }
+};
+
+/* ===================== shopping modal ===================== */
+document.getElementById('shopBtn').onclick=()=>{ const m=computeMaterials();
+  document.getElementById('shopMeta').textContent=SPECIES[state.species].name+' · '+m.bw.key+' '+WOODS[state.wood].name+' · '+state.roof+' roof · '+state.mount+' mount';
+  document.getElementById('shopTot').textContent='$'+m.total;
+  let h=''; for(const g of m.groups){ h+='<h4>'+g.name+'</h4>';
+    g.items.forEach(it=>{ h+='<div class="item"><div class="iinfo"><div class="mqty"><span class="q">'+it.qty+' '+it.unit+'</span> · '+it.label+'</div><div class="mdet">'+it.detail+(it.link?' · <a href="'+it.link+'" target="_blank" rel="noopener">Lowe’s ↗</a>':'')+'</div></div><div class="mcost">$'+(it.cost||0)+'</div></div>'; }); }
+  document.getElementById('shopBody').innerHTML=h;
+  document.getElementById('shopModal').classList.add('on');
+};
+document.getElementById('shopClose').onclick=()=>document.getElementById('shopModal').classList.remove('on');
+
+/* ===================== plan sheet ===================== */
+document.getElementById('planBtn').onclick=openPlan;
+document.getElementById('planClose').onclick=()=>document.getElementById('planModal').classList.remove('on');
+function openPlan(){
+  const d=derive(), sp=d.sp, m=computeMaterials();
+  document.getElementById('planTitle').textContent=sp.name+' nest box';
+  document.getElementById('planMeta').textContent=m.bw.key+' '+WOODS[state.wood].name+' · floor '+fmt(sp.fw)+'×'+fmt(sp.fd)+' · '+(d.shelf?'open shelf':'Ø '+fmt(d.hole)+' hole '+fmt(d.holeH)+' up')+' · '+state.roof+' roof · '+state.mount+' mount';
+  document.getElementById('planTot').textContent='$'+m.total;
+  let h='';
+  // elevations
+  h+='<div class="elevrow">'+frontElev(d)+sideElev(d)+'</div>';
+  // spec strip
+  h+='<h4>Right bird, right house</h4><div class="spec" style="margin:2px 0 10px">'
+    +'<span>floor '+fmt(sp.fw)+'×'+fmt(sp.fd)+'</span>'+(d.shelf?'<span>open front</span>':'<span>hole Ø '+fmt(d.hole)+(d.oval?' oval':'')+'</span><span>hole '+fmt(d.holeH)+' above floor</span>')
+    +'<span>mount '+sp.mount[0]+'–'+sp.mount[1]+' ft</span><span>face '+sp.face.split(',')[0]+'</span></div>';
+  // cut list
+  h+='<h4>Cut list — from one '+m.stock+'-ft '+m.bw.key+' '+WOODS[state.wood].name+' board</h4>';
+  m.pieces.forEach(p=>{ h+='<div class="cutrow"><div class="ct">'+p[0]+' <span>'+fmt(p[1])+' × '+fmt(p[2])+'</span></div></div>'; });
+  // steps
+  h+='<h4>Build sequence</h4>';
+  stepsFor().forEach((st,i)=>{ const meta=STAGES[st], lines=G(st);
+    h+='<div class="stepcard"><div class="stepdiag">'+stepDiag(st,d)+'</div><div class="stepinfo">'
+      +'<div class="stepnum">Step '+(i+1)+' / '+stepsFor().length+'</div><h5>'+meta.name+'</h5><p>'+meta.desc+'</p>'
+      +'<ul class="substeps">'+lines.map(l=>'<li>'+l+'</li>').join('')+'</ul>'
+      +'<div class="stepfast">🔩 '+(FASTENERS[st]||'')+'</div></div></div>';
+  });
+  document.getElementById('planBody').innerHTML=h;
+  document.getElementById('planModal').classList.add('on');
+}
+function frontElev(d){
+  const W=d.W, H=d.ih+1, sc=170/Math.max(W,H+2), w=W*sc, hh=H*sc, pad=26;
+  const cx=(pad+w/2);
+  let s='<svg class="esvg" viewBox="0 0 '+(w+pad*2)+' '+(hh+42)+'">';
+  s+='<rect x="'+pad+'" y="10" width="'+w+'" height="'+hh+'"/>';
+  if(!d.shelf){ const hy=10+hh-(d.holeH+1)*sc, hr=(d.hole/2)*sc;
+    s+='<ellipse cx="'+cx+'" cy="'+hy+'" rx="'+hr+'" ry="'+(hr*(d.oval?1.35:1))+'" fill="#222" stroke="#141414"/>'; }
+  s+='<text x="'+(pad+w/2)+'" y="'+(hh+26)+'" text-anchor="middle">'+fmt(W)+' wide</text>';
+  s+='</svg><div class="elabel">Front</div>';
+  return '<div class="elevbox">'+s+'</div>';
+}
+function sideElev(d){
+  const D=d.D, H=d.ih+d.slope+d.gable+1, sc=170/Math.max(D,H+2), w=D*sc, hh=H*sc, pad=26;
+  const x0=pad, x1=pad+w, yb=10+hh;
+  let s='<svg class="esvg" viewBox="0 0 '+(w+pad*2)+' '+(hh+42)+'">';
+  const frontY=yb-(d.ih)*sc, backY=yb-(d.ih+d.slope)*sc;
+  s+='<path d="M'+x0+' '+yb+' L'+x1+' '+yb+' L'+x1+' '+frontY+' L'+x0+' '+backY+' Z"/>';
+  s+='<text x="'+(pad+w/2)+'" y="'+(hh+26)+'" text-anchor="middle">'+fmt(D)+' deep</text>';
+  s+='</svg><div class="elabel">Side (roof slopes back→front)</div>';
+  return '<div class="elevbox">'+s+'</div>';
+}
+function stepDiag(st,d){ // tiny schematic per step
+  const parts={1:'#3DA34D',2:'#F2C200',3:'#F2C200',4:'#F07F1A',5:'#E5202A',6:'#1C8FD6',7:'#141414'};
+  const c=parts[st]||'#888';
+  return '<svg viewBox="0 0 100 80" style="width:100%"><rect x="20" y="12" width="60" height="56" fill="none" stroke="#ccc"/>'
+    +({1:'<rect x="24" y="58" width="52" height="8" fill="'+c+'"/>',
+       2:'<rect x="20" y="10" width="8" height="60" fill="'+c+'"/>',
+       3:'<polygon points="30,20 70,20 70,66 30,66" fill="none" stroke="'+c+'" stroke-width="3"/>',
+       4:'<rect x="30" y="16" width="40" height="50" fill="none" stroke="'+c+'" stroke-width="2"/><circle cx="50" cy="34" r="7" fill="'+c+'"/>',
+       5:'<polygon points="16,26 84,18 84,26 16,34" fill="'+c+'"/>',
+       6:'<rect x="46" y="30" width="8" height="44" fill="'+c+'"/><rect x="34" y="20" width="32" height="16" fill="none" stroke="#bbb"/>',
+       7:'<circle cx="50" cy="40" r="18" fill="none" stroke="'+c+'" stroke-width="2"/><path d="M42 40 l6 6 l12 -14" fill="none" stroke="'+c+'" stroke-width="3"/>'}[st]||'')
+    +'</svg>';
+}
+
+/* ===================== phone mode ===================== */
+(function(){
+  const q='(max-width:760px),(pointer:coarse) and (max-width:1000px)';
+  let wasPhone=matchMedia(q).matches;
+  if(wasPhone) document.body.classList.add('lhide','rhide');
+  // recover cleanly when the viewport crosses the phone↔desktop line (e.g. a preview pane resizing)
+  addEventListener('resize',()=>{ const p=matchMedia(q).matches;
+    if(wasPhone&&!p) document.body.classList.remove('lhide','rhide');
+    else if(!wasPhone&&p) document.body.classList.add('lhide','rhide');
+    wasPhone=p; });
+  if(!wasPhone) return;
+  const el=id=>document.getElementById(id);
+  const setOn=(id,on)=>{ const b=el(id); if(b)b.classList.toggle('on',on); };
+  const closeSheets=()=>{ document.body.classList.add('lhide','rhide'); setOn('mDesign',false); setOn('mList',false); };
+  el('mDesign').onclick=()=>{ const show=document.body.classList.contains('lhide'); closeSheets(); if(show){document.body.classList.remove('lhide');setOn('mDesign',true);} };
+  el('mList').onclick=()=>{ const show=document.body.classList.contains('rhide'); closeSheets(); if(show){document.body.classList.remove('rhide');setOn('mList',true);} };
+  el('mSteps').onclick=()=>{ closeSheets(); el('stepToggle').click(); setOn('mSteps',document.getElementById('stepnav').classList.contains('on')); };
+  el('mView').onclick=()=>{ const on=el('dock').classList.toggle('mshow'); setOn('mView',on); };
+  el('hideL').addEventListener('click',()=>setOn('mDesign',false));
+  el('hideR').addEventListener('click',()=>setOn('mList',false));
+})();
+
+/* ===================== "pick my bird" keyword matcher ===================== */
+document.getElementById('archGo').onclick=()=>{
+  const t=(document.getElementById('archIn').value||'').toLowerCase();
+  const msg=document.getElementById('archMsg');
+  if(!t.trim()){ msg.textContent='Tell me the bird or the spot — e.g. “bluebirds, open field”.'; return; }
+  const rules=[
+    [/blue ?bird/,'bluebird'],[/chickadee/,'chickadee'],[/titmouse|tit /,'titmouse'],
+    [/wren/,'wren'],[/nuthatch/,'nuthatch'],[/woodpecker|downy/,'downy'],
+    [/swallow/,'swallow'],[/flicker/,'flicker'],[/owl|screech|kestrel/,'screech'],
+    [/duck|pond|lake|water/,'woodduck'],[/robin|shelf|eave|porch/,'robin'],
+    [/field|meadow|open|lawn|orchard/,'bluebird'],[/wood|forest|shady|trees/,'chickadee'],
+    [/garden|yard|brush/,'wren']
+  ];
+  let pick=null; for(const [re,sp] of rules) if(re.test(t)){ pick=sp; break; }
+  if(!pick){ msg.textContent='Didn’t catch a bird there — try a name (bluebird, wren, chickadee, owl…) or a place (field, woods, pond).'; return; }
+  state.species=pick;
+  if(/tree|fence|wall|trunk/.test(t)) state.mount='wall';
+  else if(/hang|branch|hook/.test(t)) state.mount='hang';
+  else state.mount = SPECIES[pick].mount[0]>=10?'wall':'post';
+  if(/duck|owl|screech|water|pond/.test(t)) state.mount='wall';
+  spSel.value=pick;
+  [...document.getElementById('mountSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.v===state.mount));
+  msg.textContent='→ '+SPECIES[pick].name+' — floor '+fmt(SPECIES[pick].fw)+'×'+fmt(SPECIES[pick].fd)+(SPECIES[pick].shelf?', open shelf':', Ø '+fmt(SPECIES[pick].hole)+' hole')+'. Adjust anything below.';
+  stepCur=1; update(); if(stepOn) renderStep();
+};
+
+/* ===================== go ===================== */
+update();
+frameModel(true);
+</script>
+</body>
+</html>
