@@ -1289,6 +1289,8 @@ function rebuild3D(p){
         box(0.05,Hw-0.06,0.16, sx*(W/2+0.085),floorY+Hw/2,sz*(D/2-0.1), P.trim,{cast:false});
       }
     }
+    if(sF&&!isA){ _stage=7.7;   // 3-stud corner assemblies — solid wood behind BOTH siding edges at every corner
+      for(const csx of [-1,1]) for(const csz of [-1,1]) box(0.29,Hw-0.28,0.29, csx*(W/2-0.145), floorY+Hw/2, csz*(D/2-0.145), P.struct); }
     renderOpening(dR,'door',dS);
     for(const r of wRects) renderOpening(r,'window',r._ws);
   }
@@ -1971,7 +1973,9 @@ function computeMaterials(p){
   g=G('Walls — '+fin.name);
   const perim=2*(W+D); let studs,studBoards,sideSheets;
   if(isA){ const peakH=Hw+W*0.45; studs=(Math.ceil(W/1.333)+1)*2; studBoards=Math.ceil((studs*peakH*0.6+W*4)/8); sideSheets=Math.ceil((W*peakH)/32); }
-  else { studs=Math.ceil(perim*12/16)+4; studBoards=Math.ceil((studs*Hw+perim*2)/8); sideSheets=Math.ceil(perim*Hw/32); }
+  else { const opens=1+state.windows.length, knee=(state.roof==='shed'||state.roof==='lean')?Math.ceil(Math.max(W,D)*12/16)+1:0;
+    studs=Math.ceil(perim*12/16)+4 + 4 + 5*opens + knee;   // + 3-stud corner assemblies + kings/jacks/cripples per opening + shed knee wall
+    studBoards=Math.ceil(((studs*Hw+perim*2)/8)*1.1); sideSheets=Math.ceil(perim*Hw/32); }   // +10% waste — running out mid-wall costs a trip
   add(g,studs,'studs','2×6 framing @ 16″ O.C.',isA?'two gable ends':'studs + double top plate + headers (deep enough for R-21)',Math.round(studBoards*8*PRICE.stud*1.4),lw('2x6 stud 8 ft'));
   add(g,sideSheets,'×','½" wall sheathing — 4×8','OSB/ply structural skin under the housewrap',sideSheets*PRICE.sheath,lw('1/2 osb sheathing 4x8'));
   add(g,sideSheets,'×','Siding — 4×8 panel','LP SmartSide / T1-11 cladding over the sheathing',sideSheets*PRICE.siding*fin.mult,T11_URL);
@@ -2687,7 +2691,8 @@ function pieceLists(s){
     else if(roof==='barrel'){rl=W*1.25; rc=rPer;}
     else {const f=isL?1.22:1.06; rl=(W+1)*f; rc=rPer;}
   add(s.rafter8?'2×8 — rafters':'2×6 — rafters & headers', rl, rc); add('2×6 — rafters & headers', 3, s.windows.length+1);
-  const perim=2*(W+D), studN=Math.ceil(perim*12/16)+4;
+  const perim=2*(W+D),
+    studN=Math.ceil(perim*12/16)+4 + 4 + 5*(1+s.windows.length) + ((s.roof==='shed'||s.roof==='lean')?Math.ceil(Math.max(W,D)*12/16)+1:0);   // corners + opening framing + knee wall
   add('2×4 — studs & braces', Hw, studN); add('2×4 — studs & braces', Math.min(Hf*0.8*1.41,3.5), 8);
   const gEx=(s.grade||0)*(((s.gradeDir==='front'||s.gradeDir==='back')?D:W)-0.5);   // sloped site: downhill posts run longer
   const cornerLen=stdLen(Hf+1+gEx), midLen=stdLen(Hf+0.5+gEx);   // platform frame — posts stop under the deck
@@ -2893,7 +2898,7 @@ function stepSpecs(st,s){
   const perSide=Math.max(2,Math.ceil(s.D/4)+1), totalPosts=perSide*(s.midBeam?3:2);
   const joists=Math.ceil(s.D*12/s.oc)+1, isA=s.roof==='aframe', isFlat=s.roof==='flat';
   const cornerLen=stdLen(s.Hf+1);   // platform frame
-  const studs=Math.ceil(2*(s.W+s.D)*12/16)+4, floorSheets=Math.ceil(s.W*s.D/32), sideSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*s.Hw/32));
+  const studs=Math.ceil(2*(s.W+s.D)*12/16)+8+5*(1+s.windows.length), floorSheets=Math.ceil(s.W*s.D/32), sideSheets=Math.max(2,Math.ceil(2*(s.W+s.D)*s.Hw/32));
   const nw=(s.windows||[]).length;
   const M={
     1:[`${totalPosts} footings`, s.foundation==='piers'?'concrete piers':s.foundation==='buried'?'buried in concrete':'deck blocks', 'level to each other'],
@@ -2972,7 +2977,7 @@ function stepGuide(st,s){
     '✔ Check: shove the structure hard — racking should feel dead.'
   ];})();
   const wallCopy=(k,extra)=>{ const wo=wallOpenings(s,k), out=[
-      `Frame the ${k} wall FLAT on the floor deck: 2×6 bottom + top plate cut to the wall length, 2×6 studs every ~16″ (deep enough for R-21), crowns all facing the same way.`];
+      `Frame the ${k} wall FLAT on the floor deck: 2×6 bottom + top plate cut to EXACTLY the deck width (${dim(W)}) — this wall sits flush with the deck edge. 2×6 studs every ~16″ (deep enough for R-21), crowns all facing the same way.`];
     for(const o of wo.ops) out.push(`${o.kind[0].toUpperCase()+o.kind.slice(1)} rough opening: ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — king stud each side, jack studs under a doubled 2×6 header${o.vBot>0.3?', sill below':''}.`);
     if(!wo.ops.length) out.push('No openings in this wall — it’s the simplest one, which is why it goes first: you learn the rhythm on the easy wall.');
     out.push('Square the frame on the deck (equal diagonals), then tack a temporary diagonal 2×4 so it can’t rack while you lift.');
@@ -2987,7 +2992,7 @@ function stepGuide(st,s){
   G[7.7]=(()=>{ const out=wallCopy('left','Repeat for the right wall — same length, mirror the openings.');
     out[0]=`The side walls are BUTT walls — they fit BETWEEN the standing front + back walls, so they’re cut SHORTER than the deck: plates ≈ ${dim(D-0.92)} (deck depth minus two 5½″ wall thicknesses). The front/back walls run through; the side walls butt into them — nothing overlaps at the corners.`;
     out.splice(1,0,'Don’t trust the number blindly — MEASURE the actual gap between the two standing walls at deck level, at BOTH ends. If the two measurements differ, the standing walls aren’t plumb/parallel: fix that first, then cut the side-wall plates ⅛″ under the measurement so they drop in.');
-    out.splice(out.length-1,0,'Tie the corners: the side wall’s END STUD lands flat against the front/back wall’s corner stud — clamp flush inside faces, then screw them together top-to-bottom (3″ screws every ~12″). On a 2×6 wall add a second interior corner stud so the drywall has backing (a “California corner”).');
+    out.splice(out.length-1,0,'Tie the corners as 3-STUD CORNERS: the side wall’s end stud lands against the front/back wall’s corner stud, PLUS a second stud on the through wall’s end, turned 90° flush with its outside face — that third stud is what the side wall’s SIDING EDGE fastens into, and on a 2×6 wall it doubles as the drywall backing (California corner). Screw the assembly top-to-bottom (3″ @ 12″).');
     out.splice(out.length-1,0,'Then the SECOND top plate around the whole perimeter: on the front/back walls it stops one wall-thickness SHORT of each end; on the side walls it runs one wall-thickness LONG past each end — so every lap crosses the corner joint below it and stitches the two walls together.');
     return out; })();
   G[8]=(()=>{ const r=s.roof, rd=Math.ceil(D*12/16)+1, out=[];
@@ -3052,6 +3057,7 @@ function stepGuide(st,s){
     return out; })();
   G[9]=[
     'Hang siding sheets vertically, bottom edge ½″ below the floor framing as a drip; leave ⅛″ between sheets.',
+    'At each corner the side sheet’s edge lands on the 3-stud corner assembly — fasten @ 8″ there like any other edge, then the corner boards cover the joint.',
     'Cut window/door openings from the back with a circular saw — drill a corner hole first, finish corners with a handsaw.',
     `Fasten every 8″ on edges into studs. ${s.finish==='paint'?'Prime cut edges before they go up.':s.finish==='pt'?'Let PT dry a few weeks before any finish.':'Seal cut edges so the '+FINISH[s.finish].name.toLowerCase()+' doesn’t wick water.'}`,
     '✔ Check: no fastener missed a stud (you’ll hear it).'
