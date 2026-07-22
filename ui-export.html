@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UI Export — Studio OS</title>
+<style>
+  @font-face{font-family:'Delcan Mono';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'), url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}
+  @font-face{font-family:'FK Grotesk Mono';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'), url('fonts/FKGroteskMono-Medium.otf') format('opentype');}
+  :root{
+    --field:#E6E6E6; --paper:#E6E6E6; --tx:#141414; --tm:#666666; --ac:#E5202A; --ink:#141414;
+    --bd:rgba(20,20,20,0.18);
+    --serif:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    --cond:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--field);font-family:var(--serif);color:var(--tx)}
+  ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28)}
+  .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7}
+  .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;font-weight:700;background:none;border:none;line-height:1.05}
+  .brand b{opacity:.4;font-weight:400}
+  .brand::after{content:'DESIGN HAND-OFF · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  .toolwrap{position:relative;display:inline-flex;align-items:center}
+  .toolwrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tm);pointer-events:none}
+  .toolsel{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;background:rgba(0,0,0,.06);border:none;padding:5px 22px 5px 9px;cursor:pointer;-webkit-appearance:none;appearance:none;color:var(--tx)}
+  .left{position:fixed;left:22px;top:62px;bottom:22px;width:320px;z-index:5;display:flex;flex-direction:column;background:var(--paper)}
+  .stage{position:fixed;left:362px;right:22px;top:62px;bottom:22px;z-index:4;display:flex;flex-direction:column;gap:8px}
+  .scroll{overflow-y:auto;padding:20px;flex:1;min-height:0}
+  .ptitle{font-family:var(--cond);font-size:19px;font-weight:700;text-transform:uppercase;display:block}
+  .psub{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--tm);margin-top:6px}
+  .rule{height:1px;background:var(--bd);margin:16px 0}
+  .glabel{font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 12px;font-weight:700;display:block}
+  .group{margin-bottom:22px}
+  .ctl{margin-bottom:14px}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .ctl label{font-size:12px}
+  select{width:100%;background:rgba(0,0,0,.06);border:none;padding:9px;font-family:var(--mono);font-size:11px;color:var(--tx)}
+  select option{background:#fff;color:#222}
+  .tog{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:9px 0}
+  .tog input{accent-color:var(--ac);width:15px;height:15px}
+  .btn{width:100%;margin-top:8px;padding:11px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+    background:rgba(0,0,0,.06);border:none;color:var(--tx);cursor:pointer}
+  .btn:hover{background:var(--ink);color:#fff}
+  .btn.primary{background:var(--ac);color:#fff}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .msg{font-family:var(--mono);font-size:10px;color:var(--ac);margin-top:8px;line-height:1.6;min-height:14px}
+  .hint{font-family:var(--mono);font-size:9.5px;color:var(--tm);line-height:1.65;margin-top:12px}
+  .hint b{color:var(--tx)}
+  .pvhead{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tm)}
+  .pvwrap{flex:1;min-height:0;position:relative;background:#fff;overflow:hidden}
+  #pv{border:none;display:block;position:absolute;top:0;left:0;transform-origin:0 0}
+  .stat{margin-left:auto;color:var(--ac)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="brand">STUDIO OS · <b>UI</b> EXPORT</button>
+  <span class="toolwrap"><select class="toolsel" id="toolSel">
+    <option value="Export" data-file="ui-export.html" selected>UI Export</option>
+    <option value="Brand" data-file="brand-studio.html">Brand Studio</option>
+    <option value="Playhouse" data-file="playhouse-builder.html">Playhouse</option>
+    <option value="Birdhouse" data-file="birdhouse-builder.html">Birdhouse</option>
+    <option value="Greenhouse" data-file="greenhouse-builder.html">Greenhouse</option>
+    <option value="Small House" data-file="smallhouse-builder.html">Small House</option>
+    <option value="Furniture" data-file="furniture-builder.html">Furniture</option>
+  </select></span>
+</div>
+
+<div class="left">
+  <div class="scroll">
+    <span class="ptitle">UI export</span>
+    <div class="psub">For Illustrator &amp; Figma</div>
+    <div class="rule"></div>
+
+    <div class="group">
+      <span class="glabel">Screen</span>
+      <div class="ctl"><div class="row"><label>Tool</label></div><select id="pvTool"></select></div>
+      <div class="ctl"><div class="row"><label>Artboard size</label></div>
+        <select id="size">
+          <option value="1440x900">Desktop — 1440 × 900</option>
+          <option value="1728x1080">Desktop large — 1728 × 1080</option>
+          <option value="1280x800">Laptop — 1280 × 800</option>
+          <option value="834x1112">Tablet — 834 × 1112</option>
+          <option value="390x844">Phone — 390 × 844</option>
+        </select></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Options</span>
+      <label class="tog"><input type="checkbox" id="oLive" checked> Live, editable text <span style="color:var(--tm);font-size:10px">(not outlined)</span></label>
+      <label class="tog"><input type="checkbox" id="oCanvas" checked> Embed the 3D view as an image</label>
+      <label class="tog"><input type="checkbox" id="oGuides"> Add a layout guide grid</label>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Export</span>
+      <button class="btn primary" id="dlSvg">↓ Download layered SVG</button>
+      <button class="btn" id="dlPng">↓ Download reference PNG</button>
+      <div class="msg" id="msg"></div>
+      <div class="hint">
+        <b>Illustrator</b> — File ▸ Open the .svg. Vectors and text stay editable; the sections arrive as named layers.<br><br>
+        <b>Figma</b> — drag the .svg onto the canvas. It becomes a frame of editable layers.<br><br>
+        Redesign it, then send back the .svg (or .ai/.fig exported to SVG) and I'll rebuild the tools to match.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="pvhead"><span>Source</span><span id="srcName"></span><span class="stat" id="stat"></span></div>
+  <div class="pvwrap"><iframe id="pv" title="Source"></iframe></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const TOOLS=[
+  {label:'Playhouse',   c:['playhouse-builder.html','playhouse.html']},
+  {label:'Birdhouse',   c:['birdhouse-builder.html','birdhouse.html']},
+  {label:'Small House', c:['smallhouse-builder.html','smallhouse.html']},
+  {label:'Greenhouse',  c:['greenhouse-builder.html','greenhouse.html']},
+  {label:'Furniture',   c:['furniture-builder.html','furniture.html']},
+  {label:'Brand Studio',c:['brand-studio.html']}
+];
+async function pickFile(c){ for(const n of c){ try{ const r=await fetch(n,{method:'HEAD',cache:'no-store'}); if(r.ok) return n; }catch(e){} } return null; }
+function dims(){ const [w,h]=$('size').value.split('x').map(Number); return {W:w,H:h}; }
+
+function sizeFrame(){
+  const {W,H}=dims(), pv=$('pv'), box=pv.parentElement;
+  pv.style.width=W+'px'; pv.style.height=H+'px';
+  const s=Math.min(box.clientWidth/W, box.clientHeight/H);
+  pv.style.transform=`scale(${s}) translate(${(box.clientWidth/s-W)/2}px,${(box.clientHeight/s-H)/2}px)`;
+}
+addEventListener('resize',sizeFrame);
+new ResizeObserver(sizeFrame).observe($('pv').parentElement);
+$('size').addEventListener('change',()=>{ sizeFrame(); setTimeout(sizeFrame,60); });
+
+async function init(){
+  const sel=$('pvTool'); sel.innerHTML='';
+  for(const t of TOOLS){ const n=await pickFile(t.c); if(!n) continue;
+    const o=document.createElement('option'); o.value=n; o.textContent=t.label; sel.appendChild(o); }
+  if(sel.options.length){ $('pv').src=sel.options[0].value; $('srcName').textContent=sel.options[0].value; }
+  sizeFrame();
+}
+$('pvTool').addEventListener('change',()=>{ $('pv').src=$('pvTool').value; $('srcName').textContent=$('pvTool').value; });
+init();
+
+/* ================= DOM → layered SVG ================= */
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const isVis=cs=>cs.display!=='none'&&cs.visibility!=='hidden'&&parseFloat(cs.opacity)>0.02;
+const opaque=c=>c&&c!=='transparent'&&!/rgba\(.*,\s*0\)$/.test(c);
+
+// name a layer from the element's id / class / tag
+function layerName(el){
+  if(el.id) return el.id;
+  const c=(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className)||'';
+  const first=String(c).trim().split(/\s+/)[0];
+  return first? first : el.tagName.toLowerCase();
+}
+// split a text node into visual lines using per-character rects (keeps wrapping honest)
+function lines(node,doc){
+  const t=node.nodeValue; if(!t||!t.trim()) return [];
+  const r=doc.createRange(), out=[]; let cur='', top=null, rect=null;
+  for(let i=0;i<t.length;i++){
+    r.setStart(node,i); r.setEnd(node,i+1);
+    const b=r.getBoundingClientRect();
+    if(!b.width&&!b.height){ cur+=t[i]; continue; }
+    if(top===null||Math.abs(b.top-top)>1.5){
+      if(cur.trim()) out.push({text:cur,rect});
+      cur=t[i]; top=b.top; rect=b;
+    } else { cur+=t[i]; if(rect) rect={left:rect.left,top:rect.top,bottom:b.bottom,height:rect.height}; }
+  }
+  if(cur.trim()) out.push({text:cur,rect});
+  return out;
+}
+
+// The panels fade in via `animation: fu .5s both`. Inside an iframe that animation may never run,
+// leaving them pinned at the `from` state (opacity 0) and invisible to the exporter. Killing the
+// animation drops each element back to its own opacity — i.e. the finished state.
+function freeze(doc){
+  if(!doc||doc.getElementById('_exportFreeze')) return;
+  const s=doc.createElement('style'); s.id='_exportFreeze';
+  s.textContent='*,*::before,*::after{animation:none!important;transition:none!important}';
+  (doc.head||doc.documentElement).appendChild(s);
+  doc.body && doc.body.getBoundingClientRect();   // force a reflow so computed styles are current
+}
+$('pv').addEventListener('load',()=>{ setTimeout(()=>{ try{ freeze($('pv').contentDocument); }catch(e){} },150); });
+
+function buildSVG(){
+  const {W,H}=dims();
+  const ifr=$('pv'); const doc=ifr.contentDocument, win=ifr.contentWindow;
+  if(!doc) throw new Error('Cannot read the preview (must be served over http, same origin).');
+  freeze(doc);
+  const live=$('oLive').checked, wantCanvas=$('oCanvas').checked, guides=$('oGuides').checked;
+  const body=[]; let nText=0,nRect=0,nImg=0;
+
+  function walk(el, out){
+    const cs=win.getComputedStyle(el); if(!isVis(cs)) return;
+    const b=el.getBoundingClientRect();
+    if(b.width<=0||b.height<=0) return;
+    if(b.right<0||b.bottom<0||b.left>W||b.top>H) return;
+
+    const x=+b.left.toFixed(2), y=+b.top.toFixed(2), w=+b.width.toFixed(2), h=+b.height.toFixed(2);
+    const r=parseFloat(cs.borderTopLeftRadius)||0;
+    const bits=[];
+
+    // fill
+    if(opaque(cs.backgroundColor))
+      bits.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}"${r?` rx="${r}"`:''} fill="${cs.backgroundColor}"/>`), nRect++;
+    // borders (single rect when uniform, else per-edge lines)
+    const bw=['Top','Right','Bottom','Left'].map(s=>parseFloat(cs['border'+s+'Width'])||0);
+    const bc=['Top','Right','Bottom','Left'].map(s=>cs['border'+s+'Color']);
+    if(bw.every(v=>v===bw[0])&&bw[0]>0&&opaque(bc[0])){
+      bits.push(`<rect x="${x+bw[0]/2}" y="${y+bw[0]/2}" width="${Math.max(0,w-bw[0])}" height="${Math.max(0,h-bw[0])}"${r?` rx="${r}"`:''} fill="none" stroke="${bc[0]}" stroke-width="${bw[0]}"/>`), nRect++;
+    } else {
+      const edge=(i,x1,y1,x2,y2)=>{ if(bw[i]>0&&opaque(bc[i])){ bits.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${bc[i]}" stroke-width="${bw[i]}"/>`); nRect++; } };
+      edge(0,x,y+bw[0]/2,x+w,y+bw[0]/2); edge(2,x,y+h-bw[2]/2,x+w,y+h-bw[2]/2);
+      edge(3,x+bw[3]/2,y,x+bw[3]/2,y+h); edge(1,x+w-bw[1]/2,y,x+w-bw[1]/2,y+h);
+    }
+    // canvas → embedded raster
+    if(el.tagName==='CANVAS'){
+      // xlink:href is the SVG 1.1 form every version of Illustrator/Figma/Inkscape reads
+      if(wantCanvas){ try{ const d=el.toDataURL('image/png');
+        bits.push(`<image x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" xlink:href="${d}"/>`); nImg++; }catch(e){}
+      } else {
+        bits.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#F4F4F4" stroke="#BBB" stroke-dasharray="6 4"/>`+
+          `<text x="${x+w/2}" y="${y+h/2}" font-family="Helvetica" font-size="13" fill="#999" text-anchor="middle">3D VIEWPORT</text>`); nRect++;
+      }
+    }
+    // form field values as text
+    if(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)){
+      const v=el.tagName==='SELECT'? (el.selectedOptions[0]||{}).textContent : (el.value||el.placeholder||'');
+      if(v&&live){ const fs=parseFloat(cs.fontSize)||12, px=parseFloat(cs.paddingLeft)||0;
+        bits.push(`<text x="${x+px}" y="${y+h/2+fs*0.35}" font-family="${esc(cs.fontFamily)}" font-size="${fs}" fill="${cs.color}">${esc(v)}</text>`); nText++; }
+    }
+
+    // own text nodes
+    if(live) for(const n of el.childNodes){
+      if(n.nodeType!==3) continue;
+      for(const L of lines(n,doc)){
+        if(!L.rect) continue;
+        const fs=parseFloat(cs.fontSize)||12;
+        const base=+(L.rect.top+ (L.rect.height? L.rect.height*0.5 + fs*0.35 : fs)).toFixed(2);
+        const ls=parseFloat(cs.letterSpacing);
+        // SVG has no text-transform, so bake the rendered case into the string
+        let str=L.text.trim();
+        if(cs.textTransform==='uppercase') str=str.toUpperCase();
+        else if(cs.textTransform==='lowercase') str=str.toLowerCase();
+        else if(cs.textTransform==='capitalize') str=str.replace(/\b\w/g,c=>c.toUpperCase());
+        bits.push(`<text x="${+L.rect.left.toFixed(2)}" y="${base}" font-family="${esc(cs.fontFamily)}" font-size="${fs}"`+
+          ` font-weight="${cs.fontWeight}" fill="${cs.color}"${ls?` letter-spacing="${ls}"`:''}>`+
+          `${esc(str)}</text>`); nText++;
+      }
+    }
+
+    if(bits.length){
+      const nm=layerName(el);
+      out.push(`<g id="${esc(nm)}" data-name="${esc(nm)}">${bits.join('')}</g>`);
+    }
+    for(const c of el.children) walk(c,out);
+  }
+
+  const out=[];
+  walk(doc.body,out);
+
+  let g='';
+  if(guides){
+    const cols=12, m=22, gut=16, cw=(W-m*2-gut*(cols-1))/cols;
+    let gg='';
+    for(let i=0;i<cols;i++) gg+=`<rect x="${(m+i*(cw+gut)).toFixed(1)}" y="0" width="${cw.toFixed(1)}" height="${H}" fill="#E5202A" opacity="0.06"/>`;
+    g=`<g id="_guides" data-name="_guides">${gg}</g>`;
+  }
+
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" `+
+    `width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">\n`+
+    `<title>${esc($('pvTool').value)} — ${W}×${H}</title>\n`+
+    `<rect width="${W}" height="${H}" fill="${win.getComputedStyle(doc.body).backgroundColor||'#E6E6E6'}"/>\n`+
+    out.join('\n')+'\n'+g+'\n</svg>';
+  return {svg,nText,nRect,nImg};
+}
+
+function download(name,blob){
+  const a=document.createElement('a'); a.download=name; a.href=URL.createObjectURL(blob); a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+$('dlSvg').addEventListener('click',()=>{
+  try{
+    const {svg,nText,nRect,nImg}=buildSVG();
+    const base=$('pvTool').value.replace(/\.html$/,'').replace(/-builder$/,'');
+    download(`${base}-ui-${$('size').value}.svg`, new Blob([svg],{type:'image/svg+xml'}));
+    $('msg').textContent=`Exported — ${nRect} shapes, ${nText} text objects, ${nImg} image. Open it in Illustrator or drag into Figma.`;
+    $('stat').textContent=Math.round(svg.length/1024)+' KB';
+  }catch(e){ $('msg').textContent='Export failed: '+e.message; }
+});
+$('dlPng').addEventListener('click',()=>{
+  const ifr=$('pv'); const doc=ifr.contentDocument;
+  const c=doc&&doc.querySelector('canvas');
+  if(!c){ $('msg').textContent='No 3D canvas found to capture.'; return; }
+  c.toBlob(b=>{ download(($('pvTool').value.replace(/\.html$/,''))+'-3d.png', b); $('msg').textContent='Reference PNG of the 3D view downloaded.'; });
+});
+
+$('toolSel').addEventListener('change',async function(){ const o=this.options[this.selectedIndex];
+  if(!o||o.value==='Export') return;
+  if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:o.value}, location.origin); return; }catch(e){} }
+  const f=o.getAttribute('data-file');
+  location.href=(await pickFile([f,f.replace('-builder.html','.html')]))||f;
+});
+</script>
+</body>
+</html>
