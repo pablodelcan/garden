@@ -625,7 +625,16 @@
           <button data-v="ladder" class="on">Ladder</button>
           <button data-v="stairs">Stairs</button>
         </div></div>
-      <div class="ctl"><div class="row"><label>Stair / ladder side</label></div>
+      <div class="ctl" id="ladderStyleCtl"><div class="row"><label>Ladder style</label></div>
+        <div class="seg three" id="ladderStyle">
+          <button data-v="rung" class="on">Rungs</button>
+          <button data-v="cleat">Cleats</button>
+          <button data-v="notch">Notched</button>
+          <button data-v="wide">Wide tread</button>
+          <button data-v="railed">Handrails</button>
+          <button data-v="ship">Ship’s stair</button>
+        </div></div>
+      <div class="ctl"><div class="row"><label>Stair / ladder side</label><span class="val" id="vStairSide"></span></div>
         <div class="seg four" id="stairSide">
           <button data-v="front" class="on">Front</button>
           <button data-v="back">Back</button>
@@ -885,7 +894,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 /* ===== state (before render loop references it) ===== */
 const state={W:6,D:8,Hf:3.5,Hw:4,Dd:0,deckSide:'front',post:'4x4',roof:'lean',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'ladder',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'ladder',ladderStyle:'rung',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
 const tog={tSiding:true,tRoof:true,tBraces:true,tLadder:true,tFraming:true,tSpin:false,tInterior:false,furniture:true,kids:true,tDims:false,tScale:false};
@@ -904,6 +913,21 @@ const WIN={
 let stepOn=false, stepCur=1, _stage=0, _limit=Infinity, _explode=0;
 const eoff=()=>Math.max(0,Math.min(_stage-1,16))*_explode;   // exploded-view Y lift per build stage
 let dimLabels=[], dimPool=[];   // {x,y,z,text} projected to HTML each frame when dimension overlay is on
+// ladder styles, simplest → most involved. oBot = foot-out at a 3.5 ft floor (scaled for taller floors, so the angle holds)
+const LADDERS={
+  rung:  {name:'Rungs', lw:1.4, oBot:0.55, ext:0.0, rail:0.12, gap:0.8, tread:'rung', hand:false, kid:1,
+    note:'Two 2×4 rails with 2×2 rungs. The classic treehouse ladder — an afternoon’s work, steep, and you climb down backwards.'},
+  cleat: {name:'Cleats', lw:1.5, oBot:0.72, ext:0.9, rail:0.14, gap:0.85, tread:'flat', hand:false, kid:2,
+    note:'Flat 2×4 cleats screwed to the face of the rails — much flatter underfoot than round rungs, still dead simple.'},
+  notch: {name:'Notched', lw:1.6, oBot:0.9, ext:1.2, rail:0.16, gap:0.85, tread:'flat', hand:false, kid:3,
+    note:'Treads let into shallow dadoes cut in the rails — the load bears on wood instead of hanging off screws. The strong version of a cleat ladder.'},
+  wide:  {name:'Wide tread', lw:2.0, oBot:1.45, ext:1.5, rail:0.18, gap:0.9, tread:'deep', hand:false, kid:4,
+    note:'2×6 treads at a gentler angle — small kids can walk DOWN facing forward instead of backing out. Takes more room on the ground.'},
+  railed:{name:'Handrails', lw:2.0, oBot:1.6, ext:2.6, rail:0.18, gap:0.9, tread:'deep', hand:true, kid:5,
+    note:'Wide treads plus a grab rail each side carried past the landing — the safest ladder here, and the one small kids use unaided.'},
+  ship:  {name:'Ship’s stair', lw:2.4, oBot:2.2, ext:2.8, rail:0.2, gap:0.85, tread:'deep', hand:true, kid:5,
+    note:'A proper steep stair — deep treads on stringers with handrails both sides. Closest to real stairs without the footprint.'}
+};
 const STAGES={
   1:{name:'Footings', desc:'Set the footings — deck blocks on tamped gravel, or concrete piers with post bases. Level them all to each other.'},
   2:{name:'Posts', desc:'Stand the posts on the footings. Plumb each one and brace it temporarily until the beams tie them together.'},
@@ -1503,7 +1527,8 @@ function rebuild3D(p){
   }
 
   // ---- stair/access placement (computed early so the deck rail can leave a matching gap) ----
-  const stairSide = state.stairSide || (Dd>0?p.deckSide:p.door.wall), stairDir = state.stairDir || 'out';
+  // when there IS a deck, access always lands ON the deck — a ladder leaning on a blank wall goes nowhere
+  const stairSide = Dd>0 ? p.deckSide : (state.stairSide || p.door.wall), stairDir = state.stairDir || 'out';
   const ssm = sideMap(stairSide), sAl = ssm.along;
   const stairEdgeO = ssm.houseHalf + ((Dd>0 && stairSide===p.deckSide) ? Dd : 0);
   const stairPosF = state.stairPos!=null ? state.stairPos : (stairSide===p.door.wall ? p.door.pos : 0.5);
@@ -1582,11 +1607,27 @@ function rebuild3D(p){
       for(const s of [-1,1]){ strut(pt(0,s*sw/2,floorY+2.7), pt(tot,s*sw/2,gF+2.55), 0.1,P.struct);           // handrails
         strut(pt(tot,s*sw/2,gF+0.1), pt(tot,s*sw/2,gF+2.55), 0.1,P.struct); }
     } else {
-      const topY=floorY+0.12, lw=1.4, oBot=0.55, oTop=-0.05, gF=gAtRun(oBot);
-      for(const s of [-1,1]) strut(pt(oBot,s*lw/2,gF), pt(oTop,s*lw/2,topY), 0.12,P.struct);
-      const rungs=Math.max(3,Math.round((topY-gF)/0.8));
-      for(let i=1;i<=rungs;i++){ const t=i/(rungs+1), o=oBot+(oTop-oBot)*t, y=gF+(topY-gF)*t;
-        strut(pt(o,-lw/2,y), pt(o,lw/2,y), 0.07,P.struct); }
+      // ---- LADDER — 6 styles, simple → complex. Top ALWAYS lands on (and bolts to) the deck/floor edge.
+      const S=LADDERS[state.ladderStyle]||LADDERS.rung;
+      const topY=floorY+0.12, lw=S.lw, oBot=S.oBot*Math.max(1,floorY/3.5), oTop=-0.05, gF=gAtRun(oBot);
+      const dr=oTop-oBot, dy=Math.max(0.4,topY-gF), perY=dr/dy;              // run travelled per unit of rise
+      const extR=o=>oTop+perY*o;                                            // run at `o` above the landing
+      // rails — carried past the landing by S.ext so there's something to grab stepping off
+      for(const s of [-1,1]) strut(pt(oBot,s*lw/2,gF), pt(extR(S.ext),s*lw/2,topY+S.ext), S.rail,P.struct);
+      // treads
+      const n=Math.max(3,Math.round(dy/S.gap));
+      for(let i=1;i<=n;i++){ const t=i/(n+1), o=oBot+dr*t, y=gF+dy*t;
+        if(S.tread==='rung') strut(pt(o,-lw/2,y), pt(o,lw/2,y), 0.07,P.struct);
+        else { const c=pt(o,0,y), th2=S.tread==='deep'?0.18:0.13, dp=S.tread==='deep'?0.62:0.34;
+          box(widthIsX?lw-0.1:dp, th2, widthIsX?dp:lw-0.1, c[0], y+th2/2, c[2], P.struct); }
+      }
+      // top fastening cleat — the honest "it's bolted to the rim" detail
+      { const c=pt(oTop,0,topY-0.22); box(widthIsX?lw+0.3:0.22, 0.22, widthIsX?0.22:lw+0.3, c[0],topY-0.22,c[2], P.struct); }
+      // handrails (railed / ship) — a second rail above the stringers, on posts
+      if(S.hand) for(const s of [-1,1]){
+        strut(pt(oBot,s*(lw/2+0.12),gF+2.6), pt(extR(S.ext),s*(lw/2+0.12),topY+S.ext+0.1), 0.1,P.struct);
+        strut(pt(oBot,s*(lw/2+0.12),gF+0.1), pt(oBot,s*(lw/2+0.12),gF+2.6), 0.1,P.struct);
+      }
     }
   }
 
@@ -1839,7 +1880,24 @@ function rebuild3D(p){
     person(5.83, dodge(-W*0.28), fz,       '#3f5d74','#2c313c');   // adult ≈ 5'10"
     person(4.0,  dodge( W*0.22), fz+0.55,  '#c0563f','#46485a');   // 7 yr ≈ 4'0"
   }
+  explodeOutward();
   applyViewStyle();
+}
+
+// Exploded view: eoff() has already lifted each piece by its build stage. This spreads them
+// RADIALLY as well, so the assembly opens outward like a real exploded drawing instead of a
+// stack. Uses each mesh's true world centre, so extruded/poly parts (gables, rake ends,
+// barrel ribs) spread too — their geometry carries the offset, not their .position.
+function explodeOutward(){
+  if(!_explode || !house) return;
+  const k=state.explode*1.25, c=new THREE.Vector3(), bb=new THREE.Box3();
+  for(const m of house.children){
+    if(!m.isMesh) continue;
+    bb.setFromObject(m); if(bb.isEmpty()) continue;
+    bb.getCenter(c);
+    m.position.x += c.x*k;
+    m.position.z += c.z*k;
+  }
 }
 
 /* ===== materials engine ===== */
@@ -2094,6 +2152,10 @@ function update(){
   const gv=document.getElementById('vGrade'); if(gv) gv.textContent=state.grade>0?Math.round(state.grade*100)+'% ('+dim(state.grade*(state.gradeDir==='front'||state.gradeDir==='back'?state.D:state.W))+' drop)':'level';
   const gdc=document.getElementById('gradeDirCtl'); if(gdc) gdc.style.display=state.grade>0?'':'none';
   const svp=document.getElementById('vStairPos'); if(svp) svp.textContent=state.stairPos<0.34?'toward one end':state.stairPos>0.66?'toward the other':'center';
+  const lsc=document.getElementById('ladderStyleCtl'); if(lsc) lsc.style.display=state.access==='ladder'?'':'none';
+  const vss=document.getElementById('vStairSide');     // a deck pins the access to the deck side so it always lands ON it
+  if(vss) vss.textContent = state.Dd>0 ? 'locked to the '+state.deckSide+' deck' : '';
+  document.getElementById('stairSide').style.opacity = state.Dd>0 ? 0.4 : 1;
   document.getElementById('intPanel').classList.toggle('on', tog.tInterior && !stepOn);
   document.getElementById('dock').querySelector('[data-t="tInterior"]').classList.toggle('on', tog.tInterior);
   budgetCheck(); renderFoundCap(); renderSafety();
@@ -2180,7 +2242,7 @@ function seg(id,key){ const el=document.getElementById(id);
   el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
     [...el.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); state[key]=b.dataset.v;
     if(id==='finish') applyFinish(b.dataset.v,true); update(); }); }
-seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
+seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('ladderStyle','ladderStyle'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
 document.getElementById('midBeam').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
   state.midBeam=b.dataset.v==='on'; setSeg('midBeam',b.dataset.v); update(); });
 document.getElementById('autoSizeBtn').addEventListener('click',()=>{
@@ -2353,9 +2415,12 @@ document.getElementById('explode').addEventListener('input',e=>{ state.explode=+
 document.getElementById('signText').addEventListener('input',e=>{ state.sign=e.target.value; update(); });
 document.getElementById('walkIn').addEventListener('click',walkInside);
 document.getElementById('unitTog').addEventListener('click',e=>{ const b=e.target.closest('b'); if(!b)return; state.unit=b.dataset.u; document.querySelectorAll('#unitTog b').forEach(x=>x.classList.toggle('on',x.dataset.u===state.unit)); update(); });
-function frame(){ const dd=state.Dd>0?state.Dd:0, ex=(state.explode||0)*16;
+function frame(){ const dd=state.Dd>0?state.Dd:0, e=state.explode||0, ex=e*16;
   controls.target.set(0,state.Hf+state.Hw/2+ex/2,0);
-  const r=Math.max(state.W,state.D)+dd+state.Hf+state.Hw+ex; camera.position.set(r*0.95,r*0.7,r*1.15); }
+  // exploded parts spread radially as well as lifting, so the fit has to grow in plan too
+  const spread=1+e*1.25;
+  const r=(Math.max(state.W,state.D)+dd)*spread+state.Hf+state.Hw+ex;
+  camera.position.set(r*0.95,r*0.7,r*1.15); }
 function updateSun(){
   if(!sun) return; const h=state.hour, f=Math.max(0,Math.min(1,(h-6)/12));   // 6am..6pm
   const el=Math.sin(f*Math.PI)*1.25, az=(f-0.5)*Math.PI*1.15;
@@ -2394,7 +2459,7 @@ function stepDetail(c,s){
     12:`rim beam + ${Math.ceil(s.W*12/16)+1}× deck joists`,
     13:`decking — ~${Math.round(s.W*s.Dd)} sq ft of 5/4 board`,
     14:`railing ~${Math.round(s.W+2*s.Dd)} ft + balusters`,
-    15:`${s.access==='stairs'?'stairs + handrail':'ladder'}`,
+    15:`${s.access==='stairs'?'stairs + handrail':(LADDERS[s.ladderStyle]||LADDERS.rung).name.toLowerCase()+' ladder'}`,
     15.5:`finish/sealer + edge-easing + bolt re-torque`
   })[c]||'';
 }
@@ -2495,7 +2560,7 @@ function applyDesign(d){
   ['loft','porch','slide','climb','anchor','cupola','tower','bay','dormer','jetty','wing','split','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'].forEach(x=>{ const b=document.querySelector('#extras [data-x="'+x+'"]'); if(b) b.classList.toggle('on',!!state[x]); });
   setSeg('foundation',state.foundation||'blocks'); setSeg('access',state.access||'ladder');
   if(!state.stairSide) state.stairSide='front'; if(state.stairPos==null) state.stairPos=0.5; if(!state.stairDir) state.stairDir='out';
-  setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
+  setSeg('ladderStyle',state.ladderStyle||'rung'); setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
   setSeg('midBeam',state.midBeam?'on':'off');
   renderWindows();
@@ -2786,7 +2851,7 @@ function stepSpecs(st,s){
     12:['rim beam + deck joists', '~16" O.C.'],
     13:[`${dim(s.Dd)} decking`, '~⅛" drainage gaps'],
     14:['rail posts + balusters', '~36" tall', 'gap at the ladder'],
-    15:[s.access==='stairs'?'stairs':'ladder', 'finish / sealer']
+    15:[s.access==='stairs'?'stairs':(LADDERS[s.ladderStyle]||LADDERS.rung).name.toLowerCase()+' ladder', 'finish / sealer']
   };
   return M[st]||[];
 }
@@ -2954,12 +3019,21 @@ function stepGuide(st,s){
         'Treads: doubled 2×6 per step, screwed 2 per stringer. Handrail 34–36″ above the tread nosings.',
         '✔ Check: every rise within ⅛″ of the others — uneven steps trip people.'
       ]; }
-    return [
-      `Ladder: two 2×4 rails ~${dim(Hf+0.8)}, rungs every ~12″ from ${dim(0.3)} above grade.`,
-      'Lean it at ~75° (base out ~1 ft per 4 ft of height), lag the top of the rails to the floor rim.',
-      'Round over every rung edge — kid hands.',
-      '✔ Check: rungs take full weight without flex; top can’t slide sideways.'
-    ]; })();
+    const L=LADDERS[s.ladderStyle]||LADDERS.rung, rise=Hf+0.8, foot=L.oBot*Math.max(1,Hf/3.5);
+    const out=[
+      `${L.name} ladder — ${L.note}`,
+      `Two 2×4 rails ~${dim(Math.hypot(rise,foot)+L.ext+0.4)} long. Stand the foot ${dim(foot)} out from the ${s.Dd>0?'deck edge':'wall'} — that’s about ${Math.round(Math.atan2(rise,foot)*180/Math.PI)}°.`
+    ];
+    if(L.tread==='rung') out.push(`Rungs every ~${dim(L.gap)}: 2×2 stock, either let into ¾″-deep notches in the rails or screwed through the rail face with 3″ screws. Notched is far stronger.`);
+    else if(s.ladderStyle==='notch') out.push(`Treads every ~${dim(L.gap)}: cut shallow (¼–⅜″) dadoes across both rails so each tread SITS in wood, then screw through the rail into the tread end. This is the joint that stops treads working loose.`);
+    else out.push(`Treads every ~${dim(L.gap)}: ${L.tread==='deep'?'2×6':'2×4'} flat, screwed to the rail faces (2× 3″ screws per end) — or dado them in if you want it to outlive the kids.`);
+    if(L.ext>0) out.push(`Run the rails ${dim(L.ext)} PAST the landing — that’s the handhold you grab stepping on and off. This is the single biggest safety difference between ladder styles.`);
+    if(L.hand) out.push('Add the grab rails: a rail each side on short posts, ~34–36″ above the treads, carried past the top. Round the ends over.');
+    out.push(`Fasten the TOP: a 2×4 cleat across the rails, then lag the rails to the ${s.Dd>0?'deck rim':'floor rim'} with 2× ⅜″ × 4″ lags. ${s.Dd>0?'It lands in the railing gap between the two 4×4 opening posts.':''}`);
+    out.push('Land the feet on a paver or pad so they don’t sink or rot' + (grade?' — on your slope the downhill foot needs a deeper pad':'') + '.');
+    out.push('Round over every rung/tread edge — kid hands.');
+    out.push(`✔ Check: treads take a hard bounce without flex, and the top can’t slide sideways.`);
+    return out; })();
   G[15.5]=[
     s.finish==='pt'?'Finish: let PT weather a few weeks, then a penetrating oil if you want.':s.finish==='paint'?'Finish: prime + 2 coats exterior paint; caulk trim joints first.':'Finish: clear penetrating sealer on '+FINISH[s.finish].name.toLowerCase()+'; recoat yearly-ish.',
     'Kid pass: round over every edge a hand can reach — sills, rungs, rail ends, corners. 120-grit, two minutes per edge.',
@@ -3058,7 +3132,7 @@ function sanitizeDesign(d){
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
   en('post',['4x4','6x6']); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
   en('foundation',['blocks','piers','buried']); en('access',['ladder','stairs']);
-  en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
+  en('ladderStyle',Object.keys(LADDERS)); en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
   for(const k of ['midBeam','rafter8','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
     if(typeof d[k]==='boolean') out[k]=d[k];
   if(typeof d.sign==='string') out.sign=d.sign.slice(0,16);
