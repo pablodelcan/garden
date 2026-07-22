@@ -183,17 +183,11 @@
 <div class="stage">
   <div class="pvhead">
     <span>Live preview</span>
-    <select id="pvTool">
-      <option value="playhouse-builder.html">Playhouse</option>
-      <option value="birdhouse-builder.html">Birdhouse</option>
-      <option value="smallhouse-builder.html">Small House</option>
-      <option value="greenhouse-builder.html">Greenhouse</option>
-      <option value="furniture-builder.html">Furniture</option>
-    </select>
+    <select id="pvTool"></select>
     <span id="pvState" style="margin-left:auto;color:var(--ac)"></span>
   </div>
   <div class="pvwrap">
-    <iframe id="pv" src="playhouse-builder.html" title="Live preview"></iframe>
+    <iframe id="pv" title="Live preview"></iframe>
     <div class="pvnote" id="pvNote">Preview needs the tools served over http.<br>Run a local server in the garden folder, or open this from Studio OS.<br><br>The specimen and CSS output still work.</div>
   </div>
 </div>
@@ -365,6 +359,32 @@ $('preset').addEventListener('change',()=>{
   render();
 });
 
+// The builders are named "<tool>-builder.html" in the garden repo but "<tool>.html" once they're
+// copied into Studio OS, so probe both and use whichever actually exists here.
+const PVTOOLS=[
+  {label:'Playhouse',   c:['playhouse-builder.html','playhouse.html']},
+  {label:'Birdhouse',   c:['birdhouse-builder.html','birdhouse.html']},
+  {label:'Small House', c:['smallhouse-builder.html','smallhouse.html']},
+  {label:'Greenhouse',  c:['greenhouse-builder.html','greenhouse.html']},
+  {label:'Furniture',   c:['furniture-builder.html','furniture.html']}
+];
+async function pickFile(cands){
+  for(const n of cands){
+    try{ const r=await fetch(n,{method:'HEAD',cache:'no-store'}); if(r.ok) return n; }catch(e){}
+  }
+  return null;
+}
+async function initPreview(){
+  const sel=$('pvTool'); sel.innerHTML=''; let first=null;
+  for(const t of PVTOOLS){
+    const n=await pickFile(t.c); if(!n) continue;
+    const o=document.createElement('option'); o.value=n; o.textContent=t.label; sel.appendChild(o);
+    if(!first) first=n;
+  }
+  if(first){ $('pv').src=first; }
+  else { $('pvNote').classList.add('on'); $('pvState').textContent='no preview'; }
+}
+initPreview();
 $('pvTool').addEventListener('change',()=>{ $('pv').src=$('pvTool').value; });
 $('pv').addEventListener('load',()=>setTimeout(applyToPreview,120));
 
@@ -396,12 +416,13 @@ $('resetAll').addEventListener('click',()=>{
   $('msg').textContent='Reset to the Studio OS default.'; render();
 });
 
-// tool switcher — match the family convention
-$('toolSel').addEventListener('change',function(){ const o=this.options[this.selectedIndex];
+// tool switcher — match the family convention (resolving the garden vs Studio OS filename)
+$('toolSel').addEventListener('change',async function(){ const o=this.options[this.selectedIndex];
   if(!o||o.value==='Brand') return;
   const name=o.value, file=o.getAttribute('data-file');
   if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
-  window.location.href=file;
+  const alt=file.replace('-builder.html','.html');
+  window.location.href=(await pickFile([file,alt]))||file;
 });
 
 // restore a saved theme if there is one — otherwise start from the builders' actual current design
