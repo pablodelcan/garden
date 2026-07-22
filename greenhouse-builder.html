@@ -512,6 +512,24 @@
     #mbar{display:flex}
   }
 </style>
+<script>
+/* Studio OS brand theme — set in Brand Studio (brand-studio.html), stored per-browser. Safe no-op if unset. */
+(function(){try{
+  var t=JSON.parse(localStorage.getItem('studioBrand')||'null'); if(!t) return;
+  var rgba=function(h,a){var n=parseInt(String(h).slice(1),16);return'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';};
+  var css="@font-face{font-family:'Delcan Mono';font-display:swap;src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}"
+   +"@font-face{font-family:'FK Grotesk Mono';font-display:swap;src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'),url('fonts/FKGroteskMono-Medium.otf') format('opentype');}"
+   +":root{--ac:"+t.ac+";--field:"+t.field+";--paper:"+t.field+";--tx:"+t.ink+";--ink:"+t.ink+";--tm:"+t.mut
+   +";--bd:"+rgba(t.ink,(t.ruleA||18)/100)+";--bd2:"+t.ink+";--pb:"+rgba(t.ink,0.96)
+   +";--cond:"+t.fDisplay+";--mono:"+t.fMono+";--serif:"+t.fBody+";}"
+   +"html,body{font-size:"+(t.scale||100)+"%}"
+   +".ptitle,.glabel,.stepnav .stitle,.mgroup h3,.brand,.mhead .mt,.shophead .stitle2{font-family:var(--cond)!important;letter-spacing:"+(t.track||0)+"em!important;text-transform:"+(t.bcase||'uppercase')+"!important}"
+   +(t.rad!=null?"button,select,input,.seg button,.dock button,.paper,.stepnav,.item .ck{border-radius:"+t.rad+"px!important}":"")
+   +(t.sheet?".brand::after{content:'"+String(t.sheet).replace(/'/g,"\\'")+"'!important}":"");
+  var s=document.createElement('style'); s.id='studioBrandTheme'; s.textContent=css;
+  (document.head||document.documentElement).appendChild(s);
+}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="bg"></div>
@@ -524,6 +542,7 @@
   <div class="topright">
     <div class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch builder" title="Switch builder">
       <option value="Birdhouse" data-file="birdhouse.html">Birdhouse</option>
+      <option value="Brand" data-file="brand-studio.html">Brand Studio</option>
       <option value="Playhouse" data-file="playhouse.html">Playhouse</option>
       <option value="Greenhouse" data-file="greenhouse.html" selected>Greenhouse</option>
       <option value="Small House" data-file="smallhouse.html">Small House</option>

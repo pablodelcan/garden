@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brand Studio — Studio OS</title>
+<style>
+  @font-face{font-family:'Delcan Mono';font-style:normal;font-weight:400;font-display:swap;
+    src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'), url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}
+  @font-face{font-family:'FK Grotesk Mono';font-style:normal;font-weight:500;font-display:swap;
+    src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'), url('fonts/FKGroteskMono-Medium.otf') format('opentype');}
+
+  :root{
+    --field:#E6E6E6; --paper:#E6E6E6;
+    --tx:#141414; --tm:#666666; --tf:#9a9a9a; --ac:#E5202A; --ink:#141414;
+    --bd:rgba(20,20,20,0.18); --bd2:#141414; --pb:rgba(20,20,20,0.96);
+    --serif:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    --cond:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+    --good:#2f8a3e; --warn:#b97400;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--field);font-family:var(--serif);color:var(--tx)}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28)}
+  a{color:var(--ac);text-decoration:none}
+  @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7}
+  .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;font-weight:700;background:none;border:none;line-height:1.05;color:var(--tx)}
+  .brand b{opacity:.4;font-weight:400}
+  .brand::after{content:'BRAND SYSTEM · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  .topright{display:flex;align-items:center;gap:12px}
+  .toolwrap{position:relative;display:inline-flex;align-items:center}
+  .toolwrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tm);pointer-events:none}
+  .toolsel{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--tx);background:rgba(0,0,0,.06);border:none;padding:5px 22px 5px 9px;cursor:pointer;-webkit-appearance:none;appearance:none}
+
+  .left{position:fixed;left:22px;top:62px;bottom:22px;width:310px;z-index:5;display:flex;flex-direction:column;background:var(--paper);animation:fu .5s ease both}
+  .right{position:fixed;right:22px;top:62px;bottom:22px;width:330px;z-index:5;display:flex;flex-direction:column;background:var(--paper);animation:fu .5s ease both}
+  .stage{position:fixed;left:352px;right:372px;top:62px;bottom:22px;z-index:4;display:flex;flex-direction:column;gap:8px}
+  .scroll{overflow-y:auto;padding:20px;flex:1;min-height:0}
+  .ptitle{font-family:var(--cond);font-size:19px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;display:block}
+  .psub{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--tm);margin-top:6px}
+  .rule{height:1px;background:var(--bd);margin:16px 0}
+  .glabel{font-family:var(--cond);font-size:11px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 12px;font-weight:700;display:block}
+  .group{margin-bottom:24px}
+  .ctl{margin-bottom:14px}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:8px}
+  .ctl label{font-size:12px}
+  .val{font-family:var(--mono);font-size:11px;color:var(--tx);white-space:nowrap}
+  input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--bd);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--ac);cursor:pointer;border:2.5px solid var(--field)}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;background:var(--ac);cursor:pointer;border:2px solid var(--field)}
+  select,input[type=text]{width:100%;background:rgba(0,0,0,.06);color:var(--tx);border:none;padding:9px;font-family:var(--mono);font-size:11px}
+  select option{background:#fff;color:#222}
+  .swatchrow{display:flex;gap:8px;align-items:center}
+  .swatchrow input[type=color]{width:44px;height:30px;border:none;background:none;cursor:pointer;padding:0;flex-shrink:0}
+  .swatchrow input[type=text]{flex:1;min-width:0;text-transform:uppercase}
+  .seg{display:grid;gap:6px;grid-template-columns:1fr 1fr 1fr}
+  .seg button{padding:8px 4px;font-family:var(--mono);font-size:10px;background:none;color:var(--tm);border:none;cursor:pointer;text-transform:uppercase}
+  .seg button.on{background:var(--ink);color:#fff}
+  .seg button:hover:not(.on){background:rgba(0,0,0,.06);color:var(--tx)}
+
+  .pvhead{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tm)}
+  .pvhead select{width:auto;padding:5px 8px}
+  /* render the preview at a real desktop width, then scale it to fit — otherwise the builder
+     flips to phone mode and hides the very panels you're branding */
+  .pvwrap{flex:1;min-height:0;position:relative;background:#fff;overflow:hidden}
+  #pv{width:1440px;height:900px;border:none;display:block;position:absolute;top:0;left:0;transform-origin:0 0}
+  .pvnote{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;
+    font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--tm);background:var(--field)}
+  .pvnote.on{display:flex}
+
+  .outbox{font-family:var(--mono);font-size:10.5px;line-height:1.55;background:rgba(0,0,0,.06);padding:12px;white-space:pre;overflow:auto;max-height:290px;color:var(--tx)}
+  .btn{width:100%;margin-top:8px;padding:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+    background:rgba(0,0,0,.06);border:none;color:var(--tx);cursor:pointer}
+  .btn:hover{background:var(--ink);color:#fff}
+  .btn.primary{background:var(--ac);color:#fff}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .hint{font-family:var(--mono);font-size:9.5px;color:var(--tm);line-height:1.6;margin-top:10px}
+  .msg{font-family:var(--mono);font-size:10px;color:var(--ac);margin-top:8px;min-height:14px}
+  .specimen{padding:14px;background:rgba(0,0,0,.04);margin-top:6px}
+  .specimen .s1{font-family:var(--cond);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.1}
+  .specimen .s2{font-family:var(--mono);font-size:11px;color:var(--ac);margin-top:6px;letter-spacing:.04em}
+  .specimen .s3{font-family:var(--serif);font-size:12px;color:var(--tx);margin-top:8px;line-height:1.5}
+  .specimen .s4{font-family:var(--mono);font-size:11px;color:var(--tm);margin-top:8px}
+  @media (max-width:1180px){
+    .left,.right{position:static;width:auto;bottom:auto}
+    .stage{position:static;left:auto;right:auto;height:60vh}
+    html,body{overflow:auto;height:auto}
+    body{padding:60px 16px 24px;display:flex;flex-direction:column;gap:16px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="brand" id="brandMark">STUDIO OS · <b>BRAND</b> STUDIO</button>
+  <div class="topright">
+    <span class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch tool" title="Switch tool">
+      <option value="Brand" data-file="brand-studio.html" selected>Brand Studio</option>
+      <option value="Birdhouse" data-file="birdhouse-builder.html">Birdhouse</option>
+      <option value="Playhouse" data-file="playhouse-builder.html">Playhouse</option>
+      <option value="Greenhouse" data-file="greenhouse-builder.html">Greenhouse</option>
+      <option value="Small House" data-file="smallhouse-builder.html">Small House</option>
+      <option value="Furniture" data-file="furniture-builder.html">Furniture</option>
+    </select></span>
+  </div>
+</div>
+
+<!-- ============ CONTROLS ============ -->
+<div class="left">
+  <div class="scroll">
+    <span class="ptitle">Brand studio</span>
+    <div class="psub">Tokens · type · colour</div>
+    <div class="rule"></div>
+
+    <div class="group">
+      <span class="glabel">Preset</span>
+      <select id="preset">
+        <option value="studio">Studio OS — Swiss red (current)</option>
+        <option value="delcan">Delcan Mono — house type</option>
+        <option value="blueprint">Blueprint — ink &amp; cyan</option>
+        <option value="cedar">Cedar — warm workshop</option>
+        <option value="mono">Monochrome — no accent</option>
+        <option value="hivis">Hi-vis — site safety</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Wordmark</span>
+      <div class="ctl"><div class="row"><label>Studio name</label></div>
+        <input type="text" id="bStudio" value="STUDIO OS"></div>
+      <div class="ctl"><div class="row"><label>Sheet line</label></div>
+        <input type="text" id="bSheet" value="ASSEMBLY GUIDE · SHEET 1 OF 1"></div>
+      <div class="ctl"><div class="row"><label>Case</label></div>
+        <div class="seg" id="bCase">
+          <button data-v="uppercase" class="on">Upper</button><button data-v="none">As typed</button><button data-v="lowercase">lower</button>
+        </div></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Typography</span>
+      <div class="ctl"><div class="row"><label>Display / headings</label></div>
+        <select id="fDisplay"></select></div>
+      <div class="ctl"><div class="row"><label>Data / technical</label></div>
+        <select id="fMono"></select></div>
+      <div class="ctl"><div class="row"><label>Body copy</label></div>
+        <select id="fBody"></select></div>
+      <div class="ctl"><div class="row"><label>Type scale</label><span class="val" id="vScale">100%</span></div>
+        <input type="range" id="scale" min="85" max="125" step="1" value="100"></div>
+      <div class="ctl"><div class="row"><label>Heading tracking</label><span class="val" id="vTrack">0.01em</span></div>
+        <input type="range" id="track" min="-3" max="24" step="1" value="1"></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Colour</span>
+      <div class="ctl"><div class="row"><label>Accent</label><span class="val" id="vAc">#E5202A</span></div>
+        <div class="swatchrow"><input type="color" id="cAc" value="#E5202A"><input type="text" id="tAc" value="#E5202A"></div></div>
+      <div class="ctl"><div class="row"><label>Field / background</label><span class="val" id="vField">#E6E6E6</span></div>
+        <div class="swatchrow"><input type="color" id="cField" value="#E6E6E6"><input type="text" id="tField" value="#E6E6E6"></div></div>
+      <div class="ctl"><div class="row"><label>Ink / text</label><span class="val" id="vInk">#141414</span></div>
+        <div class="swatchrow"><input type="color" id="cInk" value="#141414"><input type="text" id="tInk" value="#141414"></div></div>
+      <div class="ctl"><div class="row"><label>Muted text</label><span class="val" id="vMut">#666666</span></div>
+        <div class="swatchrow"><input type="color" id="cMut" value="#666666"><input type="text" id="tMut" value="#666666"></div></div>
+      <div class="ctl"><div class="row"><label>Rule contrast</label><span class="val" id="vRule">18%</span></div>
+        <input type="range" id="ruleA" min="6" max="60" step="1" value="18"></div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Form</span>
+      <div class="ctl"><div class="row"><label>Corner radius</label><span class="val" id="vRad">2 px</span></div>
+        <input type="range" id="rad" min="0" max="16" step="1" value="2"></div>
+      <div class="ctl"><div class="row"><label>Rule weight</label><span class="val" id="vRw">1.5 px</span></div>
+        <input type="range" id="rw" min="5" max="35" step="1" value="15"></div>
+      <div class="ctl"><div class="row"><label>Panel density</label><span class="val" id="vDens">normal</span></div>
+        <input type="range" id="dens" min="60" max="150" step="1" value="100"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LIVE PREVIEW ============ -->
+<div class="stage">
+  <div class="pvhead">
+    <span>Live preview</span>
+    <select id="pvTool">
+      <option value="playhouse-builder.html">Playhouse</option>
+      <option value="birdhouse-builder.html">Birdhouse</option>
+      <option value="smallhouse-builder.html">Small House</option>
+      <option value="greenhouse-builder.html">Greenhouse</option>
+      <option value="furniture-builder.html">Furniture</option>
+    </select>
+    <span id="pvState" style="margin-left:auto;color:var(--ac)"></span>
+  </div>
+  <div class="pvwrap">
+    <iframe id="pv" src="playhouse-builder.html" title="Live preview"></iframe>
+    <div class="pvnote" id="pvNote">Preview needs the tools served over http.<br>Run a local server in the garden folder, or open this from Studio OS.<br><br>The specimen and CSS output still work.</div>
+  </div>
+</div>
+
+<!-- ============ OUTPUT ============ -->
+<div class="right">
+  <div class="scroll">
+    <span class="ptitle">Specimen &amp; export</span>
+    <div class="psub">What it looks like · what to ship</div>
+    <div class="rule"></div>
+
+    <div class="group">
+      <span class="glabel">Specimen</span>
+      <div class="specimen" id="spec">
+        <div class="s1" id="spTitle">STILT PLAYHOUSE</div>
+        <div class="s2" id="spData">6 × 8 ft · ⌀ 1½″ · $1,800</div>
+        <div class="s3" id="spBody">Frame each wall flat on the deck, then tilt it up and brace it plumb before the roof goes on.</div>
+        <div class="s4" id="spMuted">ASSEMBLY GUIDE · SHEET 1 OF 1</div>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="glabel">Design tokens</span>
+      <div class="outbox" id="out"></div>
+      <button class="btn" id="copyCss">⧉ Copy CSS</button>
+      <button class="btn primary" id="applyAll">✓ Apply to all builders</button>
+      <button class="btn" id="resetAll">↺ Reset to Studio OS</button>
+      <div class="msg" id="msg"></div>
+      <div class="hint">“Apply” saves the theme to this browser. Builders that carry the theme loader pick it up on next open. “Copy CSS” gives you the token block to paste into a tool’s <b>:root</b> permanently.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FONTS=[
+  {v:"'Delcan Mono',ui-monospace,monospace", n:'Delcan Mono (house)'},
+  {v:"'FK Grotesk Mono',ui-monospace,monospace", n:'FK Grotesk Mono'},
+  {v:"'Helvetica Neue',Helvetica,Arial,sans-serif", n:'Helvetica Neue'},
+  {v:"'IBM Plex Mono',ui-monospace,Menlo,monospace", n:'IBM Plex Mono'},
+  {v:"ui-monospace,'SF Mono',Menlo,monospace", n:'System mono'},
+  {v:"Georgia,'Times New Roman',serif", n:'Georgia'},
+  {v:"'Courier New',Courier,monospace", n:'Courier'}
+];
+const PRESETS={
+  studio:{ac:'#E5202A',field:'#E6E6E6',ink:'#141414',mut:'#666666',ruleA:18,rad:2,rw:15,dens:100,scale:100,track:1,
+    fDisplay:2,fMono:3,fBody:2},
+  delcan:{ac:'#E5202A',field:'#E8E6E1',ink:'#141414',mut:'#6b675f',ruleA:18,rad:0,rw:15,dens:100,scale:100,track:2,
+    fDisplay:0,fMono:1,fBody:2},
+  blueprint:{ac:'#1C8FD6',field:'#0E2A47',ink:'#EAF1FB',mut:'#9DB8D6',ruleA:34,rad:0,rw:10,dens:100,scale:100,track:4,
+    fDisplay:1,fMono:1,fBody:2},
+  cedar:{ac:'#B4622A',field:'#EDE6DA',ink:'#2A2118',mut:'#7A6A57',ruleA:20,rad:3,rw:15,dens:110,scale:102,track:2,
+    fDisplay:0,fMono:1,fBody:5},
+  mono:{ac:'#141414',field:'#EDEDED',ink:'#141414',mut:'#7a7a7a',ruleA:16,rad:0,rw:10,dens:95,scale:98,track:6,
+    fDisplay:1,fMono:1,fBody:2},
+  hivis:{ac:'#E8B500',field:'#1A1A1A',ink:'#F5F5F0',mut:'#9a9a92',ruleA:30,rad:0,rw:20,dens:105,scale:104,track:8,
+    fDisplay:0,fMono:1,fBody:2}
+};
+const S={studio:'STUDIO OS',sheet:'ASSEMBLY GUIDE · SHEET 1 OF 1',bcase:'uppercase'};
+const $=id=>document.getElementById(id);
+
+// populate font dropdowns
+for(const sel of ['fDisplay','fMono','fBody']){
+  FONTS.forEach((f,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=f.n; $(sel).appendChild(o); });
+}
+
+function hex(v){ return /^#?[0-9a-fA-F]{6}$/.test(v.trim()) ? (v.trim()[0]==='#'?v.trim():'#'+v.trim()) : null; }
+function rgba(h,a){ const n=parseInt(h.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+
+function readState(){
+  return {
+    ac:$('cAc').value, field:$('cField').value, ink:$('cInk').value, mut:$('cMut').value,
+    ruleA:+$('ruleA').value, rad:+$('rad').value, rw:+$('rw').value/10, dens:+$('dens').value,
+    scale:+$('scale').value, track:+$('track').value/100,
+    fDisplay:FONTS[+$('fDisplay').value].v, fMono:FONTS[+$('fMono').value].v, fBody:FONTS[+$('fBody').value].v,
+    studio:$('bStudio').value, sheet:$('bSheet').value, bcase:S.bcase
+  };
+}
+
+const FACES=`@font-face{font-family:'Delcan Mono';font-style:normal;font-weight:400;font-display:swap;
+  src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}
+@font-face{font-family:'FK Grotesk Mono';font-style:normal;font-weight:500;font-display:swap;
+  src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'),url('fonts/FKGroteskMono-Medium.otf') format('opentype');}`;
+
+function cssBlock(t){
+  t=t||readState();
+  const pad=Math.round(20*t.dens/100), ipad=Math.round(8*t.dens/100);
+  return `${FACES}
+:root{
+  --ac:${t.ac};
+  --field:${t.field}; --paper:${t.field};
+  --tx:${t.ink}; --ink:${t.ink};
+  --tm:${t.mut}; --tf:${rgba(t.mut,.7)};
+  --bd:${rgba(t.ink,t.ruleA/100)}; --bd2:${t.ink};
+  --pb:${rgba(t.ink,.96)};
+  --cond:${t.fDisplay};
+  --mono:${t.fMono};
+  --serif:${t.fBody};
+}
+html,body{font-size:${t.scale}%}
+.ptitle,.glabel,.stepnav .stitle,.mgroup h3,.brand,.shophead .stitle2,.stepinfo h5,.mhead .mt{
+  font-family:var(--cond)!important; letter-spacing:${t.track}em!important; text-transform:${t.bcase}!important;}
+.mgroup h3,#sheetframe,.rhead,.mhead{border-width:${t.rw}px}
+.mgroup h3{border-bottom:${t.rw}px solid var(--ink)!important}
+button,select,input,.seg button,.dock button,.item .ck,.paper,.stepnav,.shoppanel,.mpanel,
+.outbox,.specimen,.stepcard,.stepdiag,.note,.spec span,.stepspec span{border-radius:${t.rad}px!important}
+.scroll{padding:${pad}px!important}
+.item,.shopitem{padding-top:${ipad}px!important;padding-bottom:${ipad}px!important}
+.brand::after{content:'${(t.sheet||'').replace(/'/g,"\\'")}'!important}`;
+}
+
+// ---- live preview: same-origin iframe, inject a style tag ----
+function applyToPreview(){
+  const ifr=$('pv'), note=$('pvNote');
+  let doc=null;
+  try{ doc=ifr.contentDocument; }catch(e){ doc=null; }
+  if(!doc||!doc.head){ note.classList.add('on'); $('pvState').textContent='no preview'; return; }
+  note.classList.remove('on'); $('pvState').textContent='live';
+  let st=doc.getElementById('brandOverride');
+  if(!st){ st=doc.createElement('style'); st.id='brandOverride'; doc.head.appendChild(st); }
+  st.textContent=cssBlock();
+  const t=readState();
+  const b=doc.querySelector('.brand');
+  if(b){ const tool=(b.textContent||'').replace(/^.*·\s*/,'').replace(/\s*BUILDER\s*$/i,'').trim();
+    b.innerHTML=`${t.studio} · <b>${tool}</b> BUILDER`; }
+}
+
+function render(){
+  const t=readState();
+  // local specimen
+  const sp=$('spec');
+  sp.style.setProperty('--ac',t.ac); sp.style.background=rgba(t.ink,.04);
+  $('spTitle').style.cssText=`font-family:${t.fDisplay};letter-spacing:${t.track}em;text-transform:${t.bcase};color:${t.ink}`;
+  $('spData').style.cssText=`font-family:${t.fMono};color:${t.ac}`;
+  $('spBody').style.cssText=`font-family:${t.fBody};color:${t.ink}`;
+  $('spMuted').style.cssText=`font-family:${t.fMono};color:${t.mut}`;
+  $('spMuted').textContent=t.sheet;
+  // readouts
+  $('vAc').textContent=t.ac.toUpperCase(); $('tAc').value=t.ac.toUpperCase();
+  $('vField').textContent=t.field.toUpperCase(); $('tField').value=t.field.toUpperCase();
+  $('vInk').textContent=t.ink.toUpperCase(); $('tInk').value=t.ink.toUpperCase();
+  $('vMut').textContent=t.mut.toUpperCase(); $('tMut').value=t.mut.toUpperCase();
+  $('vRule').textContent=t.ruleA+'%';
+  $('vRad').textContent=t.rad+' px';
+  $('vRw').textContent=t.rw.toFixed(1)+' px';
+  $('vDens').textContent=t.dens<85?'tight':t.dens>115?'airy':'normal';
+  $('vScale').textContent=t.scale+'%';
+  $('vTrack').textContent=t.track.toFixed(2)+'em';
+  $('out').textContent=cssBlock(t);
+  applyToPreview();
+}
+
+// wire every control
+['cAc','cField','cInk','cMut'].forEach(id=>$(id).addEventListener('input',render));
+[['tAc','cAc'],['tField','cField'],['tInk','cInk'],['tMut','cMut']].forEach(([t,c])=>{
+  $(t).addEventListener('change',()=>{ const h=hex($(t).value); if(h){ $(c).value=h; render(); } else render(); });
+});
+['ruleA','rad','rw','dens','scale','track'].forEach(id=>$(id).addEventListener('input',render));
+['fDisplay','fMono','fBody'].forEach(id=>$(id).addEventListener('change',render));
+['bStudio','bSheet'].forEach(id=>$(id).addEventListener('input',render));
+$('bCase').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  S.bcase=b.dataset.v; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); render(); });
+
+$('preset').addEventListener('change',()=>{
+  const p=PRESETS[$('preset').value]; if(!p) return;
+  $('cAc').value=p.ac; $('cField').value=p.field; $('cInk').value=p.ink; $('cMut').value=p.mut;
+  $('ruleA').value=p.ruleA; $('rad').value=p.rad; $('rw').value=Math.round(p.rw); $('dens').value=p.dens;
+  $('scale').value=p.scale; $('track').value=p.track;
+  $('fDisplay').value=p.fDisplay; $('fMono').value=p.fMono; $('fBody').value=p.fBody;
+  render();
+});
+
+$('pvTool').addEventListener('change',()=>{ $('pv').src=$('pvTool').value; });
+$('pv').addEventListener('load',()=>setTimeout(applyToPreview,120));
+
+// keep the 1440×900 preview scaled to whatever room the stage has
+function fitPreview(){
+  const w=$('pv').parentElement.clientWidth, h=$('pv').parentElement.clientHeight;
+  if(!w||!h) return;
+  const s=Math.min(w/1440,h/900);
+  $('pv').style.transform=`scale(${s}) translate(${(w/s-1440)/2}px,${(h/s-900)/2}px)`;
+}
+addEventListener('resize',fitPreview);
+new ResizeObserver(fitPreview).observe($('pv').parentElement);
+
+$('copyCss').addEventListener('click',()=>{
+  navigator.clipboard.writeText(cssBlock()).then(
+    ()=>{ $('msg').textContent='Token block copied to the clipboard.'; },
+    ()=>{ $('msg').textContent='Copy blocked — select the text above instead.'; });
+});
+$('applyAll').addEventListener('click',()=>{
+  try{ localStorage.setItem('studioBrand', JSON.stringify(readState()));
+    $('msg').textContent='Saved. Builders with the theme loader will use it.'; }
+  catch(e){ $('msg').textContent='Could not save to this browser.'; }
+});
+$('resetAll').addEventListener('click',()=>{
+  try{ localStorage.removeItem('studioBrand'); }catch(e){}
+  $('preset').value='studio'; $('preset').dispatchEvent(new Event('change'));
+  $('bStudio').value='STUDIO OS'; $('bSheet').value='ASSEMBLY GUIDE · SHEET 1 OF 1';
+  S.bcase='uppercase'; [...$('bCase').children].forEach(x=>x.classList.toggle('on',x.dataset.v==='uppercase'));
+  $('msg').textContent='Reset to the Studio OS default.'; render();
+});
+
+// tool switcher — match the family convention
+$('toolSel').addEventListener('change',function(){ const o=this.options[this.selectedIndex];
+  if(!o||o.value==='Brand') return;
+  const name=o.value, file=o.getAttribute('data-file');
+  if(window.self!==window.top){ try{ window.parent.postMessage({type:'studioToolSwitch',tool:name}, window.location.origin); return; }catch(e){} }
+  window.location.href=file;
+});
+
+// restore a saved theme if there is one — otherwise start from the builders' actual current design
+(function(){ try{ const raw=localStorage.getItem('studioBrand');
+  if(!raw){ $('preset').value='studio'; $('preset').dispatchEvent(new Event('change')); return; }
+  const t=JSON.parse(raw);
+  if(t.ac)$('cAc').value=t.ac; if(t.field)$('cField').value=t.field; if(t.ink)$('cInk').value=t.ink; if(t.mut)$('cMut').value=t.mut;
+  if(t.ruleA)$('ruleA').value=t.ruleA; if(t.rad!=null)$('rad').value=t.rad; if(t.rw)$('rw').value=Math.round(t.rw*10);
+  if(t.dens)$('dens').value=t.dens; if(t.scale)$('scale').value=t.scale; if(t.track!=null)$('track').value=Math.round(t.track*100);
+  if(t.studio)$('bStudio').value=t.studio; if(t.sheet)$('bSheet').value=t.sheet;
+  if(t.bcase){ S.bcase=t.bcase; [...$('bCase').children].forEach(x=>x.classList.toggle('on',x.dataset.v===t.bcase)); }
+  const idx=v=>{ const i=FONTS.findIndex(f=>f.v===v); return i<0?null:i; };
+  if(idx(t.fDisplay)!=null)$('fDisplay').value=idx(t.fDisplay);
+  if(idx(t.fMono)!=null)$('fMono').value=idx(t.fMono);
+  if(idx(t.fBody)!=null)$('fBody').value=idx(t.fBody);
+}catch(e){} })();
+
+render();
+fitPreview();
+</script>
+</body>
+</html>
