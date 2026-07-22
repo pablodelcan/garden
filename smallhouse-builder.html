@@ -533,8 +533,8 @@
 (function(){try{
   var t=JSON.parse(localStorage.getItem('studioBrand')||'null'); if(!t) return;
   var rgba=function(h,a){var n=parseInt(String(h).slice(1),16);return'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';};
-  var css="@font-face{font-family:'Delcan Mono';font-display:swap;src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}"
-   +"@font-face{font-family:'FK Grotesk Mono';font-display:swap;src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'),url('fonts/FKGroteskMono-Medium.otf') format('opentype');}"
+  var css="@font-face{font-family:'Delcan Mono';font-weight:100 900;font-display:swap;src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}"
+   +"@font-face{font-family:'FK Grotesk Mono';font-weight:100 900;font-display:swap;src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'),url('fonts/FKGroteskMono-Medium.otf') format('opentype');}"
    +":root{--ac:"+t.ac+";--field:"+t.field+";--paper:"+t.field+";--tx:"+t.ink+";--ink:"+t.ink+";--tm:"+t.mut
    +";--bd:"+rgba(t.ink,(t.ruleA||18)/100)+";--bd2:"+t.ink+";--pb:"+rgba(t.ink,0.96)
    +";--cond:"+t.fDisplay+";--mono:"+t.fMono+";--serif:"+t.fBody+";}"
