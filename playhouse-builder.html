@@ -31,6 +31,14 @@
 
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field)}
   body[data-view="blueprint"] #bg{background:var(--blue)}
+  /* LINE mode = a hand-drawn technical manual: warm cream graph paper the model is inked onto */
+  body[data-view="manual"] #bg{background-color:#ece4d3;
+    background-image:
+      linear-gradient(rgba(58,48,32,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,48,32,.05) 1px,transparent 1px),
+      linear-gradient(rgba(58,48,32,.10) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,48,32,.10) 1px,transparent 1px);
+    background-size:15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
   .blob{display:none}
   #scene{position:fixed;inset:0;z-index:1}
   /* drawing-sheet frame — double black rule + corner ticks, like a printed manual page */
@@ -1008,7 +1016,7 @@ function setView(v){
 document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('b'); if(b) setView(b.dataset.view); });
 
 /* ===== THREE setup ===== */
-let renderer,scene,camera,controls,house,sun,groundPlane;
+let renderer,scene,camera,controls,house,sun,groundPlane,hatchMats=[];
 const errEl=document.getElementById('err');
 try{
   const canvas=document.getElementById('scene');
@@ -1032,7 +1040,9 @@ try{
   function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
   addEventListener('resize',resize); resize();
   (function loop(){ requestAnimationFrame(loop);
-    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=0.9; controls.update(); renderer.render(scene,camera); updateDimLabels(); })();
+    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=0.9; controls.update();
+    if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
+    renderer.render(scene,camera); updateDimLabels(); })();
 }catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The materials list still works.'; }
 
 function updateDimLabels(){
@@ -1122,8 +1132,43 @@ function signPlane(text){
 }
 function clearHouse(){ if(!house)return; while(house.children.length)house.remove(house.children[0]); }
 
+/* ===== engraving / technical-manual shader (LINE mode) =====
+   Tonal cross-hatching drawn in SCREEN space (so every stroke stays a constant pen-weight,
+   like ink on paper), with the tone driven by normal·light in VIEW space — so as you orbit,
+   the light sweeps across the model and the hatching redraws itself live. */
+const HATCH_VERT=`
+  varying vec3 vN;
+  void main(){ vN = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
+const HATCH_FRAG=`
+  precision highp float;
+  varying vec3 vN;
+  uniform vec3 uPaper, uInk, uLight;   // uPaper = material LIT grey · uInk = material SHADOW grey
+  uniform float uPx, uAlpha, uTex;
+  float hash(vec2 p){ return fract(sin(dot(floor(p),vec2(41.31,289.17)))*43758.5453); }
+  void main(){
+    float ndl = dot(normalize(vN), normalize(uLight));
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // view-space half-lambert → the shading sweeps as the model turns
+    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.55);      // soft 4-band quantise → matte, printed tonal steps
+    vec3 col = mix(uInk, uPaper, b);                          // grayscale form shading between the material's shadow & lit tone
+    vec2 sp = gl_FragCoord.xy / uPx;
+    float g = hash(sp*1.7);                                   // fine paper tooth; deepened on textured parts (siding/wood), esp. in shadow
+    col *= (1.0 - g*(0.05 + uTex*0.13*(1.0-b)));
+    gl_FragColor = vec4(col, uAlpha); }`;
+function makeHatchMat(litHex, shadeHex, alpha, tex){
+  const m=new THREE.ShaderMaterial({
+    vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
+    uniforms:{ uPaper:{value:new THREE.Color(litHex)}, uInk:{value:new THREE.Color(shadeHex)},
+      uLight:{value:new THREE.Vector3(-0.42,0.80,0.55).normalize()},   // view-space key from the viewer's upper-left
+      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0} },
+    transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
+    polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+  hatchMats.push(m); return m;
+}
+
 /* ===== view-style post-pass: re-skin the freshly-built model (shaded / manual / blueprint) ===== */
 function applyViewStyle(){
+  hatchMats=[];
   const v=(state.view)||'shaded';
   if(scene) scene.background = v==='blueprint' ? new THREE.Color(0x16365c) : null;
   if(groundPlane) groundPlane.visible = (v==='shaded');
@@ -1142,13 +1187,31 @@ function applyViewStyle(){
   for(const o of meshes){
     const mat=o.material; if(!mat||!mat.color) continue;
     const wasT=!!mat.transparent, op=(mat.opacity==null?1:mat.opacity);
-    let fill, opacity;
-    if(v==='manual'){ fill=C(mat.color.getHex()).lerp(white,0.85); opacity = wasT ? Math.min(op+0.45,0.6) : 1; }      // near-white line drawing
-    else if(v==='color'){ fill=nearest(mat.color).clone(); opacity = wasT ? 0.5 : 1; }                                 // parts-coded primaries
-    else { fill=C(0x1d4f88); opacity = wasT ? 0.30 : 0.9; }                                                            // blueprint solid
-    o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mat.side||THREE.FrontSide,
-      polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
-    o.castShadow=false; o.receiveShadow=false;
+    if(v==='manual'){
+      // grayscale "material manual" render — each part maps to a printed grey [lit, shadow, texture]; form shading is
+      // view-space so it sweeps as you orbit. Board / seam / batten lines come from the geometry + ink edges below.
+      const GR=[
+        [C(colors.roof),                0x434241, 0x262524, 0.0],   // metal roof — dark, smooth (standing seams read from edges)
+        [C(colors.struct),              0x3d3b37, 0x232120, 0.32],  // framing / posts — charcoal
+        [C(colors.trim||colors.struct), 0x3d3b37, 0x232120, 0.32],
+        [C(colors.siding),              0xcfccc3, 0x9b988f, 0.9],   // siding / plywood — mid grey, textured
+        [C(0x564d40),                   0xe9e7e1, 0xc6c4be, 0.12],  // concrete footing — near-white
+        [C(0x8c8a84),                   0xe9e7e1, 0xc6c4be, 0.12],
+        [C(colors.door||0x3a2517),      0x6c675d, 0x433f39, 0.5],   // door — mid-dark wood
+        [C(0x9fc7d6),                   0xdedfda, 0xc2c4c0, 0.0],   // glass — light, smooth
+        [C(colors.accent||colors.roof), 0x554f48, 0x322f2b, 0.3]
+      ];
+      let bst=GR[0],bd=1e9; for(const r of GR){ const s=r[0], d=(mat.color.r-s.r)**2+(mat.color.g-s.g)**2+(mat.color.b-s.b)**2; if(d<bd){bd=d;bst=r;} }
+      o.material = makeHatchMat(bst[1], bst[2], wasT?0.5:1, bst[3]);
+      o.castShadow=false; o.receiveShadow=false;
+    } else {
+      let fill, opacity;
+      if(v==='color'){ fill=nearest(mat.color).clone(); opacity = wasT ? 0.5 : 1; }                                     // parts-coded primaries
+      else { fill=C(0x1d4f88); opacity = wasT ? 0.30 : 0.9; }                                                          // blueprint solid
+      o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mat.side||THREE.FrontSide,
+        polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+      o.castShadow=false; o.receiveShadow=false;
+    }
     if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all framing/panels read clean; skip extrude/sphere/cone to avoid triangulation noise
       try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
         const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});

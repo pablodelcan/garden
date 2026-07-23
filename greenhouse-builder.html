@@ -31,6 +31,14 @@
 
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field)}
   body[data-view="blueprint"] #bg{background:var(--blue)}
+  /* LINE mode = a hand-drawn technical manual: warm cream graph paper the model is inked onto */
+  body[data-view="manual"] #bg{background-color:#ece4d3;
+    background-image:
+      linear-gradient(rgba(58,48,32,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,48,32,.05) 1px,transparent 1px),
+      linear-gradient(rgba(58,48,32,.10) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,48,32,.10) 1px,transparent 1px);
+    background-size:15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
   .blob{display:none}
   #scene{position:fixed;inset:0;z-index:1}
   /* drawing-sheet frame — double black rule + corner ticks, like a printed manual page */
@@ -966,7 +974,7 @@ function setView(v){
 document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('b'); if(b) setView(b.dataset.view); });
 
 /* ===== THREE setup ===== */
-let renderer,scene,camera,controls,house,sun,groundPlane;
+let renderer,scene,camera,controls,house,sun,groundPlane,hatchMats=[];
 const errEl=document.getElementById('err');
 try{
   const canvas=document.getElementById('scene');
@@ -990,7 +998,9 @@ try{
   function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
   addEventListener('resize',resize); resize();
   (function loop(){ requestAnimationFrame(loop);
-    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=0.9; controls.update(); renderer.render(scene,camera); updateDimLabels(); })();
+    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=0.9; controls.update();
+    if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
+    renderer.render(scene,camera); updateDimLabels(); })();
 }catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The materials list still works.'; }
 
 function updateDimLabels(){
@@ -1080,8 +1090,55 @@ function signPlane(text){
 }
 function clearHouse(){ if(!house)return; while(house.children.length)house.remove(house.children[0]); }
 
+/* ===== engraving / technical-manual shader (LINE mode) =====
+   Tonal cross-hatching drawn in SCREEN space (so every stroke stays a constant pen-weight,
+   like ink on paper), with the tone driven by normal·light in VIEW space — so as you orbit,
+   the light sweeps across the model and the hatching redraws itself live. */
+const HATCH_VERT=`
+  varying vec3 vN;
+  void main(){ vN = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
+const HATCH_FRAG=`
+  precision highp float;
+  varying vec3 vN;
+  uniform vec3 uPaper, uInk, uLight;
+  uniform float uPx, uAlpha, uInkBias;
+  float hash(vec2 p){ return fract(sin(dot(floor(p),vec2(41.31,289.17)))*43758.5453); }
+  float strokes(vec2 p, float a, float sp, float th){
+    float d = p.x*cos(a) + p.y*sin(a);
+    float f = abs(fract(d/sp)-0.5)*sp;
+    float w = (hash(vec2(d*0.4, 3.0))-0.5)*0.7;
+    return smoothstep(th, th+1.1, f+w); }
+  float hatching(vec2 p, float tone){
+    float h=1.0, sp=7.6, th=0.9;
+    if(tone<0.70) h=min(h, strokes(p,  0.62, sp,     th));
+    if(tone<0.50) h=min(h, strokes(p, -0.62, sp,     th));
+    if(tone<0.35) h=min(h, strokes(p,  1.94, sp*0.9, th));
+    if(tone<0.22) h=min(h, strokes(p, -1.94, sp*0.9, th));
+    if(tone<0.12) h=min(h, strokes(p,  0.62, sp*0.5, th));
+    return h; }
+  void main(){
+    float ndl = dot(normalize(vN), normalize(uLight));
+    float tone = clamp(ndl*0.5 + 0.80 - uInkBias, 0.0, 1.0);
+    vec2 p = gl_FragCoord.xy / uPx;
+    float h = hatching(p, tone);
+    float grain = hash(p*1.3);
+    vec3 paper = uPaper * (1.0 - grain*0.045);
+    gl_FragColor = vec4(mix(uInk, paper, h), uAlpha); }`;
+function makeHatchMat(paperHex, inkHex, alpha, inkBias){
+  const m=new THREE.ShaderMaterial({
+    vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
+    uniforms:{ uPaper:{value:new THREE.Color(paperHex)}, uInk:{value:new THREE.Color(inkHex)},
+      uLight:{value:new THREE.Vector3(-0.42,0.80,0.55).normalize()},
+      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uInkBias:{value:inkBias||0} },
+    transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
+    polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+  hatchMats.push(m); return m;
+}
+
 /* ===== view-style post-pass: re-skin the freshly-built model (shaded / manual / blueprint) ===== */
 function applyViewStyle(){
+  hatchMats=[];
   const v=(state.view)||'shaded';
   if(scene) scene.background = v==='blueprint' ? new THREE.Color(0x16365c) : null;
   if(groundPlane) groundPlane.visible = (v==='shaded');
@@ -1100,13 +1157,19 @@ function applyViewStyle(){
   for(const o of meshes){
     const mat=o.material; if(!mat||!mat.color) continue;
     const wasT=!!mat.transparent, op=(mat.opacity==null?1:mat.opacity);
-    let fill, opacity;
-    if(v==='manual'){ fill=C(mat.color.getHex()).lerp(white,0.85); opacity = wasT ? Math.min(op+0.45,0.6) : 1; }      // near-white line drawing
-    else if(v==='color'){ fill=nearest(mat.color).clone(); opacity = wasT ? 0.5 : 1; }                                 // parts-coded primaries
-    else { fill=C(0x1d4f88); opacity = wasT ? 0.30 : 0.9; }                                                            // blueprint solid
-    o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mat.side||THREE.FrontSide,
-      polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
-    o.castShadow=false; o.receiveShadow=false;
+    if(v==='manual'){
+      const lum=(mat.color.r*0.299+mat.color.g*0.587+mat.color.b*0.114);
+      const inkBias = Math.min(0.34, Math.max(0, (0.48-lum))*0.9);       // dark materials (footings, door) → read solid
+      o.material = makeHatchMat(0xf6f1e6, 0x1b1712, wasT?0.34:1, inkBias);
+      o.castShadow=false; o.receiveShadow=false;
+    } else {
+      let fill, opacity;
+      if(v==='color'){ fill=nearest(mat.color).clone(); opacity = wasT ? 0.5 : 1; }                                     // parts-coded primaries
+      else { fill=C(0x1d4f88); opacity = wasT ? 0.30 : 0.9; }                                                          // blueprint solid
+      o.material=new THREE.MeshBasicMaterial({color:fill,transparent:true,opacity,side:mat.side||THREE.FrontSide,
+        polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+      o.castShadow=false; o.receiveShadow=false;
+    }
     if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all framing/panels read clean; skip extrude/sphere/cone to avoid triangulation noise
       try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
         const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});

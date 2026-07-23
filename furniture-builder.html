@@ -27,6 +27,13 @@
   a{color:var(--ac);text-decoration:none}
   #scene{position:fixed;inset:0;z-index:1}
   body[data-view="blueprint"]{background:var(--blue)}
+  body[data-view="manual"]{background-color:#ece4d3;
+    background-image:
+      linear-gradient(rgba(58,48,32,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,48,32,.05) 1px,transparent 1px),
+      linear-gradient(rgba(58,48,32,.10) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,48,32,.10) 1px,transparent 1px);
+    background-size:15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
 
   .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7;pointer-events:none}
   .topbar>*{pointer-events:auto}
@@ -428,7 +435,7 @@ addEventListener('storage',e=>{ if(e.key===ULKEY && typeof update==='function') 
 addEventListener('focus',()=>{ if(unlocked()!==_ulShown && typeof update==='function') update(); });
 
 /* ===== three.js ===== */
-let renderer,scene,camera,controls,model,sun,ground,spin=false;
+let renderer,scene,camera,controls,model,sun,ground,spin=false,hatchMats=[];
 function init(){
   scene=new THREE.Scene();
   const cv=document.createElement('canvas'); document.getElementById('scene').appendChild(cv);
@@ -450,7 +457,9 @@ function init(){
   gp.rotation.x=-Math.PI/2; gp.receiveShadow=true; scene.add(gp); ground=gp;
   model=new THREE.Group(); scene.add(model);
   addEventListener('resize',resize); resize();
-  (function loop(){ requestAnimationFrame(loop); controls.autoRotate=spin; controls.autoRotateSpeed=1.1; controls.update(); renderer.render(scene,camera); })();
+  (function loop(){ requestAnimationFrame(loop); controls.autoRotate=spin; controls.autoRotateSpeed=1.1; controls.update();
+    if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
+    renderer.render(scene,camera); })();
 }
 function resize(){ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
 function clearModel(){ for(let i=model.children.length-1;i>=0;i--){ const o=model.children[i]; model.remove(o); if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); } }
@@ -667,8 +676,53 @@ function buildFigure(W){
 }
 
 /* ===== view styles (shaded / line / color / blueprint) ===== */
+/* ===== engraving / technical-manual shader (LINE mode) =====
+   Tonal cross-hatching in SCREEN space (constant pen-weight), tone from normal·light in VIEW
+   space — so orbiting sweeps the light across the model and the hatching redraws itself live. */
+const HATCH_VERT=`
+  varying vec3 vN;
+  void main(){ vN = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
+const HATCH_FRAG=`
+  precision highp float;
+  varying vec3 vN;
+  uniform vec3 uPaper, uInk, uLight;
+  uniform float uPx, uAlpha, uInkBias;
+  float hash(vec2 p){ return fract(sin(dot(floor(p),vec2(41.31,289.17)))*43758.5453); }
+  float strokes(vec2 p, float a, float sp, float th){
+    float d = p.x*cos(a) + p.y*sin(a);
+    float f = abs(fract(d/sp)-0.5)*sp;
+    float w = (hash(vec2(d*0.4, 3.0))-0.5)*0.7;
+    return smoothstep(th, th+1.1, f+w); }
+  float hatching(vec2 p, float tone){
+    float h=1.0, sp=7.6, th=0.9;
+    if(tone<0.70) h=min(h, strokes(p,  0.62, sp,     th));
+    if(tone<0.50) h=min(h, strokes(p, -0.62, sp,     th));
+    if(tone<0.35) h=min(h, strokes(p,  1.94, sp*0.9, th));
+    if(tone<0.22) h=min(h, strokes(p, -1.94, sp*0.9, th));
+    if(tone<0.12) h=min(h, strokes(p,  0.62, sp*0.5, th));
+    return h; }
+  void main(){
+    float ndl = dot(normalize(vN), normalize(uLight));
+    float tone = clamp(ndl*0.5 + 0.80 - uInkBias, 0.0, 1.0);
+    vec2 p = gl_FragCoord.xy / uPx;
+    float h = hatching(p, tone);
+    float grain = hash(p*1.3);
+    vec3 paper = uPaper * (1.0 - grain*0.045);
+    gl_FragColor = vec4(mix(uInk, paper, h), uAlpha); }`;
+function makeHatchMat(paperHex, inkHex, alpha, inkBias){
+  const m=new THREE.ShaderMaterial({
+    vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
+    uniforms:{ uPaper:{value:new THREE.Color(paperHex)}, uInk:{value:new THREE.Color(inkHex)},
+      uLight:{value:new THREE.Vector3(-0.42,0.80,0.55).normalize()},
+      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uInkBias:{value:inkBias||0} },
+    transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
+    polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+  hatchMats.push(m); return m;
+}
+
 function applyViewStyle(){
-  const v=state.view;
+  const v=state.view; hatchMats=[];
   scene.background = v==='blueprint' ? new THREE.Color(0x16365c) : null;
   ground.visible = (v==='shaded');
   document.body.dataset.view=v;
@@ -677,12 +731,19 @@ function applyViewStyle(){
   model.traverse(o=>{
     if(!o.isMesh) return;
     const part=o.userData.part||'top';
-    let fill, op=1, edge=true;
-    if(v==='manual'){ fill=0xffffff; }
-    else if(v==='color'){ fill=PART[part]!=null?PART[part]:0xF2C200; }
-    else { fill=0x1d4f88; op=0.92; }
-    o.material=new THREE.MeshBasicMaterial({color:fill,transparent:op<1,opacity:op,
-      polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    let edge=true;
+    if(v==='manual'){
+      const c=(o.material&&o.material.color)?o.material.color:{r:0.6,g:0.5,b:0.4};
+      const lum=(c.r*0.299+c.g*0.587+c.b*0.114);
+      const inkBias=Math.min(0.34,Math.max(0,(0.48-lum))*0.9);
+      o.material=makeHatchMat(0xf6f1e6,0x1b1712,1,inkBias);
+    } else {
+      let fill, op=1;
+      if(v==='color'){ fill=PART[part]!=null?PART[part]:0xF2C200; }
+      else { fill=0x1d4f88; op=0.92; }
+      o.material=new THREE.MeshBasicMaterial({color:fill,transparent:op<1,opacity:op,
+        polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    }
     o.castShadow=false; o.receiveShadow=false;
     if(edge && o.geometry){ try{
       const eg=new THREE.EdgesGeometry(o.geometry,28);
