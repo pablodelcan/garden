@@ -6,6 +6,11 @@
 <title>Playhouse — Studio OS</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+  @font-face{font-family:'Delcan Mono';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}
+  @font-face{font-family:'FK Grotesk Mono';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('/fonts/FKGroteskMono-Medium.otf') format('opentype'),url('fonts/FKGroteskMono-Medium.otf') format('opentype');}
+
   :root{
     --field:#E6E6E6;          /* flat neutral 10% gray — all backgrounds */
     --paper:#E6E6E6;          /* panels same flat gray, defined by rules not fills */
@@ -14,8 +19,8 @@
     --ink:#141414;            /* hairline + heavy rules */
     --bd:rgba(20,20,20,0.18); --bd2:#141414; --pb:rgba(20,20,20,0.96);
     --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;   /* Swiss grotesque, body */
-    --cond:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;    /* Swiss grotesque, headers (set bold) */
-    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* tabular figures */
+    --cond:'Delcan Mono','Helvetica Neue',Helvetica,Arial,sans-serif;    /* Swiss grotesque, headers (set bold) */
+    --mono:'FK Grotesk Mono','IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* tabular figures */
     --good:#2f8a3e; --warn:#b97400; --bad:#E5202A; --blue:#15407a; --part1:#1C8FD6; --part2:#F2C200; --part3:#E5202A; --part4:#3DA34D;
   }
   *{box-sizing:border-box;margin:0;padding:0}
