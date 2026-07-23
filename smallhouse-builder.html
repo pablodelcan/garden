@@ -662,6 +662,12 @@
           <button data-v="ladder" class="on">Ladder</button>
           <button data-v="stairs">Stairs</button>
         </div></div>
+      <div class="ctl" id="deckEdgeCtl"><div class="row"><label>Deck access edge</label></div>
+        <div class="seg three" id="deckEdge">
+          <button data-v="outer">Front (out)</button>
+          <button data-v="left" class="on">Left side</button>
+          <button data-v="right">Right side</button>
+        </div></div>
       <div class="ctl"><div class="row"><label>Stair / ladder side</label></div>
         <div class="seg four" id="stairSide">
           <button data-v="front" class="on">Front</button>
@@ -941,7 +947,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 /* ===== state (before render loop references it) ===== */
 const state={W:12,D:14,Hf:3,Hw:8,Dd:0,deckSide:'front',post:'6x6',roof:'gable',slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',permitFree:false,
-  foundation:'piers',access:'stairs',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:true,rafter8:true,anchor:true,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'piers',access:'stairs',stairSide:'front',stairPos:0.5,stairDir:'out',deckEdge:'left',midBeam:true,rafter8:true,anchor:true,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
 const tog={tSiding:true,tRoof:true,tBraces:true,tLadder:true,tFraming:true,tSpin:false,tInterior:false,furniture:true,kids:true,bed:true,bathroom:true,kitchen:true,kingBed:false,tDims:false,tScale:false};
@@ -1570,10 +1576,27 @@ function rebuild3D(p){
   // when there IS a deck, access always lands ON the deck — a ladder leaning on a blank wall goes nowhere
   const stairSide = Dd>0 ? p.deckSide : (state.stairSide || p.door.wall), stairDir = state.stairDir || 'out';
   const ssm = sideMap(stairSide), sAl = ssm.along;
-  const stairEdgeO = ssm.houseHalf + ((Dd>0 && stairSide===p.deckSide) ? Dd : 0);
   const stairPosF = state.stairPos!=null ? state.stairPos : (stairSide===p.door.wall ? p.door.pos : 0.5);
-  const stairAC = Math.max(-sAl/2+1.3, Math.min(sAl/2-1.3, (stairPosF-0.5)*sAl));
-  const deckGapC = (Dd>0 && sL && stairSide===p.deckSide) ? stairAC : null;   // climber tops out at stairAC for every descent direction
+  const deckEdge = (Dd>0 && sL) ? (state.deckEdge||'left') : 'wall';   // which DECK edge the access hangs off
+  let accPt, accWidthIsX, gapEdge='none', gapAlong=null, gapOut=null, stairAC=0, stairEdgeO;
+  { const oIn=ssm.houseHalf, oOut=oIn+((Dd>0&&stairSide===p.deckSide)?Dd:0), oP=oOut-th/2;
+    if(deckEdge==='wall' || deckEdge==='outer'){
+      stairEdgeO=oOut;
+      stairAC=Math.max(-sAl/2+1.3, Math.min(sAl/2-1.3,(stairPosF-0.5)*sAl));
+      const isOut=stairDir==='out'||deckEdge==='outer', sgn=stairDir==='left'?-1:1;
+      accPt = deckEdge==='outer'
+        ? (r,w,y)=> ssm.W3(stairAC+w, oP+r, y)
+        : (r,w,y)=> isOut ? ssm.W3(stairAC+w, stairEdgeO+r, y) : ssm.W3(stairAC+sgn*r, stairEdgeO+0.25+w, y);
+      accWidthIsX = deckEdge==='outer' ? ssm.fb : ((isOut&&ssm.fb)||(!isOut&&!ssm.fb));
+      gapEdge = (Dd>0 && stairSide===p.deckSide) ? 'outer' : 'none'; gapAlong=stairAC;
+    } else {
+      const s=deckEdge==='left'?-1:1;
+      const oc=Math.max(oIn+1.0, Math.min(oP-0.9, oIn+stairPosF*(oP-oIn)));
+      stairEdgeO=oOut; stairAC=s*sAl/2;
+      accPt=(r,w,y)=> ssm.W3(s*(sAl/2)+s*r, oc+w, y); accWidthIsX=!ssm.fb;
+      gapEdge=deckEdge; gapOut=oc;
+    } }
+  const deckGapC = gapEdge==='outer' ? gapAlong : null;
 
   // ---- deck (attaches to any wall; railing has an opening where the stair lands) ----
   if(Dd>0){
@@ -1596,31 +1619,32 @@ function rebuild3D(p){
       for(let i=0;i<=n;i++){ const a=-along/2+i*along/n; oblong(0.12,Dd-0.62,0.4, a,oMid-0.02,dBY, P.struct); } }   // joists BUTT ledger→rim in hangers, no pass-through
     _stage=13; oblong(along,Dd,0.09, 0,oMid,floorY, P.struct);                 // decking
     _stage=14;
-    strut(sm.W3(-along/2,oIn,rtY), sm.W3(-along/2,oP,rtY), 0.12,P.struct);     // side rails run to the corner posts
-    strut(sm.W3(along/2,oIn,rtY),  sm.W3(along/2,oP,rtY),  0.12,P.struct);
-    if(deckGapC!=null){                                                       // outer rail split where the stair lands
-      strut(sm.W3(-along/2,oP,rtY),sm.W3(deckGapC-gapH,oP,rtY), 0.12,P.struct);
-      strut(sm.W3(deckGapC+gapH,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
-    } else strut(sm.W3(-along/2,oP,rtY), sm.W3(along/2,oP,rtY), 0.12,P.struct);
-    [[-along/2,oIn],[along/2,oIn]].forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });   // house-side posts
-    if(deckGapC!=null) for(const s2 of [-1,1]){                                // stair-opening posts: FULL 4×4s dropped past the rim + through-bolted — kids swing on these
-      const t=sm.tw(deckGapC+s2*gapH,oP);
-      box(th,rh+0.55,th, t[0],floorY+(rh-0.55)/2,t[1], P.struct);
-      ball(0.042, t[0]+(sm.fb?0:0.17), floorY-0.2, t[1]+(sm.fb?0.17:0), '#46413a'); }
-    if(deckGapC!=null && state.stairGate!==false){                             // self-closing gate across the opening — latch on the OUTSIDE, out of kid reach
-      const gw=gapH*2-0.34, gy0=floorY+0.25, gy1=rtY-0.1, gmid=(gy0+gy1)/2;
-      for(const s2 of [-1,1]) oblong(0.11,0.11,gy1-gy0, deckGapC+s2*(gw/2-0.055), oP+0.09, gmid, P.struct);   // stiles
-      oblong(gw-0.1,0.1,0.11, deckGapC, oP+0.09, gy1-0.055, P.struct);         // top rail
-      oblong(gw-0.1,0.1,0.11, deckGapC, oP+0.09, gy0+0.055, P.struct);         // bottom rail
-      for(let gk=-1;gk<=1;gk++) oblong(0.055,0.07,gy1-gy0-0.24, deckGapC+gk*gw/4, oP+0.09, gmid, P.struct);   // pickets <4" apart
-      const lt=sm.tw(deckGapC+gw/2-0.05, oP+0.16); ball(0.05, lt[0], gy1-0.12, lt[1], '#46413a');             // latch, outside face
+    const oEdge=gapEdge, uGap = oEdge==='outer'?deckGapC : oEdge!=='none'?gapOut : null;   // opening can sit on any of the three railed edges
+    const railXZ=(edge,u)=> edge==='outer'? sm.tw(u,oP) : sm.tw((edge==='left'?-1:1)*along/2, u);
+    const railOutXZ=(edge,u,d)=> edge==='outer'? sm.tw(u,oP+d) : sm.tw((edge==='left'?-1:1)*(along/2+d), u);
+    const railStrut=(edge,a,b)=>{ const p1=railXZ(edge,a),p2=railXZ(edge,b); strut([p1[0],rtY,p1[1]],[p2[0],rtY,p2[1]],0.12,P.struct); };
+    for(const [edge,a,b] of [['outer',-along/2,along/2],['left',oIn,oP],['right',oIn,oP]]){
+      if(oEdge===edge && uGap!=null){ railStrut(edge,a,uGap-gapH); railStrut(edge,uGap+gapH,b); }
+      else railStrut(edge,a,b);
     }
-    const nb=Math.max(2,Math.round(along/0.7));
-    for(let i=1;i<nb;i++){ const a=-along/2+i*along/nb; if(deckGapC!=null && Math.abs(a-deckGapC)<gapH+0.1) continue;
-      const t=sm.tw(a,oP); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }
-    const nbs=Math.max(1,Math.round(Dd/0.7));
-    for(const sa of [-along/2,along/2]) for(let i=1;i<nbs;i++){ const o=oIn+(oP-oIn)*i/nbs;
-      const t=sm.tw(sa,o); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); }
+    [[-along/2,oIn],[along/2,oIn]].forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });
+    if(oEdge!=='none' && uGap!=null){
+      for(const s2 of [-1,1]){ const t=railXZ(oEdge,uGap+s2*gapH);
+        box(th,rh+0.55,th, t[0],floorY+(rh-0.55)/2,t[1], P.struct);
+        const bt=railOutXZ(oEdge,uGap+s2*gapH,0.17); ball(0.042, bt[0], floorY-0.2, bt[1], '#46413a'); }
+      if(state.stairGate!==false){
+        const gw=gapH*2-0.34, gy0=floorY+0.25, gy1=rtY-0.1, gmid=(gy0+gy1)/2, dOff=0.09;
+        for(const s2 of [-1,1]){ const t=railOutXZ(oEdge,uGap+s2*(gw/2-0.055),dOff); box(0.11,gy1-gy0,0.11, t[0],gmid,t[1], P.struct); }
+        for(const yy of [gy1-0.055,gy0+0.055]){ const e1=railOutXZ(oEdge,uGap-(gw/2-0.05),dOff), e2=railOutXZ(oEdge,uGap+(gw/2-0.05),dOff);
+          strut([e1[0],yy,e1[1]],[e2[0],yy,e2[1]],0.1,P.struct); }
+        for(let gk=-1;gk<=1;gk++){ const t=railOutXZ(oEdge,uGap+gk*gw/4,dOff); box(0.055,gy1-gy0-0.24,0.055, t[0],gmid,t[1], P.struct); }
+        const lt=railOutXZ(oEdge,uGap+gw/2-0.05,0.16); ball(0.05, lt[0], gy1-0.12, lt[1], '#46413a');
+      }
+    }
+    const balOn=(edge,a,b)=>{ const n=Math.max(2,Math.round((b-a)/0.7));
+      for(let i=1;i<n;i++){ const u=a+i*(b-a)/n; if(oEdge===edge && uGap!=null && Math.abs(u-uGap)<gapH+0.1) continue;
+        const t=railXZ(edge,u); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); } };
+    balOn('outer',-along/2,along/2); balOn('left',oIn,oP); balOn('right',oIn,oP);
     if(state.porch){ _stage=99;                       // covered-porch roof over the deck
       const peY=floorY+Hw-0.1;
       (along>9?[-along/2,0,along/2]:[-along/2,along/2]).forEach(a=>{ const t=sm.tw(a,oOut-th/2);
@@ -1632,10 +1656,7 @@ function rebuild3D(p){
   // ---- access: ladder or stairs — positionable side, along-position & descent direction (a slab is on grade — no stairs) ----
   if(sL && !onSlab){
     _stage=15;
-    const isOut = stairDir==='out', sgn = stairDir==='left'?-1:1;
-    // pt(runDist, widthOff, y): for 'out' the run goes outward from the wall; for left/right it runs along the wall
-    const pt=(rdst,wOff,y)=> isOut ? ssm.W3(stairAC+wOff, stairEdgeO+rdst, y) : ssm.W3(stairAC+sgn*rdst, stairEdgeO+0.25+wOff, y);
-    const widthIsX=(isOut&&ssm.fb)||(!isOut&&!ssm.fb);
+    const pt=accPt, widthIsX=accWidthIsX;   // unified anchor: wall side, deck outer edge, or a deck side edge
     const gAtRun=r=>{ const f=pt(r,0,0); return groundAt(f[0],f[2]); };   // ground height where the run lands (sloped sites)
     if(p.access==='stairs'){
       const run=0.85, sw=2.4;
@@ -2216,6 +2237,7 @@ function update(){
   const gv=document.getElementById('vGrade'); if(gv) gv.textContent=state.grade>0?Math.round(state.grade*100)+'% ('+dim(state.grade*(state.gradeDir==='front'||state.gradeDir==='back'?state.D:state.W))+' drop)':'level';
   const gdc=document.getElementById('gradeDirCtl'); if(gdc) gdc.style.display=state.grade>0?'':'none';
   const svp=document.getElementById('vStairPos'); if(svp) svp.textContent=state.stairPos<0.34?'toward one end':state.stairPos>0.66?'toward the other':'center';
+  const dec=document.getElementById('deckEdgeCtl'); if(dec) dec.style.display=state.Dd>0?'':'none';
   document.getElementById('intPanel').classList.toggle('on', tog.tInterior && !stepOn);
   document.getElementById('dock').querySelector('[data-t="tInterior"]').classList.toggle('on', tog.tInterior);
   budgetCheck(); renderFoundCap(); renderSafety(); renderPermit();
@@ -2331,7 +2353,7 @@ function seg(id,key){ const el=document.getElementById(id);
   el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
     [...el.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); state[key]=b.dataset.v;
     if(id==='finish') applyFinish(b.dataset.v,true); update(); }); }
-seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
+seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('deckEdge','deckEdge'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
 document.getElementById('midBeam').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
   state.midBeam=b.dataset.v==='on'; setSeg('midBeam',b.dataset.v); update(); });
 document.getElementById('autoSizeBtn').addEventListener('click',()=>{
@@ -2670,7 +2692,7 @@ function applyDesign(d){
   ['loft','porch','slide','climb','anchor','cupola','tower','bay','dormer','jetty','wing','split','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'].forEach(x=>{ const b=document.querySelector('#extras [data-x="'+x+'"]'); if(b) b.classList.toggle('on',!!state[x]); });
   setSeg('foundation',state.foundation||'blocks'); setSeg('access',state.access||'ladder');
   if(!state.stairSide) state.stairSide='front'; if(state.stairPos==null) state.stairPos=0.5; if(!state.stairDir) state.stairDir='out';
-  setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
+  setSeg('deckEdge',state.deckEdge||'left'); setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
   setSeg('midBeam',state.midBeam?'on':'off');
   renderWindows();
@@ -3239,7 +3261,7 @@ function sanitizeDesign(d){
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
   en('post',['4x4','6x6']); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
   en('foundation',['blocks','piers','buried','slab']); en('access',['ladder','stairs']);
-  en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
+  en('deckEdge',['outer','left','right']); en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
   for(const k of ['midBeam','rafter8','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
     if(typeof d[k]==='boolean') out[k]=d[k];
   if(typeof d.sign==='string') out.sign=d.sign.slice(0,16);
