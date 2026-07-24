@@ -4,6 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Delcan &amp; Co. Builder — Playhouse</title>
+<meta name="description" content="Design a kid's playhouse in 3D and get a real build: structure checked against span tables, a board-by-board cut list with live buy links, and a printable step-by-step plan set." />
+<meta name="theme-color" content="#f0ede3" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23141414' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M12 2.6 21 7.7v8.6l-9 5.1-9-5.1V7.7Z'/%3E%3Cpath d='M12 12.8 21 7.7'/%3E%3Cpath d='M12 12.8 3 7.7'/%3E%3Cpath d='M12 12.8v8.6'/%3E%3C/svg%3E" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Playhouse Builder — Delcan &amp; Co." />
+<meta property="og:description" content="Design a playhouse in 3D, check it against span tables, and print the plan set: cut list, framing drawings and step-by-step assembly." />
+<meta property="og:url" content="https://timeline.delcan.tools/tools/playhouse.html" />
+<meta name="twitter:card" content="summary_large_image" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   @font-face{font-family:'Delcan Mono';font-style:normal;font-weight:100 900;font-display:swap;
@@ -414,9 +422,36 @@
   .substeps li{margin-bottom:5px;padding-left:2px}
   .substeps li::marker{font-family:var(--mono);font-size:10px;color:var(--ac)}
   .substeps li.chk{list-style:none;margin-left:-19px;font-family:var(--mono);font-size:11px;color:var(--ac);padding-top:2px}
+  /* ===== plan-set sheet sections ===== */
+  .plansheethead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;
+    border-bottom:1.5px solid var(--ink);padding-bottom:8px;margin:0 0 14px}
+  .psh-brand{font-family:var(--cond);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--tx)}
+  .psh-sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);margin-top:3px}
+  .psh-r{font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--tf);text-align:right;line-height:1.6}
+  .spectab th{width:150px;text-align:left;color:var(--tm);font-weight:500}
+  .spectab td{font-weight:500}
+  .shoptab .ghead th{background:rgba(0,0,0,.05);font-family:var(--cond);text-transform:uppercase;letter-spacing:.02em;font-size:11px}
+  .shoptab .ghead th:last-child,.shoptab .c{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .shoptab .q{white-space:nowrap;font-family:var(--mono);font-size:11px;color:var(--tm)}
+  .shoptab .det{color:var(--tm);font-size:11px;line-height:1.45}
+  .shoptab .gtot th{border-top:1.5px solid var(--ink);font-family:var(--cond);text-transform:uppercase;font-size:11px}
+  .shoptab .gtot th:last-child{text-align:right;font-family:var(--mono)}
+  .planfoot{font-size:11px;line-height:1.5;margin:8px 0 0;color:var(--tm)}
+  .sprint.locked{background:var(--ink)!important;color:#fff!important}
+  .sprint .ic{width:11px;height:11px;margin-right:5px;vertical-align:-1px}
+  /* shown ONLY when someone prints without unlocking */
+  #printGate{display:none;padding:40px 0;font-family:var(--mono);font-size:12px;line-height:1.7;color:#111}
+  #printGate b{font-family:var(--cond);font-size:16px;text-transform:uppercase;display:block;margin-bottom:8px}
+
   @media print{
     html,body{height:auto!important;overflow:visible!important;background:#fff!important}
     body>*{display:none!important}
+    body:not(.plan-unlocked) .shopmodal.on{display:none!important}
+    body:not(.plan-unlocked) #printGate{display:block!important}
+    #planModal .shophead{display:none!important}   /* the printed sheet carries its own masthead */
+    .plansheethead{break-after:avoid;page-break-after:avoid}
+    .shoptab tr,.spectab tr{break-inside:avoid;page-break-inside:avoid}
+    .shoptab .ghead th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .framebox,.fsvg,.stepdiag svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .framebox{break-inside:avoid;page-break-inside:avoid}
     .stepcard{border:1px solid #ccc!important;background:none!important}
@@ -938,6 +973,10 @@
   </div>
 </div>
 
+<div id="printGate"><b>Delcan &amp; Co. Builder — Playhouse plan set</b>
+  This plan set hasn’t been unlocked yet, so there’s nothing to print.<br>
+  Open <b style="display:inline;font-size:12px;text-transform:none">Plan sheet + cut list</b> in the tool and tap “Unlock printable PDF” — a one-time payment, then print or save as PDF as many times as you like.</div>
+
 <div class="shopmodal" id="planModal">
   <div class="shoppanel planpanel">
     <div class="shophead">
@@ -945,7 +984,7 @@
     </div>
     <div class="shopbody" id="planBody"></div>
     <div class="shopfoot">
-      <span class="snote">Simplified reference — confirm against local code before building</span>
+      <span class="snote" id="planNote">Simplified reference — confirm against local code before building</span>
       <button class="sclose" id="planClose">Close</button>
       <button class="sprint" id="planPrint">Print / Save PDF</button>
     </div>
@@ -1017,6 +1056,31 @@ const LADDERS={
   ship:  {name:'Ship’s stair', lw:2.4, oBot:2.2, ext:2.8, rail:0.2, gap:0.85, tread:'deep', hand:true, kid:5,
     note:'A proper steep stair — deep treads on stringers with handrails both sides. Closest to real stairs without the footprint.'}
 };
+/* ===== printable plan set — one-time unlock (soft paywall) =====
+   The 3D design, the cost estimate, the shopping list, the build notes and the on-screen
+   plan sheet are ALL free. Paying unlocks printing / saving the plan set as a PDF.
+   ⬇⬇⬇  SETUP: in Stripe → Payment Links, create a link for the price below, set its
+   "After payment" redirect to:  https://timeline.delcan.tools/tools/playhouse.html?unlocked=1
+   then paste the link here. Until a real link is pasted the paywall stays OFF (PDF free). */
+const PAY_LINK='https://buy.stripe.com/REPLACE_WITH_YOUR_LINK';
+const PLAN_PRICE='$12';
+// Playhouse ships first — the switcher to the other (unreleased) builders stays hidden. Set false to show it again.
+const SOLO_RELEASE=true;
+const ULKEY='playhouse:planUnlocked';
+function paywallOn(){ return !!PAY_LINK && !/REPLACE/.test(PAY_LINK); }
+function planUnlocked(){ if(!paywallOn()) return true; try{ return localStorage.getItem(ULKEY)==='1'; }catch(e){ return false; } }
+function goPay(){ if(!paywallOn()){ alert("Checkout isn't set up yet — paste your Stripe Payment Link into the tool."); return; }
+  window.open(PAY_LINK,'_blank','noopener'); }
+function syncUnlock(){ try{ document.body.classList.toggle('plan-unlocked', planUnlocked()); }catch(e){} }
+// returning from Stripe → ?unlocked=1 sets the flag, then we strip it back out of the URL
+(function(){ try{ const u=new URLSearchParams(location.search);
+  if(u.get('unlocked')==='1'){ localStorage.setItem(ULKEY,'1'); u.delete('unlocked');
+    history.replaceState(null,'',location.pathname+(u.toString()?'?'+u.toString():'')+location.hash); } }catch(e){} })();
+// paying in another tab (same origin) unlocks this one on return
+addEventListener('storage',e=>{ if(e.key===ULKEY){ syncUnlock(); if(document.getElementById('planModal').classList.contains('on')) openPlan(); } });
+addEventListener('focus',()=>{ const was=document.body.classList.contains('plan-unlocked'); syncUnlock();
+  if(!was && planUnlocked() && document.getElementById('planModal').classList.contains('on')) openPlan(); });
+
 const STAGES={
   1:{name:'Footings', desc:'Set the footings — deck blocks on tamped gravel, or concrete piers with post bases. Level them all to each other.'},
   2:{name:'Posts', desc:'Stand the posts on the footings. Plumb each one and brace it temporarily until the beams tie them together.'},
@@ -2322,7 +2386,9 @@ const ICO={   // drawn line icons (print-manual style) — replace all emojis
   screw:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M8.5 15.5 15.5 8.5"/></svg>',
   ok:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.5 2.5 2.5 4.5-5.5"/></svg>',
   info:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V13"/><path d="M12 16.4v.1"/></svg>',
-  warn:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5 21.5 20h-19Z"/><path d="M12 10v4.2"/><path d="M12 16.8v.1"/></svg>'};
+  warn:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5 21.5 20h-19Z"/><path d="M12 10v4.2"/><path d="M12 16.8v.1"/></svg>',
+  lock:'<svg class="ic" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9.5" rx="1"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg>',
+  print:'<svg class="ic" viewBox="0 0 24 24"><path d="M7 9.5V3.5h10v6"/><rect x="3.5" y="9.5" width="17" height="7.5" rx="1"/><path d="M7 14h10v6.5H7Z"/></svg>'};
 function renderMaterials(m){
   document.getElementById('total').textContent=$(m.total);
   const n=document.getElementById('note'); n.className='note '+m.level;
@@ -2453,18 +2519,27 @@ function autoSize(){
     const f=e.fixes[0]; f.apply(state); applied.push(f.label); }
   return {eng:engineer(state),applied};
 }
-function renderSafety(){
-  const el=document.getElementById('safetyNote'); if(!el) return; const msgs=[];
-  if(state.Hf>2.5) msgs.push('Floor is '+dim(state.Hf)+' up — code wants a guardrail (≥36" tall) anywhere the fall is over 30".');
-  if(state.Dd>0){ const along=(state.deckSide==='front'||state.deckSide==='back')?state.W:state.D;
-    const railLen=along+2*state.Dd, nBal=Math.ceil(railLen*12/4.5);
+function safetyMsgs(s){   // shared by the side panel and the printed plan set
+  s=s||state; const msgs=[];
+  if(s.Hf>2.5) msgs.push('Floor is '+dim(s.Hf)+' up — code wants a guardrail (≥36" tall) anywhere the fall is over 30".');
+  if(s.Dd>0){ const along=(s.deckSide==='front'||s.deckSide==='back')?s.W:s.D;
+    const railLen=along+2*s.Dd, nBal=Math.ceil(railLen*12/4.5);
     msgs.push('Deck rail ~36" ✓ — for a code ≤4" baluster gap, run ~'+nBal+' balusters over '+dim(railLen)+' of railing.'); }
-  if(((state.Hf>5)||(state.Dd>0&&state.Hf>4))&&!state.anchor) msgs.push('Tall &amp; exposed — consider hurricane ties / ground anchors (Extras → Anchors).');
-  const eng=engineer(state);
+  if(s.access==='stairs'&&s.stairGate!==false) msgs.push('Stair gate is on — hang it to swing AWAY from the drop, with the latch on the outside face where a small child can’t reach it.');
+  if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.anchor) msgs.push('Tall &amp; exposed — consider hurricane ties / ground anchors (Extras → Anchors).');
+  if(s.slide) msgs.push('Slide: land it on soft fall material (mulch/rubber, 6" deep) running at least 6 ft past the exit.');
+  if(s.swing) msgs.push('Swing set: keep 6 ft of clear space in front and behind the arc, and 2 ft to either side.');
+  if(s.pole) msgs.push('Fireman pole: clear a 3 ft circle at the base and set soft fall material under it.');
+  const eng=engineer(s);
   for(const m of eng.issues) msgs.push('⚠ '+m);
   if(eng.pass) msgs.push('Structure ✓ — joists, beams, rafters, posts &amp; footings all inside span-table limits.');
-  const ch=state.Hw, who = ch>=5.83?'adult standing room':ch>=4.0?'kid standing room (an adult must duck)':'a crawl-in / sit-in space';
+  const ch=s.Hw, who = ch>=5.83?'adult standing room':ch>=4.0?'kid standing room (an adult must duck)':'a crawl-in / sit-in space';
   msgs.push('Interior clear height '+dim(ch)+' — '+who+'.');
+  return msgs;
+}
+function renderSafety(){
+  const el=document.getElementById('safetyNote'); if(!el) return;
+  const msgs=safetyMsgs(state);
   if(!msgs.length){ el.className=''; el.innerHTML=''; return; }
   el.className='note warn'; el.innerHTML='<span class="ntag">'+ICO.warn+'Safety &amp; structure</span>'+msgs.join(' ');
 }
@@ -3274,12 +3349,68 @@ function stepGuide(st,s){
   ];
   return (G[st]||[]).filter(Boolean);
 }
+/* ===== plan-set sections — printed sheet identity, spec, safety, shopping list, add-ons ===== */
+function planHeader(s){
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  return '<div class="plansheethead"><div><div class="psh-brand">Delcan &amp; Co. Builder</div>'+
+    '<div class="psh-sub">Playhouse plan set · '+dim(s.W)+' × '+dim(s.D)+' · '+FINISH[s.finish].name+'</div></div>'+
+    '<div class="psh-r"><div>'+date+'</div><div>Simplified reference — confirm against local code</div></div></div>';
+}
+function planSpec(s){
+  const rows=[], R=(k,v)=>{ if(v) rows.push([k,v]); };
+  R('Footprint', dim(s.W)+' × '+dim(s.D)+' · '+Math.round(s.W*s.D)+' sq ft floor');
+  R('Floor height', dim(s.Hf)+' above grade');
+  R('Wall height', dim(s.Hw)+' interior clear');
+  R('Posts', (s.post==='6x6'?'6×6':'4×4')+' PT'+(s.midBeam?' · centre beam row added':''));
+  R('Foundation', {blocks:'Deck blocks on tamped gravel', piers:'Poured concrete piers with post saddles', buried:'Posts set in concrete below frost line'}[s.foundation]||s.foundation);
+  if(s.grade>0) R('Site slope', Math.round(s.grade*100)+'% falling toward the '+s.gradeDir+' — every post cut to a level line');
+  R('Roof', s.roof.charAt(0).toUpperCase()+s.roof.slice(1)+
+    (/^(shed|lean)$/.test(s.roof)?' · slopes '+s.slopeDir:'')+(s.rafter8?' · 2×8 rafters':'')+
+    ((s.roofOver&&s.Dd>0)?' · carried over the deck':''));
+  R('Joists', s.oc+'" on centre');
+  R('Door', DOOR[s.door.size].label+' · '+s.door.wall+' wall');
+  R('Windows', s.windows.length ? s.windows.map(w=>WIN[w.size].label+' ('+w.wall+')').join(' · ') : 'None');
+  if(s.Dd>0) R('Deck', dim(s.Dd)+' deep on the '+s.deckSide+' side · rail return '+s.deckEdge);
+  const L=LADDERS[s.ladderStyle];
+  R('Access', s.access==='stairs'
+    ? 'Stairs · '+s.stairSide+' side, running '+(s.stairDir==='out'?'straight out':'along the wall')+(s.stairGate!==false?' · self-closing gate':'')
+    : 'Ladder · '+(L?L.name:s.ladderStyle));
+  if(s.anchor) R('Anchoring', 'Hurricane ties / ground anchors');
+  if(s.sign) R('Sign', '“'+s.sign+'”');
+  return '<h4>Design specification</h4><table class="cmptab spectab">'+
+    rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</table>';
+}
+function planSafety(s){
+  const msgs=safetyMsgs(s); if(!msgs.length) return '';
+  return '<h4>Safety &amp; structure</h4><ul class="plannotes">'+msgs.map(m=>'<li>'+m+'</li>').join('')+'</ul>';
+}
+function planShop(s){
+  const m=computeMaterials(s);
+  let h='<h4>Shopping list — every part</h4><table class="cmptab shoptab">';
+  for(const g of m.groups){
+    h+='<tr class="ghead"><th colspan="3">'+g.name+'</th><th>'+$(g.sum)+'</th></tr>';
+    for(const it of g.items)
+      h+='<tr><td class="q">'+it.qty+' '+it.unit+'</td><td>'+it.label+'</td><td class="det">'+it.detail+'</td><td class="c">'+$(it.cost)+'</td></tr>';
+  }
+  h+='<tr class="gtot"><th colspan="3">Estimated total</th><th>'+$(m.total)+'</th></tr></table>';
+  h+='<p class="planfoot">Estimates only — lumber prices move week to week and vary by store. Buy ~10% extra on sheet goods and fasteners. Every line is a live Lowe’s search link in the on-screen shopping list; scan the QR code above to open this exact design and tap through.</p>';
+  return h;
+}
+function planExtras(s){
+  const g=computeMaterials(s).groups.find(x=>x.name==='Extras');
+  if(!g||!g.items.length) return '';
+  return '<h4>Add-ons in this build</h4><ul class="plannotes">'+
+    g.items.map(i=>'<li><b>'+i.label+'</b> — '+i.detail+'</li>').join('')+
+    '<li>Fit every add-on <b>after</b> the shake-down in the last step, so you are fastening to a structure you already know is solid.</li></ul>';
+}
+
 function openPlan(){
   const s=state;
   document.getElementById('planMeta').innerHTML=`${s.W}×${s.D} ft · ${s.roof} roof · ${s.post} posts · ${FINISH[s.finish].name}${s.Dd>0?` · ${s.Dd} ft deck`:''}`;
-  let h='<div class="elevrow">'+elev(s.W,s.Hf,s.Hw,s.roof,'Front elevation')+elev(s.D,s.Hf,s.Hw,'flat','Side elevation')+'</div>';
+  let h=planHeader(s)+'<div class="elevrow">'+elev(s.W,s.Hf,s.Hw,s.roof,'Front elevation')+elev(s.D,s.Hf,s.Hw,'flat','Side elevation')+'</div>';
   const su=location.origin+location.pathname+'#d='+encodeDesign();
   h+='<div class="qrbox"><img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&ecc=L&margin=0&data='+encodeURIComponent(su)+'" alt="QR"><div><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="1.5"/><path d="M10.5 18.5h3"/></svg>Scan to open this exact design in 3D on your phone</div></div>';
+  h+=planSpec(s);
   const est=buildEstimate(s);
   h+='<h4>Effort</h4><div class="estrow"><div><b>'+est.skill+'</b><span>skill level</span></div><div><b>~'+est.weekends+'</b><span>weekends</span></div><div><b>'+$(computeMaterials(s).total)+'</b><span>est. cost</span></div></div>';
   const eng=engineer(s);
@@ -3290,7 +3421,10 @@ function openPlan(){
   h+= eng.pass
     ? '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;color:var(--tm)">All members inside #2-SPF span-table limits (40 psf floor live · 30 psf roof snow · 1,500 psf soil). Still confirm against local code.</p>'
     : '<ul class="plannotes">'+eng.issues.map(i=>'<li>'+i+'</li>').join('')+'</ul>';
+  h+=planSafety(s);
   h+='<h4>Tools you’ll need</h4><div class="toolist">'+est.tools.map(t=>'<span>'+t+'</span>').join('')+'</div>';
+  h+=planShop(s);
+  h+=planExtras(s);
   h+='<h4>Cutting plan — optimized (FFD)</h4>';
   for(const [type,lens] of Object.entries(pieceLists(s))){
     if(/posts/.test(type)){ const c={}; lens.forEach(l=>c[l]=(c[l]||0)+1);
@@ -3329,12 +3463,19 @@ function openPlan(){
   h+='</div>';
   h+='<h4>Build notes</h4><ul class="plannotes"><li>Footings below frost line (or deck blocks for casual builds), leveled to each other.</li><li>Through-bolt beams to posts; add 45° knee braces on all sides.</li><li>Joists '+s.oc+'" O.C. · '+(s.post==='6x6'?'6×6':'4×4')+' posts'+(s.Hf>5&&s.post==='4x4'?' (consider 6×6 at this height)':'')+'.</li><li>Use Ground-Contact PT near soil; flash/seal exposed end-grain.</li></ul>';
   document.getElementById('planBody').innerHTML=h;
+  syncUnlock();
+  const unl=planUnlocked(), pb=document.getElementById('planPrint'), pn=document.getElementById('planNote');
+  pb.innerHTML = unl ? ICO.print+'Print / Save PDF' : ICO.lock+'Unlock printable PDF — '+PLAN_PRICE;
+  pb.classList.toggle('locked',!unl);
+  if(pn) pn.innerHTML = unl
+    ? 'Unlocked ✓ · print, or “Save as PDF” in the print dialog · confirm against local code before building'
+    : 'Everything on this sheet is free to read. A one-time '+PLAN_PRICE+' unlocks printing / saving it as a PDF — secure checkout via Stripe.';
   document.getElementById('planModal').classList.add('on');
 }
 document.getElementById('openPlan').addEventListener('click',openPlan);
 document.getElementById('planClose').addEventListener('click',()=>document.getElementById('planModal').classList.remove('on'));
 document.getElementById('planModal').addEventListener('click',e=>{ if(e.target.id==='planModal') e.currentTarget.classList.remove('on'); });
-document.getElementById('planPrint').addEventListener('click',()=>window.print());
+document.getElementById('planPrint').addEventListener('click',()=>{ if(!planUnlocked()){ goPay(); return; } window.print(); });
 
 /* ===== shareable design URL ===== */
 function encodeDesign(){
@@ -3630,6 +3771,10 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
     document.body.style.cursor='';
   });
 })();
+
+/* ===== release wiring ===== */
+syncUnlock();
+if(SOLO_RELEASE){ const tw=document.querySelector('.toolwrap'); if(tw) tw.style.display='none'; }
 </script>
 </body>
 </html>
