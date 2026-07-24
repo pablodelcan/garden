@@ -108,6 +108,7 @@
   body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
   .topright{display:flex;align-items:center;gap:12px;pointer-events:auto}
   .unittog,.viewseg{display:flex;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--bd2);border-radius:3px;overflow:hidden;cursor:pointer;background:var(--paper)}
+  #viewSeg b:not([data-view="manual"]){display:none}   /* LINE is the only visualizer for now */
   .unittog b,.viewseg b{padding:4px 9px;font-weight:600;color:var(--tm);background:transparent;border-left:1px solid var(--bd)}
   .unittog b:first-child,.viewseg b:first-child{border-left:none}
   .unittog b.on,.viewseg b.on{background:var(--tx);color:#fff}
@@ -179,6 +180,7 @@
   .rbody{overflow-y:auto;padding:0 20px 24px}
 
   .note{margin:18px 0 4px;padding:0;border-radius:0;font-size:13.5px;line-height:1.5;border:none;background:none;color:var(--tx);font-family:var(--serif)}
+  .ic{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1.5px;margin-right:6px;display:inline-block}   /* drawn line icons — print-manual style, no emojis */
   .note .ntag{font-family:var(--cond);font-weight:700;display:block;margin-bottom:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:none;color:var(--tx);padding:0}
   .note.good .ntag{color:var(--good)}
   .note.warn .ntag{color:var(--warn)}
@@ -612,7 +614,7 @@
     <div class="group archbox">
       <p class="glabel">Architect</p>
       <textarea id="archInput" rows="2" placeholder="Describe it — “a reading nook for two kids with a slide and a lookout, under $1,500”"></textarea>
-      <button class="sharebtn" id="archGo">✦ Design it</button>
+      <button class="sharebtn" id="archGo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>Design it</button>
       <div class="archmsg" id="archMsg"></div>
       <div id="archCard"></div>
     </div>
@@ -624,8 +626,8 @@
         <button id="saveDesign">Save</button>
       </div>
       <div class="designlist" id="designList"></div>
-      <button class="sharebtn" id="shareDesign">🔗 Copy share link</button>
-      <button class="sharebtn" id="compareDesigns">⇄ Compare designs</button>
+      <button class="sharebtn" id="shareDesign"><svg class="ic" viewBox="0 0 24 24"><path d="M10.5 13.5a4.4 4.4 0 0 0 6.2 0l3-3a4.4 4.4 0 1 0-6.2-6.2l-1.7 1.7"/><path d="M13.5 10.5a4.4 4.4 0 0 0-6.2 0l-3 3a4.4 4.4 0 1 0 6.2 6.2l1.7-1.7"/></svg>Copy share link</button>
+      <button class="sharebtn" id="compareDesigns"><svg class="ic" viewBox="0 0 24 24"><path d="M4 8h14l-3.5-3.5"/><path d="M20 16H6l3.5 3.5"/></svg>Compare designs</button>
     </div>
 
     <div class="group">
@@ -845,8 +847,8 @@
       <span class="tlabel">Est. lumber + hardware</span>
       <span class="tval" id="total">$0</span>
     </div>
-    <button class="shopbtn" id="openShop">🛒 Shopping list</button>
-    <button class="planbtn" id="openPlan">📐 Plan sheet + cut list</button>
+    <button class="shopbtn" id="openShop"><svg class="ic" viewBox="0 0 24 24"><circle cx="9.5" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M3 3.5h2.6l2.6 12h10.2l2.1-8.4H7"/></svg>Shopping list</button>
+    <button class="planbtn" id="openPlan"><svg class="ic" viewBox="0 0 24 24"><path d="M21 21H3L21 3v18z"/><path d="M13 21v-4"/><path d="M17 21v-6.5"/></svg>Plan sheet + cut list</button>
     <div class="budgetrow"><label>Budget $</label><input type="number" id="budget" placeholder="—" min="0"><span id="budgetMsg"></span></div>
     <div class="budgetsug" id="budgetSug"></div>
   </div>
@@ -963,6 +965,9 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -1043,7 +1048,7 @@ const FINISH={
 // shaded = soft solid model · manual = IKEA-style flat fills + ink outlines · blueprint = white lines on blue
 function applyTheme(){}   // (legacy no-op — the Turrell themes were retired for a flat construction-manual look)
 function setView(v){
-  if(!['shaded','manual','color','blueprint'].includes(v)) v='shaded';
+  v='manual';   // LINE is the only visualizer for now — every path (boot, saved designs, share links) lands on the print-manual render
   state.view=v;
   document.body.dataset.view=v;
   document.querySelectorAll('#viewSeg b').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
@@ -1052,7 +1057,7 @@ function setView(v){
 document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('b'); if(b) setView(b.dataset.view); });
 
 /* ===== THREE setup ===== */
-let renderer,scene,camera,controls,house,sun,groundPlane,hatchMats=[];
+let renderer,scene,camera,controls,house,sun,groundPlane,hatchMats=[],lineMats=[];
 const errEl=document.getElementById('err');
 try{
   const canvas=document.getElementById('scene');
@@ -1078,6 +1083,7 @@ try{
   (function loop(){ requestAnimationFrame(loop);
     controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=1.7; controls.update();
     if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
+    if(lineMats.length){ for(const m of lineMats) m.resolution.set(innerWidth,innerHeight); }   // fat-line material needs the live viewport size
     renderer.render(scene,camera); updateDimLabels(); })();
 }catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The materials list still works.'; }
 
@@ -1202,7 +1208,8 @@ const HATCH_FRAG=`
   float plane(vec2 uv, float mat, float aa){                                   // returns INK COVERAGE 0..1 — drawn onto a LIGHT base
     if(mat<0.5) return 0.0;                                                     // glass — no texture
     if(mat<1.5){ float d=1.0-dots(uv,0.038,0.0060,aa); float ba=1.0-lines(uv,1.5708,0.27,0.010,aa); float co=1.0-lines(uv,0.0,0.58,0.012,aa);
-                 return max(max(d*0.82, ba*0.34), co*0.22); }                   // plywood: dense fine stipple + battens + faint ply courses
+                 float wg=1.0-lines(uv+vec2(sin(uv.y*2.6)*0.045+sin(uv.y*6.5)*0.018,0.0),1.5708,0.14,0.011,aa);
+                 return max(max(max(d*0.72, ba*0.34), co*0.20), wg*0.26); }     // siding: stipple + battens + ply courses + a SUBTLE vertical wood grain
     if(mat<2.5){ float a=1.0-lines(uv,0.62,0.05,0.013,aa); float c=1.0-lines(uv,-0.62,0.05,0.013,aa); float s=1.0-lines(uv,0.0,0.3,0.02,aa);
                  return max(max(a,c)*0.66, s*0.74); }                           // metal roof: fine cross-hatch + standing seams
     if(mat<3.5){ float g1=1.0-lines(uv+vec2(0.0,sin(uv.x*3.2)*0.05+sin(uv.x*7.5)*0.018),0.0,0.11,0.012,aa);
@@ -1254,7 +1261,7 @@ function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
 
 /* ===== view-style post-pass: re-skin the freshly-built model (shaded / manual / blueprint) ===== */
 function applyViewStyle(){
-  hatchMats=[];
+  hatchMats=[]; lineMats=[];
   const v=(state.view)||'shaded';
   if(scene) scene.background = v==='blueprint' ? new THREE.Color(0x16365c) : null;
   if(groundPlane) groundPlane.visible = (v==='shaded');
@@ -1270,6 +1277,12 @@ function applyViewStyle(){
   ] : null;
   const nearest=col=>{ let best=ramp[0][1],bd=1e9; for(const [src,dst] of ramp){ const d=(col.r-src.r)**2+(col.g-src.g)**2+(col.b-src.b)**2; if(d<bd){bd=d;best=dst;} } return best; };
   const inkHex = v==='blueprint' ? 0xe2eeff : 0x141414;      // black printing ink on paper · bright lines on blue
+  let fatMat=null;
+  if(v==='manual'){                                          // ONE shared fat-line material → true pixel-width ink outlines (WebGL ignores linewidth on plain lines)
+    fatMat=new LineMaterial({color:inkHex,linewidth:2.4});
+    fatMat.resolution.set(innerWidth,innerHeight);
+    lineMats.push(fatMat);
+  }
   for(const o of meshes){
     const mat=o.material; if(!mat||!mat.color) continue;
     const wasT=!!mat.transparent, op=(mat.opacity==null?1:mat.opacity);
@@ -1300,10 +1313,14 @@ function applyViewStyle(){
     }
     if(o.geometry&&o.geometry.type==='BoxGeometry'){          // outline only boxes — ~all framing/panels read clean; skip extrude/sphere/cone to avoid triangulation noise
       try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
-        const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});
-        o.add(new THREE.LineSegments(eg,lm));
-        if(v!=='blueprint'){ const ls2=new THREE.LineSegments(eg,lm); ls2.scale.setScalar(v==='manual'?1.010:1.006); o.add(ls2);
-          if(v==='manual'){ const ls3=new THREE.LineSegments(eg,lm); ls3.scale.setScalar(1.005); o.add(ls3); } }   // tripled with a hair of offset → crisp manual outline (WebGL ignores linewidth)
+        if(v==='manual'){                                     // THICK ink outline — fat-line quads with a true pixel width
+          const g2=new LineSegmentsGeometry().fromEdgesGeometry(eg);
+          o.add(new LineSegments2(g2,fatMat));
+        } else {
+          const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});
+          o.add(new THREE.LineSegments(eg,lm));
+          if(v!=='blueprint'){ const ls2=new THREE.LineSegments(eg,lm); ls2.scale.setScalar(1.006); o.add(ls2); }
+        }
       }catch(e){} }
   }
 }
@@ -2291,10 +2308,15 @@ function saveOrdered(s){ try{ localStorage.setItem(OKEY,JSON.stringify([...s]));
 let ordered=loadOrdered();
 const itemKey=it=>(it.label||'').trim();
 function escAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+const ICO={   // drawn line icons (print-manual style) — replace all emojis
+  screw:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M8.5 15.5 15.5 8.5"/></svg>',
+  ok:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.5 2.5 2.5 4.5-5.5"/></svg>',
+  info:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V13"/><path d="M12 16.4v.1"/></svg>',
+  warn:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5 21.5 20h-19Z"/><path d="M12 10v4.2"/><path d="M12 16.8v.1"/></svg>'};
 function renderMaterials(m){
   document.getElementById('total').textContent=$(m.total);
   const n=document.getElementById('note'); n.className='note '+m.level;
-  n.innerHTML='<span class="ntag">'+(m.level==='good'?'Looks good':m.level==='warn'?'Heads up':'Reconsider')+'</span>'+m.note;
+  n.innerHTML='<span class="ntag">'+(m.level==='good'?ICO.ok+'Looks good':m.level==='warn'?ICO.info+'Heads up':ICO.warn+'Reconsider')+'</span>'+m.note;
   let h='', ordCnt=0, ordTotal=0;
   for(const g of m.groups){
     h+='<div class="mgroup"><h3>'+g.name+'<span class="gsum">'+$(g.sum)+'</span></h3>';
@@ -2434,7 +2456,7 @@ function renderSafety(){
   const ch=state.Hw, who = ch>=5.83?'adult standing room':ch>=4.0?'kid standing room (an adult must duck)':'a crawl-in / sit-in space';
   msgs.push('Interior clear height '+dim(ch)+' — '+who+'.');
   if(!msgs.length){ el.className=''; el.innerHTML=''; return; }
-  el.className='note warn'; el.innerHTML='<span class="ntag">Safety &amp; structure</span>'+msgs.join(' ');
+  el.className='note warn'; el.innerHTML='<span class="ntag">'+ICO.warn+'Safety &amp; structure</span>'+msgs.join(' ');
 }
 ['W','D','Hf','Hw','Dd','oc'].forEach(id=>document.getElementById(id).addEventListener('input',update));
 
@@ -2695,7 +2717,7 @@ function renderStepNav(){
   document.getElementById('stepName').textContent=(done?'✓ ':'')+st.name;
   document.getElementById('stepDesc').textContent=st.desc;
   document.getElementById('stepDetail2').textContent=stepDetail(canon,state);
-  document.getElementById('stepFast').textContent='🔩 '+(FASTENERS[canon]||'');
+  document.getElementById('stepFast').innerHTML=ICO.screw+(FASTENERS[canon]||'');
   document.getElementById('stepDone').checked=done;
   document.getElementById('jrnlProg').textContent=present.filter(s=>jr.has(s)).length+'/'+total+' built';
   const r=document.getElementById('stepRange'); r.max=total; r.value=stepCur;
@@ -3291,7 +3313,7 @@ function openPlan(){
     const guide=stepGuide(st,s);
     if(guide.length) h+='<ol class="substeps">'+guide.map(g=>'<li'+(g.startsWith('✔')?' class="chk"':'')+'>'+g+'</li>').join('')+'</ol>';
     const sp=stepSpecs(st,s); if(sp.length) h+='<div class="stepspec">'+sp.map(x=>'<span>'+x+'</span>').join('')+'</div>';
-    if(FASTENERS[st]) h+='<div class="stepfast2">🔩 '+FASTENERS[st]+'</div>';
+    if(FASTENERS[st]) h+='<div class="stepfast2">'+ICO.screw+FASTENERS[st]+'</div>';
     h+='</div></div>';
   });
   h+='</div>';
@@ -3478,6 +3500,8 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
   cb.addEventListener('change',()=>{ state.stairGate=cb.checked; update(); });
 })();
 
+setView('manual');   // boot straight into the LINE print-manual render — the only visualizer for now
+
 /* ===== tap-a-piece inspector: tap any member → its size, the stock it's cut from, and its fasteners ===== */
 (function(){
   const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
@@ -3512,7 +3536,7 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
     const st=m.userData.stage||0, meta=STAGES[st]||STAGES[Math.floor(st)]||{name:'Piece'};
     card.innerHTML='<b style="color:#ff8a3a">'+(meta.name||'Piece').toUpperCase()+'</b> · '+stockOf(IN(dims[2]),IN(dims[1]))+
       '<br>cut length ≈ <b>'+fLen(dims[0])+'</b> · section '+fIn(IN(dims[1]))+' × '+fIn(IN(dims[2]))+
-      (FASTENERS[st]?'<br><span style="opacity:.75">🔩 '+FASTENERS[st]+'</span>':'')+
+      (FASTENERS[st]?'<br><span style="opacity:.75">'+ICO.screw+FASTENERS[st]+'</span>':'')+
       '<br><span style="opacity:.5">tap empty space to dismiss</span>';
     card.style.display='block';
   }
@@ -3522,7 +3546,7 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
     ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
     ray.setFromCamera(ptr,camera);
-    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh&&h.object.geometry);
+    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh&&!h.object.isLineSegments2&&h.object.geometry);   // skip the fat-line outline quads (they subclass Mesh + share one material)
     if(hits.length) show(hits[0].object); else hide();
   });
 })();
