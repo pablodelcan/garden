@@ -32,13 +32,13 @@
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field)}
   body[data-view="blueprint"] #bg{background:var(--blue)}
   /* LINE mode = a drafted technical manual: warm off-white graph paper with real fibre tooth, the model inked onto it */
-  body[data-view="manual"] #bg{background-color:#efe8d9;
+  body[data-view="manual"] #bg{background-color:#f4f1e8;
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.08'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
-      linear-gradient(rgba(58,48,32,.05) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(58,48,32,.05) 1px,transparent 1px),
-      linear-gradient(rgba(58,48,32,.10) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(58,48,32,.10) 1px,transparent 1px);
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.06'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
+      linear-gradient(rgba(70,80,90,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(70,80,90,.045) 1px,transparent 1px),
+      linear-gradient(rgba(70,80,90,.085) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(70,80,90,.085) 1px,transparent 1px);
     background-size:150px 150px,15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
   .blob{display:none}
   #scene{position:fixed;inset:0;z-index:1}
@@ -1164,28 +1164,30 @@ const HATCH_FRAG=`
     vec2 g = floor(uv/sp);
     vec2 c = (fract(uv/sp)-0.5)*sp + (vec2(hash(g),hash(g+7.0))-0.5)*sp*0.4;
     return smoothstep(r, r+aa, length(c)); }
-  float plane(vec2 uv, float mat, float aa){
-    if(mat<0.5) return 1.0;                                                                        // smooth (concrete / glass)
-    if(mat<1.5){ float st=dots(uv,0.05,0.007,aa); float gr=lines(uv,1.571,0.42,0.018,aa); return min(mix(st,1.0,0.4),mix(gr,1.0,0.6)); }  // plywood: stipple + faint long grain
-    if(mat<2.5){ float sm=lines(uv,0.0,0.33,0.024,aa); float ht=lines(uv,0.62,0.05,0.012,aa); return min(sm,mix(ht,1.0,0.5)); }            // metal roof: standing-seam ribs + fine hatch tooth
-    float g=lines(uv+vec2(0.0,sin(uv.x*5.0)*0.03),0.0,0.13,0.018,aa); return mix(g,1.0,0.3); }     // wood grain
+  float plane(vec2 uv, float mat, float aa){                                   // returns INK COVERAGE 0..1 — drawn dark onto a LIGHT base
+    if(mat<0.5) return 0.0;                                                     // glass — no texture
+    if(mat<1.5){ float d=1.0-dots(uv,0.042,0.0062,aa); float v=1.0-lines(uv,1.5708,0.34,0.011,aa); return max(d*0.85, v*0.30); }       // plywood: fine dense stipple + faint battens
+    if(mat<2.5){ float a=1.0-lines(uv,0.62,0.052,0.013,aa); float c=1.0-lines(uv,-0.62,0.052,0.013,aa); float s=1.0-lines(uv,0.0,0.32,0.02,aa); return max(max(a,c)*0.66, s*0.72); }  // metal roof: fine cross-hatch + standing seams
+    if(mat<3.5){ float g=1.0-lines(uv+vec2(0.0,sin(uv.x*3.5)*0.045+sin(uv.x*9.0)*0.016),0.0,0.1,0.013,aa); return g*0.55; }            // wood grain (wavy)
+    return (1.0-dots(uv,0.085,0.0055,aa))*0.42; }                              // concrete — sparse stipple (mat 4)
   float triTex(float mat){
     float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
     float aa = max(0.006, fw*0.9);                          // widen line edges by the pixel footprint → no shimmer while spinning
-    float fade = smoothstep(0.14, 0.035, fw);              // fade fine detail out when zoomed far → kills Moiré
+    float fade = smoothstep(0.13, 0.03, fw);              // drop fine detail when zoomed far → kills Moiré
     vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
     float t = plane(vWp.zy,mat,aa)*an.x + plane(vWp.xz,mat,aa)*an.y + plane(vWp.xy,mat,aa)*an.z;
-    return mix(1.0, t, fade); }
+    return t * fade; }
   void main(){
     float ndl = dot(normalize(vN), normalize(uLight));
-    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // view-space half-lambert → the shading sweeps as the model turns
-    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.55);      // soft 4-band quantise → matte, printed tonal steps
-    vec3 col = mix(uInk, uPaper, b);                          // grayscale form shading between the material's shadow & lit tone
-    float mt = triTex(uMat);                                  // drafted material pattern, locked to the geometry
-    col *= (1.0 - (1.0-mt)*(0.20 + (1.0-b)*0.16));           // ink the pattern, a touch heavier in shadow
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // view-space half-lambert → shading sweeps as the model turns
+    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.5);       // gentle 4-band quantise
+    vec3 base = mix(uInk, uPaper, b);                         // LIGHT material + gentle form-shade (uPaper lit · uInk shadow — both light)
+    float ink = triTex(uMat);                                // drafted line-work coverage, locked to the geometry
+    vec3 inkCol = vec3(0.14,0.13,0.115);                     // warm near-black drafting ink
+    vec3 col = mix(base, inkCol, ink*(uTex*0.78 + (1.0-b)*0.10));   // dark hatch / stipple / grain on the light base, a touch heavier in shadow
     vec2 sp = gl_FragCoord.xy / uPx;                          // tactile paper + print grain (two octaves)
     float grain = hash(sp*1.6)*0.62 + hash(sp*0.41)*0.38;
-    col *= (1.0 - grain*(0.06 + uTex*0.05));
+    col *= (1.0 - grain*0.05);
     gl_FragColor = vec4(col, uAlpha); }`;
 function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
   const m=new THREE.ShaderMaterial({
@@ -1223,16 +1225,16 @@ function applyViewStyle(){
     if(v==='manual'){
       // grayscale "material manual" render — each part maps to a printed grey [lit, shadow, texture]; form shading is
       // view-space so it sweeps as you orbit. Board / seam / batten lines come from the geometry + ink edges below.
-      const GR=[   // [srcColour, litGrey, shadowGrey, grainStrength, patternType]  (2 metal · 1 plywood · 3 wood · 0 smooth)
-        [C(colors.roof),                0x434241, 0x262524, 0.5,  2],  // metal roof — standing-seam ribs + fine hatch
-        [C(colors.struct),              0x3d3b37, 0x232120, 0.45, 3],  // framing / posts — wood grain
-        [C(colors.trim||colors.struct), 0x3d3b37, 0x232120, 0.45, 3],
-        [C(colors.siding),              0xcfccc3, 0x9b988f, 0.8,  1],  // siding / plywood — stipple + long grain
-        [C(0x564d40),                   0xe9e7e1, 0xc6c4be, 0.15, 0],  // concrete footing — near-white, smooth
-        [C(0x8c8a84),                   0xe9e7e1, 0xc6c4be, 0.15, 0],
-        [C(colors.door||0x3a2517),      0x6c675d, 0x433f39, 0.5,  3],  // door — wood grain
-        [C(0x9fc7d6),                   0xdedfda, 0xc2c4c0, 0.0,  0],  // glass — light, smooth
-        [C(colors.accent||colors.roof), 0x554f48, 0x322f2b, 0.4,  3]
+      const GR=[   // [srcColour, LIT grey, shadow grey, INK strength, patternType]  — light bases; darkness comes from the drafted ink
+        [C(colors.roof),                0xd9d6ce, 0xbfbcb2, 0.74, 2],  // metal roof — dense cross-hatch + standing seams
+        [C(colors.struct),              0xceCabf, 0xaba79c, 0.52, 3],  // framing / posts — light wood, grain
+        [C(colors.trim||colors.struct), 0xcecabf, 0xaba79c, 0.52, 3],
+        [C(colors.siding),              0xe4e1d8, 0xc9c6bc, 0.62, 1],  // siding / plywood — light, fine stipple
+        [C(0x564d40),                   0xeceae4, 0xd8d6cf, 0.32, 4],  // concrete footing — near-white, sparse stipple
+        [C(0x8c8a84),                   0xeceae4, 0xd8d6cf, 0.32, 4],
+        [C(colors.door||0x3a2517),      0xd0ccc1, 0xb0ab9f, 0.5,  3],  // door — light wood grain
+        [C(0x9fc7d6),                   0xeef0ec, 0xdde0db, 0.12, 0],  // glass — light, smooth
+        [C(colors.accent||colors.roof), 0xcbc6bb, 0xa9a498, 0.5,  3]
       ];
       let bst=GR[0],bd=1e9; for(const r of GR){ const s=r[0], d=(mat.color.r-s.r)**2+(mat.color.g-s.g)**2+(mat.color.b-s.b)**2; if(d<bd){bd=d;bst=r;} }
       o.material = makeHatchMat(bst[1], bst[2], wasT?0.5:1, bst[3], bst[4]);
