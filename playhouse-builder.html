@@ -34,12 +34,32 @@
   /* LINE mode = a drafted technical manual: warm off-white graph paper with real fibre tooth, the model inked onto it */
   body[data-view="manual"] #bg{background-color:#f4f1e8;
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.06'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
-      linear-gradient(rgba(70,80,90,.045) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(70,80,90,.045) 1px,transparent 1px),
-      linear-gradient(rgba(70,80,90,.085) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(70,80,90,.085) 1px,transparent 1px);
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.05'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
+      linear-gradient(rgba(30,55,110,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(30,55,110,.05) 1px,transparent 1px),
+      linear-gradient(rgba(30,55,110,.10) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(30,55,110,.10) 1px,transparent 1px);
     background-size:150px 150px,15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
+  /* ---- LINE (manual) view: deep-blueprint chrome — navy ink typography + tighter controls, on cream stock ---- */
+  body[data-view="manual"]{ --tx:#1e376e; --tm:#5f7099; --tf:#93a4c6; --ink:#1e376e; --ac:#1e376e;
+    --field:#f4f1e8; --paper:#f1eee4; --bd:rgba(30,55,110,.26); --bd2:#1e376e; --pb:rgba(22,40,84,.97); --blue:#1e376e; }
+  body[data-view="manual"] .brand,body[data-view="manual"] .ptitle,body[data-view="manual"] .glabel{color:#1e376e}
+  body[data-view="manual"] .brand::after,body[data-view="manual"] .psub{color:#5f7099}
+  body[data-view="manual"] #sheetframe{border-color:#1e376e}
+  body[data-view="manual"] #sheetframe::after{border-color:#1e376e;opacity:.4}
+  body[data-view="manual"] #sheetframe .tk::before,body[data-view="manual"] #sheetframe .tk::after{background:#1e376e}
+  body[data-view="manual"] .unittog,body[data-view="manual"] .viewseg{border-radius:2px}
+  body[data-view="manual"] .unittog b,body[data-view="manual"] .viewseg b{padding:3px 7px}
+  body[data-view="manual"] .unittog b.on,body[data-view="manual"] .viewseg b.on{background:#1e376e;color:#f4f1e8}
+  body[data-view="manual"] .toolsel{border-radius:2px;padding:3px 20px 3px 8px;color:#1e376e}
+  body[data-view="manual"] .paper{border-color:#1e376e;border-radius:2px}
+  body[data-view="manual"] .dock{padding:4px 6px;gap:2px;border-color:#1e376e;border-radius:2px}
+  body[data-view="manual"] .dock button{padding:5px 8px;border-radius:2px}
+  body[data-view="manual"] .dock button.on{background:#1e376e;color:#f4f1e8;border-color:#1e376e}
+  body[data-view="manual"] .dock button:hover:not(.on){background:rgba(30,55,110,.08);color:#1e376e}
+  body[data-view="manual"] .dock .sep{background:rgba(30,55,110,.28)}
+  body[data-view="manual"] .seg button{padding:6px 4px;border-radius:2px}
+  body[data-view="manual"] .seg button.on{background:#1e376e;color:#f4f1e8;border-color:#1e376e}
   .blob{display:none}
   #scene{position:fixed;inset:0;z-index:1}
   /* drawing-sheet frame — double black rule + corner ticks, like a printed manual page */
@@ -1150,8 +1170,8 @@ const HATCH_VERT=`
 const HATCH_FRAG=`
   precision highp float;
   varying vec3 vN; varying vec3 vWp; varying vec3 vWn;
-  uniform vec3 uPaper, uInk, uLight;   // uPaper = material LIT grey · uInk = material SHADOW grey
-  uniform float uPx, uAlpha, uTex, uMat;   // uMat: 0 smooth · 1 plywood · 2 metal roof · 3 wood
+  uniform vec3 uPaper, uInk, uLight, uInkCol;   // uPaper lit grey · uInk shadow grey · uLight = FIXED world sun dir · uInkCol = drafting-ink colour
+  uniform float uPx, uAlpha, uTex, uMat, uHi;   // uMat: 0 smooth·1 plywood·2 metal roof·3 wood·4 concrete   uHi: click-select highlight 0/1
   float hash(vec2 p){ return fract(sin(dot(floor(p),vec2(41.31,289.17)))*43758.5453); }
   float h1(float x){ return fract(sin(x*127.1)*43758.5453); }
   // parallel drafted strokes in a plane (feet) → 1 in the gap, 0 on the ink line
@@ -1164,12 +1184,16 @@ const HATCH_FRAG=`
     vec2 g = floor(uv/sp);
     vec2 c = (fract(uv/sp)-0.5)*sp + (vec2(hash(g),hash(g+7.0))-0.5)*sp*0.4;
     return smoothstep(r, r+aa, length(c)); }
-  float plane(vec2 uv, float mat, float aa){                                   // returns INK COVERAGE 0..1 — drawn dark onto a LIGHT base
+  float plane(vec2 uv, float mat, float aa){                                   // returns INK COVERAGE 0..1 — drawn onto a LIGHT base
     if(mat<0.5) return 0.0;                                                     // glass — no texture
-    if(mat<1.5){ float d=1.0-dots(uv,0.042,0.0062,aa); float v=1.0-lines(uv,1.5708,0.34,0.011,aa); return max(d*0.85, v*0.30); }       // plywood: fine dense stipple + faint battens
-    if(mat<2.5){ float a=1.0-lines(uv,0.62,0.052,0.013,aa); float c=1.0-lines(uv,-0.62,0.052,0.013,aa); float s=1.0-lines(uv,0.0,0.32,0.02,aa); return max(max(a,c)*0.66, s*0.72); }  // metal roof: fine cross-hatch + standing seams
-    if(mat<3.5){ float g=1.0-lines(uv+vec2(0.0,sin(uv.x*3.5)*0.045+sin(uv.x*9.0)*0.016),0.0,0.1,0.013,aa); return g*0.55; }            // wood grain (wavy)
-    return (1.0-dots(uv,0.085,0.0055,aa))*0.42; }                              // concrete — sparse stipple (mat 4)
+    if(mat<1.5){ float d=1.0-dots(uv,0.038,0.0060,aa); float ba=1.0-lines(uv,1.5708,0.27,0.010,aa); float co=1.0-lines(uv,0.0,0.58,0.012,aa);
+                 return max(max(d*0.82, ba*0.34), co*0.22); }                   // plywood: dense fine stipple + battens + faint ply courses
+    if(mat<2.5){ float a=1.0-lines(uv,0.62,0.05,0.013,aa); float c=1.0-lines(uv,-0.62,0.05,0.013,aa); float s=1.0-lines(uv,0.0,0.3,0.02,aa);
+                 return max(max(a,c)*0.66, s*0.74); }                           // metal roof: fine cross-hatch + standing seams
+    if(mat<3.5){ float g1=1.0-lines(uv+vec2(0.0,sin(uv.x*3.2)*0.05+sin(uv.x*7.5)*0.018),0.0,0.11,0.012,aa);
+                 float g2=1.0-lines(uv+vec2(0.0,sin(uv.x*5.5)*0.022),0.0,0.046,0.008,aa);
+                 return max(g1*0.55, g2*0.24); }                               // wood: coarse wavy grain + fine hair grain
+    return (1.0-dots(uv,0.08,0.0055,aa))*0.42; }                              // concrete — sparse stipple
   float triTex(float mat){
     float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
     float aa = max(0.006, fw*0.9);                          // widen line edges by the pixel footprint → no shimmer while spinning
@@ -1178,24 +1202,27 @@ const HATCH_FRAG=`
     float t = plane(vWp.zy,mat,aa)*an.x + plane(vWp.xz,mat,aa)*an.y + plane(vWp.xy,mat,aa)*an.z;
     return t * fade; }
   void main(){
-    float ndl = dot(normalize(vN), normalize(uLight));
-    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // view-space half-lambert → shading sweeps as the model turns
-    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.5);       // gentle 4-band quantise
-    vec3 base = mix(uInk, uPaper, b);                         // LIGHT material + gentle form-shade (uPaper lit · uInk shadow — both light)
+    vec3 N = normalize(vWn); if(!gl_FrontFacing) N = -N;      // world-space normal (two-sided) → the light source is FIXED in the world
+    float ndl = dot(N, normalize(uLight));                    // fixed sun: as the model turns, its faces sweep in and out of the light
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // half-lambert (no dead black)
+    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.5);       // gentle 4-band quantise → matte printed steps
+    vec3 base = mix(uInk, uPaper, b);                         // light material, gentle form-shade between shadow & lit grey
+    base *= mix(0.87, 1.0, tone);                             // + a gentle directional wash so the change of light reads as it rotates (kept light)
     float ink = triTex(uMat);                                // drafted line-work coverage, locked to the geometry
-    vec3 inkCol = vec3(0.14,0.13,0.115);                     // warm near-black drafting ink
-    vec3 col = mix(base, inkCol, ink*(uTex*0.78 + (1.0-b)*0.10));   // dark hatch / stipple / grain on the light base, a touch heavier in shadow
+    vec3 col = mix(base, uInkCol, ink*(uTex*0.66 + (1.0-b)*0.08));   // navy hatch / stipple / grain on the light base, a touch heavier in shadow
     vec2 sp = gl_FragCoord.xy / uPx;                          // tactile paper + print grain (two octaves)
     float grain = hash(sp*1.6)*0.62 + hash(sp*0.41)*0.38;
     col *= (1.0 - grain*0.05);
+    col = mix(col, vec3(1.0,0.42,0.0), uHi*0.9);             // click-to-select → the piece flips to neon orange
     gl_FragColor = vec4(col, uAlpha); }`;
 function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
   const m=new THREE.ShaderMaterial({
     vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
     extensions:{derivatives:true},
     uniforms:{ uPaper:{value:new THREE.Color(litHex)}, uInk:{value:new THREE.Color(shadeHex)},
-      uLight:{value:new THREE.Vector3(-0.42,0.80,0.55).normalize()},   // view-space key from the viewer's upper-left
-      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0}, uMat:{value:mat||0} },
+      uInkCol:{value:new THREE.Color(0x1c356b)},                        // deep blueprint navy drafting ink
+      uLight:{value:new THREE.Vector3(-0.5,0.82,0.38).normalize()},     // FIXED world sun from the upper-left-front
+      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0}, uMat:{value:mat||0}, uHi:{value:0} },
     transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
     polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
   hatchMats.push(m); return m;
@@ -1218,7 +1245,7 @@ function applyViewStyle(){
     [C(colors.base||0x6e5a3e),C(0x3DA34D)],[C(colors.door||0x3a2517),C(0xF07F1A)],[C(colors.accent||colors.roof),C(0x8E6FC4)]
   ] : null;
   const nearest=col=>{ let best=ramp[0][1],bd=1e9; for(const [src,dst] of ramp){ const d=(col.r-src.r)**2+(col.g-src.g)**2+(col.b-src.b)**2; if(d<bd){bd=d;best=dst;} } return best; };
-  const inkHex = v==='blueprint' ? 0xe2eeff : 0x141414;      // black ink on paper · bright lines on blue
+  const inkHex = v==='blueprint' ? 0xe2eeff : (v==='manual' ? 0x1c356b : 0x141414);   // navy manual ink · black on paper · bright on blue
   for(const o of meshes){
     const mat=o.material; if(!mat||!mat.color) continue;
     const wasT=!!mat.transparent, op=(mat.opacity==null?1:mat.opacity);
@@ -1251,7 +1278,8 @@ function applyViewStyle(){
       try{ const eg=new THREE.EdgesGeometry(o.geometry,30);
         const lm=new THREE.LineBasicMaterial({color:inkHex,transparent:true,opacity:v==='blueprint'?0.9:1});
         o.add(new THREE.LineSegments(eg,lm));
-        if(v!=='blueprint'){ const ls2=new THREE.LineSegments(eg,lm); ls2.scale.setScalar(1.006); o.add(ls2); }   // doubled with a hair of offset → heavier ink line (WebGL ignores linewidth)
+        if(v!=='blueprint'){ const ls2=new THREE.LineSegments(eg,lm); ls2.scale.setScalar(v==='manual'?1.010:1.006); o.add(ls2);
+          if(v==='manual'){ const ls3=new THREE.LineSegments(eg,lm); ls3.scale.setScalar(1.005); o.add(ls3); } }   // tripled with a hair of offset → crisp manual outline (WebGL ignores linewidth)
       }catch(e){} }
   }
 }
@@ -3444,21 +3472,27 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
     if(a>4.3&&b>4.3) return '6×6';
     return fIn(a)+'×'+fIn(b);
   }
+  function hiOn(m){ const mt=m&&m.material; if(!mt)return;
+    if(mt.uniforms&&mt.uniforms.uHi){ mt.uniforms.uHi.value=1; }                                            // manual/blueprint hatch shader → neon-orange tint uniform
+    else if(mt.color){ m.userData._pc=mt.color.getHex(); try{mt.color.setHex(0xFF6A00);}catch(e){} } }      // solid material → neon orange fill
+  function hiOff(m){ const mt=m&&m.material; if(!mt)return;
+    if(mt.uniforms&&mt.uniforms.uHi){ mt.uniforms.uHi.value=0; }
+    else if(mt.color&&m.userData._pc!=null){ try{mt.color.setHex(m.userData._pc);}catch(e){} } }
   function show(m){
-    if(picked){ try{picked.material.color.setHex(pickedColor);}catch(e){} }
-    picked=m; try{ pickedColor=m.material.color.getHex(); m.material.color.setHex(0xE5202A); }catch(e){}
+    if(picked&&picked!==m) hiOff(picked);
+    picked=m; hiOn(m);
     const p=(m.geometry&&m.geometry.parameters)||{};
     let dims=[p.width,p.height,p.depth].filter(x=>typeof x==='number');
     if(dims.length!==3){ const bb=new THREE.Box3().setFromObject(m), sz=new THREE.Vector3(); bb.getSize(sz); dims=[sz.x,sz.y,sz.z]; }
     dims=dims.slice().sort((x,y)=>y-x);
     const st=m.userData.stage||0, meta=STAGES[st]||STAGES[Math.floor(st)]||{name:'Piece'};
-    card.innerHTML='<b style="color:#ff7a70">'+(meta.name||'Piece').toUpperCase()+'</b> · '+stockOf(IN(dims[2]),IN(dims[1]))+
+    card.innerHTML='<b style="color:#ff8a3a">'+(meta.name||'Piece').toUpperCase()+'</b> · '+stockOf(IN(dims[2]),IN(dims[1]))+
       '<br>cut length ≈ <b>'+fLen(dims[0])+'</b> · section '+fIn(IN(dims[1]))+' × '+fIn(IN(dims[2]))+
       (FASTENERS[st]?'<br><span style="opacity:.75">🔩 '+FASTENERS[st]+'</span>':'')+
       '<br><span style="opacity:.5">tap empty space to dismiss</span>';
     card.style.display='block';
   }
-  function hide(){ if(picked){ try{picked.material.color.setHex(pickedColor);}catch(e){} picked=null; } card.style.display='none'; }
+  function hide(){ if(picked){ hiOff(picked); picked=null; } card.style.display='none'; }
   cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; });
   cv.addEventListener('pointerup',e=>{
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
