@@ -621,6 +621,162 @@
   body[data-view="manual"] .dock .sep{background:#141414!important;opacity:.55;height:13px}
   body[data-view="manual"] .brand,body[data-view="manual"] .ptitle,body[data-view="manual"] .glabel{color:#141414}
   body[data-view="manual"] #sheetframe{border-color:#141414}
+/* ===== engraved interactivity =========================================================
+     The controls borrow the model's finishing: hovering SHADES a control with the same ±45°
+     ink hatching the shader lays on a face turned away from the light, the outline doubles
+     like the fat-line edges, and pressing flashes the neon the 3D pick uses on a board. */
+  body[data-view="manual"] .seg button,
+  body[data-view="manual"] .dock button,
+  body[data-view="manual"] .miniBtn,
+  body[data-view="manual"] .ordclear,
+  body[data-view="manual"] .sharebtn,
+  body[data-view="manual"] .planbtn,
+  body[data-view="manual"] .shopbtn,
+  body[data-view="manual"] .saverow button,
+  body[data-view="manual"] .drow .dload,
+  body[data-view="manual"] .drow .ddel,
+  body[data-view="manual"] .winrow .wdel,
+  body[data-view="manual"] .stepnav .sbtn,
+  body[data-view="manual"] .stepnav .playbtn,
+  body[data-view="manual"] .shopfoot button,
+  body[data-view="manual"] .unittog b,
+  body[data-view="manual"] .viewseg b,
+  body[data-view="manual"] .item .ck{
+    position:relative; isolation:isolate; overflow:hidden;
+    transition:color .14s ease, border-color .14s ease, box-shadow .14s ease, transform .08s ease;
+  }
+  /* the hatch — drawn on across the control, the way a pen shades a face */
+  body[data-view="manual"] .seg button::before,
+  body[data-view="manual"] .dock button::before,
+  body[data-view="manual"] .miniBtn::before,
+  body[data-view="manual"] .ordclear::before,
+  body[data-view="manual"] .sharebtn::before,
+  body[data-view="manual"] .planbtn::before,
+  body[data-view="manual"] .shopbtn::before,
+  body[data-view="manual"] .saverow button::before,
+  body[data-view="manual"] .drow .dload::before,
+  body[data-view="manual"] .drow .ddel::before,
+  body[data-view="manual"] .winrow .wdel::before,
+  body[data-view="manual"] .stepnav .sbtn::before,
+  body[data-view="manual"] .stepnav .playbtn::before,
+  body[data-view="manual"] .shopfoot button::before,
+  body[data-view="manual"] .unittog b::before,
+  body[data-view="manual"] .viewseg b::before{
+    content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background:repeating-linear-gradient(45deg, rgba(20,20,20,.5) 0 1px, transparent 1px 6px);
+    transform:scaleX(0); transform-origin:left center;
+    transition:transform .2s cubic-bezier(.22,.7,.28,1), background-image .12s;
+  }
+  body[data-view="manual"] .seg button:hover::before,
+  body[data-view="manual"] .dock button:hover::before,
+  body[data-view="manual"] .miniBtn:hover::before,
+  body[data-view="manual"] .ordclear:hover::before,
+  body[data-view="manual"] .sharebtn:hover::before,
+  body[data-view="manual"] .planbtn:hover::before,
+  body[data-view="manual"] .saverow button:hover::before,
+  body[data-view="manual"] .drow .dload:hover::before,
+  body[data-view="manual"] .drow .ddel:hover::before,
+  body[data-view="manual"] .winrow .wdel:hover::before,
+  body[data-view="manual"] .stepnav .sbtn:hover::before,
+  body[data-view="manual"] .stepnav .playbtn:hover::before,
+  body[data-view="manual"] .shopfoot button:hover::before,
+  body[data-view="manual"] .unittog b:hover::before,
+  body[data-view="manual"] .viewseg b:hover::before{ transform:scaleX(1) }
+  /* solid-ink buttons hatch in paper-tone instead, so the texture reads on black */
+  body[data-view="manual"] .shopbtn::before,
+  body[data-view="manual"] .seg button.on::before,
+  body[data-view="manual"] .dock button.on::before,
+  body[data-view="manual"] .shopfoot .sprint::before{
+    background:repeating-linear-gradient(45deg, rgba(240,237,227,.34) 0 1px, transparent 1px 6px);
+  }
+  body[data-view="manual"] .shopbtn:hover::before,
+  body[data-view="manual"] .shopfoot .sprint:hover::before{ transform:scaleX(1) }
+  /* primary CTAs stay solid ink and get SHADED rather than flipped — same gesture as every other control */
+  body[data-view="manual"] .shopbtn:hover,
+  body[data-view="manual"] .shopfoot .sprint:hover{
+    background:#141414!important; color:#f0ede3!important; border-color:#141414!important;
+  }
+  /* the outline doubles up on hover — the fat-line edge, plus a hard offset like an over-inked plate */
+  body[data-view="manual"] .seg button:hover:not(.on),
+  body[data-view="manual"] .miniBtn:hover,
+  body[data-view="manual"] .ordclear:hover,
+  body[data-view="manual"] .sharebtn:hover,
+  body[data-view="manual"] .planbtn:hover,
+  body[data-view="manual"] .saverow button:hover,
+  body[data-view="manual"] .drow .dload:hover,
+  body[data-view="manual"] .drow .ddel:hover,
+  body[data-view="manual"] .winrow .wdel:hover,
+  body[data-view="manual"] .shopfoot .sclose:hover{
+    border-color:#141414!important; color:#141414!important;
+    box-shadow:2.5px 2.5px 0 rgba(20,20,20,.22);
+  }
+  body[data-view="manual"] .shopbtn:hover,
+  body[data-view="manual"] .shopfoot .sprint:hover{ box-shadow:2.5px 2.5px 0 rgba(20,20,20,.3) }
+  /* press = the neon the 3D pick uses, and the control sinks into the paper */
+  body[data-view="manual"] .seg button:active::before,
+  body[data-view="manual"] .dock button:active::before,
+  body[data-view="manual"] .miniBtn:active::before,
+  body[data-view="manual"] .ordclear:active::before,
+  body[data-view="manual"] .sharebtn:active::before,
+  body[data-view="manual"] .planbtn:active::before,
+  body[data-view="manual"] .shopbtn:active::before,
+  body[data-view="manual"] .saverow button:active::before,
+  body[data-view="manual"] .stepnav .sbtn:active::before,
+  body[data-view="manual"] .stepnav .playbtn:active::before,
+  body[data-view="manual"] .shopfoot button:active::before,
+  body[data-view="manual"] .unittog b:active::before,
+  body[data-view="manual"] .viewseg b:active::before{
+    transform:scaleX(1);
+    background:repeating-linear-gradient(45deg, rgba(255,106,0,.95) 0 2px, rgba(255,106,0,.25) 2px 6px);
+  }
+  body[data-view="manual"] .seg button:active,
+  body[data-view="manual"] .miniBtn:active,
+  body[data-view="manual"] .ordclear:active,
+  body[data-view="manual"] .sharebtn:active,
+  body[data-view="manual"] .planbtn:active,
+  body[data-view="manual"] .shopbtn:active,
+  body[data-view="manual"] .saverow button:active,
+  body[data-view="manual"] .shopfoot button:active{
+    transform:translate(1.5px,1.5px); box-shadow:0 0 0 rgba(20,20,20,0)!important;
+  }
+  /* selected state keeps its solid ink but gains cross-hatch, so it reads engraved not flat */
+  body[data-view="manual"] .seg button.on,
+  body[data-view="manual"] .dock button.on{
+    background-image:repeating-linear-gradient(45deg, rgba(240,237,227,.16) 0 1px, transparent 1px 5px),
+                     repeating-linear-gradient(-45deg, rgba(240,237,227,.16) 0 1px, transparent 1px 5px)!important;
+  }
+  /* toolbar type: the active underline draws itself in from the left */
+  body[data-view="manual"] .unittog b,body[data-view="manual"] .viewseg b{
+    background-image:linear-gradient(#141414,#141414); background-repeat:no-repeat;
+    background-position:left bottom; background-size:0% 2px; transition:background-size .18s ease, color .14s;
+  }
+  body[data-view="manual"] .unittog b:hover,body[data-view="manual"] .viewseg b:hover{ background-size:100% 2px; color:#141414 }
+  body[data-view="manual"] .unittog b.on,body[data-view="manual"] .viewseg b.on{ background-size:100% 2px!important; box-shadow:none!important }
+  /* checkboxes fill with hatch as they tick over */
+  body[data-view="manual"] .item .ck::before{
+    content:''; position:absolute; inset:0; z-index:-1;
+    background:repeating-linear-gradient(45deg, rgba(20,20,20,.6) 0 1px, transparent 1px 4px);
+    transform:scale(0); transform-origin:center; transition:transform .16s cubic-bezier(.22,.7,.28,1);
+  }
+  body[data-view="manual"] .item:hover .ck::before{ transform:scale(1) }
+  /* slider thumb: a picked board — grows on grab, neon while dragging */
+  body[data-view="manual"] input[type=range]::-webkit-slider-thumb{ transition:transform .12s ease, background-color .12s }
+  body[data-view="manual"] input[type=range]:hover::-webkit-slider-thumb{ transform:scale(1.45) }
+  body[data-view="manual"] input[type=range]:active::-webkit-slider-thumb{ transform:scale(1.6); background:#FF6A00!important }
+  /* the modal scrim is hatched paper rather than a flat dim */
+  body[data-view="manual"] .shopmodal{
+    background:
+      repeating-linear-gradient(45deg, rgba(20,20,20,.16) 0 1px, transparent 1px 7px),
+      rgba(28,26,22,.52)!important;
+  }
+  @media (prefers-reduced-motion:reduce){
+    body[data-view="manual"] *,body[data-view="manual"] *::before{ transition-duration:.01ms!important }
+  }
+
+  @media print{
+    .seg button::before,.dock button::before,.shopbtn::before,.sharebtn::before,
+    .planbtn::before,.miniBtn::before,.item .ck::before{display:none!important}
+  }
 </style>
 </head>
 <body>
