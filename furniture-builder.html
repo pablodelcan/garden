@@ -200,7 +200,8 @@
   #viewSeg b:not([data-view="manual"]){display:none!important}
   #viewseg b:not([data-v="manual"]){display:none!important}
   .ic{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1.5px;margin-right:6px;display:inline-block}
-  .ntag .ic{width:17px;height:17px;stroke-width:1.8;vertical-align:-4px;margin-right:7px}
+  .ntag .ic{width:30px;height:30px;stroke-width:1.55;margin:0;flex:none}
+  .note .ntag{display:flex!important;align-items:center;gap:10px}
   .seg button,.dock button{text-align:left}
   .badge{left:22px;right:auto;bottom:22px;transform:none;text-align:left;max-width:380px}
   body[data-view="manual"]{ --tx:#141414; --tm:#5a5a56; --tf:#8e8e88; --ink:#141414; --ac:#141414;
@@ -293,11 +294,16 @@
   body[data-view="manual"] .shopfoot button::before,
   body[data-view="manual"] .unittog b::before,
   body[data-view="manual"] .viewseg b::before{
-    content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    content:''; position:absolute; top:0; bottom:0; left:0; right:-14px; z-index:-1; pointer-events:none;
     background:repeating-linear-gradient(45deg, rgba(20,20,20,.5) 0 1px, transparent 1px 6px);
-    transform:scaleX(0); transform-origin:left center;
-    transition:transform .2s cubic-bezier(.22,.7,.28,1), background-image .12s;
+    background-size:8.485px 8.485px;
+    clip-path:inset(0 100% 0 0);
+    transition:clip-path .2s cubic-bezier(.22,.7,.28,1), background-image .12s;
   }
+  /* the hatch keeps travelling while the pointer stays. A 45° pattern of 6px perpendicular period
+     maps onto itself every 6·√2 = 8.485px, so translating exactly that loops with no visible seam —
+     and because it's a transform, the loop runs on the compositor instead of repainting each frame. */
+  @keyframes hatchMarch{ from{transform:translateX(0)} to{transform:translateX(-8.485px)} }
   body[data-view="manual"] .seg button:hover::before,
   body[data-view="manual"] .dock button:hover::before,
   body[data-view="manual"] .miniBtn:hover::before,
@@ -312,16 +318,17 @@
   body[data-view="manual"] .stepnav .playbtn:hover::before,
   body[data-view="manual"] .shopfoot button:hover::before,
   body[data-view="manual"] .unittog b:hover::before,
-  body[data-view="manual"] .viewseg b:hover::before{ transform:scaleX(1) }
+  body[data-view="manual"] .viewseg b:hover::before{ clip-path:inset(0); animation:hatchMarch .75s linear infinite }
   /* solid-ink buttons hatch in paper-tone instead, so the texture reads on black */
   body[data-view="manual"] .shopbtn::before,
   body[data-view="manual"] .seg button.on::before,
   body[data-view="manual"] .dock button.on::before,
   body[data-view="manual"] .shopfoot .sprint::before{
     background:repeating-linear-gradient(45deg, rgba(240,237,227,.34) 0 1px, transparent 1px 6px);
+    background-size:8.485px 8.485px;
   }
   body[data-view="manual"] .shopbtn:hover::before,
-  body[data-view="manual"] .shopfoot .sprint:hover::before{ transform:scaleX(1) }
+  body[data-view="manual"] .shopfoot .sprint:hover::before{ clip-path:inset(0); animation:hatchMarch .75s linear infinite }
   /* primary CTAs stay solid ink and get SHADED rather than flipped — same gesture as every other control */
   body[data-view="manual"] .shopbtn:hover,
   body[data-view="manual"] .shopfoot .sprint:hover{
@@ -357,8 +364,10 @@
   body[data-view="manual"] .shopfoot button:active::before,
   body[data-view="manual"] .unittog b:active::before,
   body[data-view="manual"] .viewseg b:active::before{
-    transform:scaleX(1);
+    clip-path:inset(0);
     background:repeating-linear-gradient(45deg, rgba(255,106,0,.95) 0 2px, rgba(255,106,0,.25) 2px 6px);
+    background-size:8.485px 8.485px;
+    animation:hatchMarch .32s linear infinite;
   }
   body[data-view="manual"] .seg button:active,
   body[data-view="manual"] .miniBtn:active,
@@ -386,10 +395,11 @@
   /* checkboxes fill with hatch as they tick over */
   body[data-view="manual"] .item .ck::before{
     content:''; position:absolute; inset:0; z-index:-1;
-    background:repeating-linear-gradient(45deg, rgba(20,20,20,.6) 0 1px, transparent 1px 4px);
-    transform:scale(0); transform-origin:center; transition:transform .16s cubic-bezier(.22,.7,.28,1);
+    background:repeating-linear-gradient(45deg, rgba(20,20,20,.6) 0 1px, transparent 1px 6px);
+    background-size:8.485px 8.485px; right:-14px;
+    clip-path:inset(50% 50% 50% 50%); transition:clip-path .16s cubic-bezier(.22,.7,.28,1);
   }
-  body[data-view="manual"] .item:hover .ck::before{ transform:scale(1) }
+  body[data-view="manual"] .item:hover .ck::before{ clip-path:inset(0); animation:hatchMarch .75s linear infinite }
   /* slider thumb: a picked board — grows on grab, neon while dragging */
   body[data-view="manual"] input[type=range]::-webkit-slider-thumb{ transition:transform .12s ease, background-color .12s }
   body[data-view="manual"] input[type=range]:hover::-webkit-slider-thumb{ transform:scale(1.45) }
@@ -401,7 +411,7 @@
       rgba(28,26,22,.52)!important;
   }
   @media (prefers-reduced-motion:reduce){
-    body[data-view="manual"] *,body[data-view="manual"] *::before{ transition-duration:.01ms!important }
+    body[data-view="manual"] *,body[data-view="manual"] *::before{ transition-duration:.01ms!important; animation:none!important }
   }
 
   @media print{
