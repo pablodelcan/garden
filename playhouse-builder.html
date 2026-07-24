@@ -18,7 +18,7 @@
     --tx:#141414; --tm:#666666; --tf:#9a9a9a; --ac:#E5202A;     /* swiss red */
     --ink:#141414;            /* hairline + heavy rules */
     --bd:rgba(20,20,20,0.18); --bd2:#141414; --pb:rgba(20,20,20,0.96);
-    --serif:'Helvetica Neue','Inter',Helvetica,Arial,sans-serif;   /* Swiss grotesque, body */
+    --serif:'FK Grotesk Mono','IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;   /* FK Grotesk for all text that isn't Delcan Mono */
     --cond:'Delcan Mono','Helvetica Neue',Helvetica,Arial,sans-serif;    /* Swiss grotesque, headers (set bold) */
     --mono:'FK Grotesk Mono','IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace; /* tabular figures */
     --good:#2f8a3e; --warn:#b97400; --bad:#E5202A; --blue:#15407a; --part1:#1C8FD6; --part2:#F2C200; --part3:#E5202A; --part4:#3DA34D;
@@ -137,7 +137,7 @@
   .seg{display:grid;gap:6px}
   .seg.two{grid-template-columns:1fr 1fr}
   .seg.four{grid-template-columns:1fr 1fr}
-  .seg button{padding:9px 4px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:transparent;color:var(--tm);border:1px solid var(--bd);border-radius:8px;cursor:pointer;transition:.13s;text-transform:uppercase}
+  .seg button{padding:9px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:transparent;color:var(--tm);border:1px solid var(--bd);border-radius:8px;cursor:pointer;transition:.13s;text-transform:uppercase;text-align:left}
   .seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
   .seg button:hover:not(.on){color:var(--tx);border-color:var(--tf)}
 
@@ -145,7 +145,7 @@
   select option{background:#fff;color:#222}
 
   .colors{display:flex;gap:9px;margin-top:6px}
-  .colors .ci{flex:1;text-align:center}
+  .colors .ci{flex:1;text-align:left}
   .colors .ci span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--tm);margin-bottom:5px}
   .colors input[type=color]{width:100%;height:30px;border:1px solid var(--bd);border-radius:7px;background:none;cursor:pointer;padding:2px}
   .wallpaint{margin-top:12px;border-top:1px solid var(--bd);padding-top:10px}
@@ -194,12 +194,12 @@
   .foot{font-family:var(--mono);padding:18px 0 4px;font-size:10.5px;color:var(--tm);line-height:1.6}
 
   .dock{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:var(--paper);border:1px solid var(--bd2);border-radius:4px;padding:6px 8px;box-shadow:var(--shadow);animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
-  .dock button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 11px;background:transparent;color:var(--tm);border:1px solid transparent;cursor:pointer;transition:.12s;font-weight:500}
+  .dock button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 11px;background:transparent;color:var(--tm);border:1px solid transparent;cursor:pointer;transition:.12s;font-weight:500;text-align:left}
   .dock button:hover{color:var(--tx);background:rgba(35,30,18,.06)}
   .dock button.on{color:#fff;background:var(--tx);border-color:var(--tx)}
   .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
 
-  .badge{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:center;pointer-events:none;opacity:.85;line-height:1.7}
+  .badge{position:fixed;left:22px;bottom:78px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7}
   .badge b{font-weight:600;color:var(--tx)}
   body[data-view="blueprint"] .badge{color:#bcd4f2;opacity:.9}
   body[data-view="blueprint"] .badge b{color:#eaf1fb}
@@ -310,7 +310,7 @@
   .planbtn:hover{background:var(--ac);color:#fff}
   .planpanel{width:min(760px,100%)}
   .elevrow{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;padding:10px 0 4px}
-  .elevbox{text-align:center}
+  .elevbox{text-align:left}
   .elevsvg{max-width:300px;height:auto}
   .elevsvg rect{fill:color-mix(in srgb,var(--ac) 9%,transparent);stroke:var(--tx);stroke-width:1.5}
   .elevsvg polygon{fill:color-mix(in srgb,var(--ac) 16%,transparent);stroke:var(--tx);stroke-width:1.5}
@@ -329,7 +329,7 @@
   .fastlist{display:flex;flex-direction:column;gap:5px}
   .fastrow{font-size:12.5px;line-height:1.45;padding:5px 0;border-bottom:1px solid var(--bd)}
   .fastrow b{font-family:var(--mono);font-size:11px;color:var(--ac)}
-  .estrow{display:flex;gap:10px;text-align:center}
+  .estrow{display:flex;gap:10px;text-align:left}
   .estrow>div{flex:1;background:var(--bd);border-radius:9px;padding:11px 6px}
   .estrow b{font-family:var(--serif);font-size:17px;display:block}
   .estrow span{font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--tm)}
@@ -368,7 +368,7 @@
   .stepdiag{width:212px;height:168px;flex-shrink:0;border-radius:8px;background:color-mix(in srgb,var(--ac) 7%,transparent);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:5px;box-sizing:border-box}
   .stepdiag img,.stepdiag svg{max-width:100%;max-height:100%}
   .framewrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:6px}
-  .framebox{text-align:center;flex:1 1 300px;max-width:360px}
+  .framebox{text-align:left;flex:1 1 300px;max-width:360px}
   .fsvg{width:100%;height:auto}
   .fsvg .mem{fill:color-mix(in srgb,var(--ac) 12%,transparent);stroke:var(--tx);stroke-width:1.2}
   .fsvg .plate{fill:color-mix(in srgb,var(--ac) 26%,transparent);stroke:var(--tx);stroke-width:1.2}
@@ -1061,7 +1061,7 @@ try{
   function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
   addEventListener('resize',resize); resize();
   (function loop(){ requestAnimationFrame(loop);
-    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=0.9; controls.update();
+    controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=1.7; controls.update();
     if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
     renderer.render(scene,camera); updateDimLabels(); })();
 }catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The materials list still works.'; }
@@ -1202,17 +1202,17 @@ const HATCH_FRAG=`
     float t = plane(vWp.zy,mat,aa)*an.x + plane(vWp.xz,mat,aa)*an.y + plane(vWp.xy,mat,aa)*an.z;
     return t * fade; }
   void main(){
-    vec3 N = normalize(vWn); if(!gl_FrontFacing) N = -N;      // world-space normal (two-sided) → the light source is FIXED in the world
-    float ndl = dot(N, normalize(uLight));                    // fixed sun: as the model turns, its faces sweep in and out of the light
-    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // half-lambert (no dead black)
-    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.5);       // gentle 4-band quantise → matte printed steps
-    vec3 base = mix(uInk, uPaper, b);                         // light material, gentle form-shade between shadow & lit grey
-    base *= mix(0.87, 1.0, tone);                             // + a gentle directional wash so the change of light reads as it rotates (kept light)
-    float ink = triTex(uMat);                                // drafted line-work coverage, locked to the geometry
-    vec3 col = mix(base, uInkCol, ink*(uTex*0.66 + (1.0-b)*0.08));   // navy hatch / stipple / grain on the light base, a touch heavier in shadow
-    vec2 sp = gl_FragCoord.xy / uPx;                          // tactile paper + print grain (two octaves)
+    vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;       // VIEW-space normal → the key light reads relative to the camera, so every face re-shades as you orbit / spin
+    float ndl = dot(N, normalize(uLight));
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // half-lambert key from the light source
+    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.35);     // faint quantise → smooth light gradient over the form
+    vec3 base = mix(uInk, uPaper, b);
+    base *= mix(0.44, 1.08, tone);                            // STRONG directional key → a bright lit side and a clearly darker shadow side that sweep as the model turns
+    float ink = triTex(uMat);                                // drafted texture, locked to the geometry
+    vec3 col = mix(base, uInkCol, ink*(uTex*0.38 + (1.0-b)*0.05));   // LIGHT fill texture → the crisp navy outlines pop
+    vec2 sp = gl_FragCoord.xy / uPx;                          // faint paper / print tooth
     float grain = hash(sp*1.6)*0.62 + hash(sp*0.41)*0.38;
-    col *= (1.0 - grain*0.05);
+    col *= (1.0 - grain*0.04);
     col = mix(col, vec3(1.0,0.42,0.0), uHi*0.9);             // click-to-select → the piece flips to neon orange
     gl_FragColor = vec4(col, uAlpha); }`;
 function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
@@ -1221,7 +1221,7 @@ function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
     extensions:{derivatives:true},
     uniforms:{ uPaper:{value:new THREE.Color(litHex)}, uInk:{value:new THREE.Color(shadeHex)},
       uInkCol:{value:new THREE.Color(0x1c356b)},                        // deep blueprint navy drafting ink
-      uLight:{value:new THREE.Vector3(-0.5,0.82,0.38).normalize()},     // FIXED world sun from the upper-left-front
+      uLight:{value:new THREE.Vector3(-0.86,0.30,0.42).normalize()},    // view-space side-raking key from screen-left → faces sweep bright→dark as the model turns
       uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0}, uMat:{value:mat||0}, uHi:{value:0} },
     transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
     polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
