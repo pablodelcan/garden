@@ -1067,15 +1067,32 @@ const PLAN_PRICE='$12';
 // Playhouse ships first — the switcher to the other (unreleased) builders stays hidden. Set false to show it again.
 const SOLO_RELEASE=true;
 const ULKEY='playhouse:planUnlocked';
+/* ===== owner access (your own backdoor) =====
+   Open the tool with  ?owner=<your key>  → unlocks the printable plan set on this device, free, forever.
+   Open it with        ?relock=1          → drops back to the customer view so you can see the paywall.
+   The key itself is NOT in this file — only a hash of it, so a curious visitor reading the source
+   can't just read it off. To change the key: run  planKeyHash('your-new-key')  in the browser console
+   and paste the number below. */
+const OWNER_HASH=1642967723;
+const OWNKEY='playhouse:owner';
+function h32(s){ let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return h; }
+window.planKeyHash=h32;   // console helper for minting a new key
+function isOwner(){ try{ return localStorage.getItem(OWNKEY)==='1'; }catch(e){ return false; } }
+
 function paywallOn(){ return !!PAY_LINK && !/REPLACE/.test(PAY_LINK); }
-function planUnlocked(){ if(!paywallOn()) return true; try{ return localStorage.getItem(ULKEY)==='1'; }catch(e){ return false; } }
+function planUnlocked(){ if(!paywallOn()||isOwner()) return true; try{ return localStorage.getItem(ULKEY)==='1'; }catch(e){ return false; } }
 function goPay(){ if(!paywallOn()){ alert("Checkout isn't set up yet — paste your Stripe Payment Link into the tool."); return; }
   window.open(PAY_LINK,'_blank','noopener'); }
 function syncUnlock(){ try{ document.body.classList.toggle('plan-unlocked', planUnlocked()); }catch(e){} }
-// returning from Stripe → ?unlocked=1 sets the flag, then we strip it back out of the URL
-(function(){ try{ const u=new URLSearchParams(location.search);
-  if(u.get('unlocked')==='1'){ localStorage.setItem(ULKEY,'1'); u.delete('unlocked');
-    history.replaceState(null,'',location.pathname+(u.toString()?'?'+u.toString():'')+location.hash); } }catch(e){} })();
+// ?unlocked=1 (back from Stripe) · ?owner=<key> (your access) · ?relock=1 (back to the customer view).
+// Whichever fires, the param is stripped from the URL afterwards so it doesn't sit in the address bar.
+(function(){ try{ const u=new URLSearchParams(location.search); let used=false;
+  if(u.get('unlocked')==='1'){ localStorage.setItem(ULKEY,'1'); u.delete('unlocked'); used=true; }
+  if(u.has('owner')){ if(h32(u.get('owner'))===OWNER_HASH){ localStorage.setItem(OWNKEY,'1'); localStorage.setItem(ULKEY,'1'); }
+    u.delete('owner'); used=true; }
+  if(u.get('relock')==='1'){ localStorage.removeItem(OWNKEY); localStorage.removeItem(ULKEY); u.delete('relock'); used=true; }
+  if(used) history.replaceState(null,'',location.pathname+(u.toString()?'?'+u.toString():'')+location.hash);
+}catch(e){} })();
 // paying in another tab (same origin) unlocks this one on return
 addEventListener('storage',e=>{ if(e.key===ULKEY){ syncUnlock(); if(document.getElementById('planModal').classList.contains('on')) openPlan(); } });
 addEventListener('focus',()=>{ const was=document.body.classList.contains('plan-unlocked'); syncUnlock();
@@ -3467,9 +3484,11 @@ function openPlan(){
   const unl=planUnlocked(), pb=document.getElementById('planPrint'), pn=document.getElementById('planNote');
   pb.innerHTML = unl ? ICO.print+'Print / Save PDF' : ICO.lock+'Unlock printable PDF — '+PLAN_PRICE;
   pb.classList.toggle('locked',!unl);
-  if(pn) pn.innerHTML = unl
-    ? 'Unlocked ✓ · print, or “Save as PDF” in the print dialog · confirm against local code before building'
-    : 'Everything on this sheet is free to read. A one-time '+PLAN_PRICE+' unlocks printing / saving it as a PDF — secure checkout via Stripe.';
+  if(pn) pn.innerHTML = isOwner()
+    ? '<b>Owner access</b> — free, unlimited prints. Customers see the '+PLAN_PRICE+' unlock here. Add <b>?relock=1</b> to the URL to see their view.'
+    : unl
+      ? 'Unlocked ✓ · print, or “Save as PDF” in the print dialog · confirm against local code before building'
+      : 'Everything on this sheet is free to read. A one-time '+PLAN_PRICE+' unlocks printing / saving it as a PDF — secure checkout via Stripe.';
   document.getElementById('planModal').classList.add('on');
 }
 document.getElementById('openPlan').addEventListener('click',openPlan);
