@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Greenhouse — Studio OS</title>
+<title>Delcan &amp; Co. Builder — Greenhouse</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   @font-face{font-family:'Delcan Mono';font-style:normal;font-weight:100 900;font-display:swap;
@@ -67,7 +67,10 @@
   .topbar>*{pointer-events:auto}
   .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--tx);font-weight:700;background:none;border:none;padding:0;line-height:1.05}
   .brand b{opacity:.4;font-weight:400}
-  .brand::after{content:'ASSEMBLY GUIDE · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  .bt::after{content:'GREENHOUSE · ASSEMBLY GUIDE · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
+  .brand{display:flex;align-items:center;gap:9px;text-align:left}
+  .lmk{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;flex:none}
+
   body[data-view="blueprint"] .brand{color:#eaf1fb}
   body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
   .topright{display:flex;align-items:center;gap:12px;pointer-events:auto}
@@ -611,7 +614,7 @@
 <div id="dimLabelLayer"></div>
 
 <div class="topbar">
-  <div class="brand">Studio&nbsp;OS <b>·</b> Greenhouse Builder</div>
+  <div class="brand"><svg class="lmk" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 21 7.7v8.6l-9 5.1-9-5.1V7.7Z"/><path d="M12 12.8 21 7.7"/><path d="M12 12.8 3 7.7"/><path d="M12 12.8v8.6"/><path d="M13.8 14.9 21 10.8"/><path d="M13.8 17.9 21 13.8"/></svg><span class="bt">Delcan &amp; Co. Builder</span></div>
   <div class="topright">
     <div class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch builder" title="Switch builder">
       <option value="Birdhouse" data-file="birdhouse.html">Birdhouse</option>
@@ -3434,6 +3437,27 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
   });
 })();
 setView('manual');   // LINE is the only visualizer for now
+
+/* hold SPACE + drag = pan the drawing (screen-space up/down/left/right) */
+(function(){
+  if(typeof controls==='undefined'||!controls) return;
+  let sp=false;
+  addEventListener('keydown',e=>{
+    if(e.code!=='Space'||sp) return;
+    const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable)) return;
+    sp=true; e.preventDefault();
+    controls.enablePan=true; controls.screenSpacePanning=true;
+    controls.mouseButtons.LEFT=THREE.MOUSE.PAN;
+    if(controls.touches) controls.touches.ONE=THREE.TOUCH.PAN;
+    document.body.style.cursor='grab';
+  });
+  addEventListener('keyup',e=>{
+    if(e.code!=='Space') return; sp=false;
+    controls.mouseButtons.LEFT=THREE.MOUSE.ROTATE;
+    if(controls.touches) controls.touches.ONE=THREE.TOUCH.ROTATE;
+    document.body.style.cursor='';
+  });
+})();
 </script>
 </body>
 </html>
