@@ -32,34 +32,49 @@
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--field)}
   body[data-view="blueprint"] #bg{background:var(--blue)}
   /* LINE mode = a drafted technical manual: warm off-white graph paper with real fibre tooth, the model inked onto it */
-  body[data-view="manual"] #bg{background-color:#f4f1e8;
+  body[data-view="manual"] #bg{background-color:#f0ede3;
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.05'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
-      linear-gradient(rgba(30,55,110,.05) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(30,55,110,.05) 1px,transparent 1px),
-      linear-gradient(rgba(30,55,110,.10) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(30,55,110,.10) 1px,transparent 1px);
-    background-size:150px 150px,15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
-  /* ---- LINE (manual) view: deep-blueprint chrome — navy ink typography + tighter controls, on cream stock ---- */
-  body[data-view="manual"]{ --tx:#1e376e; --tm:#5f7099; --tf:#93a4c6; --ink:#1e376e; --ac:#1e376e;
-    --field:#f4f1e8; --paper:#f1eee4; --bd:rgba(30,55,110,.26); --bd2:#1e376e; --pb:rgba(22,40,84,.97); --blue:#1e376e; }
-  body[data-view="manual"] .brand,body[data-view="manual"] .ptitle,body[data-view="manual"] .glabel{color:#1e376e}
-  body[data-view="manual"] .brand::after,body[data-view="manual"] .psub{color:#5f7099}
-  body[data-view="manual"] #sheetframe{border-color:#1e376e}
-  body[data-view="manual"] #sheetframe::after{border-color:#1e376e;opacity:.4}
-  body[data-view="manual"] #sheetframe .tk::before,body[data-view="manual"] #sheetframe .tk::after{background:#1e376e}
-  body[data-view="manual"] .unittog,body[data-view="manual"] .viewseg{border-radius:2px}
-  body[data-view="manual"] .unittog b,body[data-view="manual"] .viewseg b{padding:3px 7px}
-  body[data-view="manual"] .unittog b.on,body[data-view="manual"] .viewseg b.on{background:#1e376e;color:#f4f1e8}
-  body[data-view="manual"] .toolsel{border-radius:2px;padding:3px 20px 3px 8px;color:#1e376e}
-  body[data-view="manual"] .paper{border-color:#1e376e;border-radius:2px}
-  body[data-view="manual"] .dock{padding:4px 6px;gap:2px;border-color:#1e376e;border-radius:2px}
-  body[data-view="manual"] .dock button{padding:5px 8px;border-radius:2px}
-  body[data-view="manual"] .dock button.on{background:#1e376e;color:#f4f1e8;border-color:#1e376e}
-  body[data-view="manual"] .dock button:hover:not(.on){background:rgba(30,55,110,.08);color:#1e376e}
-  body[data-view="manual"] .dock .sep{background:rgba(30,55,110,.28)}
-  body[data-view="manual"] .seg button{padding:6px 4px;border-radius:2px}
-  body[data-view="manual"] .seg button.on{background:#1e376e;color:#f4f1e8;border-color:#1e376e}
+      radial-gradient(ellipse 120% 100% at 50% 42%, rgba(0,0,0,0) 58%, rgba(96,80,44,.10) 100%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.06'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
+      linear-gradient(rgba(70,85,110,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(70,85,110,.06) 1px,transparent 1px),
+      linear-gradient(rgba(70,85,110,.12) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(70,85,110,.12) 1px,transparent 1px);
+    background-size:100% 100%,150px 150px,15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
+  /* ---- LINE (manual) view: black-ink printed manual — typographic UI, no boxes, on aged graph stock ---- */
+  body[data-view="manual"]{ --tx:#141414; --tm:#5a5a56; --tf:#8e8e88; --ink:#141414; --ac:#141414;
+    --field:#f0ede3; --paper:#f0ede3; --bd:rgba(20,20,20,.34); --bd2:#141414; --pb:rgba(18,18,16,.97); }
+  /* panels dissolve into the sheet: open cream columns, split from the drawing by one hairline rule */
+  body[data-view="manual"] .paper{background:var(--field);border:none;border-radius:0;box-shadow:none}
+  body[data-view="manual"] .left{border-right:1px solid #141414}
+  body[data-view="manual"] .right{border-left:1px solid #141414}
+  body[data-view="manual"] .glabel{border-bottom:1px solid #141414;padding-bottom:6px}
+  body[data-view="manual"] .rhead{border-bottom:1px solid #141414}
+  /* topbar: pure typography — active view is underlined, not boxed */
+  body[data-view="manual"] .unittog,body[data-view="manual"] .viewseg{border:none;background:transparent;border-radius:0}
+  body[data-view="manual"] .unittog b,body[data-view="manual"] .viewseg b{border:none;padding:3px 6px}
+  body[data-view="manual"] .unittog b.on,body[data-view="manual"] .viewseg b.on{background:transparent!important;color:#141414!important;box-shadow:inset 0 -2px 0 #141414}
+  body[data-view="manual"] .toolsel{background:#faf8f1;border:1px solid #141414;border-radius:0;padding:3px 20px 3px 8px;color:#141414}
+  /* primary CTAs = solid black print bars; everything else hairline + square */
+  body[data-view="manual"] .sharebtn,body[data-view="manual"] .saverow button,
+  body[data-view="manual"] .shopbtn,body[data-view="manual"] .planbtn{background:#141414!important;color:#f0ede3!important;border:1px solid #141414!important;border-radius:0!important}
+  body[data-view="manual"] .sharebtn:hover,body[data-view="manual"] .shopbtn:hover,body[data-view="manual"] .planbtn:hover{background:#f0ede3!important;color:#141414!important}
+  body[data-view="manual"] .seg button,body[data-view="manual"] select,body[data-view="manual"] .miniBtn,
+  body[data-view="manual"] .saverow input,body[data-view="manual"] .ordclear{border:1px solid rgba(20,20,20,.45);border-radius:0}
+  body[data-view="manual"] .seg button.on{background:#141414;color:#f0ede3;border-color:#141414}
+  body[data-view="manual"] .drow .dload{background:#faf8f1;border:1px solid #141414;border-radius:0}
+  body[data-view="manual"] .drow .ddel{border:1px solid #141414;border-radius:0}
+  body[data-view="manual"] .item .ck{border:1px solid #141414;border-radius:0}
+  body[data-view="manual"] .item.ordered .ck{background:#141414;border-color:#141414}
+  /* instrument sliders: thin rule + small square black thumb */
+  body[data-view="manual"] input[type=range]{height:2px;border-radius:0;background:rgba(20,20,20,.35)}
+  body[data-view="manual"] input[type=range]::-webkit-slider-thumb{width:9px;height:9px;border-radius:0;background:#141414;border:none}
+  /* dock: plain text row with rule separators — no container box */
+  body[data-view="manual"] .dock{background:transparent;border:none;border-radius:0;padding:0;gap:0}
+  body[data-view="manual"] .dock button{padding:4px 8px;border-radius:0;color:#3c3c38}
+  body[data-view="manual"] .dock button.on{background:#141414;color:#f0ede3}
+  body[data-view="manual"] .dock button:hover:not(.on){background:rgba(20,20,20,.07);color:#141414}
+  body[data-view="manual"] .dock .sep{background:#141414;opacity:.55;height:13px}
   .blob{display:none}
   #scene{position:fixed;inset:0;z-index:1}
   /* drawing-sheet frame — double black rule + corner ticks, like a printed manual page */
@@ -199,7 +214,7 @@
   .dock button.on{color:#fff;background:var(--tx);border-color:var(--tx)}
   .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
 
-  .badge{position:fixed;left:22px;bottom:78px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7}
+  .badge{position:fixed;left:22px;bottom:22px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7;max-width:380px}
   .badge b{font-weight:600;color:var(--tx)}
   body[data-view="blueprint"] .badge{color:#bcd4f2;opacity:.9}
   body[data-view="blueprint"] .badge b{color:#eaf1fb}
@@ -1201,18 +1216,27 @@ const HATCH_FRAG=`
     vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
     float t = plane(vWp.zy,mat,aa)*an.x + plane(vWp.xz,mat,aa)*an.y + plane(vWp.xy,mat,aa)*an.z;
     return t * fade; }
+  float shadowHatch(float dir){                              // engraving hatch strokes at ±45°, triplanar & locked to the geometry
+    float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
+    float aa = max(0.006, fw*0.9);
+    float fade = smoothstep(0.17, 0.035, fw);
+    vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
+    float t = (1.0-lines(vWp.zy,dir,0.095,0.017,aa))*an.x + (1.0-lines(vWp.xz,dir,0.095,0.017,aa))*an.y + (1.0-lines(vWp.xy,dir,0.095,0.017,aa))*an.z;
+    return t * fade; }
   void main(){
-    vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;       // VIEW-space normal → the key light reads relative to the camera, so every face re-shades as you orbit / spin
+    vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;       // VIEW-space normal → the key light reads relative to the camera
     float ndl = dot(N, normalize(uLight));
-    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // half-lambert key from the light source
-    float b = mix(tone, floor(tone*4.0+0.5)/4.0, 0.35);     // faint quantise → smooth light gradient over the form
-    vec3 base = mix(uInk, uPaper, b);
-    base *= mix(0.44, 1.08, tone);                            // STRONG directional key → a bright lit side and a clearly darker shadow side that sweep as the model turns
-    float ink = triTex(uMat);                                // drafted texture, locked to the geometry
-    vec3 col = mix(base, uInkCol, ink*(uTex*0.38 + (1.0-b)*0.05));   // LIGHT fill texture → the crisp navy outlines pop
-    vec2 sp = gl_FragCoord.xy / uPx;                          // faint paper / print tooth
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // 1 = facing the key light
+    vec3 base = mix(uInk, uPaper, mix(0.55, 1.0, tone));      // faces stay PAPER-WHITE with only the faintest tonal turn — pure line art
+    float mtl = triTex(uMat) * uTex * 0.50;                   // light material pattern — boards / standing seams / stipple
+    float s1 = smoothstep(0.62, 0.28, tone);                  // ENGRAVING SHADING: hatch strokes build up as a face turns from the light…
+    float s2 = smoothstep(0.34, 0.10, tone);                  // …and CROSS-hatch in deep shadow. Redraws live as the model spins.
+    float hat = shadowHatch(0.785)*s1*0.85 + shadowHatch(-0.785)*s2*0.75;
+    float ink = clamp(max(mtl, hat), 0.0, 1.0);
+    vec3 col = mix(base, uInkCol, ink);                       // black drafting ink on paper
+    vec2 sp = gl_FragCoord.xy / uPx;                          // faint print tooth
     float grain = hash(sp*1.6)*0.62 + hash(sp*0.41)*0.38;
-    col *= (1.0 - grain*0.04);
+    col *= (1.0 - grain*0.035);
     col = mix(col, vec3(1.0,0.42,0.0), uHi*0.9);             // click-to-select → the piece flips to neon orange
     gl_FragColor = vec4(col, uAlpha); }`;
 function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
@@ -1220,8 +1244,8 @@ function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
     vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
     extensions:{derivatives:true},
     uniforms:{ uPaper:{value:new THREE.Color(litHex)}, uInk:{value:new THREE.Color(shadeHex)},
-      uInkCol:{value:new THREE.Color(0x1c356b)},                        // deep blueprint navy drafting ink
-      uLight:{value:new THREE.Vector3(-0.86,0.30,0.42).normalize()},    // view-space side-raking key from screen-left → faces sweep bright→dark as the model turns
+      uInkCol:{value:new THREE.Color(0x1a1a18)},                        // black printing ink
+      uLight:{value:new THREE.Vector3(-0.86,0.30,0.42).normalize()},    // view-space side-raking key from screen-left → hatching redraws as the model turns
       uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0}, uMat:{value:mat||0}, uHi:{value:0} },
     transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
     polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
@@ -1245,23 +1269,23 @@ function applyViewStyle(){
     [C(colors.base||0x6e5a3e),C(0x3DA34D)],[C(colors.door||0x3a2517),C(0xF07F1A)],[C(colors.accent||colors.roof),C(0x8E6FC4)]
   ] : null;
   const nearest=col=>{ let best=ramp[0][1],bd=1e9; for(const [src,dst] of ramp){ const d=(col.r-src.r)**2+(col.g-src.g)**2+(col.b-src.b)**2; if(d<bd){bd=d;best=dst;} } return best; };
-  const inkHex = v==='blueprint' ? 0xe2eeff : (v==='manual' ? 0x1c356b : 0x141414);   // navy manual ink · black on paper · bright on blue
+  const inkHex = v==='blueprint' ? 0xe2eeff : 0x141414;      // black printing ink on paper · bright lines on blue
   for(const o of meshes){
     const mat=o.material; if(!mat||!mat.color) continue;
     const wasT=!!mat.transparent, op=(mat.opacity==null?1:mat.opacity);
     if(v==='manual'){
       // grayscale "material manual" render — each part maps to a printed grey [lit, shadow, texture]; form shading is
       // view-space so it sweeps as you orbit. Board / seam / batten lines come from the geometry + ink edges below.
-      const GR=[   // [srcColour, LIT grey, shadow grey, INK strength, patternType]  — light bases; darkness comes from the drafted ink
-        [C(colors.roof),                0xd9d6ce, 0xbfbcb2, 0.74, 2],  // metal roof — dense cross-hatch + standing seams
-        [C(colors.struct),              0xceCabf, 0xaba79c, 0.52, 3],  // framing / posts — light wood, grain
-        [C(colors.trim||colors.struct), 0xcecabf, 0xaba79c, 0.52, 3],
-        [C(colors.siding),              0xe4e1d8, 0xc9c6bc, 0.62, 1],  // siding / plywood — light, fine stipple
-        [C(0x564d40),                   0xeceae4, 0xd8d6cf, 0.32, 4],  // concrete footing — near-white, sparse stipple
-        [C(0x8c8a84),                   0xeceae4, 0xd8d6cf, 0.32, 4],
-        [C(colors.door||0x3a2517),      0xd0ccc1, 0xb0ab9f, 0.5,  3],  // door — light wood grain
-        [C(0x9fc7d6),                   0xeef0ec, 0xdde0db, 0.12, 0],  // glass — light, smooth
-        [C(colors.accent||colors.roof), 0xcbc6bb, 0xa9a498, 0.5,  3]
+      const GR=[   // [srcColour, LIT paper, shadow paper, pattern strength, patternType] — ALL faces stay paper-white; parts differ only by ink pattern
+        [C(colors.roof),                0xf6f4ec, 0xe2dfd4, 0.55, 2],  // metal roof — standing seams + fine hatch tooth
+        [C(colors.struct),              0xf6f4ec, 0xe0ddd2, 0.42, 3],  // framing / posts — wood grain
+        [C(colors.trim||colors.struct), 0xf6f4ec, 0xe0ddd2, 0.42, 3],
+        [C(colors.siding),              0xf7f5ee, 0xe4e1d6, 0.46, 1],  // siding / plywood — fine stipple + board lines
+        [C(0x564d40),                   0xf7f5ee, 0xe6e3d8, 0.30, 4],  // concrete footing — sparse stipple
+        [C(0x8c8a84),                   0xf7f5ee, 0xe6e3d8, 0.30, 4],
+        [C(colors.door||0x3a2517),      0xf6f4ec, 0xe0ddd2, 0.44, 3],  // door — wood grain
+        [C(0x9fc7d6),                   0xf2f2ee, 0xe3e4df, 0.10, 0],  // glass — clean, smooth
+        [C(colors.accent||colors.roof), 0xf6f4ec, 0xe0ddd2, 0.42, 3]
       ];
       let bst=GR[0],bd=1e9; for(const r of GR){ const s=r[0], d=(mat.color.r-s.r)**2+(mat.color.g-s.g)**2+(mat.color.b-s.b)**2; if(d<bd){bd=d;bst=r;} }
       o.material = makeHatchMat(bst[1], bst[2], wasT?0.5:1, bst[3], bst[4]);
