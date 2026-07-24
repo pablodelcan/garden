@@ -975,7 +975,7 @@
 
 <div id="printGate"><b>Delcan &amp; Co. Builder — Playhouse plan set</b>
   This plan set hasn’t been unlocked yet, so there’s nothing to print.<br>
-  Open <b style="display:inline;font-size:12px;text-transform:none">Plan sheet + cut list</b> in the tool and tap “Unlock printable PDF” — a one-time payment, then print or save as PDF as many times as you like.</div>
+  Open <b style="display:inline;font-size:12px;text-transform:none">Plan sheet + cut list</b> in the tool and tap “Unlock printable PDF” — pay what you think it’s worth, then print or save as PDF as many times as you like.</div>
 
 <div class="shopmodal" id="planModal">
   <div class="shoppanel planpanel">
@@ -1062,8 +1062,11 @@ const LADDERS={
    ⬇⬇⬇  SETUP: in Stripe → Payment Links, create a link for the price below, set its
    "After payment" redirect to:  https://timeline.delcan.tools/tools/playhouse.html?unlocked=1
    then paste the link here. Until a real link is pasted the paywall stays OFF (PDF free). */
-const PAY_LINK='https://buy.stripe.com/REPLACE_WITH_YOUR_LINK';
-const PLAN_PRICE='$12';
+const PAY_LINK='https://buy.stripe.com/eVqcN68KrfpF0bM9c37kc0I';
+// The Stripe link is pay-what-you-want: $8 minimum, $10 suggested. Keep these in step with the link.
+const PLAN_MIN='$8';
+const PLAN_SUGGESTED='$10';
+const PLAN_PRICE='from '+PLAN_MIN;   // short label on the button
 // Playhouse ships first — the switcher to the other (unreleased) builders stays hidden. Set false to show it again.
 const SOLO_RELEASE=true;
 const ULKEY='playhouse:planUnlocked';
@@ -3485,10 +3488,10 @@ function openPlan(){
   pb.innerHTML = unl ? ICO.print+'Print / Save PDF' : ICO.lock+'Unlock printable PDF — '+PLAN_PRICE;
   pb.classList.toggle('locked',!unl);
   if(pn) pn.innerHTML = isOwner()
-    ? '<b>Owner access</b> — free, unlimited prints. Customers see the '+PLAN_PRICE+' unlock here. Add <b>?relock=1</b> to the URL to see their view.'
+    ? '<b>Owner access</b> — free, unlimited prints. Customers see the pay-what-you-want unlock here. Add <b>?relock=1</b> to the URL to see their view.'
     : unl
-      ? 'Unlocked ✓ · print, or “Save as PDF” in the print dialog · confirm against local code before building'
-      : 'Everything on this sheet is free to read. A one-time '+PLAN_PRICE+' unlocks printing / saving it as a PDF — secure checkout via Stripe.';
+      ? 'Thank you ✓ · print, or “Save as PDF” in the print dialog · confirm against local code before building'
+      : 'Everything on this sheet is free to read. Pay what you think it’s worth — '+PLAN_SUGGESTED+' suggested, '+PLAN_MIN+' minimum — to unlock printing and saving it as a PDF. Secure checkout via Stripe.';
   document.getElementById('planModal').classList.add('on');
 }
 document.getElementById('openPlan').addEventListener('click',openPlan);
