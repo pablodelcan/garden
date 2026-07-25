@@ -1334,7 +1334,10 @@ document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.targe
 
 /* ===== THREE setup ===== */
 let renderer,scene,camera,controls,house,sun,groundPlane,hatchMats=[],lineMats=[];
+let _sbLast='';   // declared HERE, not next to updateScaleBar() — the loop's first frame runs inside the try below,
+                  // and a `let` further down the module would still be in its temporal dead zone at that point.
 const errEl=document.getElementById('err');
+let startLoop=null;
 try{
   const canvas=document.getElementById('scene');
   renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,preserveDrawingBuffer:true});
@@ -1356,13 +1359,22 @@ try{
   house=new THREE.Group(); scene.add(house);
   function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
   addEventListener('resize',resize); resize();
-  (function loop(){ requestAnimationFrame(loop);
+  startLoop=function loop(){ requestAnimationFrame(loop);
     controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=1.7; controls.update();
     if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
     if(lineMats.length){ for(const m of lineMats) m.resolution.set(innerWidth,innerHeight); }
-    updateScaleBar();   // fat-line material needs the live viewport size
-    renderer.render(scene,camera); updateDimLabels(); })();
-}catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The materials list still works.'; }
+    try{ updateScaleBar(); }catch(e){}
+    renderer.render(scene,camera);
+    try{ updateDimLabels(); }catch(e){} };
+  }catch(e){
+  console.error('3D startup failed:', e);
+  const offline = (typeof THREE==='undefined') || !navigator.onLine;
+  errEl.style.display='flex';
+  errEl.textContent = offline
+    ? 'Could not start the 3D view — three.js needs an internet connection. The materials list still works.'
+    : 'Could not start the 3D view: '+(e && e.message ? e.message : e)+'. The materials list still works.';
+}
+if(startLoop) startLoop();   // outside the try: a bad frame is a bad frame, not a failed startup
 
 function updateDimLabels(){
   const cont=document.getElementById('dimLabelLayer'); if(!cont||!camera) return;
@@ -1559,7 +1571,6 @@ function inkTone(chosen, defHex, litHex, shHex, tx){
 
 /* A true scale reference: project one world foot along the camera's right axis at the orbit target,
    then round to a friendly length. Redraws every frame, so it always reads the current zoom. */
-let _sbLast='';
 function updateScaleBar(){
   const bar=document.getElementById('sbBar'), lbl=document.getElementById('sbLbl');
   if(!bar||!lbl||!camera||!controls) return;
