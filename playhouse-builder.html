@@ -43,13 +43,9 @@
   body[data-view="manual"] #bg{background-color:#f0ede3;
     background-image:
       radial-gradient(ellipse 120% 100% at 50% 42%, rgba(0,0,0,0) 58%, rgba(96,80,44,.10) 100%),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.06'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>"),
-      linear-gradient(rgba(70,85,110,.06) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(70,85,110,.06) 1px,transparent 1px),
-      linear-gradient(rgba(70,85,110,.12) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(70,85,110,.12) 1px,transparent 1px);
-    background-size:100% 100%,150px 150px,15px 15px,15px 15px,75px 75px,75px 75px;background-position:center}
-  /* ---- LINE (manual) view: black-ink printed manual — typographic UI, no boxes, on aged graph stock ---- */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.06'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>");
+    background-size:100% 100%,150px 150px;background-position:center}
+  /* ---- LINE (manual) view: black-ink printed manual — typographic UI, no boxes, on aged paper stock ---- */
   body[data-view="manual"]{ --tx:#141414; --tm:#5a5a56; --tf:#8e8e88; --ink:#141414; --ac:#141414;
     --field:#f0ede3; --paper:#f0ede3; --bd:rgba(20,20,20,.34); --bd2:#141414; --pb:rgba(18,18,16,.97); }
   /* panels dissolve into the sheet: open cream columns, split from the drawing by one hairline rule */
@@ -3105,7 +3101,7 @@ function saveCurrent(){
   const inp=document.getElementById('designName'), a=loadDesigns();
   const name=(inp.value||'').trim() || ('Design '+(a.length+1));
   const snap={ name, ts:Date.now(), state:JSON.parse(JSON.stringify(state)), colors:{...colors},
-    view:state.view||'shaded' };
+    view:'manual' };
   const i=a.findIndex(d=>(d.name||'').toLowerCase()===name.toLowerCase());
   if(i>=0) a[i]=snap; else a.unshift(snap);
   storeDesigns(a); renderDesigns(); inp.value='';
@@ -3116,6 +3112,10 @@ function applyDesign(d){
   if(!state.windows) state.windows = state.window ? [state.window] : [];  // migrate old single-window saves
   delete state.window;
   if(d.colors) Object.assign(colors,d.colors);
+  // designs saved before LINE became the only view carry view:'color'/'shaded'/'blueprint',
+  // and may carry extras that are now parked — bring every old build up to the current style
+  state.view='manual';
+  if(typeof EXTRAS_ON!=='undefined' && !EXTRAS_ON && typeof EXTRA_KEYS!=='undefined') EXTRA_KEYS.forEach(k=>{ state[k]=false; });
   if(state.hour==null) state.hour=14;
   for(const id of ['W','D','Hf','Hw','Dd','oc']) document.getElementById(id).value=state[id];
   if(state.grade==null) state.grade=0; if(!state.gradeDir) state.gradeDir='right';
@@ -3141,8 +3141,7 @@ function applyDesign(d){
   ['front','back','left','right'].forEach(k=>{ const el=document.getElementById('cW'+k); if(el) el.value=colors.walls[k]||colors.siding; });
   cStruct.value=colors.struct; cSiding.value=colors.siding; cRoof.value=colors.roof;
   document.getElementById('finCap').innerHTML=FINISH[state.finish].cap;
-  if(d.view){ state.view=d.view; document.body.dataset.view=d.view;
-    document.querySelectorAll('#viewSeg b').forEach(b=>b.classList.toggle('on',b.dataset.view===d.view)); }
+  document.body.dataset.view=state.view;   // always 'manual' — d.view is ignored while LINE is the only view
   update(); updateSun(); if(controls) frame();
 }
 document.getElementById('saveDesign').addEventListener('click',saveCurrent);
