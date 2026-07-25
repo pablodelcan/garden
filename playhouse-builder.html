@@ -108,7 +108,7 @@
   @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fuC{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 
-  .topbar{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:7;pointer-events:none}
+  .topbar{position:fixed;top:23px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 23px;z-index:7;pointer-events:none}
   .topbar>*{pointer-events:auto}
   .brand{font-family:var(--cond);font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--tx);font-weight:700;background:none;border:none;padding:0;line-height:1.05}
   .brand b{opacity:.4;font-weight:400}
@@ -144,8 +144,8 @@
   body[data-view="blueprint"] .toolwrap::after{color:#bcd4f2}
 
   .paper{background:var(--paper);border:1.5px solid var(--ink);border-radius:2px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;animation:fu .5s ease both}
-  .left{position:fixed;left:22px;top:62px;bottom:84px;width:300px;z-index:5;transition:left .4s cubic-bezier(.4,0,.2,1)}
-  .right{position:fixed;right:22px;top:62px;bottom:84px;width:346px;z-index:5;transition:right .4s cubic-bezier(.4,0,.2,1)}
+  .left{position:fixed;left:23px;top:80px;bottom:84px;width:300px;z-index:5;transition:left .4s cubic-bezier(.4,0,.2,1)}
+  .right{position:fixed;right:23px;top:80px;bottom:84px;width:346px;z-index:5;transition:right .4s cubic-bezier(.4,0,.2,1)}
   body.lhide .left{left:-340px}
   body.rhide .right{right:-380px}
   .scroll{overflow-y:auto;padding:20px}
@@ -233,13 +233,13 @@
   .item .mcost{font-family:var(--mono);font-size:13px;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap}
   .foot{font-family:var(--mono);padding:18px 0 4px;font-size:10.5px;color:var(--tm);line-height:1.6}
 
-  .dock{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:var(--paper);border:1px solid var(--bd2);border-radius:4px;padding:6px 8px;box-shadow:var(--shadow);animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
+  .dock{position:fixed;bottom:23px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:var(--paper);border:1px solid var(--bd2);border-radius:4px;padding:6px 8px;box-shadow:var(--shadow);animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
   .dock button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 11px;background:transparent;color:var(--tm);border:1px solid transparent;cursor:pointer;transition:.12s;font-weight:500;text-align:left}
   .dock button:hover{color:var(--tx);background:rgba(35,30,18,.06)}
   .dock button.on{color:#fff;background:var(--tx);border-color:var(--tx)}
   .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
 
-  .badge{position:fixed;left:22px;bottom:22px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7;max-width:380px}
+  .badge{position:fixed;left:23px;bottom:23px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7;max-width:380px}
   .badge b{font-weight:600;color:var(--tx)}
   body[data-view="blueprint"] .badge{color:#bcd4f2;opacity:.9}
   body[data-view="blueprint"] .badge b{color:#eaf1fb}
@@ -734,7 +734,7 @@
   #mbar button b{font-size:17px;font-weight:400}
   button,input,select,.stepnav .sbtn,.dock button{touch-action:manipulation}
   @media (max-width:700px), (pointer:coarse) and (max-width:1000px){
-    .topbar{padding:0 10px;height:44px}
+    .topbar{padding:0 10px;height:44px;top:0}
     .brand{display:none}
     .toolwrap{display:none}
     .viewseg b,.unittog b{padding:5px 7px;font-size:9.5px}
@@ -1672,7 +1672,8 @@ function rebuild3D(p){
   const wallCol=k=>(colors.walls&&colors.walls[k])||colors.siding;   // per-wall paint override
   const th=post==='6x6'?0.46:0.29, base=0.26;
   const ex=W/2-th/2, ez=D/2-th/2;
-  const floorY=Hf, wallTop=Hf+Hw, ov=1, beamY=floorY-0.295;   // beam top flush with the deck underside (joists hang flush in hangers)
+  const floorY=Hf, wallTop=Hf+Hw, ov=1, beamY=floorY-0.295;
+  const xbrace=Hf>4.5;   // tall platforms get full-bay X-bracing under the deck, not just corner knee braces   // beam top flush with the deck underside (joists hang flush in hangers)
   const isA=roof==='aframe', isGable=roof==='gable', isLean=roof==='lean', isSalt=roof==='saltbox', isGam=roof==='gambrel', isCleres=roof==='clerestory', isHip=roof==='hip', isFlat=roof==='flat', isShed=roof==='shed', isBfly=roof==='butterfly', isSaw=roof==='sawtooth', isBarrel=roof==='barrel';
   _explode = state.explode*1.6;                  // exploded-view lift per stage
   const interior=tog.tInterior&&!stepOn&&!isA&&!state.explode;   // dollhouse: ghost siding, drop roof, furnish
@@ -2040,6 +2041,17 @@ function rebuild3D(p){
     for(const sx of [-1,1]) for(const sz of [-1,1]){
       strut([sx*ex,yb,sz*ez],[sx*ex,yt,sz*(ez-run)],0.17,P.struct);     // long-wall plane
       strut([sx*ex,yb,sz*ez],[sx*(ex-run),yt,sz*ez],0.17,P.struct);     // short-wall plane
+    }
+    // Once the floor is up past ~4.5 ft, knee braces at the corners stop being enough: the whole
+    // frame can rack like a parallelogram. Full-bay X-bracing ties the posts base-to-top and is what
+    // actually stiffens a tall platform. End bays of each long side + both end walls, as built on decks.
+    if(xbrace){ const xb=0.15, yTop=beamY-0.12, yBot=base+0.25;
+      const bay=(x1,z1,x2,z2)=>{ strut([x1,yBot,z1],[x2,yTop,z2],xb,P.struct); strut([x2,yBot,z2],[x1,yTop,z1],xb,P.struct); };
+      for(const sx of [-1,1]){                                          // long sides: first and last bay
+        bay(sx*ex,zPos[0], sx*ex,zPos[1]);
+        if(zPos.length>2) bay(sx*ex,zPos[zPos.length-2], sx*ex,zPos[zPos.length-1]);
+      }
+      for(const sz of [-1,1]) bay(-ex,sz*ez, ex,sz*ez);                 // both end walls
     } }
 
   // ---- wind/snow anchoring hardware (galvanized) ----
@@ -2577,6 +2589,14 @@ function computeMaterials(p){
   g=G('Bracing & hardware');
   const braceL=stdLen(Hf*0.9);
   add(g,8,'pcs',`Knee braces 2×4 — ${braceL} ft`,'anti-racking, all corners',8*braceL*PRICE.brace,lw('2x4x8 lumber'));
+  if(Hf>4.5){                                   // tall platform → full-bay X-bracing under the deck
+    const zN=Math.max(2,Math.ceil(D/4)+1), bays=(zN>2?2:1)*2 + 2;      // end bays of each long side + both ends
+    const diagLen=stdLen(Math.hypot(Math.max(W,D)/Math.max(1,zN-1), Hf)*1.05), pcs=bays*2;
+    add(g,pcs,'pcs',`X-bracing 2×6 — ${diagLen} ft`,
+      `diagonal cross-braces under the platform — at ${dim(Hf)} up, corner knee braces alone let the frame rack`,
+      pcs*diagLen*PRICE.brace*1.5, lw('2x6x10 pressure treated'));
+    add(g,pcs*2,'×','½″ × 6″ carriage bolts — X-brace ends','through the post at every diagonal end',pcs*2*PRICE.bolt,lw('1/2 x 6 galvanized carriage bolt'));
+  }
   const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
   add(g,bolts,'×',`½″ × ${boltLen}″ carriage bolts`,'galvanized, through the beam sandwich + post (+ nuts/washers)',bolts*PRICE.bolt,lw(`1/2 x ${boltLen} galvanized carriage bolt`));
   add(g,joists,'×','Joist hangers — Simpson LUS26Z','ZMAX double-shear face-mount hanger',joists*PRICE.hanger,HW.hanger);
@@ -2787,6 +2807,7 @@ function safetyMsgs(s){   // shared by the side panel and the printed plan set
     msgs.push('Deck rail ~36" ✓ — for a code ≤4" baluster gap, run ~'+nBal+' balusters over '+dim(railLen)+' of railing.'); }
   if(s.access==='stairs'&&s.stairGate!==false) msgs.push('Stair gate is on — hang it to swing AWAY from the drop, with the latch on the outside face where a small child can’t reach it.');
   if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.anchor) msgs.push('Tall &amp; exposed — add hurricane ties at the beams and ground anchors at the footings.');
+  if(s.Hf>4.5) msgs.push('Floor is '+dim(s.Hf)+' up, so the frame gets full-bay 2×6 <b>X-bracing</b> under the deck — end bays of each long side and both ends. Corner knee braces alone let a platform this tall rack sideways. Through-bolt every diagonal end; don’t screw them.');
   if(s.slide) msgs.push('Slide: land it on soft fall material (mulch/rubber, 6" deep) running at least 6 ft past the exit.');
   if(s.swing) msgs.push('Swing set: keep 6 ft of clear space in front and behind the arc, and 2 ft to either side.');
   if(s.pole) msgs.push('Fireman pole: clear a 3 ft circle at the base and set soft fall material under it.');
@@ -3013,7 +3034,7 @@ function stepDetail(c,s){
     3:`4× 2×6 beam plies (${s.D} ft) · sandwich the posts · through-bolt`,
     4:`${joists}× 2×6 joists @ ${s.oc}" O.C.`,
     5:`${sheets}× ¾" plywood sheet${sheets>1?'s':''}`,
-    6:`8× 2×4 knee braces, 45°`,
+    6:(state.Hf>4.5?`8× 2×4 knee braces, 45° + X-bracing`:`8× 2×4 knee braces, 45°`),
     7:`back wall · 2×4 studs @ 16"`,
     7.4:`front wall · studs + door header`,
     7.7:`2× butt walls (fit between) + 2nd top plate`,
@@ -3408,7 +3429,7 @@ function stepSpecs(st,s){
     3:['doubled 2×6 beams', `${dim(s.D)} per side`, 'through-bolted'],
     4:[`${joists} joists`, `@ ${s.oc}" O.C.`, `${dim(s.W)} span`],
     5:[`${floorSheets}× ¾" plywood`, '4×8 T&G sheets'],
-    6:['8× 2×4 knee braces', '45° all corners'],
+    6:(s.Hf>4.5?['8× 2×4 knee braces','45° all corners','+ 2×6 X-bracing, end bays & both ends']:['8× 2×4 knee braces','45° all corners']),
     7:[`~${studs} studs`, `${dim(s.Hw)} walls`, 'headers over openings'],
     8:[`${s.roof} roof`, isFlat?'flat + parapet':'1 ft overhang',
        s.roof==='lean'||s.roof==='shed'?('slopes '+(s.slopeDir||'right'))
