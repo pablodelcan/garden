@@ -1826,11 +1826,19 @@ function rebuild3D(p){
 
   // ---- roofs: sheathing + visible rafters + fascia + ridge ----
   const seamCol=shade(colors.roof,1.5);
-  function deckRafters(cx,cy,rotZ,slabW,depth,noRake,fieldD,zo){
+  // a hurricane tie: galvanized strap each side of the rafter, wrapping the plate below it.
+  // Every rafter gets them — this is the connection that keeps a roof on, not an optional extra.
+  function rafterTies(bearXs, bearY, z){
+    if(!bearXs) return; const TIE='#9a9a96';
+    for(const bx of bearXs) for(const sz of [-1,1])
+      box(0.34,0.36,0.022, bx, bearY+0.14, z+sz*0.062, TIE,{cast:false});
+  }
+  function deckRafters(cx,cy,rotZ,slabW,depth,noRake,fieldD,zo,bearXs,bearY){
     _stage=8; zo=zo||0;                                                                  // structure first: the rafters
     const fd=fieldD||depth;                                  // rafters live OVER the walls — the rake overhang is sheathing + barge, not floating rafters
     const nR=Math.max(2,Math.round(fd/1.6)+1), sp=(fd-0.2)/(nR-1);
-    for(let i=0;i<nR;i++){ const z=zo-fd/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ}); }  // rafters
+    for(let i=0;i<nR;i++){ const z=zo-fd/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ});
+      rafterTies(bearXs, bearY, z); }                                                    // tie each rafter down to the plate it lands on
     _stage=8.5;                                                                          // then the skin
     box(slabW,0.1,depth, cx,cy+0.05,zo, P.roof,{rotZ});                                  // sheathing deck
     const nS=Math.max(3,Math.round(depth/0.8));
@@ -1879,10 +1887,10 @@ function rebuild3D(p){
     } else if(isGable||isSalt){
       const rx=isSalt?-W*0.2:0, rise=W*(isSalt?0.46:0.30), peakY=wallTop+rise;
       const lrun=W/2+ovX+rx, lang=Math.atan2(rise,lrun), lslab=lrun/Math.cos(lang), leaveY=wallTop-ovX*Math.tan(lang);
-      deckRafters((-W/2-ovX+rx)/2,(peakY+leaveY)/2,lang,lslab,rd,false,D-0.15+dExt,zOff);
+      deckRafters((-W/2-ovX+rx)/2,(peakY+leaveY)/2,lang,lslab,rd,false,D-0.15+dExt,zOff,[-(W/2-0.06)],wallTop);
       const rrun=W/2+ovX-rx, rang=Math.atan2(rise,rrun), rslab=rrun/Math.cos(rang), reaveY=wallTop-ovX*Math.tan(rang);
-      deckRafters((W/2+ovX+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd,false,D-0.15+dExt,zOff);
-      box(0.12,0.5,rd, -W/2-ovX, leaveY-0.1, zOff, P.struct); box(0.12,0.5,rd, W/2+ovX, reaveY-0.1, zOff, P.struct);  // fascia
+      deckRafters((W/2+ovX+rx)/2,(peakY+reaveY)/2,-rang,rslab,rd,false,D-0.15+dExt,zOff,[(W/2-0.06)],wallTop);
+      box(0.12,0.5,rd, -(W/2+ovX+0.07), leaveY-0.1, zOff, P.struct); box(0.12,0.5,rd, W/2+ovX+0.07, reaveY-0.1, zOff, P.struct);  // fascia — clear of the wall face
       ridgeCap(rx,peakY+0.2,lang,rang,rd,zOff);                                                               // angled ridge cap
       // gable END WALL sits ON the top plate at the wall plane (z=±D/2); the roof slabs overhang past it to D/2+ovZ
       const gprof=[[-W/2,0],[rx,rise],[W/2,0]];
@@ -2002,9 +2010,9 @@ function rebuild3D(p){
           for(let i=0;i<nS;i++){ const uc=-len/2+(i+0.5)*sw; onWall(k,uc,wallTop+h/2,sw*0.93,h,0.06,col,{off:0.03,opacity:interior?0.16:null}); } } };  // board-and-batten siding, matching the wall below
       if(alongX){
         const lowS=(dir==='right')?1:-1, hiS=-lowS, eaveOv=(W/2+ovX)*tn, loE=midY-eaveOv, hiE=midY+eaveOv;
-        deckRafters(0, midY, -lowS*ang, (W+2*ovX)/Math.cos(ang), rd, false, D-0.15+dExt, zOff);
-        box(0.12,0.5,rd, lowS*(W/2+ovX), loE-0.05, zOff, P.struct);          // low-eave fascia
-        box(0.12,0.5,rd, hiS*(W/2+ovX), hiE-0.05, zOff, P.struct);           // high-eave fascia
+        deckRafters(0, midY, -lowS*ang, (W+2*ovX)/Math.cos(ang), rd, false, D-0.15+dExt, zOff, [lowS*(W/2-0.06), hiS*(W/2-0.06)], wallTop);
+        box(0.12,0.5,rd, lowS*(W/2+ovX+0.07), loE-0.05, zOff, P.struct);     // low-eave fascia — sits OUTSIDE the wall face, never inside it
+        box(0.12,0.5,rd, hiS*(W/2+ovX+0.07), hiE-0.05, zOff, P.struct);      // high-eave fascia
         highWall(hiS>0?'right':'left', D, rise);                          // tall wall continues up, sided
         _stage=8.5;   // rake-end infill sits ON THE WALL PLANE (like a gable end) and tapers with the rafter underside — never floats at the overhang line
         { const uLo=midY-(W/2)*tn-0.35, uHi=midY+(W/2)*tn-0.35;
@@ -2608,6 +2616,9 @@ function computeMaterials(p){
   const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
   add(g,bolts,'×',`½″ × ${boltLen}″ carriage bolts`,'galvanized, through the beam sandwich + post (+ nuts/washers)',bolts*PRICE.bolt,lw(`1/2 x ${boltLen} galvanized carriage bolt`));
   add(g,joists,'×','Joist hangers — Simpson LUS26Z','ZMAX double-shear face-mount hanger',joists*PRICE.hanger,HW.hanger);
+  { const bearings=(isGable||isSalt||isHip)?2:2;                       // every rafter is tied down where it lands
+    const ties=Math.max(4, rafters*bearings);
+    add(g,ties,'×','Hurricane ties — Simpson H1','rafter → top plate, one each side of every rafter. This is the connection that keeps the roof on in a blow.',ties*3.2,lw('simpson h1 hurricane tie')); }
   add(g,1,'lot','Exterior screws + misc','3″ & 2″ structural / deck screws',PRICE.misc,lw('exterior structural wood screws'));
   if(p.anchor){ add(g,totalPosts,'×','Hurricane ties — Simpson H2.5A','galvanized rafter/post uplift tie',totalPosts*PRICE.hanger,HW.htie);
     add(g,totalPosts,'×','Footing anchor straps','galvanized, post-to-footing',totalPosts*4,lw('simpson post anchor strap')); }
@@ -4138,6 +4149,7 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
   addEventListener('resize',fit);
 })();
+
 </script>
 </body>
 </html>
