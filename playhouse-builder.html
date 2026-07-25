@@ -80,7 +80,7 @@
   body[data-view="manual"] input[type=range]::-webkit-slider-thumb{width:9px;height:9px;border-radius:0;background:#141414;border:none}
   /* dock: plain text row with rule separators — no container box */
   body[data-view="manual"] .dock{background:transparent;border:none;border-radius:0;padding:0;gap:0}
-  body[data-view="manual"] .dock button{padding:4px 8px;border-radius:0;color:#3c3c38}
+  body[data-view="manual"] .dock button{padding:4px 7px;border-radius:0;color:#3c3c38;letter-spacing:.045em}
   body[data-view="manual"] .dock button.on{background:#141414;color:#f0ede3}
   body[data-view="manual"] .dock button:hover:not(.on){background:rgba(20,20,20,.07);color:#141414}
   body[data-view="manual"] .dock .sep{background:#141414;opacity:.55;height:13px}
@@ -233,13 +233,13 @@
   .item .mcost{font-family:var(--mono);font-size:13px;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap}
   .foot{font-family:var(--mono);padding:18px 0 4px;font-size:10.5px;color:var(--tm);line-height:1.6}
 
-  .dock{position:fixed;bottom:23px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:4px;align-items:center;background:var(--paper);border:1px solid var(--bd2);border-radius:4px;padding:6px 8px;box-shadow:var(--shadow);animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
+  .dock{position:fixed;bottom:23px;left:50%;transform:translateX(-50%);z-index:7;display:flex;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 300px);gap:4px;align-items:center;background:var(--paper);border:1px solid var(--bd2);border-radius:4px;padding:6px 8px;box-shadow:var(--shadow);animation:fuC .5s ease .15s both;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
   .dock button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 11px;background:transparent;color:var(--tm);border:1px solid transparent;cursor:pointer;transition:.12s;font-weight:500;text-align:left}
   .dock button:hover{color:var(--tx);background:rgba(35,30,18,.06)}
   .dock button.on{color:#fff;background:var(--tx);border-color:var(--tx)}
   .dock .sep{width:1px;height:18px;background:var(--bd);margin:0 3px}
 
-  .badge{position:fixed;left:23px;bottom:23px;z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7;max-width:380px}
+  .badge{position:fixed;left:23px;bottom:23px;max-width:min(340px,26vw);z-index:6;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:left;pointer-events:none;opacity:.85;line-height:1.7;max-width:380px}
   .badge b{font-weight:600;color:var(--tx)}
   body[data-view="blueprint"] .badge{color:#bcd4f2;opacity:.9}
   body[data-view="blueprint"] .badge b{color:#eaf1fb}
@@ -1095,6 +1095,7 @@
   <button data-t="tInterior">⌂ Interior</button>
   <button data-t="tScale"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><path d="M12 8.6v6.4"/><path d="M8.5 11.5h7"/><path d="M12 15l-3 6"/><path d="M12 15l3 6"/></svg>Scale</button>
   <button data-t="tDims">⊹ Dims</button>
+  <button id="tapeBtn" title="Measure between two points — click a piece, then another"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8.5h18v7H3z"/><path d="M6.5 8.5v3"/><path d="M10 8.5v4.5"/><path d="M13.5 8.5v3"/><path d="M17 8.5v4.5"/></svg>Tape</button>
   <button id="walkIn">Walk in</button>
   <button id="stepToggle">◳ Build steps</button>
   <span class="sep"></span>
@@ -4148,6 +4149,116 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   fit();
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
   addEventListener('resize',fit);
+})();
+
+
+/* ===== tape measure — click two points, read the distance between them =====
+   Each click snaps to the CENTRELINE of the piece you hit (across its two thin axes, keeping where you
+   clicked along its length). That way two rafters read a true centre-to-centre spacing, which is how
+   framing is actually dimensioned, instead of a face-to-face figure that depends on where you tapped. */
+(function(){
+  const btn=document.getElementById('tapeBtn'); if(!btn||typeof renderer==='undefined'||!renderer) return;
+  const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+  let on=false, a=null, grp=null, downX=0, downY=0;
+  const layer=document.createElement('div');
+  layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:44;display:none';
+  document.body.appendChild(layer);
+  const lbl=document.createElement('div');
+  lbl.style.cssText='position:fixed;transform:translate(-50%,-50%);font-family:var(--mono);font-size:11px;font-weight:600;'+
+    'letter-spacing:.03em;color:#141414;background:rgba(240,237,227,.94);padding:1px 6px;border:1px solid #141414;white-space:nowrap';
+  layer.appendChild(lbl);
+  const hint=document.createElement('div');
+  hint.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:104px;font-family:var(--mono);font-size:10px;'+
+    'letter-spacing:.06em;text-transform:uppercase;color:#141414;background:rgba(240,237,227,.94);padding:4px 10px;border:1px solid rgba(20,20,20,.4);display:none;z-index:44;pointer-events:none';
+  document.body.appendChild(hint);
+  let lblPos=new THREE.Vector3();
+
+  function clear(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); }); grp=null; } a=null; layer.style.display='none'; }
+  function setOn(v){ on=v; btn.classList.toggle('on',on); hint.style.display=on?'block':'none';
+    hint.textContent='Tape — click a piece, then another'; cv.style.cursor=on?'crosshair':'';
+    if(!on) clear(); }
+  btn.onclick=()=>setOn(!on);
+  addEventListener('keydown',e=>{ if(e.key==='Escape'&&on) setOn(false); });
+
+  // world-space direction of a piece's longest axis (its "run")
+  function axisOf(o){
+    const p=o.geometry&&o.geometry.parameters; if(!p||p.width==null) return null;
+    const ext=[p.width,p.height,p.depth], i=ext.indexOf(Math.max(...ext));
+    const v=new THREE.Vector3(i===0?1:0,i===1?1:0,i===2?1:0);
+    o.updateMatrixWorld(true);
+    return v.applyQuaternion(o.getWorldQuaternion(new THREE.Quaternion())).normalize();
+  }
+  // hit point → centre of the piece's cross-section, keeping the position along its longest axis
+  function snap(hit){
+    const o=hit.object, p=o.geometry&&o.geometry.parameters;
+    const pt=hit.point.clone();
+    if(!p||p.width==null) return pt;
+    o.updateMatrixWorld(true);
+    const loc=o.worldToLocal(pt.clone());
+    const ext=[p.width,p.height,p.depth];
+    const longAxis=ext.indexOf(Math.max(...ext));
+    if(longAxis!==0) loc.x=0;
+    if(longAxis!==1) loc.y=0;
+    if(longAxis!==2) loc.z=0;
+    return o.localToWorld(loc);
+  }
+  function fmtDist(ft){
+    if(state.unit==='met'){ const m=ft*0.3048; return m>=1? m.toFixed(2)+' m' : Math.round(m*100)+' cm'; }
+    const inch=ft*12;
+    if(inch<12) return (Math.round(inch*100)/100)+'″';
+    const f=Math.floor(ft), i=Math.round((ft-f)*12);
+    return i? f+'′ '+i+'″' : f+'′';
+  }
+  function draw(p1,p2,note){
+    clearLine();
+    const dir=new THREE.Vector3().subVectors(p2,p1);
+    const up=Math.abs(dir.clone().normalize().y)>0.9? new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0);
+    const tick=new THREE.Vector3().crossVectors(dir,up).normalize().multiplyScalar(0.12);
+    const pts=[p1.clone(),p2.clone(),
+               p1.clone().sub(tick),p1.clone().add(tick),
+               p2.clone().sub(tick),p2.clone().add(tick)];
+    const geo=new THREE.BufferGeometry().setFromPoints(pts);
+    const mat=new THREE.LineBasicMaterial({color:0xFF6A00,depthTest:false});
+    const ls=new THREE.LineSegments(geo,mat); ls.renderOrder=1000;
+    grp=new THREE.Group(); grp.add(ls); scene.add(grp);
+    lblPos.copy(p1).lerp(p2,0.5);
+    lbl.textContent=fmtDist(dir.length())+(note||'');
+    layer.style.display='block';
+  }
+  function clearLine(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); }); grp=null; } }
+
+  cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; },true);
+  cv.addEventListener('pointerup',e=>{
+    if(!on) return;
+    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;
+    e.stopPropagation();                                   // measuring, not selecting
+    ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
+    ray.setFromCamera(ptr,camera);
+    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh&&!h.object.isLineSegments2&&h.object.geometry);
+    if(!hits.length){ clear(); hint.textContent='Tape — click a piece, then another'; return; }
+    const obj=hits[0].object, pt=snap(hits[0]);
+    if(!a){ a={pt,obj}; clearLine(); layer.style.display='none'; hint.textContent='Tape — now click the second point'; }
+    else {
+      let p1=a.pt, p2=pt, note='';
+      const d1=axisOf(a.obj), d2=axisOf(obj);
+      // two DIFFERENT parallel members → report the perpendicular centre-to-centre spacing, which is
+      // what "16 inches on centre" means. Otherwise it's a plain point-to-point reading.
+      if(a.obj!==obj && d1 && d2 && Math.abs(d1.dot(d2))>0.985){
+        const v=new THREE.Vector3().subVectors(obj.getWorldPosition(new THREE.Vector3()), a.obj.getWorldPosition(new THREE.Vector3()));
+        const perp=v.clone().sub(d1.clone().multiplyScalar(v.dot(d1)));
+        if(perp.length()>0.01){ p2=p1.clone().add(perp); note=' o.c.'; }
+      }
+      draw(p1,p2,note); a=null; hint.textContent='Tape — click again to start a new measurement';
+    }
+  },true);
+
+  (function loop(){ requestAnimationFrame(loop);
+    if(!grp) return;
+    const v=lblPos.clone().project(camera);
+    lbl.style.left=((v.x*0.5+0.5)*innerWidth)+'px';
+    lbl.style.top=((-v.y*0.5+0.5)*innerHeight)+'px';
+    lbl.style.display=(v.z<1)?'block':'none';
+  })();
 })();
 
 </script>
