@@ -822,7 +822,7 @@
     <div class="psub">Drag to orbit · tune the build</div>
     <div class="rule"></div>
 
-    <div class="group archbox">
+    <div class="group archbox" id="archGroup">
       <p class="glabel">Architect</p>
       <textarea id="archInput" rows="2" placeholder="Describe it — “a reading nook for two kids with a slide and a lookout, under $1,500”"></textarea>
       <button class="sharebtn" id="archGo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/><path d="M14.5 6.5l3 3"/></svg>Design it</button>
@@ -1242,6 +1242,8 @@ const EXTRAS_ON=false;
 // Time of day is parked too: LINE view lights the engraving from a fixed view-space key,
 // so the sun slider changes nothing on screen. Flip to true if a shaded view comes back.
 const SUN_ON=false;
+// The Architect prompt box is parked too. Flip to true to bring it back — runArchitect() is untouched.
+const ARCHITECT_ON=false;
 const EXTRA_KEYS=['loft','porch','slide','climb','anchor','cupola','tower','bay','dormer','jetty','wing','split',
   'shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'];
 const ULKEY='playhouse:planUnlocked';
@@ -3998,13 +4000,15 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
 syncUnlock();
 if(SOLO_RELEASE){ const tw=document.querySelector('.toolwrap'); if(tw) tw.style.display='none'; }
 if(!EXTRAS_ON){
-  for(const el of ['extras','extrasLabel','extrasNote']){ const n=document.getElementById(el); if(n) n.style.display='none'; }
+  for(const el of ['extras','extrasNote']){ const n=document.getElementById(el); if(n) n.style.display='none'; }
+  const xl=document.getElementById('extrasLabel'); if(xl) xl.textContent='Assembly';   // the group still holds the exploded-view slider
   // also strip them from state — a shared link or saved design could still carry one
   const hadAny=EXTRA_KEYS.some(k=>state[k]);
   EXTRA_KEYS.forEach(k=>{ state[k]=false; });
   if(hadAny) update();
 }
 if(!SUN_ON){ const g=document.getElementById('sunGroup'); if(g) g.style.display='none'; }
+if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.display='none'; }
 
 
 /* ===== logomark: a live engraved cube, drawn with the same ink as the model. Drag it to spin. ===== */
