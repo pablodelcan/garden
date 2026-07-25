@@ -118,7 +118,8 @@
   .brand b{opacity:.4;font-weight:400}
   .bt::after{content:'PLAYHOUSE · ASSEMBLY GUIDE · SHEET 1 OF 1';display:block;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--tm);margin-top:3px;font-weight:500}
   .brand{display:flex;align-items:center;gap:9px;text-align:left}
-  .lmk{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;flex:none}
+  .lmk{width:27px;height:27px;flex:none;cursor:grab;touch-action:none;display:block}
+  .lmk:active{cursor:grabbing}
 
   body[data-view="blueprint"] .brand{color:#eaf1fb}
   body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
@@ -795,7 +796,7 @@
 <div id="dimLabelLayer"></div>
 
 <div class="topbar">
-  <div class="brand"><svg class="lmk" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 21 7.7v8.6l-9 5.1-9-5.1V7.7Z"/><path d="M12 12.8 21 7.7"/><path d="M12 12.8 3 7.7"/><path d="M12 12.8v8.6"/><path d="M13.8 14.9 21 10.8"/><path d="M13.8 17.9 21 13.8"/></svg><span class="bt">Delcan &amp; Co. Builder</span></div>
+  <div class="brand"><canvas class="lmk" id="lmk" width="80" height="80" title="Spin it"></canvas><span class="bt">Delcan &amp; Co. Builder</span></div>
   <div class="topright">
     <div class="toolwrap"><select class="toolsel" id="toolSel" aria-label="Switch builder" title="Switch builder">
       <option value="Birdhouse" data-file="birdhouse.html">Birdhouse</option>
@@ -1007,7 +1008,7 @@
     </div>
 
     <div class="group">
-      <p class="glabel">Extras</p>
+      <p class="glabel" id="extrasLabel">Extras</p>
       <div class="seg four" id="extras">
         <button data-x="loft">Loft</button>
         <button data-x="porch">Porch roof</button>
@@ -1038,7 +1039,7 @@
         <input type="range" id="explode" min="0" max="100" step="1" value="0"></div>
     </div>
 
-    <div class="group">
+    <div class="group" id="sunGroup">
       <p class="glabel">Sun &amp; shadow</p>
       <div class="ctl"><div class="row"><label>Time of day <button class="playbtn" id="sunPlay" title="Play a full day of light">▶</button></label><span class="val" id="vHour">2 PM</span></div>
         <input type="range" id="hour" min="6" max="19" step="1" value="14"></div>
@@ -1232,6 +1233,14 @@ const PLAN_SUGGESTED='$10';
 const PLAN_PRICE='from '+PLAN_MIN;   // short label on the button
 // Playhouse ships first — the switcher to the other (unreleased) builders stays hidden. Set false to show it again.
 const SOLO_RELEASE=true;
+// The Extras list is parked: most of the add-ons don't model correctly yet. Flip to true to bring the
+// whole list back — the geometry, the cut-list line items and the plan-set section are all still in place.
+const EXTRAS_ON=false;
+// Time of day is parked too: LINE view lights the engraving from a fixed view-space key,
+// so the sun slider changes nothing on screen. Flip to true if a shaded view comes back.
+const SUN_ON=false;
+const EXTRA_KEYS=['loft','porch','slide','climb','anchor','cupola','tower','bay','dormer','jetty','wing','split',
+  'shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'];
 const ULKEY='playhouse:planUnlocked';
 /* ===== owner access (your own backdoor) =====
    Open the tool with  ?owner=<your key>  → unlocks the printable plan set on this device, free, forever.
@@ -1471,7 +1480,15 @@ const HATCH_FRAG=`
     if(mat<3.5){ float g1=1.0-lines(uv+vec2(0.0,sin(uv.x*3.2)*0.05+sin(uv.x*7.5)*0.018),0.0,0.11,0.012,aa);
                  float g2=1.0-lines(uv+vec2(0.0,sin(uv.x*5.5)*0.022),0.0,0.046,0.008,aa);
                  return max(g1*0.55, g2*0.24); }                               // wood: coarse wavy grain + fine hair grain
-    return (1.0-dots(uv,0.08,0.0055,aa))*0.42; }                              // concrete — sparse stipple
+    if(mat<4.5) return (1.0-dots(uv,0.08,0.0055,aa))*0.42;                      // concrete — sparse stipple
+    if(mat<5.5){ float d=1.0-dots(uv,0.055,0.0085,aa);                          // rough-sawn PT: coarse tooth, heavy grain, no battens
+                 float g=1.0-lines(uv+vec2(sin(uv.y*4.1)*0.06+sin(uv.y*9.3)*0.025,0.0),1.5708,0.085,0.014,aa);
+                 float co=1.0-lines(uv,0.0,0.58,0.012,aa);
+                 return max(max(d*0.86, g*0.52), co*0.18); }
+    { float co=1.0-lines(uv,0.0,0.58,0.011,aa);                                 // painted: panel joints only — paint hides the grain
+      float ba=1.0-lines(uv,1.5708,0.27,0.009,aa);
+      float d=1.0-dots(uv,0.030,0.0035,aa);
+      return max(max(co*0.30, ba*0.22), d*0.13); } }
   float triTex(float mat){
     float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
     float aa = max(0.006, fw*0.9);                          // widen line edges by the pixel footprint → no shimmer while spinning
@@ -1516,6 +1533,17 @@ function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
 }
 
 /* ===== view-style post-pass: re-skin the freshly-built model (shaded / manual / blueprint) ===== */
+// How far a chosen colour sits from the default, expressed as ink. d>0 = darker than default.
+function inkTone(chosen, defHex, litHex, shHex, tx){
+  const L=c=>0.299*c.r+0.587*c.g+0.114*c.b;
+  const d=Math.max(-0.55, Math.min(0.55, L(new THREE.Color(defHex)) - L(chosen)));
+  if(Math.abs(d)<0.004) return {lit:litHex, sh:shHex, tx};                  // untouched → exactly the designed drawing
+  const toward=(hex,target,amt)=>new THREE.Color(hex).lerp(new THREE.Color(target),Math.min(0.85,Math.max(0,amt))).getHex();
+  return d>0
+    ? {lit:toward(litHex,0x9a958a,d*0.62), sh:toward(shHex,0x8b877e,d*0.58), tx:Math.min(0.98, tx*(1+d*1.8))}
+    : {lit:toward(litHex,0xfdfcf7,-d*0.5), sh:toward(shHex,0xf2efe6,-d*0.45), tx:Math.max(0.05, tx*(1+d*1.15))};
+}
+
 function applyViewStyle(){
   hatchMats=[]; lineMats=[];
   const v=(state.view)||'shaded';
@@ -1546,19 +1574,25 @@ function applyViewStyle(){
     if(v==='manual'){
       // grayscale "material manual" render — each part maps to a printed grey [lit, shadow, texture]; form shading is
       // view-space so it sweeps as you orbit. Board / seam / batten lines come from the geometry + ink edges below.
-      const GR=[   // [srcColour, LIT paper, shadow paper, pattern strength, patternType] — ALL faces stay paper-white; parts differ only by ink pattern
-        [C(colors.roof),                0xf6f4ec, 0xe2dfd4, 0.55, 2],  // metal roof — standing seams + fine hatch tooth
-        [C(colors.struct),              0xf6f4ec, 0xe0ddd2, 0.42, 3],  // framing / posts — wood grain
-        [C(colors.trim||colors.struct), 0xf6f4ec, 0xe0ddd2, 0.42, 3],
-        [C(colors.siding),              0xf7f5ee, 0xe4e1d6, 0.46, 1],  // siding / plywood — fine stipple + board lines
-        [C(0x564d40),                   0xf7f5ee, 0xe6e3d8, 0.30, 4],  // concrete footing — sparse stipple
-        [C(0x8c8a84),                   0xf7f5ee, 0xe6e3d8, 0.30, 4],
-        [C(colors.door||0x3a2517),      0xf6f4ec, 0xe0ddd2, 0.44, 3],  // door — wood grain
-        [C(0x9fc7d6),                   0xf2f2ee, 0xe3e4df, 0.10, 0],  // glass — clean, smooth
-        [C(colors.accent||colors.roof), 0xf6f4ec, 0xe0ddd2, 0.42, 3]
+      // Colour still reads in black ink: each pick is compared to the DEFAULT palette (cedar) and the
+      // difference in luminance becomes ink — darker choices hatch denser and sit on greyer paper,
+      // lighter ones open up. At the defaults every delta is 0, so the drawing is exactly as designed.
+      const REF=FINISH.cedar, refAccent=shade(REF.roof,1.25);
+      const SIDE_PAT={cedar:1,redwood:1,pt:5,paint:6}[state.finish]||1;   // finish changes how the cladding is drawn
+      const GR=[   // [srcColour, LIT paper, shadow paper, pattern strength, patternType, defaultColour]
+        [C(colors.roof),                0xf6f4ec, 0xe2dfd4, 0.55, 2, REF.roof],   // metal roof — standing seams + fine hatch tooth
+        [C(colors.struct),              0xf6f4ec, 0xe0ddd2, 0.42, 3, REF.struct], // framing / posts — wood grain
+        [C(colors.trim||colors.struct), 0xf6f4ec, 0xe0ddd2, 0.42, 3, REF.struct],
+        [C(colors.siding),              0xf7f5ee, 0xe4e1d6, 0.46, SIDE_PAT, REF.siding],  // siding / plywood
+        [C(0x564d40),                   0xf7f5ee, 0xe6e3d8, 0.30, 4, 0x564d40],   // concrete footing — sparse stipple
+        [C(0x8c8a84),                   0xf7f5ee, 0xe6e3d8, 0.30, 4, 0x8c8a84],
+        [C(colors.door||0x3a2517),      0xf6f4ec, 0xe0ddd2, 0.44, 3, 0x3a2517],   // door — wood grain
+        [C(0x9fc7d6),                   0xf2f2ee, 0xe3e4df, 0.10, 0, 0x9fc7d6],   // glass — clean, smooth
+        [C(colors.accent||colors.roof), 0xf6f4ec, 0xe0ddd2, 0.42, 3, refAccent]
       ];
       let bst=GR[0],bd=1e9; for(const r of GR){ const s=r[0], d=(mat.color.r-s.r)**2+(mat.color.g-s.g)**2+(mat.color.b-s.b)**2; if(d<bd){bd=d;bst=r;} }
-      o.material = makeHatchMat(bst[1], bst[2], wasT?0.5:1, bst[3], bst[4]);
+      const t=inkTone(mat.color, bst[5], bst[1], bst[2], bst[3]);
+      o.material = makeHatchMat(t.lit, t.sh, wasT?0.5:1, t.tx, bst[4]);
       o.castShadow=false; o.receiveShadow=false;
     } else {
       let fill, opacity;
@@ -2709,7 +2743,7 @@ function safetyMsgs(s){   // shared by the side panel and the printed plan set
     const railLen=along+2*s.Dd, nBal=Math.ceil(railLen*12/4.5);
     msgs.push('Deck rail ~36" ✓ — for a code ≤4" baluster gap, run ~'+nBal+' balusters over '+dim(railLen)+' of railing.'); }
   if(s.access==='stairs'&&s.stairGate!==false) msgs.push('Stair gate is on — hang it to swing AWAY from the drop, with the latch on the outside face where a small child can’t reach it.');
-  if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.anchor) msgs.push('Tall &amp; exposed — consider hurricane ties / ground anchors (Extras → Anchors).');
+  if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.anchor) msgs.push('Tall &amp; exposed — add hurricane ties at the beams and ground anchors at the footings.');
   if(s.slide) msgs.push('Slide: land it on soft fall material (mulch/rubber, 6" deep) running at least 6 ft past the exit.');
   if(s.swing) msgs.push('Swing set: keep 6 ft of clear space in front and behind the arc, and 2 ft to either side.');
   if(s.pole) msgs.push('Fireman pole: clear a 3 ft circle at the base and set soft fall material under it.');
@@ -3960,6 +3994,57 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
 /* ===== release wiring ===== */
 syncUnlock();
 if(SOLO_RELEASE){ const tw=document.querySelector('.toolwrap'); if(tw) tw.style.display='none'; }
+if(!EXTRAS_ON){
+  for(const el of ['extras','extrasLabel','extrasNote']){ const n=document.getElementById(el); if(n) n.style.display='none'; }
+  // also strip them from state — a shared link or saved design could still carry one
+  const hadAny=EXTRA_KEYS.some(k=>state[k]);
+  EXTRA_KEYS.forEach(k=>{ state[k]=false; });
+  if(hadAny) update();
+}
+if(!SUN_ON){ const g=document.getElementById('sunGroup'); if(g) g.style.display='none'; }
+
+
+/* ===== logomark: a live engraved cube, drawn with the same ink as the model. Drag it to spin. ===== */
+(function(){
+  const cv=document.getElementById('lmk');
+  if(!cv || typeof THREE==='undefined') return;
+  let r;
+  try{ r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true}); }catch(e){ return; }
+  r.setPixelRatio(Math.min(devicePixelRatio,2)); r.setSize(80,80,false);
+  const sc=new THREE.Scene();
+  const cam=new THREE.OrthographicCamera(-1.72,1.72,1.72,-1.72,0.1,20);   // a little air so the fat edge never clips
+  cam.position.set(2.4,2.0,2.9); cam.lookAt(0,0,0);
+  const cube=new THREE.Group(); sc.add(cube);
+
+  const mat=makeHatchMat(0xf6f4ec, 0xe0ddd2, 1, 0.5, 3);      // wood grain, same ramp as the framing
+  mat.uniforms.uPx.value=Math.min(devicePixelRatio,2);
+  const g=new THREE.BoxGeometry(1.5,1.5,1.5);
+  cube.add(new THREE.Mesh(g,mat));
+  const lm=new LineMaterial({color:0x141414, linewidth:3.8});   // 3.8 at the 80px render ≈ 1.3px once shown at 27px
+  lm.resolution.set(80,80);
+  cube.add(new LineSegments2(new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(g)), lm));
+
+  cube.rotation.set(0.42,0.6,0);
+  let vx=0.0016, vy=0.0042, drag=false, px=0, py=0, idle=0;
+  cv.addEventListener('pointerdown',e=>{ drag=true; px=e.clientX; py=e.clientY; cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+  cv.addEventListener('pointermove',e=>{ if(!drag) return;
+    vy=(e.clientX-px)*0.010; vx=(e.clientY-py)*0.010;          // throw it — release keeps the spin, then it eases back
+    cube.rotation.y+=vy; cube.rotation.x+=vx; px=e.clientX; py=e.clientY; idle=0; });
+  const stop=()=>{ drag=false; };
+  cv.addEventListener('pointerup',stop); cv.addEventListener('pointercancel',stop);
+
+  (function tick(){
+    requestAnimationFrame(tick);
+    if(!drag){
+      cube.rotation.y+=vy; cube.rotation.x+=vx;
+      idle=Math.min(1,idle+0.012);
+      vy+=(0.0042-vy)*0.03*idle; vx+=(0.0016-vx)*0.03*idle;    // settle back to the house drift
+      cube.rotation.x+= (0.42-cube.rotation.x)*0.004*idle;
+    }
+    mat.uniforms.uPx.value=Math.min(devicePixelRatio,2);
+    r.render(sc,cam);
+  })();
+})();
 </script>
 </body>
 </html>
