@@ -125,7 +125,13 @@
 
   body[data-view="blueprint"] .brand{color:#eaf1fb}
   body[data-view="blueprint"] .brand::after{color:rgba(234,241,251,.7)}
-  .topright{display:flex;align-items:center;gap:12px;pointer-events:auto}
+  .topright{display:flex;align-items:center;gap:14px;pointer-events:auto}
+  /* the header sits ON the drawing, so both clusters get a paper plate to read against */
+  body[data-view="manual"] .brand,body[data-view="manual"] .topright{background:var(--paper);padding:6px 11px;margin:-6px -11px}
+  .scalebar{display:flex;align-items:flex-end;gap:7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--tx);font-variant-numeric:tabular-nums}
+  .sbbar{height:7px;border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);width:80px}
+  .scalebar span{line-height:1.1;padding-bottom:1px}
   .unittog,.viewseg{display:flex;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--bd2);border-radius:3px;overflow:hidden;cursor:pointer;background:var(--paper)}
   #viewSeg b:not([data-view="manual"]){display:none}   /* LINE is the only visualizer for now */
   .unittog b,.viewseg b{padding:4px 9px;font-weight:600;color:var(--tm);background:transparent;border-left:1px solid var(--bd)}
@@ -810,6 +816,7 @@
       <option value="Furniture" data-file="furniture.html">Furniture</option>
     </select></div>
     <div class="viewseg" id="viewSeg"><b data-view="shaded">Shaded</b><b data-view="manual">Line</b><b data-view="color" class="on">Color</b><b data-view="blueprint">Blueprint</b></div>
+    <div class="scalebar" title="Scale reference — it redraws as you zoom"><div class="sbbar" id="sbBar"></div><span id="sbLbl">2 ft</span></div>
     <div class="unittog" id="unitTog"><b data-u="imp" class="on">ft</b><b data-u="met">m</b></div>
   </div>
 </div>
@@ -1352,7 +1359,8 @@ try{
   (function loop(){ requestAnimationFrame(loop);
     controls.autoRotate=tog.tSpin; controls.autoRotateSpeed=1.7; controls.update();
     if(hatchMats.length){ const px=Math.min(devicePixelRatio,2); for(const m of hatchMats) m.uniforms.uPx.value=px; }
-    if(lineMats.length){ for(const m of lineMats) m.resolution.set(innerWidth,innerHeight); }   // fat-line material needs the live viewport size
+    if(lineMats.length){ for(const m of lineMats) m.resolution.set(innerWidth,innerHeight); }
+    updateScaleBar();   // fat-line material needs the live viewport size
     renderer.render(scene,camera); updateDimLabels(); })();
 }catch(e){ errEl.style.display='flex'; errEl.textContent='Could not start the 3D view (needs internet to load three.js). The materials list still works.'; }
 
@@ -1546,6 +1554,30 @@ function inkTone(chosen, defHex, litHex, shHex, tx){
   return d>0
     ? {lit:toward(litHex,0x9a958a,d*0.62), sh:toward(shHex,0x8b877e,d*0.58), tx:Math.min(0.98, tx*(1+d*1.8))}
     : {lit:toward(litHex,0xfdfcf7,-d*0.5), sh:toward(shHex,0xf2efe6,-d*0.45), tx:Math.max(0.05, tx*(1+d*1.15))};
+}
+
+
+/* A true scale reference: project one world foot along the camera's right axis at the orbit target,
+   then round to a friendly length. Redraws every frame, so it always reads the current zoom. */
+let _sbLast='';
+function updateScaleBar(){
+  const bar=document.getElementById('sbBar'), lbl=document.getElementById('sbLbl');
+  if(!bar||!lbl||!camera||!controls) return;
+  const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).normalize();
+  const a=controls.target.clone().project(camera);
+  const b=controls.target.clone().add(right).project(camera);
+  const pxPerFt=Math.hypot((b.x-a.x)*innerWidth/2,(b.y-a.y)*innerHeight/2);
+  if(!isFinite(pxPerFt)||pxPerFt<=0.0001) return;
+  const met=state.unit==='met';
+  const perUnit = met ? pxPerFt*3.28084 : pxPerFt;          // px per metre / px per foot
+  const cands = met ? [0.1,0.25,0.5,1,2,5,10,20] : [0.5,1,2,5,10,20,50,100];
+  let pick=cands[0];
+  for(const c of cands) if(c*perUnit<=140) pick=c;
+  const w=Math.max(18, Math.round(pick*perUnit));
+  const txt = met ? (pick<1 ? Math.round(pick*100)+' cm' : pick+' m')
+                  : (pick<1 ? Math.round(pick*12)+' in'  : pick+' ft');
+  const key=w+'|'+txt; if(key===_sbLast) return;             // only touch the DOM when it actually changes
+  _sbLast=key; bar.style.width=w+'px'; lbl.textContent=txt;
 }
 
 function applyViewStyle(){
@@ -4008,6 +4040,7 @@ if(!EXTRAS_ON){
 }
 if(!SUN_ON){ const g=document.getElementById('sunGroup'); if(g) g.style.display='none'; }
 if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.display='none'; }
+{ const vs=document.getElementById('viewSeg'); if(vs) vs.style.display='none'; }   // one view left — the segment had nothing to switch
 
 
 /* ===== logomark: a live engraved cube, drawn with the same ink as the model. Drag it to spin. ===== */
