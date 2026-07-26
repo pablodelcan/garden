@@ -25,11 +25,16 @@
   h1{font-family:var(--cond);font-size:21px;font-weight:700;letter-spacing:.005em;line-height:.98;margin:0}
   h1 span{display:block}
   .sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:right;line-height:1.7}
-  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;max-width:980px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px;max-width:1120px;margin:0 auto}
   @media (max-width:1080px){ .grid{grid-template-columns:repeat(3,1fr)} }
   @media (max-width:760px){ .grid{grid-template-columns:repeat(2,1fr)} }
   .cell{display:flex;flex-direction:column;gap:8px}
-  .view{display:block;width:100%;height:auto;aspect-ratio:1;cursor:grab;touch-action:none;border:1px solid rgba(20,20,20,.22)}
+  #gl{position:fixed;inset:0;pointer-events:none;z-index:-1}
+  .view{width:100%;aspect-ratio:1;border:1px solid rgba(20,20,20,.22)}
+  .lockup{display:flex;align-items:center;gap:11px;margin-top:2px}
+  .mark{width:41px;height:41px;flex:none}
+  .words{display:flex;flex-direction:column}
+  .words span{font-family:var(--cond);font-size:21px;font-weight:700;letter-spacing:.005em;line-height:.98;color:var(--ink)}
   .view:active{cursor:grabbing}
   .cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.055em;text-transform:uppercase;color:var(--ink);display:flex;gap:7px}
   .cap b{font-weight:600;color:var(--tm);font-variant-numeric:tabular-nums}
@@ -42,10 +47,10 @@
 <div id="bg"></div>
 <header>
   <h1><span>Delcan &amp; Co.</span><span>Cube studies</span></h1>
-  <div class="sub">12 treatments for the mark · drag any cube to spin it<br>same engraving shader as the builder</div>
+  <div class="sub">each treatment shown oversized, then at real scale beside the wordmark<br>same engraving shader as the builder</div>
 </header>
 <div class="grid" id="grid"></div>
-<footer>Each study is live 3D at the mark's real size behaviour — judge them small, not zoomed.</footer>
+<footer>The small lockup is the true size the mark ships at — judge the treatments there, and use the big study to see what the ink is doing.</footer>
 
 <script>window.__errs=[];addEventListener("error",e=>window.__errs.push(String(e.message||e)));addEventListener("unhandledrejection",e=>window.__errs.push("rej: "+e.reason));</script>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
@@ -233,45 +238,65 @@ const TREATMENTS=[
       o.add(fat(box(),1.2)); return o; }],
 ];
 
-/* ===== one small renderer per cell — 12 contexts is well under the browser cap and avoids
-   the viewport/scissor bookkeeping entirely ===== */
+/* ===== ONE renderer, many scissored viewports — so each treatment can show an oversized study
+   AND a real-scale lockup without running past the browser's WebGL context limit ===== */
 const grid=document.getElementById('grid');
-const R=[];
-TREATMENTS.forEach(([name,note,build],i)=>{
-  const cell=document.createElement('div'); cell.className='cell';
-  const cv=document.createElement('canvas'); cv.className='view'; cv.width=300; cv.height=300;
-  const cap=document.createElement('div'); cap.className='cap';
-  cap.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b>'+name+' <i>· '+note+'</i>';
-  cell.appendChild(cv); cell.appendChild(cap); grid.appendChild(cell);
+const gl=document.createElement('canvas');
+gl.id='gl'; document.body.appendChild(gl);
+const renderer=new THREE.WebGLRenderer({canvas:gl,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setScissorTest(true);
 
-  let r; try{ r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}); }catch(e){ return; }
-  r.setPixelRatio(Math.min(devicePixelRatio,2)); r.setSize(300,300,false);
+const views=[];
+function makeView(host, treatmentIndex, big){
   const scene=new THREE.Scene();
   const cam=new THREE.OrthographicCamera(-1.72,1.72,1.72,-1.72,0.1,20);
   cam.position.set(2.4,2.0,2.9); cam.lookAt(0,0,0);
-  lineW=300;                                   // fat-line resolution for this cell
-  const obj=build(); scene.add(obj);
-  obj.rotation.set(0.42,0.6+i*0.13,0);
+  lineW = big?260:41;                                  // fat lines are resolution-relative
+  const obj=TREATMENTS[treatmentIndex][2](); scene.add(obj);
+  obj.rotation.set(0.42,0.6+treatmentIndex*0.13,0);
+  let vx=0.0016, vy=0.0042;
+  const v={host,scene,cam,obj,step(){ obj.rotation.y+=vy; obj.rotation.x+=vx; }};
+  views.push(v); return v;
+}
 
-  let drag=false,px=0,py=0,vx=0.0016,vy=0.0042,idle=0;
-  cv.addEventListener('pointerdown',e=>{ drag=true; px=e.clientX; py=e.clientY; cv.setPointerCapture(e.pointerId); e.preventDefault(); });
-  cv.addEventListener('pointermove',e=>{ if(!drag)return;
-    vy=(e.clientX-px)*0.010; vx=(e.clientY-py)*0.010;
-    obj.rotation.y+=vy; obj.rotation.x+=vx; px=e.clientX; py=e.clientY; idle=0; });
-  const stop=()=>drag=false;
-  cv.addEventListener('pointerup',stop); cv.addEventListener('pointercancel',stop);
+TREATMENTS.forEach(([name,note],i)=>{
+  const cell=document.createElement('div'); cell.className='cell';
 
-  R.push({r,scene,cam,obj,step(){ if(drag)return;
-    obj.rotation.y+=vy; obj.rotation.x+=vx; idle=Math.min(1,idle+0.012);
-    vy+=(0.0042-vy)*0.03*idle; vx+=(0.0016-vx)*0.03*idle;
-    obj.rotation.x+=(0.42-obj.rotation.x)*0.004*idle; }});
+  const big=document.createElement('div'); big.className='view';
+  const cap=document.createElement('div'); cap.className='cap';
+  cap.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b>'+name+' <i>· '+note+'</i>';
+
+  // the mark exactly as it sits in the tool: 41px cube + the two-line wordmark
+  const lock=document.createElement('div'); lock.className='lockup';
+  const mark=document.createElement('div'); mark.className='mark';
+  const words=document.createElement('div'); words.className='words';
+  words.innerHTML='<span>Delcan &amp; Co.</span><span>Builder 1.0</span>';
+  lock.appendChild(mark); lock.appendChild(words);
+
+  cell.appendChild(big); cell.appendChild(cap); cell.appendChild(lock); grid.appendChild(cell);
+  makeView(big,i,true);
+  makeView(mark,i,false);
 });
 
-const px=Math.min(devicePixelRatio,2);
-for(const m of hatchMats) m.uniforms.uPx.value=px;
+const dpr=Math.min(devicePixelRatio,2);
+for(const m of hatchMats) m.uniforms.uPx.value=dpr;
+
 (function frame(){
   requestAnimationFrame(frame);
-  for(const c of R){ c.step(); c.r.render(c.scene,c.cam); }
+  const w=innerWidth,h=innerHeight;
+  renderer.setSize(w,h,false);
+  gl.style.width=w+'px'; gl.style.height=h+'px';
+  for(const v of views){
+    const r=v.host.getBoundingClientRect();
+    if(r.width<2||r.bottom<0||r.top>h) continue;
+    const bottom=h-r.bottom;
+    renderer.setViewport(r.left,bottom,r.width,r.height);
+    renderer.setScissor(r.left,bottom,r.width,r.height);
+    for(const m of lineMats) m.resolution.set(r.width,r.height);
+    v.step();
+    renderer.render(v.scene,v.cam);
+  }
 })();
 </script>
 </body>
