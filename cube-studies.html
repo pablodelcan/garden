@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cube studies — Delcan &amp; Co. Builder</title>
+<style>
+  @font-face{font-family:'Delcan Mono';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}
+  @font-face{font-family:'FK Grotesk Mono';src:url('/fonts/FKGroteskMono-Regular.woff2') format('woff2');font-display:swap}
+  :root{--cond:'Delcan Mono','Helvetica Neue',Helvetica,Arial,sans-serif;
+        --mono:'FK Grotesk Mono','IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+        --ink:#141414;--tm:#5a5a56;--paper:#f0ede3}
+  *{box-sizing:border-box}
+  html{background:#f0ede3}
+  body{margin:0;padding:23px;min-height:100vh;color:var(--ink)}
+  #bg{position:fixed;inset:0;z-index:-2;
+    background-color:#f0ede3;
+    background-image:
+      radial-gradient(ellipse 120% 100% at 50% 42%, rgba(0,0,0,0) 58%, rgba(96,80,44,.10) 100%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.05'/></feComponentTransfer></filter><rect width='150' height='150' filter='url(%23n)'/></svg>");
+    background-size:100% 100%,150px 150px}
+  header{display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:1.5px solid var(--ink);padding-bottom:9px;margin-bottom:22px}
+  h1{font-family:var(--cond);font-size:21px;font-weight:700;letter-spacing:.005em;line-height:.98;margin:0}
+  h1 span{display:block}
+  .sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tm);text-align:right;line-height:1.7}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;max-width:980px;margin:0 auto}
+  @media (max-width:1080px){ .grid{grid-template-columns:repeat(3,1fr)} }
+  @media (max-width:760px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  .cell{display:flex;flex-direction:column;gap:8px}
+  .view{display:block;width:100%;height:auto;aspect-ratio:1;cursor:grab;touch-action:none;border:1px solid rgba(20,20,20,.22)}
+  .view:active{cursor:grabbing}
+  .cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.055em;text-transform:uppercase;color:var(--ink);display:flex;gap:7px}
+  .cap b{font-weight:600;color:var(--tm);font-variant-numeric:tabular-nums}
+  .cap i{font-style:normal;color:var(--tm)}
+  footer{margin-top:26px;border-top:1px solid rgba(20,20,20,.3);padding-top:9px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--tm)}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<header>
+  <h1><span>Delcan &amp; Co.</span><span>Cube studies</span></h1>
+  <div class="sub">12 treatments for the mark · drag any cube to spin it<br>same engraving shader as the builder</div>
+</header>
+<div class="grid" id="grid"></div>
+<footer>Each study is live 3D at the mark's real size behaviour — judge them small, not zoomed.</footer>
+
+<script>window.__errs=[];addEventListener("error",e=>window.__errs.push(String(e.message||e)));addEventListener("unhandledrejection",e=>window.__errs.push("rej: "+e.reason));</script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+let hatchMats=[];
+const HATCH_VERT=`
+  varying vec3 vN;    // view-space normal (drives the lighting/tone)
+  varying vec3 vWp;   // world position (texture is locked to the geometry, so it holds as you orbit)
+  varying vec3 vWn;   // world-space normal (picks the triplanar plane)
+  void main(){
+    vN  = normalize(normalMatrix * normal);
+    vec4 wp = modelMatrix * vec4(position,1.0);
+    vWp = wp.xyz;
+    vWn = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * wp; }`;
+const HATCH_FRAG=`
+  precision highp float;
+  varying vec3 vN; varying vec3 vWp; varying vec3 vWn;
+  uniform vec3 uPaper, uInk, uLight, uInkCol;   // uPaper lit grey · uInk shadow grey · uLight = FIXED world sun dir · uInkCol = drafting-ink colour
+  uniform float uPx, uAlpha, uTex, uMat, uHi;   // uMat: 0 smooth·1 plywood·2 metal roof·3 wood·4 concrete   uHi: click-select highlight 0/1
+  float hash(vec2 p){ return fract(sin(dot(floor(p),vec2(41.31,289.17)))*43758.5453); }
+  float h1(float x){ return fract(sin(x*127.1)*43758.5453); }
+  // parallel drafted strokes in a plane (feet) → 1 in the gap, 0 on the ink line
+  float lines(vec2 uv, float a, float sp, float th, float aa){
+    float d = uv.x*cos(a)+uv.y*sin(a);
+    float w = (h1(floor(d/sp))-0.5)*sp*0.10;                 // slight per-stroke hand wobble
+    float f = abs(fract((d+w)/sp)-0.5)*sp;
+    return smoothstep(th, th+aa, f); }
+  float dots(vec2 uv, float sp, float r, float aa){
+    vec2 g = floor(uv/sp);
+    vec2 c = (fract(uv/sp)-0.5)*sp + (vec2(hash(g),hash(g+7.0))-0.5)*sp*0.4;
+    return smoothstep(r, r+aa, length(c)); }
+  float plane(vec2 uv, float mat, float aa){                                   // returns INK COVERAGE 0..1 — drawn onto a LIGHT base
+    if(mat<0.5) return 0.0;                                                     // glass — no texture
+    if(mat<1.5){ float d=1.0-dots(uv,0.038,0.0060,aa); float ba=1.0-lines(uv,1.5708,0.27,0.010,aa); float co=1.0-lines(uv,0.0,0.58,0.012,aa);
+                 float wg=1.0-lines(uv+vec2(sin(uv.y*2.6)*0.045+sin(uv.y*6.5)*0.018,0.0),1.5708,0.14,0.011,aa);
+                 return max(max(max(d*0.72, ba*0.34), co*0.20), wg*0.26); }     // siding: stipple + battens + ply courses + a SUBTLE vertical wood grain
+    if(mat<2.5){ float a=1.0-lines(uv,0.62,0.05,0.013,aa); float c=1.0-lines(uv,-0.62,0.05,0.013,aa); float s=1.0-lines(uv,0.0,0.3,0.02,aa);
+                 return max(max(a,c)*0.66, s*0.74); }                           // metal roof: fine cross-hatch + standing seams
+    if(mat<3.5){ float g1=1.0-lines(uv+vec2(0.0,sin(uv.x*3.2)*0.05+sin(uv.x*7.5)*0.018),0.0,0.11,0.012,aa);
+                 float g2=1.0-lines(uv+vec2(0.0,sin(uv.x*5.5)*0.022),0.0,0.046,0.008,aa);
+                 return max(g1*0.55, g2*0.24); }                               // wood: coarse wavy grain + fine hair grain
+    if(mat<4.5) return (1.0-dots(uv,0.08,0.0055,aa))*0.42;                      // concrete — sparse stipple
+    if(mat<5.5){ float d=1.0-dots(uv,0.055,0.0085,aa);                          // rough-sawn PT: coarse tooth, heavy grain, no battens
+                 float g=1.0-lines(uv+vec2(sin(uv.y*4.1)*0.06+sin(uv.y*9.3)*0.025,0.0),1.5708,0.085,0.014,aa);
+                 float co=1.0-lines(uv,0.0,0.58,0.012,aa);
+                 return max(max(d*0.86, g*0.52), co*0.18); }
+    { float co=1.0-lines(uv,0.0,0.58,0.011,aa);                                 // painted: panel joints only — paint hides the grain
+      float ba=1.0-lines(uv,1.5708,0.27,0.009,aa);
+      float d=1.0-dots(uv,0.030,0.0035,aa);
+      return max(max(co*0.30, ba*0.22), d*0.13); } }
+  float triTex(float mat){
+    float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
+    float aa = max(0.006, fw*0.9);                          // widen line edges by the pixel footprint → no shimmer while spinning
+    float fade = smoothstep(0.13, 0.03, fw);              // drop fine detail when zoomed far → kills Moiré
+    vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
+    float t = plane(vWp.zy,mat,aa)*an.x + plane(vWp.xz,mat,aa)*an.y + plane(vWp.xy,mat,aa)*an.z;
+    return t * fade; }
+  float shadowHatch(float dir){                              // engraving hatch strokes at ±45°, triplanar & locked to the geometry
+    float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
+    float aa = max(0.006, fw*0.9);
+    float fade = smoothstep(0.17, 0.035, fw);
+    vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
+    float t = (1.0-lines(vWp.zy,dir,0.095,0.017,aa))*an.x + (1.0-lines(vWp.xz,dir,0.095,0.017,aa))*an.y + (1.0-lines(vWp.xy,dir,0.095,0.017,aa))*an.z;
+    return t * fade; }
+  void main(){
+    vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;       // VIEW-space normal → the key light reads relative to the camera
+    float ndl = dot(N, normalize(uLight));
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // 1 = facing the key light
+    vec3 base = mix(uInk, uPaper, mix(0.55, 1.0, tone));      // faces stay PAPER-WHITE with only the faintest tonal turn — pure line art
+    float mtl = triTex(uMat) * uTex * 0.50;                   // light material pattern — boards / standing seams / stipple
+    float s1 = smoothstep(0.62, 0.28, tone);                  // ENGRAVING SHADING: hatch strokes build up as a face turns from the light…
+    float s2 = smoothstep(0.34, 0.10, tone);                  // …and CROSS-hatch in deep shadow. Redraws live as the model spins.
+    float hat = shadowHatch(0.785)*s1*0.85 + shadowHatch(-0.785)*s2*0.75;
+    float ink = clamp(max(mtl, hat), 0.0, 1.0);
+    vec3 col = mix(base, uInkCol, ink);                       // black drafting ink on paper
+    vec2 sp = gl_FragCoord.xy / uPx;                          // faint print tooth
+    float grain = hash(sp*1.6)*0.62 + hash(sp*0.41)*0.38;
+    col *= (1.0 - grain*0.035);
+    col = mix(col, vec3(1.0,0.42,0.0), uHi*0.9);             // click-to-select → the piece flips to neon orange
+    gl_FragColor = vec4(col, uAlpha); }`;
+function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
+  const m=new THREE.ShaderMaterial({
+    vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
+    extensions:{derivatives:true},
+    uniforms:{ uPaper:{value:new THREE.Color(litHex)}, uInk:{value:new THREE.Color(shadeHex)},
+      uInkCol:{value:new THREE.Color(0x1a1a18)},                        // black printing ink
+      uLight:{value:new THREE.Vector3(-0.86,0.30,0.42).normalize()},    // view-space side-raking key from screen-left → hatching redraws as the model turns
+      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0}, uMat:{value:mat||0}, uHi:{value:0} },
+    transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
+    polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+  hatchMats.push(m); return m;
+}
+
+/* ===== the twelve treatments =====
+   Every one is built from the same engraving material + fat-line ink as the builder itself,
+   so what differs is genuinely the treatment and not the renderer. */
+const S=1.5, H=S/2;
+const box=()=>new THREE.BoxGeometry(S,S,S);
+const fat=(geo,w,col,opts={})=>{
+  const lm=new LineMaterial({color:col==null?0x141414:col,linewidth:w});
+  lm.resolution.set(lineW,lineW);
+  if(opts.dashed){ lm.dashed=true; lm.dashSize=0.09; lm.gapSize=0.07; }
+  if(opts.noDepth){ lm.depthTest=false; lm.transparent=true; lm.opacity=opts.opacity==null?1:opts.opacity; }
+  const l=new LineSegments2(new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(geo)),lm);
+  if(opts.dashed) l.computeLineDistances();
+  if(opts.noDepth) l.renderOrder=5;
+  lineMats.push(lm);
+  return l;
+};
+const lineMats=[]; let lineW=300;
+const skin=(lit,sh,tex,pat,alpha)=>makeHatchMat(lit,sh,alpha==null?1:alpha,tex,pat);
+
+const TREATMENTS=[
+  ['Engraved solid','the mark as built today', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf6f4ec,0xe0ddd2,0.5,3)));
+      o.add(fat(box(),3.0)); return o; }],
+
+  ['Wireframe','edges only — no faces at all', g=>{ const o=new THREE.Group();
+      o.add(fat(box(),3.0)); return o; }],
+
+  ['Hidden line','solid front, back edges dashed', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf6f4ec,0xf0ede3,0.0,0)));
+      o.add(fat(box(),1.8,0x141414,{dashed:true,noDepth:true,opacity:0.5}));
+      o.add(fat(box(),3.0)); return o; }],
+
+  ['Cross-hatch','engraver’s plate — dense tooth', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf6f4ec,0xd8d4c8,0.85,2)));
+      o.add(fat(box(),3.0)); return o; }],
+
+  ['Stipple','tone built from dots', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf7f5ee,0xdedace,0.8,4)));
+      o.add(fat(box(),3.0)); return o; }],
+
+  ['Wood grain','the material it’s made of', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf6f4ec,0xe0ddd2,0.9,3)));
+      o.add(fat(box(),3.0)); return o; }],
+
+  ['Exploded','six faces off the centre', g=>{ const o=new THREE.Group();
+      const t=0.07, d=0.30, f=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+      for(const n of f){ const w=n[0]?t:S, h=n[1]?t:S, dp=n[2]?t:S;
+        const gg=new THREE.BoxGeometry(w,h,dp);
+        const m=new THREE.Mesh(gg, skin(0xf6f4ec,0xe0ddd2,0.45,3));
+        m.position.set(n[0]*(H+d),n[1]*(H+d),n[2]*(H+d));
+        const l=fat(gg,2.2); l.position.copy(m.position);
+        o.add(m); o.add(l); }
+      return o; }],
+
+  ['Timber frame','edges as real 2× stock', g=>{ const o=new THREE.Group();
+      const t=0.20, mat=skin(0xf6f4ec,0xdedad0,0.55,3);
+      const bar=(w,h,d,x,y,z)=>{ const gg=new THREE.BoxGeometry(w,h,d);
+        const m=new THREE.Mesh(gg,mat); m.position.set(x,y,z);
+        const l=fat(gg,1.9); l.position.copy(m.position);
+        o.add(m); o.add(l); };
+      for(const sy of [-1,1]) for(const sz of [-1,1]) bar(S+t,t,t, 0,sy*H,sz*H);
+      for(const sx of [-1,1]) for(const sz of [-1,1]) bar(t,S+t,t, sx*H,0,sz*H);
+      for(const sx of [-1,1]) for(const sy of [-1,1]) bar(t,t,S+t, sx*H,sy*H,0);
+      return o; }],
+
+  ['Corner marks','only the eight corners drawn', g=>{ const o=new THREE.Group();
+      const t=0.075, L=0.44, mat=new THREE.MeshBasicMaterial({color:0x141414});
+      for(const sx of [-1,1]) for(const sy of [-1,1]) for(const sz of [-1,1]){
+        const a=new THREE.Mesh(new THREE.BoxGeometry(L,t,t),mat); a.position.set(sx*(H-L/2),sy*H,sz*H);
+        const b=new THREE.Mesh(new THREE.BoxGeometry(t,L,t),mat); b.position.set(sx*H,sy*(H-L/2),sz*H);
+        const c=new THREE.Mesh(new THREE.BoxGeometry(t,t,L),mat); c.position.set(sx*H,sy*H,sz*(H-L/2));
+        o.add(a,b,c); }
+      return o; }],
+
+  ['Deep shadow','high contrast, stamp-like', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xfbfaf5,0x2a2a26,0.0,0)));
+      o.add(fat(box(),3.4)); return o; }],
+
+  ['Ghost','see-through, every edge reads', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf6f4ec,0xe8e5db,0.25,3,0.30)));
+      o.add(fat(box(),1.6,0x141414,{noDepth:true,opacity:0.55}));
+      o.add(fat(box(),2.6)); return o; }],
+
+  ['Hairline','one thin weight throughout', g=>{ const o=new THREE.Group();
+      o.add(new THREE.Mesh(box(), skin(0xf7f5ee,0xeae7dd,0.22,3)));
+      o.add(fat(box(),1.2)); return o; }],
+];
+
+/* ===== one small renderer per cell — 12 contexts is well under the browser cap and avoids
+   the viewport/scissor bookkeeping entirely ===== */
+const grid=document.getElementById('grid');
+const R=[];
+TREATMENTS.forEach(([name,note,build],i)=>{
+  const cell=document.createElement('div'); cell.className='cell';
+  const cv=document.createElement('canvas'); cv.className='view'; cv.width=300; cv.height=300;
+  const cap=document.createElement('div'); cap.className='cap';
+  cap.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b>'+name+' <i>· '+note+'</i>';
+  cell.appendChild(cv); cell.appendChild(cap); grid.appendChild(cell);
+
+  let r; try{ r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}); }catch(e){ return; }
+  r.setPixelRatio(Math.min(devicePixelRatio,2)); r.setSize(300,300,false);
+  const scene=new THREE.Scene();
+  const cam=new THREE.OrthographicCamera(-1.72,1.72,1.72,-1.72,0.1,20);
+  cam.position.set(2.4,2.0,2.9); cam.lookAt(0,0,0);
+  lineW=300;                                   // fat-line resolution for this cell
+  const obj=build(); scene.add(obj);
+  obj.rotation.set(0.42,0.6+i*0.13,0);
+
+  let drag=false,px=0,py=0,vx=0.0016,vy=0.0042,idle=0;
+  cv.addEventListener('pointerdown',e=>{ drag=true; px=e.clientX; py=e.clientY; cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+  cv.addEventListener('pointermove',e=>{ if(!drag)return;
+    vy=(e.clientX-px)*0.010; vx=(e.clientY-py)*0.010;
+    obj.rotation.y+=vy; obj.rotation.x+=vx; px=e.clientX; py=e.clientY; idle=0; });
+  const stop=()=>drag=false;
+  cv.addEventListener('pointerup',stop); cv.addEventListener('pointercancel',stop);
+
+  R.push({r,scene,cam,obj,step(){ if(drag)return;
+    obj.rotation.y+=vy; obj.rotation.x+=vx; idle=Math.min(1,idle+0.012);
+    vy+=(0.0042-vy)*0.03*idle; vx+=(0.0016-vx)*0.03*idle;
+    obj.rotation.x+=(0.42-obj.rotation.x)*0.004*idle; }});
+});
+
+const px=Math.min(devicePixelRatio,2);
+for(const m of hatchMats) m.uniforms.uPx.value=px;
+(function frame(){
+  requestAnimationFrame(frame);
+  for(const c of R){ c.step(); c.r.render(c.scene,c.cam); }
+})();
+</script>
+</body>
+</html>
