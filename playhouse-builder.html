@@ -4130,10 +4130,10 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   const g=new THREE.BoxGeometry(1.5,1.5,1.5);
   cube.add(new THREE.Mesh(g,mat));
   const lgeo=new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(g));
-  const lmBack=new LineMaterial({color:0x141414, linewidth:1.6, transparent:true, opacity:0.55});
+  const lmBack=new LineMaterial({color:0x141414, linewidth:1.15, transparent:true, opacity:0.55});
   lmBack.depthTest=false; lmBack.resolution.set(41,41);
   const back=new LineSegments2(lgeo,lmBack); back.renderOrder=5; cube.add(back);
-  const lm=new LineMaterial({color:0x141414, linewidth:2.6});
+  const lm=new LineMaterial({color:0x141414, linewidth:1.95});   // matched to the Delcan Mono stem weight beside it
   lm.resolution.set(41,41);
   cube.add(new LineSegments2(lgeo,lm));
 
