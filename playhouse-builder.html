@@ -4066,6 +4066,7 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
   function hide(){ if(picked){ hiOff(picked); picked=null; } card.style.display='none'; clearDims(); }
   cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; });
   cv.addEventListener('pointerup',e=>{
+    if(window.__tapeArmed) return;                              // the tape owns clicks while it's out
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
     ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
     ray.setFromCamera(ptr,camera);
@@ -4214,7 +4215,7 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   function clear(){ clearTape(); a=null; }
 
   function setOn(v){
-    on=v; btn.classList.toggle('on',on);
+    on=v; window.__tapeArmed=on; btn.classList.toggle('on',on);
     hint.style.display=on?'block':'none'; hint.textContent='Tape — click a piece, then another';
     cv.style.cursor=on?'none':'';
     head.visible=false;
@@ -4307,8 +4308,7 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   },true);
   cv.addEventListener('pointerup',e=>{
     if(!on) return;
-    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;
-    e.stopPropagation();
+    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
     const h=pick(e.clientX,e.clientY);
     if(!h){ clear(); hint.textContent='Tape — click a piece, then another'; return; }
     const obj=h.object, pt=snap(h);
