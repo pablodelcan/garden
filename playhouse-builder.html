@@ -4117,29 +4117,36 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   if(!cv || typeof THREE==='undefined') return;
   let r;
   try{ r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true}); }catch(e){ return; }
-  r.setPixelRatio(Math.min(devicePixelRatio,2)); r.setSize(80,80,false);
+  r.setPixelRatio(Math.min(devicePixelRatio,3)); r.setSize(41,41,false);
   const sc=new THREE.Scene();
   const cam=new THREE.OrthographicCamera(-1.72,1.72,1.72,-1.72,0.1,20);   // a little air so the fat edge never clips
   cam.position.set(2.4,2.0,2.9); cam.lookAt(0,0,0);
   const cube=new THREE.Group(); sc.add(cube);
 
-  const mat=makeHatchMat(0xf6f4ec, 0xe0ddd2, 1, 0.5, 3);      // wood grain, same ramp as the framing
+  // treatment 11 "Ghost": see-through faces so every edge reads — the hidden edges are drawn
+  // underneath at half weight, the near edges solid on top.
+  const mat=makeHatchMat(0xf6f4ec, 0xe8e5db, 0.30, 0.25, 3);
   mat.uniforms.uPx.value=Math.min(devicePixelRatio,2);
   const g=new THREE.BoxGeometry(1.5,1.5,1.5);
   cube.add(new THREE.Mesh(g,mat));
-  const lm=new LineMaterial({color:0x141414, linewidth:2.4});   // tuned for the 80px render shown at ~41px
-  lm.resolution.set(80,80);
-  cube.add(new LineSegments2(new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(g)), lm));
+  const lgeo=new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(g));
+  const lmBack=new LineMaterial({color:0x141414, linewidth:1.6, transparent:true, opacity:0.55});
+  lmBack.depthTest=false; lmBack.resolution.set(41,41);
+  const back=new LineSegments2(lgeo,lmBack); back.renderOrder=5; cube.add(back);
+  const lm=new LineMaterial({color:0x141414, linewidth:2.6});
+  lm.resolution.set(41,41);
+  cube.add(new LineSegments2(lgeo,lm));
 
   cube.rotation.set(0.42,0.6,0);
   let vx=0.0016, vy=0.0042, drag=false, px=0, py=0, idle=0;
-  cv.addEventListener('pointerdown',e=>{ drag=true; px=e.clientX; py=e.clientY; cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+  cv.addEventListener('pointerdown',e=>{ drag=true; px=e.clientX; py=e.clientY; try{ cv.setPointerCapture(e.pointerId); }catch(err){} e.preventDefault(); });
   cv.addEventListener('pointermove',e=>{ if(!drag) return;
     vy=(e.clientX-px)*0.010; vx=(e.clientY-py)*0.010;          // throw it — release keeps the spin, then it eases back
     cube.rotation.y+=vy; cube.rotation.x+=vx; px=e.clientX; py=e.clientY; idle=0; });
   const stop=()=>{ drag=false; };
   cv.addEventListener('pointerup',stop); cv.addEventListener('pointercancel',stop);
 
+  window.__lmkSize=(h)=>{ r.setSize(h,h,false); lm.resolution.set(h,h); lmBack.resolution.set(h,h); };
   (function tick(){
     requestAnimationFrame(tick);
     if(!drag){
@@ -4157,62 +4164,96 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
 (function(){
   const bt=document.querySelector('.bt'), c=document.getElementById('lmk');
   if(!bt||!c) return;
-  const fit=()=>{ const h=Math.round(bt.getBoundingClientRect().height); if(h>10){ c.style.width=h+'px'; c.style.height=h+'px'; } };
+  const fit=()=>{ const h=Math.round(bt.getBoundingClientRect().height);
+    if(h>10){ c.style.width=h+'px'; c.style.height=h+'px';
+      if(window.__lmkSize) window.__lmkSize(h); } };
   fit();
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
   addEventListener('resize',fit);
 })();
 
 
-/* ===== tape measure — click two points, read the distance between them =====
-   Each click snaps to the CENTRELINE of the piece you hit (across its two thin axes, keeping where you
-   clicked along its length). That way two rafters read a true centre-to-centre spacing, which is how
-   framing is actually dimensioned, instead of a face-to-face figure that depends on where you tapped. */
+/* ===== tape measure =====
+   Arm it from the yellow tape icon (top right). The model stops spinning, a 3D tape head follows the
+   cursor across the drawing, and the reading is a real yellow blade stretched between the two points.
+   Each click snaps to the CENTRELINE of the piece you hit, and two parallel members report the
+   perpendicular centre-to-centre spacing — which is what "16 inches on centre" actually means. */
 (function(){
   const btn=document.getElementById('tapeBtn'); if(!btn||typeof renderer==='undefined'||!renderer) return;
   const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
-  let on=false, a=null, grp=null, downX=0, downY=0;
+  const YELLOW=0xF2C200, INK=0x141414;
+  let on=false, a=null, tape=null, downX=0, downY=0, wasSpinning=false;
+
   const layer=document.createElement('div');
   layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:44;display:none';
   document.body.appendChild(layer);
   const lbl=document.createElement('div');
   lbl.style.cssText='position:fixed;transform:translate(-50%,-50%);font-family:var(--mono);font-size:11px;font-weight:600;'+
-    'letter-spacing:.03em;color:#141414;background:rgba(240,237,227,.94);padding:1px 6px;border:1px solid #141414;white-space:nowrap';
+    'letter-spacing:.03em;color:#141414;background:#F2C200;padding:2px 7px;border:1.5px solid #141414;white-space:nowrap';
   layer.appendChild(lbl);
   const hint=document.createElement('div');
   hint.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:104px;font-family:var(--mono);font-size:10px;'+
-    'letter-spacing:.06em;text-transform:uppercase;color:#141414;background:rgba(240,237,227,.94);padding:4px 10px;border:1px solid rgba(20,20,20,.4);display:none;z-index:44;pointer-events:none';
+    'letter-spacing:.06em;text-transform:uppercase;color:#141414;background:#F2C200;padding:4px 11px;border:1px solid #141414;'+
+    'display:none;z-index:44;pointer-events:none';
   document.body.appendChild(hint);
-  let lblPos=new THREE.Vector3();
+  const lblPos=new THREE.Vector3();
 
-  function clear(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); }); grp=null; } a=null; layer.style.display='none'; }
-  function setOn(v){ on=v; btn.classList.toggle('on',on); hint.style.display=on?'block':'none';
-    hint.textContent='Tape — click a piece, then another'; cv.style.cursor=on?'crosshair':'';
-    if(!on) clear(); }
+  /* the tape head that rides under the cursor */
+  const head=new THREE.Group(); head.visible=false; scene.add(head);
+  {
+    const body=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.30,0.16), new THREE.MeshBasicMaterial({color:YELLOW,depthTest:false}));
+    const reel=new THREE.Mesh(new THREE.CircleGeometry(0.10,20), new THREE.MeshBasicMaterial({color:0xfaf8f1,depthTest:false}));
+    reel.position.set(-0.05,0,0.081);
+    const hook=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.17), new THREE.MeshBasicMaterial({color:INK,depthTest:false}));
+    hook.position.set(0.28,-0.12,0);
+    head.add(body,reel,hook);
+    head.traverse(o=>{ o.renderOrder=1002; });
+  }
+
+  function clearTape(){ if(tape){ scene.remove(tape); tape.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); }); tape=null; } layer.style.display='none'; }
+  function clear(){ clearTape(); a=null; }
+
+  function setOn(v){
+    on=v; btn.classList.toggle('on',on);
+    hint.style.display=on?'block':'none'; hint.textContent='Tape — click a piece, then another';
+    cv.style.cursor=on?'none':'';
+    head.visible=false;
+    if(on){
+      wasSpinning=!!tog.tSpin;
+      if(tog.tSpin){ tog.tSpin=false; controls.autoRotate=false;
+        const sb=document.querySelector('.dock button[data-t="tSpin"]'); if(sb) sb.classList.remove('on'); }
+    } else {
+      if(wasSpinning){ tog.tSpin=true; controls.autoRotate=true;
+        const sb=document.querySelector('.dock button[data-t="tSpin"]'); if(sb) sb.classList.add('on'); }
+      clear();
+    }
+  }
   btn.onclick=()=>setOn(!on);
   addEventListener('keydown',e=>{ if(e.key==='Escape'&&on) setOn(false); });
 
-  // world-space direction of a piece's longest axis (its "run")
   function axisOf(o){
     const p=o.geometry&&o.geometry.parameters; if(!p||p.width==null) return null;
-    const ext=[p.width,p.height,p.depth], i=ext.indexOf(Math.max(...ext));
+    const ext=[p.width,p.height,p.depth], i=ext.indexOf(Math.max.apply(null,ext));
     const v=new THREE.Vector3(i===0?1:0,i===1?1:0,i===2?1:0);
     o.updateMatrixWorld(true);
     return v.applyQuaternion(o.getWorldQuaternion(new THREE.Quaternion())).normalize();
   }
-  // hit point → centre of the piece's cross-section, keeping the position along its longest axis
   function snap(hit){
-    const o=hit.object, p=o.geometry&&o.geometry.parameters;
-    const pt=hit.point.clone();
+    const o=hit.object, p=o.geometry&&o.geometry.parameters, pt=hit.point.clone();
     if(!p||p.width==null) return pt;
     o.updateMatrixWorld(true);
-    const loc=o.worldToLocal(pt.clone());
-    const ext=[p.width,p.height,p.depth];
-    const longAxis=ext.indexOf(Math.max(...ext));
-    if(longAxis!==0) loc.x=0;
-    if(longAxis!==1) loc.y=0;
-    if(longAxis!==2) loc.z=0;
+    const loc=o.worldToLocal(pt.clone()), ext=[p.width,p.height,p.depth];
+    const i=ext.indexOf(Math.max.apply(null,ext));
+    if(i!==0) loc.x=0;
+    if(i!==1) loc.y=0;
+    if(i!==2) loc.z=0;
     return o.localToWorld(loc);
+  }
+  function pick(x,y){
+    ptr.x=(x/innerWidth)*2-1; ptr.y=-(y/innerHeight)*2+1;
+    ray.setFromCamera(ptr,camera);
+    const h=ray.intersectObjects(house.children,true).filter(k=>k.object.isMesh&&!k.object.isLineSegments2&&k.object.geometry);
+    return h.length?h[0]:null;
   }
   function fmtDist(ft){
     if(state.unit==='met'){ const m=ft*0.3048; return m>=1? m.toFixed(2)+' m' : Math.round(m*100)+' cm'; }
@@ -4221,58 +4262,78 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
     const f=Math.floor(ft), i=Math.round((ft-f)*12);
     return i? f+'′ '+i+'″' : f+'′';
   }
-  function draw(p1,p2,note){
-    clearLine();
-    const dir=new THREE.Vector3().subVectors(p2,p1);
-    const up=Math.abs(dir.clone().normalize().y)>0.9? new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0);
-    const tick=new THREE.Vector3().crossVectors(dir,up).normalize().multiplyScalar(0.12);
-    const pts=[p1.clone(),p2.clone(),
-               p1.clone().sub(tick),p1.clone().add(tick),
-               p2.clone().sub(tick),p2.clone().add(tick)];
-    const geo=new THREE.BufferGeometry().setFromPoints(pts);
-    const mat=new THREE.LineBasicMaterial({color:0xFF6A00,depthTest:false});
-    const ls=new THREE.LineSegments(geo,mat); ls.renderOrder=1000;
-    grp=new THREE.Group(); grp.add(ls); scene.add(grp);
+
+  function drawTape(p1,p2,note){
+    clearTape();
+    const len=p1.distanceTo(p2); if(len<0.02) return;
+    tape=new THREE.Group();
+    const w=Math.min(0.20, Math.max(0.07, len*0.045));
+    const blade=new THREE.Mesh(new THREE.PlaneGeometry(len,w),
+      new THREE.MeshBasicMaterial({color:YELLOW,depthTest:false,side:THREE.DoubleSide}));
+    blade.renderOrder=1000; tape.add(blade);
+    const pts=[];
+    const E=(x,y)=>pts.push(new THREE.Vector3(x,y,0));
+    E(-len/2,w/2); E(len/2,w/2); E(-len/2,-w/2); E(len/2,-w/2);
+    E(-len/2,-w/2); E(-len/2,w/2); E(len/2,-w/2); E(len/2,w/2);
+    const step = state.unit==='met' ? 1/0.3048 : 1;
+    for(let d=step; d<len-0.001; d+=step){ const x=-len/2+d; E(x,-w/2); E(x,w*0.075); }
+    const edge=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({color:INK,depthTest:false}));
+    edge.renderOrder=1001; tape.add(edge);
+    tape.userData={p1:p1.clone(),p2:p2.clone()};
+    scene.add(tape);
     lblPos.copy(p1).lerp(p2,0.5);
-    lbl.textContent=fmtDist(dir.length())+(note||'');
+    lbl.textContent=fmtDist(len)+(note||'');
     layer.style.display='block';
   }
-  function clearLine(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); }); grp=null; } }
+  function orient(){
+    if(!tape) return;
+    const p1=tape.userData.p1, p2=tape.userData.p2;
+    const x=new THREE.Vector3().subVectors(p2,p1).normalize();
+    const z=camera.getWorldDirection(new THREE.Vector3()).negate();
+    const y=new THREE.Vector3().crossVectors(z,x);
+    if(y.lengthSq()<1e-6) return;
+    y.normalize(); z.crossVectors(x,y).normalize();
+    tape.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));
+    tape.position.copy(p1).lerp(p2,0.5);
+  }
 
   cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; },true);
+  cv.addEventListener('pointermove',e=>{
+    if(!on) return;
+    const h=pick(e.clientX,e.clientY);
+    if(!h){ head.visible=false; return; }
+    head.visible=true; head.position.copy(snap(h));
+  },true);
   cv.addEventListener('pointerup',e=>{
     if(!on) return;
     if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;
-    e.stopPropagation();                                   // measuring, not selecting
-    ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
-    ray.setFromCamera(ptr,camera);
-    const hits=ray.intersectObjects(house.children,true).filter(h=>h.object.isMesh&&!h.object.isLineSegments2&&h.object.geometry);
-    if(!hits.length){ clear(); hint.textContent='Tape — click a piece, then another'; return; }
-    const obj=hits[0].object, pt=snap(hits[0]);
-    if(!a){ a={pt,obj}; clearLine(); layer.style.display='none'; hint.textContent='Tape — now click the second point'; }
-    else {
-      let p1=a.pt, p2=pt, note='';
-      const d1=axisOf(a.obj), d2=axisOf(obj);
-      // two DIFFERENT parallel members → report the perpendicular centre-to-centre spacing, which is
-      // what "16 inches on centre" means. Otherwise it's a plain point-to-point reading.
-      if(a.obj!==obj && d1 && d2 && Math.abs(d1.dot(d2))>0.985){
-        const v=new THREE.Vector3().subVectors(obj.getWorldPosition(new THREE.Vector3()), a.obj.getWorldPosition(new THREE.Vector3()));
-        const perp=v.clone().sub(d1.clone().multiplyScalar(v.dot(d1)));
-        if(perp.length()>0.01){ p2=p1.clone().add(perp); note=' o.c.'; }
-      }
-      draw(p1,p2,note); a=null; hint.textContent='Tape — click again to start a new measurement';
+    e.stopPropagation();
+    const h=pick(e.clientX,e.clientY);
+    if(!h){ clear(); hint.textContent='Tape — click a piece, then another'; return; }
+    const obj=h.object, pt=snap(h);
+    if(!a){ a={pt:pt,obj:obj}; clearTape(); hint.textContent='Tape — now click the second point'; return; }
+    let p1=a.pt, p2=pt, note='';
+    const d1=axisOf(a.obj), d2=axisOf(obj);
+    if(a.obj!==obj && d1 && d2 && Math.abs(d1.dot(d2))>0.985){
+      const v=new THREE.Vector3().subVectors(obj.getWorldPosition(new THREE.Vector3()), a.obj.getWorldPosition(new THREE.Vector3()));
+      const perp=v.clone().sub(d1.clone().multiplyScalar(v.dot(d1)));
+      if(perp.length()>0.01){ p2=p1.clone().add(perp); note=' o.c.'; }
     }
+    drawTape(p1,p2,note); a=null;
+    hint.textContent='Tape — click again to start a new measurement';
   },true);
 
   (function loop(){ requestAnimationFrame(loop);
-    if(!grp) return;
+    if(head.visible){ head.quaternion.copy(camera.quaternion); head.scale.setScalar(camera.position.distanceTo(controls.target)*0.055); }
+    orient();
+    if(!tape) return;
     const v=lblPos.clone().project(camera);
     lbl.style.left=((v.x*0.5+0.5)*innerWidth)+'px';
     lbl.style.top=((-v.y*0.5+0.5)*innerHeight)+'px';
     lbl.style.display=(v.z<1)?'block':'none';
   })();
 })();
-
 </script>
 </body>
 </html>
