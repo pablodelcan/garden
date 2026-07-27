@@ -169,9 +169,9 @@
   /* .topbar is fixed with z-index:7, so it is its own stacking context — the mark's z-index
      can't escape it. Lift the whole bar above the overlay while the mark is out there. */
   body.booting .topbar{z-index:9100}
-  body.bootland .topright,body.bootland .paper,body.bootland .dock,body.bootland .badge{opacity:1;transition:opacity .5s ease .42s}
+  body.bootland .topright,body.bootland .paper,body.bootland .dock,body.bootland .badge{opacity:1;transition:opacity .4s ease}
   body.booting .bt{opacity:0}
-  body.bootland .bt{opacity:1;transition:opacity .45s ease .5s}
+  body.bootland .bt{opacity:1;transition:opacity .4s ease}
   #lmk.booting{position:fixed;left:50%;top:50%;z-index:9100;cursor:grab}
   @media print{ #boot,.infopop,.infotool{display:none!important} }
   .tapetool:hover{opacity:1}
@@ -4460,29 +4460,22 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
     window.__lmkSize(BS);
     vy=0.031; vx=0.012; idle=0;                                // fast while it loads; the existing settle eases it to the house drift
     let landed=false;
-    const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-    const home=()=>{
-      cv.classList.remove('booting'); cv.style.cssText='';
-      cv.style.width=H+'px'; cv.style.height=H+'px'; window.__lmkSize(H);
-      slot.remove();
-      if(window.__lmkFit) window.__lmkFit();                   // last word on the size goes back to the wordmark
-      document.body.classList.remove('booting','bootland');
-      document.body.classList.add('bootdone');
-      boot.remove();
-    };
+    // No travel: the mark holds big, then snaps straight back to its corner seat while the
+    // overlay dissolves over the drawing. Nothing flies across the screen.
     const land=()=>{
       if(landed) return; landed=true;
       const h=Math.round(bt?bt.getBoundingClientRect().height:0);   // remeasure — Delcan Mono has swapped in by now
-      if(h>10){ H=h; slot.style.width=H+'px'; slot.style.height=H+'px'; }
-      document.body.classList.add('bootland');                 // overlay fades, the UI comes up behind it
-      if(reduce){ setTimeout(home,500); return; }
-      const now=cv.getBoundingClientRect(), seat=slot.getBoundingClientRect();
-      const k=seat.width/now.width;
-      const dx=(seat.left+seat.width/2)-(now.left+now.width/2);
-      const dy=(seat.top+seat.height/2)-(now.top+now.height/2);
-      cv.style.transition='transform .95s cubic-bezier(.62,0,.14,1)';
-      cv.style.transform='translate('+dx+'px,'+dy+'px) scale('+k+')';
-      setTimeout(home,1000);
+      if(h>10) H=h;
+      cv.classList.remove('booting'); cv.style.cssText='';
+      cv.style.width=H+'px'; cv.style.height=H+'px'; window.__lmkSize(H);
+      slot.remove();
+      if(window.__lmkFit) window.__lmkFit();
+      document.body.classList.add('bootland');                 // overlay fades out; the UI comes up behind it
+      setTimeout(()=>{
+        document.body.classList.remove('booting','bootland');
+        document.body.classList.add('bootdone');
+        boot.remove();
+      },560);
     };
     let f=0;
     const painted=new Promise(res=>{ const step=()=>{ if(++f>3) res(); else requestAnimationFrame(step); }; requestAnimationFrame(step); });
