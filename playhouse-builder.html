@@ -171,8 +171,12 @@
   @keyframes bootIn{to{opacity:1}}
   @keyframes bootSweep{0%{transform:translateX(-115%)}100%{transform:translateX(330%)}}
   body.bootland #boot{opacity:0;pointer-events:none}
-  body.booting .topbar,body.booting .paper,body.booting .dock,body.booting .badge,body.booting .stepnav,body.booting .mobtabs{opacity:0}
-  body.bootland .topbar,body.bootland .paper,body.bootland .dock,body.bootland .badge{opacity:1;transition:opacity .5s ease .42s}
+  body.booting .topright,body.booting .paper,body.booting .dock,body.booting .badge,body.booting .stepnav,body.booting .mobtabs{opacity:0}
+  body.booting .brand{background:none!important}
+  /* .topbar is fixed with z-index:7, so it is its own stacking context — the mark's z-index
+     can't escape it. Lift the whole bar above the overlay while the mark is out there. */
+  body.booting .topbar{z-index:9100}
+  body.bootland .topright,body.bootland .paper,body.bootland .dock,body.bootland .badge{opacity:1;transition:opacity .5s ease .42s}
   body.booting .bt{opacity:0}
   body.bootland .bt{opacity:1;transition:opacity .45s ease .5s}
   #lmk.booting{position:fixed;left:50%;top:50%;z-index:9100;cursor:grab}
@@ -2651,9 +2655,9 @@ function computeMaterials(p){
   const add=(g,qty,unit,label,detail,cost,link)=>{g.items.push({qty,unit,label,detail,cost,link});g.sum+=cost;total+=cost;};
 
   let g=G('Foundation');
-  if(p.foundation==='piers'){ const bags=totalPosts*4;
+  if(p.foundation==='piers'){ const bags=totalPosts*5;   // 10″×4 ft tube = ~2.2 cu ft; a 60 lb bag yields ~0.45
     add(g,totalPosts,'×','Concrete tube forms — 10″ × 4 ft','QUIKRETE QUIK-Tube, cut to depth',totalPosts*12,HW.tube);
-    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · ~4 per pier',bags*7,HW.conc);
+    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · 5 per pier — a 10″ × 4 ft tube takes ~2.2 cu ft',bags*7,HW.conc);
     add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, set in each pier',totalPosts*PRICE.postBase,HW.base);
   } else if(p.foundation==='buried'){ const bags=totalPosts*3;
     add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · ~3 per post hole',bags*7,HW.conc);
@@ -2661,6 +2665,7 @@ function computeMaterials(p){
   } else {
     add(g,totalPosts,'×','Deck blocks — precast pier','Midwest deck block, takes a 4×4/6×6 · one per post',totalPosts*PRICE.deckBlock,HW.block);
     add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, off the soil',totalPosts*PRICE.postBase,HW.base);
+    add(g,Math.ceil(totalPosts/2),'bags','Paver base gravel — 0.5 cu ft','tamped bed under each block, so it can\u2019t settle',Math.ceil(totalPosts/2)*5,lw('paver base gravel 0.5 cu ft'));
   }
 
   g=G('Posts ('+post+' PT)');
@@ -2673,6 +2678,7 @@ function computeMaterials(p){
   add(g,beamQty,'×',`Beam 2×6 — ${beamLen} ft`,'doubled, two long sides'+(p.midBeam?' + center':''),beamQty*beamLen*PRICE.beam,lw('pressure treated 2x6'));
   const joists=Math.ceil(D*12/oc)+1, perBoard=Math.max(1,Math.floor(16/W)), jBoards=Math.ceil(joists/perBoard);
   add(g,joists,'pcs',`Joists 2×6 @ ${oc}" O.C.`,`cut to ${W} ft · ${jBoards}× 16 ft`,jBoards*16*PRICE.joist,lw('pressure treated 2x6'));
+  add(g,2,'pcs',`Rim boards 2×6 — ${stdLen(D)} ft`,'closes the joist ends so nothing can roll — step 4',2*stdLen(D)*PRICE.joist,lw('pressure treated 2x6'));
   const floorSheets=Math.ceil(W*D/32);
   add(g,floorSheets,'×','¾" T&G plywood floor','4×8 exterior sheets',floorSheets*PRICE.plySheet,lw('3/4 plywood'));
 
