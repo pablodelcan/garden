@@ -163,13 +163,6 @@
   #boot{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;
     background:#f0ede3;transition:opacity .5s ease}
   #boot .bslot{width:var(--bs,240px);height:var(--bs,240px)}
-  #boot .bword{margin-top:26px;font-family:var(--cond);font-size:19px;font-weight:700;line-height:1.02;
-    letter-spacing:.005em;color:#141414;text-align:center;opacity:0;animation:bootIn .6s ease .25s forwards}
-  #boot .bword b{display:block;font-weight:700;opacity:.42}
-  #boot .brule{margin-top:20px;width:126px;height:1px;background:rgba(20,20,20,.22);overflow:hidden}
-  #boot .brule i{display:block;height:100%;width:34%;background:#141414;animation:bootSweep 1.25s cubic-bezier(.5,0,.5,1) infinite}
-  @keyframes bootIn{to{opacity:1}}
-  @keyframes bootSweep{0%{transform:translateX(-115%)}100%{transform:translateX(330%)}}
   body.bootland #boot{opacity:0;pointer-events:none}
   body.booting .topright,body.booting .paper,body.booting .dock,body.booting .badge,body.booting .stepnav,body.booting .mobtabs{opacity:0}
   body.booting .brand{background:none!important}
@@ -180,7 +173,6 @@
   body.booting .bt{opacity:0}
   body.bootland .bt{opacity:1;transition:opacity .45s ease .5s}
   #lmk.booting{position:fixed;left:50%;top:50%;z-index:9100;cursor:grab}
-  @media (prefers-reduced-motion:reduce){ #boot .brule i{animation:none;width:100%} }
   @media print{ #boot,.infopop,.infotool{display:none!important} }
   .tapetool:hover{opacity:1}
   .tapetool.on{opacity:1;box-shadow:inset 0 -2px 0 #141414}
@@ -864,7 +856,7 @@
 </head>
 <body>
 <div id="bg"></div>
-<div id="boot"><div class="bslot"></div><div class="bword">Delcan &amp; Co.<b>Builder 1.0</b></div><div class="brule"><i></i></div></div>
+<div id="boot"><div class="bslot"></div></div>
 <script>
   /* the overlay must never be able to trap the page — if the module fails to boot
      (no WebGL, unpkg blocked, a throw anywhere), drop it and show the tool anyway */
@@ -1948,7 +1940,7 @@ function rebuild3D(p){
   function deckRafters(cx,cy,rotZ,slabW,depth,noRake,fieldD,zo,bearXs,bearY){
     _stage=8; zo=zo||0;                                                                  // structure first: the rafters
     const fd=fieldD||depth;                                  // rafters live OVER the walls — the rake overhang is sheathing + barge, not floating rafters
-    const nR=Math.max(2,Math.round(fd/1.6)+1), sp=(fd-0.2)/(nR-1);
+    const nR=Math.max(2,Math.ceil(fd*12/16)+1), sp=(fd-0.2)/(nR-1);   // 16″ O.C. — same count the cut list and step 8 give
     for(let i=0;i<nR;i++){ const z=zo-fd/2+0.1+i*sp; box(slabW,0.34,0.1, cx,cy-0.18,z, P.struct,{rotZ});
       rafterTies(bearXs, bearY, z); }                                                    // tie each rafter down to the plate it lands on
     _stage=8.5;                                                                          // then the skin
@@ -1973,7 +1965,7 @@ function rebuild3D(p){
     function deckRaftersZ(cy,rotX,slabZ,widthX,fieldW){            // mono-pitch slab sloping along Z (depth)
       _stage=8;
       const fw=fieldW||widthX;                              // rafters live OVER the walls, not out in the side overhangs
-      const nR=Math.max(2,Math.round(fw/1.6)+1), sp=(fw-0.2)/(nR-1);
+      const nR=Math.max(2,Math.ceil(fw*12/16)+1), sp=(fw-0.2)/(nR-1);   // 16″ O.C.
       for(let i=0;i<nR;i++){ const x=-fw/2+0.1+i*sp; box(0.1,0.34,slabZ, x,cy-0.18,0, P.struct,{rotX}); }
       _stage=8.5;
       box(widthX,0.1,slabZ, 0,cy+0.05,0, P.roof,{rotX});
@@ -2704,7 +2696,8 @@ function computeMaterials(p){
   add(g,nHinge,'×','Exterior strap / T-hinges',`${nHinge} for a ${dim(doorH)} door${leaves>1?' (both leaves)':''}`,nHinge*9,lw('exterior t-hinge strap'));
   add(g,leaves,'×','Gate latch + handle',leaves>1?'one per leaf + dutch shelf':'thumb latch or barrel bolt',leaves*13+(dS.dutch?14:0),lw('gate latch black'));
   const openings=p.windows.length+1;
-  add(g,openings,'pcs','Headers 2×6 — openings','framed over each opening',openings*stdLen(3)*PRICE.beam,lw('2x6'));
+  add(g,openings*2,'pcs','Headers 2×6 — openings','DOUBLED over each opening, king + jack studs each side (step 7)',openings*2*stdLen(3)*PRICE.beam,lw('2x6'));
+  add(g,4,'pcs',`Corner boards 1×4 — ${stdLen(Hw)} ft`,'cover the siding joint at each corner (step 9)',4*stdLen(Hw)*PRICE.brace*1.3,lw('1x4 primed trim board'));
 
   g=G('Roof ('+roof+')');
   let rafterLen,rafters,roofArea;
@@ -2725,9 +2718,18 @@ function computeMaterials(p){
   if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); add(g,nT-1,'×','Clerestory glazing strips','north-light glass between the teeth',(nT-1)*PRICE.window,WIN_URL); }
   if(isBfly) add(g,1,'×','Valley gutter + downspout','a butterfly drains to the centre — don’t skip this',48,lw('rain gutter kit'));
   if(isFlat){ const par=Math.ceil(2*(W+D)*0.9/32); add(g,Math.max(2,par),'×','Parapet siding + coping','low wall around the roof deck',Math.max(2,par)*PRICE.siding*fin.mult,lw('exterior t1-11 siding')); }
+  if(isGable||isSalt||isGam||isHip){ const rl=stdLen(De+2);
+    add(g,1,'pcs',`Ridge board 2×8 — ${rl} ft`,'set FIRST on temporary props — every rafter lands against it (step 8)',rl*PRICE.joist*1.55,lw('2x8')); }
+  if(isGable||isSalt||isA){ const ct=Math.max(2,Math.ceil(rafters/4));
+    add(g,ct,'pcs',`Collar ties 2×4 — ${stdLen(W*0.7)} ft`,'every other rafter pair — this is what stops the walls spreading',ct*stdLen(W*0.7)*PRICE.brace,lw('2x4 lumber')); }
   const sheath=Math.ceil(roofArea/32);
   add(g,sheath,'×','Roof sheathing','7/16" OSB, 4×8',sheath*PRICE.sheath,lw('7/16 osb sheathing'));
-  add(g,Math.round(roofArea),'sqft','Felt + shingles','or metal panels',roofArea*PRICE.roofCoverSqft,lw('asphalt shingles bundle'));
+  const eaveLF=2*(W+2*ovXm)+2*(De+2*ovZm);
+  add(g,Math.ceil(eaveLF/10),'pcs','Drip edge — 10 ft lengths',`EAVES first, then rakes on TOP of the underlayment (step 8.5) · ~${Math.round(eaveLF)} lf all round`,Math.ceil(eaveLF/10)*11,lw('aluminum drip edge roof'));
+  const felt=Math.max(1,Math.ceil(roofArea/400));
+  add(g,felt,'roll','Underlayment — #15 felt','1 roll ≈ 400 sq ft · courses lap 4″ up the slope',felt*24,lw('15 lb roofing felt'));
+  add(g,Math.round(roofArea),'sqft','Shingles or metal panels','the covering itself',roofArea*PRICE.roofCoverSqft,lw('asphalt shingles bundle'));
+  add(g,Math.ceil(eaveLF/8)+1,'pcs',`Fascia 1×6 — 8 ft`,'covers the rafter tails; soffit + frieze blocking close the underside (step 8.5)',(Math.ceil(eaveLF/8)+1)*8*1.4,lw('1x6 primed trim board'));
 
   if(Dd>0){
     g=G('Deck ('+Dd+' ft)');
@@ -2745,19 +2747,55 @@ function computeMaterials(p){
     const railLF=W+2*Dd;
     add(g,Math.round(railLF),'ft','Railing + balusters','3 sides, ~36" tall',railLF*PRICE.railLF,lw('deck railing baluster'));
     add(g,2,'×',`Stair-opening posts ${post} — 4 ft`,'FULL 4×4s past the rim, 2 carriage bolts each — rail ends + gate hang on these',2*4*postPrice,lw(postTerm));
-    { const ST=ACC_STOCK[state.accStock]||ACC_STOCK['2x6'];
-      const climb=Math.max(0.6,Hf), N=Math.max(3,Math.round(climb/0.58)), rise=climb*12/N, tot=N*0.83;
-      const strLen=stdLen(Math.hypot(tot,climb)+1);
-      add(g,2,'pcs',`Stair stringers ${ST.cut==='2×4'?'2×4':'2×6'} — ${strLen} ft`,
-        `cut from ONE marked pattern so all ${N} steps match · ${Math.round(rise*10)/10}″ rise · 10″ run`,
-        2*strLen*PRICE.brace*1.4, lw(ST.cut==='2×4'?'2x4x10 pressure treated':'2x6x10 pressure treated'));
-      add(g,N,'pcs',`Treads ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} — 2 ft 6 in`,'one per step, 2 screws each end',
-        N*2.5*PRICE.brace, lw(ST.cut==='2×4'?'2x4x8 lumber':'2x6x8 pressure treated'));
-      const nB=Hf>2.5? Math.max(2,Math.ceil(tot/0.40))*2 : 0;
-      if(nB) add(g,nB,'pcs','Balusters 2×2 — 3 ft','≤4″ gap between them, both open sides',nB*3*PRICE.brace*0.6,lw('2x2x8 lumber'));
-      if(ST.postSec) add(g,2,'×','Stair newel posts 4×4 — 4 ft','carry the handrail run down to grade',2*4*postPrice,lw('pressure treated 4x4'));
-    }
+    add(g,dj*2,'×','Deck joist hangers — Simpson LUS26Z','one at EACH end of every deck joist (step 12)',dj*2*PRICE.hanger,HW.hanger);
+    { const lag=Math.max(4,Math.ceil(W*12/16)*2);
+      add(g,lag,'×','½″ × 4″ lag screws — deck ledger','two rows staggered ~16″ into the house rim — this is the connection decks fail at',lag*1.6,lw('1/2 x 4 hex lag screw')); }
     if(state.stairGate!==false) add(g,1,'kit','Stair gate — self-closing','2 spring hinges + gravity latch, mounted on the OUTSIDE top rail (out of kid reach)',38,lw('self closing gate hardware kit'));
+  }
+
+  /* ---- ACCESS — the ladder or stair is built on EVERY design, deck or no deck. These counts come
+     off the same formulas rebuild3D draws with, so the list matches the drawing piece for piece. ---- */
+  { const ST=ACC_STOCK[state.accStock]||ACC_STOCK['2x6'];
+    const L=LADDERS[state.ladderStyle]||LADDERS.rung;
+    const railStock=ST.cut==='2×4'?'2×4':'2×6', railTerm=ST.cut==='2×4'?'2x4x10 pressure treated':'2x6x10 pressure treated';
+    g=G('Access — '+(p.access==='stairs'?'stairs':L.name.toLowerCase()+' ladder')+' ('+ST.cut+')');
+    if(p.access==='stairs'){
+      const climb=Math.max(0.6,Hf), N=Math.max(3,Math.round(climb/0.58)), riseIn=climb*12/N, tot=N*0.83;
+      const strLen=stdLen(Math.hypot(tot,climb)+1), treads=N-1;
+      add(g,2,'pcs',`Stair stringers ${railStock} — ${strLen} ft`,
+        `cut from ONE marked pattern so all ${N} risers match · ${Math.round(riseIn*10)/10}″ rise · 10″ run`,
+        2*strLen*PRICE.brace*1.4, lw(railTerm));
+      add(g,treads,'pcs',`Treads ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} — 2 ft 6 in`,
+        `${treads} treads for ${N} risers — the floor deck is the top step, grade is the bottom · 2 screws each end`,
+        treads*2.5*PRICE.brace, lw(ST.cut==='2×4'?'2x4x8 lumber':'2x6x8 pressure treated'));
+      add(g,2,'×','Stringer hangers — Simpson LSCZ','adjustable connector hanging each stringer off the rim (step 15)',2*7,lw('simpson lscz stringer connector'));
+      add(g,4,'×',`Stair newel posts ${ST.postSec?'4×4':'2×4'} — 4 ft`,
+        'TWO at the landing and TWO at grade, both sides — the handrail dies into these instead of floating',
+        4*4*(ST.postSec?postPrice:PRICE.brace), lw(ST.postSec?'pressure treated 4x4':'2x4x8 pressure treated'));
+      add(g,2,'pcs',`Handrail 2×4 — ${strLen} ft`,'34–36″ above the nosings, post to post, one each side',2*strLen*PRICE.brace,lw('2x4x10 pressure treated'));
+      if(Hf>2.5){ const span=tot-0.36, bal=Math.max(2,Math.ceil(span/0.40)-1)*2;
+        add(g,bal,'pcs','Balusters 2×2 — 3 ft','≤4″ clear gap, both open sides — required once the walking surface is over 30″ up',bal*3*PRICE.brace*0.6,lw('2x2x8 lumber')); }
+    } else {
+      const topY=Hf+0.12, oBot=L.oBot*Math.max(1,Hf/3.5), dy=Math.max(0.4,topY), perY=(-0.05-oBot)/dy;
+      const runSpan=Math.abs(-0.05+perY*L.ext-oBot), railLen=stdLen(Math.hypot(runSpan,topY+L.ext)+0.4);
+      const n=Math.max(3,Math.round(dy/L.gap));
+      add(g,2,'pcs',`Ladder rails ${railStock} — ${railLen} ft`,
+        `feet ${dim(oBot)} out from the ${Dd>0?'deck edge':'wall'} — about ${Math.round(Math.atan2(topY,oBot)*180/Math.PI)}°`+(L.ext>0?` · run them ${dim(L.ext)} PAST the landing, that overrun is the handhold`:''),
+        2*railLen*PRICE.brace*1.4, lw(railTerm));
+      if(L.tread==='rung')
+        add(g,n,'pcs','Rungs 2×2 — 2 ft',`every ~${dim(L.gap)} · let into ¾″ notches rather than face-screwed`,n*2*PRICE.brace*0.6,lw('2x2x8 lumber'));
+      else
+        add(g,n,'pcs',`Treads ${L.tread==='deep'?'2×6':(ST.cut==='2×4'?'2×4':ST.cut)} — 2 ft`,
+          `every ~${dim(L.gap)} · 2× 3″ screws per end`,n*2*PRICE.brace,lw(L.tread==='deep'?'2x6x8 pressure treated':'2x4x8 pressure treated'));
+      add(g,1,'pcs','Top cleat 2×4 — 2 ft','across both rails at the landing — the lags go through this',2*PRICE.brace,lw('2x4x8 pressure treated'));
+      add(g,2,'×','⅜″ × 4″ lag screws — ladder top',`through the cleat into the ${Dd>0?'deck':'floor'} rim (step 15)`,2*1.2,lw('3/8 x 4 hex lag screw'));
+      if(L.hand){
+        add(g,2,'pcs',`Grab rails 2×4 — ${stdLen(railLen*0.8)} ft`,'one each side, 34–36″ above the treads, carried past the top',2*stdLen(railLen*0.8)*PRICE.brace,lw('2x4x10 pressure treated'));
+        add(g,2,'pcs','Grab-rail posts 2×4 — 3 ft','short posts the grab rails ride on',2*3*PRICE.brace,lw('2x4x8 pressure treated'));
+      }
+      if(ST.postSec) add(g,2,'×','Ladder feet 4×4 — 16 in','this build stands on posts so no rail end ever touches soil',2*1.4*postPrice,lw('pressure treated 4x4'));
+    }
+    add(g,2,'×','Pavers — 12 in square','a solid pad under each foot so it can’t sink or rot',2*4,lw('12 in square concrete paver'));
   }
 
   g=G('Bracing & hardware');
@@ -2773,11 +2811,33 @@ function computeMaterials(p){
   }
   const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
   add(g,bolts,'×',`½″ × ${boltLen}″ carriage bolts`,'galvanized, through the beam sandwich + post (+ nuts/washers)',bolts*PRICE.bolt,lw(`1/2 x ${boltLen} galvanized carriage bolt`));
-  add(g,joists,'×','Joist hangers — Simpson LUS26Z','ZMAX double-shear face-mount hanger',joists*PRICE.hanger,HW.hanger);
-  { const bearings=(isGable||isSalt||isHip)?2:2;                       // every rafter is tied down where it lands
-    const ties=Math.max(4, rafters*bearings);
-    add(g,ties,'×','Hurricane ties — Simpson H1','rafter → top plate, one each side of every rafter. This is the connection that keeps the roof on in a blow.',ties*3.2,lw('simpson h1 hurricane tie')); }
-  add(g,1,'lot','Exterior screws + misc','3″ & 2″ structural / deck screws',PRICE.misc,lw('exterior structural wood screws'));
+  const hangers=joists*2*(p.midBeam?2:1);   // one at EACH end of every joist — and a centre beam splits every joist into two spans
+  add(g,hangers,'×','Joist hangers — Simpson LUS26Z',`ZMAX double-shear — one at EACH end of ${joists} joists${p.midBeam?', and the centre beam splits every joist into two spans':''}`,hangers*PRICE.hanger,HW.hanger);
+  const ties=Math.max(4, rafters*2);        // every rafter tied at both bearings
+  add(g,ties,'×','Hurricane ties — Simpson H1','rafter → top plate, one each side of every rafter. This is the connection that keeps the roof on in a blow.',ties*3.2,lw('simpson h1 hurricane tie'));
+
+  /* ---- FASTENERS — the guide names a specific fixing at nearly every step; this is that list.
+     Connector nails matter most: a Simpson hanger or tie is only rated with the nails it was
+     tested with, and deck screws are not those nails. ---- */
+  g=G('Fasteners');
+  const lagKnee=8*2*2;
+  add(g,lagKnee,'×','⅜″ × 3½″ lag screws — knee braces','2 per end × 2 ends × 8 braces, pre-drilled (step 6)',lagKnee*0.9,lw('3/8 x 3-1/2 hex lag screw'));
+  const connNails=hangers*10+ties*8+(Dd>0?Math.ceil(W*12/16+1)*2*10:0);
+  const nailLb=Math.max(1,Math.ceil(connNails/160));
+  add(g,nailLb,'lb','Simpson connector nails — 10d × 1½″',`~${connNails} nails to fill every hanger and tie. Hangers and ties are only rated with THESE — deck screws don’t count.`,nailLb*10,lw('simpson strong tie 10d joist hanger nails'));
+  const strLb=Math.max(2,Math.ceil((perim*Hw+rafters*4)/110));
+  add(g,strLb,'lb','3″ exterior structural screws','plates, studs, blocking, rafters, cleats',strLb*13,lw('3 in exterior structural wood screw'));
+  const dkLb=Math.max(2,Math.ceil((W*D+W*Dd+12)/70));
+  add(g,dkLb,'lb','2½″ deck screws','floor ply, decking, treads, siding trim',dkLb*12,lw('2-1/2 in exterior deck screw'));
+  const tubes=Math.max(2,Math.ceil(joists/10));
+  add(g,tubes,'tubes','Construction adhesive','on every joist under the floor ply — this is what kills squeaks (step 5)',tubes*6,lw('construction adhesive subfloor'));
+  const roofNails=Math.max(1,Math.ceil(roofArea/220));
+  add(g,roofNails,'lb','Roofing nails — 1¼″ galvanised','or 1¼″ gasketed screws if you go metal (step 8.5)',roofNails*9,lw('1-1/4 galvanized roofing nails'));
+  const sidNails=Math.max(1,Math.ceil(sideSheets/2));
+  add(g,sidNails,'lb','Siding nails — 2″ ring-shank','every 8″ on panel edges, into studs (step 9)',sidNails*11,lw('2 in ring shank siding nails'));
+  add(g,3,'tubes','Exterior caulk','trim joints and window heads — not the window bottoms, those must drain',3*7,lw('exterior paintable caulk'));
+  add(g,1,'lot','Misc — shims, string, stakes, pencils','the small stuff every step assumes you have',PRICE.misc*0.5,lw('composite shims'));
+  g=groups.find(x=>x.name==='Bracing & hardware');
   if(p.anchor){ add(g,totalPosts,'×','Hurricane ties — Simpson H2.5A','galvanized rafter/post uplift tie',totalPosts*PRICE.hanger,HW.htie);
     add(g,totalPosts,'×','Footing anchor straps','galvanized, post-to-footing',totalPosts*4,lw('simpson post anchor strap')); }
 
@@ -3402,19 +3462,46 @@ function pieceLists(s){
   add('2×6 PT — beams & joists', D, s.midBeam?6:4);
   const joists=Math.ceil(D*12/oc)+1; add('2×6 PT — beams & joists', W, joists);
   if(Dd>0){ const dj=Math.ceil(W*12/16)+1; add('2×6 PT — beams & joists', Dd, dj); }
+  add('2×6 PT — beams & joists', D, 2);   // rim boards closing the joist ends
   const rPer=Math.ceil(D*12/16)+1;   // same rafter math as the materials list, per roof type
+  const ovX=(s.ovX!=null?s.ovX:1), Wo=W+1+2*(ovX-1);        // the run the rafter actually has to cover
   let rl,rc; if(isA){const pH=Hw+W*0.45; rl=Math.hypot(W/2,pH)+0.5; rc=rPer*2;}
-    else if(roof==='flat'){rl=W+1; rc=rPer;}
+    else if(roof==='flat'){rl=Wo; rc=rPer;}
     else if(isG||roof==='saltbox'||roof==='hip'){rl=(W/2+0.5)*1.3; rc=rPer*2+(roof==='hip'?4:0);}
     else if(roof==='gambrel'||roof==='clerestory'){rl=(W/2+0.5)*1.4; rc=rPer*(roof==='gambrel'?4:2);}
     else if(roof==='butterfly'){rl=(W/2+0.5)*1.2; rc=rPer*2;}
     else if(roof==='sawtooth'){const nT=Math.max(2,Math.round(W/3.2)); rl=W/nT+0.5; rc=rPer*nT;}
     else if(roof==='barrel'){rl=W*1.25; rc=rPer;}
-    else {const f=isL?1.22:1.06; rl=(W+1)*f; rc=rPer;}
-  add(s.rafter8?'2×8 — rafters':'2×6 — rafters & headers', rl, rc); add('2×6 — rafters & headers', 3, s.windows.length+1);
+    else {const f=isL?1.22:1.06; rl=Wo*f; rc=rPer;}
+  add(s.rafter8?'2×8 — rafters':'2×6 — rafters & headers', rl, rc);
+  add('2×6 — rafters & headers', 3, (s.windows.length+1)*2);        // headers are DOUBLED over every opening
+  if(isG||roof==='saltbox'||roof==='gambrel'||roof==='hip') add('2×8 — ridge', D+2, 1);
+  if(isG||roof==='saltbox'||isA) add('2×4 — studs & braces', W*0.7, Math.max(2,Math.ceil(rc/4)));   // collar ties
   const perim=2*(W+D),
     studN=Math.ceil(perim*12/16)+4 + 4 + 5*(1+s.windows.length) + ((s.roof==='shed'||s.roof==='lean')?Math.ceil(Math.max(W,D)*12/16)+1:0);   // corners + opening framing + knee wall
   add('2×4 — studs & braces', Hw, studN); add('2×4 — studs & braces', Math.min(Hf*0.8*1.41,3.5), 8);
+  /* access — same numbers the model draws with, so every board on the drawing has a line here */
+  { const ST=ACC_STOCK[s.accStock]||ACC_STOCK['2x6'], L=LADDERS[s.ladderStyle]||LADDERS.rung;
+    const railT=ST.cut==='2×4'?'2×4 PT — access':'2×6 PT — access';
+    if(s.access==='stairs'){
+      const climb=Math.max(0.6,Hf), N=Math.max(3,Math.round(climb/0.58)), tot=N*0.83;
+      add(railT, Math.hypot(tot,climb)+1, 2);                                  // stringers
+      add(ST.cut==='4×4 + 2×6 + 2×4'?'2×4 PT — access':railT, 2.5, N-1);       // treads
+      add(ST.postSec?post+' PT — posts (buy to length)':'2×4 PT — access', 4, 4);   // newels
+      add('2×4 PT — access', Math.hypot(tot,climb)+1, 2);                      // handrails
+      if(Hf>2.5) add('2×2 PT — access', 3, Math.max(2,Math.ceil((tot-0.36)/0.40)-1)*2);
+    } else {
+      const topY=Hf+0.12, oBot=L.oBot*Math.max(1,Hf/3.5), dy=Math.max(0.4,topY), perY=(-0.05-oBot)/dy;
+      const railLen=Math.hypot(Math.abs(-0.05+perY*L.ext-oBot), topY+L.ext)+0.4;
+      const n=Math.max(3,Math.round(dy/L.gap));
+      add(railT, railLen, 2);                                                  // rails
+      if(L.tread==='rung') add('2×2 PT — access', 2, n);
+      else add(L.tread==='deep'?'2×6 PT — access':railT, 2, n);
+      add('2×4 PT — access', 2, 1);                                            // top cleat
+      if(L.hand){ add('2×4 PT — access', railLen*0.8, 2); add('2×4 PT — access', 3, 2); }
+    }
+  }
+  if(Dd>0){ add('2×6 PT — beams & joists', W, 1); }        // deck ledger
   const gEx=(s.grade||0)*(((s.gradeDir==='front'||s.gradeDir==='back')?D:W)-0.5);   // sloped site: downhill posts run longer
   const cornerLen=stdLen(Hf+1+gEx), midLen=stdLen(Hf+0.5+gEx);   // platform frame — posts stop under the deck
   add(post+' PT — posts (buy to length)', cornerLen, 4); if(mids>0) add(post+' PT — posts (buy to length)', midLen, mids);
@@ -4352,9 +4439,9 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   const stop=()=>{ drag=false; };
   cv.addEventListener('pointerup',stop); cv.addEventListener('pointercancel',stop);
 
-  // ink scales with the mark, so the boot-size cube is the same drawing enlarged, not a thin wireframe
-  window.__lmkSize=(h)=>{ r.setSize(h,h,false); lm.resolution.set(h,h); lmBack.resolution.set(h,h);
-    const k=h/41; lm.linewidth=1.95*k; lmBack.linewidth=1.15*k; };
+  // linewidth is absolute pixels and STAYS at the corner-mark weight — a big cube drawn with
+  // proportionally scaled ink reads as a heavy blob, not as the logo
+  window.__lmkSize=(h)=>{ r.setSize(h,h,false); lm.resolution.set(h,h); lmBack.resolution.set(h,h); };
   /* ===== boot: the mark spins big in the middle of the sheet, then shrinks into the corner
      and simply STAYS there as the logo — it's the same canvas the whole way, never a handoff. ===== */
   (function(){
@@ -4400,7 +4487,7 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
     let f=0;
     const painted=new Promise(res=>{ const step=()=>{ if(++f>3) res(); else requestAnimationFrame(step); }; requestAnimationFrame(step); });
     const fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
-    const floor=new Promise(res=>setTimeout(res,1150));         // never a flash — the mark gets a beat to spin
+    const floor=new Promise(res=>setTimeout(res,1400));         // a full second-plus of cube after the first paint — never a flash
     Promise.race([
       Promise.all([painted,fonts,floor]),
       new Promise(res=>setTimeout(res,5000))                    // whatever is slow, we land
