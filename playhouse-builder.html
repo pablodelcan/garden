@@ -2203,25 +2203,42 @@ function rebuild3D(p){
     const pt=accPt, widthIsX=accWidthIsX;   // unified anchor: wall side, deck outer edge, or a deck side edge
     const gAtRun=r=>{ const f=pt(r,0,0); return groundAt(f[0],f[2]); };   // ground height where the run lands (sloped sites)
     if(p.access==='stairs'){
-      // Rise and run come from the real climb, not a fixed guess: aim for a ~7" rise, then hold
-      // every step identical — an uneven last step is the one people trip on.
+      // A real stair, not a ramp with boards on it. Rise and run come from the actual climb — aim
+      // for ~7" and hold every step identical. Everything hangs off one height function so the
+      // treads, the rail and the balusters can't drift apart from each other.
       const ST=accStock();
-      const sw=2.4;
-      let gF=gAtRun(Math.ceil(floorY/0.6)*0.85);
+      const sw=2.4, tread=0.83, RAILH=2.9;                       // 10" run · 34.8" rail above the nosings
+      let gF=gAtRun(Math.ceil(floorY/0.6)*tread);
       const climb=Math.max(0.6,floorY-gF);
-      const N=Math.max(3,Math.round(climb/0.58));                 // ~7" per step
-      const rise=climb/N, run=Math.max(0.75,Math.min(0.95,0.83)); // 10" treads
-      const tot=N*run; gF=gAtRun(tot);
-      for(const s of [-1,1]) strut(pt(0,s*sw/2,floorY+0.1), pt(tot,s*sw/2,gF+0.05), ST.rail,P.struct);        // stringers
-      if(ST.postSec) for(const s of [-1,1])                                                                   // 4×4 newels carry the run
-        box(ST.postSec,2.9,ST.postSec, pt(tot-0.15,s*sw/2,gF+1.45)[0], gF+1.45, pt(tot-0.15,s*sw/2,gF+1.45)[2], P.struct);
-      for(let i=1;i<=N;i++){ const yi=gF+rise*(N-i)+0.06, c=pt((i-0.5)*run,0,yi);                             // treads
-        box(widthIsX?sw:ST.treadDp*1.9,ST.treadTh,widthIsX?ST.treadDp*1.9:sw, c[0],yi,c[2], P.struct); }
-      for(const s of [-1,1]){ strut(pt(0,s*sw/2,floorY+2.7), pt(tot,s*sw/2,gF+2.55), 0.1,P.struct);           // handrails
-        strut(pt(tot,s*sw/2,gF+0.1), pt(tot,s*sw/2,gF+2.55), 0.1,P.struct);
-        const nB=Math.max(2,Math.ceil(tot/0.33));                                                             // ≤4" baluster gap
-        for(let i=1;i<nB;i++){ const f=i/nB, r=f*tot, yb=gF+0.05+(floorY-gF)*(1-f);
-          strut(pt(r,s*sw/2,yb), pt(r,s*sw/2,yb+2.5), 0.06,P.struct); }
+      const N=Math.max(3,Math.round(climb/0.58));                // ~7" per riser
+      const rise=climb/N, tot=N*tread; gF=gAtRun(tot);
+      const yAt=r=>floorY-(r/tot)*climb;                         // stair line: height at any run
+
+      for(const s of [-1,1])                                                                       // stringers
+        strut(pt(0,s*sw/2,floorY), pt(tot,s*sw/2,gF), ST.rail, P.struct);
+      for(let i=1;i<N;i++){                                                                        // treads (the landing is step 0, grade is the last)
+        const y=floorY-i*rise, c=pt(i*tread,0,y+ST.treadTh/2);
+        box(widthIsX?sw:ST.treadDp*1.9, ST.treadTh, widthIsX?ST.treadDp*1.9:sw, c[0], y+ST.treadTh/2, c[2], P.struct);
+      }
+      // newel posts: one pair at the landing, one pair at grade — the rail lands ON these, not in mid-air
+      const nsec=ST.postSec||0.2, rTop=0.18, rBot=tot-0.18;
+      for(const s of [-1,1]){
+        for(const [r,base] of [[rTop,yAt(rTop)],[rBot,gF]]){
+          const topY=yAt(r)+RAILH, h=topY-base, c=pt(r,s*sw/2,base+h/2);
+          box(nsec,h,nsec, c[0], base+h/2, c[2], P.struct);
+        }
+        // handrail — parallel to the stair line, post to post
+        strut(pt(rTop,s*sw/2,yAt(rTop)+RAILH), pt(rBot,s*sw/2,yAt(rBot)+RAILH), 0.12, P.struct);
+        // balusters — ≤4" gap, each one stopping exactly under the rail
+        // Balusters only where a guard is actually required (walking surface over 30"), and pitched so
+        // the GAP is the code number rather than the centres — 21 pickets at a 4" pitch reads as a wall.
+        if(floorY>2.5){
+          const span=rBot-rTop, pitch=0.40, nB=Math.max(2,Math.ceil(span/pitch));
+          for(let i=1;i<nB;i++){
+            const r=rTop+span*(i/nB), y0=yAt(r)+0.08, y1=yAt(r)+RAILH-0.06, c=pt(r,s*sw/2,(y0+y1)/2);
+            box(0.055,y1-y0,0.055, c[0], (y0+y1)/2, c[2], P.struct);   // slim pickets so the run stays readable
+          }
+        }
       }
     } else {
       // ---- LADDER — 6 styles, simple → complex. Top ALWAYS lands on (and bolts to) the deck/floor edge.
@@ -2650,8 +2667,8 @@ function computeMaterials(p){
         2*strLen*PRICE.brace*1.4, lw(ST.cut==='2×4'?'2x4x10 pressure treated':'2x6x10 pressure treated'));
       add(g,N,'pcs',`Treads ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} — 2 ft 6 in`,'one per step, 2 screws each end',
         N*2.5*PRICE.brace, lw(ST.cut==='2×4'?'2x4x8 lumber':'2x6x8 pressure treated'));
-      const nB=Math.max(2,Math.ceil(tot/0.33))*2;
-      add(g,nB,'pcs','Balusters 2×2 — 3 ft','≤4″ gap between them, both sides',nB*3*PRICE.brace*0.6,lw('2x2x8 lumber'));
+      const nB=Hf>2.5? Math.max(2,Math.ceil(tot/0.40))*2 : 0;
+      if(nB) add(g,nB,'pcs','Balusters 2×2 — 3 ft','≤4″ gap between them, both open sides',nB*3*PRICE.brace*0.6,lw('2x2x8 lumber'));
       if(ST.postSec) add(g,2,'×','Stair newel posts 4×4 — 4 ft','carry the handrail run down to grade',2*4*postPrice,lw('pressure treated 4x4'));
     }
     if(state.stairGate!==false) add(g,1,'kit','Stair gate — self-closing','2 spring hinges + gravity latch, mounted on the OUTSIDE top rail (out of kid reach)',38,lw('self closing gate hardware kit'));
@@ -4241,15 +4258,16 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
 
 
 /* ===== tape measure =====
-   Arm it from the yellow tape icon (top right). The model stops spinning, a 3D tape head follows the
-   cursor across the drawing, and the reading is a real yellow blade stretched between the two points.
-   Each click snaps to the CENTRELINE of the piece you hit, and two parallel members report the
-   perpendicular centre-to-centre spacing — which is what "16 inches on centre" actually means. */
+   The hard part of a snapping tool is that the snap is invisible: your click lands somewhere other
+   than your cursor and you can't tell why. So this shows its work — the piece under the cursor is
+   outlined in yellow, the exact snap point is ringed, and after the first mark the tape rubber-bands
+   live to wherever you're pointing with a running reading. Hold SHIFT to ignore the snap entirely
+   and measure the raw surface point. */
 (function(){
   const btn=document.getElementById('tapeBtn'); if(!btn||typeof renderer==='undefined'||!renderer) return;
   const cv=renderer.domElement, ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
   const YELLOW=0xF2C200, INK=0x141414;
-  let on=false, a=null, tape=null, downX=0, downY=0, wasSpinning=false;
+  let on=false, A=null, tape=null, hoverObj=null, lastPt=null, raw=false, downX=0, downY=0, wasSpinning=false;
 
   const layer=document.createElement('div');
   layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:44;display:none';
@@ -4264,27 +4282,37 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
     'display:none;z-index:44;pointer-events:none';
   document.body.appendChild(hint);
   const lblPos=new THREE.Vector3();
+  const say=t=>{ hint.textContent=t+(raw?'  ·  raw point':'  ·  hold shift for raw'); };
 
-  /* the tape head that rides under the cursor */
-  const head=new THREE.Group(); head.visible=false; scene.add(head);
-  {
-    const body=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.30,0.16), new THREE.MeshBasicMaterial({color:YELLOW,depthTest:false}));
-    const reel=new THREE.Mesh(new THREE.CircleGeometry(0.10,20), new THREE.MeshBasicMaterial({color:0xfaf8f1,depthTest:false}));
-    reel.position.set(-0.05,0,0.081);
-    const hook=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.17), new THREE.MeshBasicMaterial({color:INK,depthTest:false}));
-    hook.position.set(0.28,-0.12,0);
-    head.add(body,reel,hook);
-    head.traverse(o=>{ o.renderOrder=1002; });
+  /* --- what you're about to grab: the hovered piece, outlined --- */
+  const hoverLine=new THREE.LineSegments(new THREE.BufferGeometry(),
+    new THREE.LineBasicMaterial({color:YELLOW,depthTest:false}));
+  hoverLine.renderOrder=999; hoverLine.visible=false; scene.add(hoverLine);
+
+  /* --- the exact point the click will land on --- */
+  function ring(col,r){
+    const pts=[]; for(let i=0;i<=28;i++){ const t=i/28*Math.PI*2; pts.push(new THREE.Vector3(Math.cos(t)*r,Math.sin(t)*r,0)); }
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({color:col,depthTest:false}));
   }
+  function marker(){
+    const g=new THREE.Group();
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(0.075,20), new THREE.MeshBasicMaterial({color:YELLOW,depthTest:false}));
+    const out=ring(INK,0.075), cross=new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.16,0,0),new THREE.Vector3(0.16,0,0),
+                                                new THREE.Vector3(0,-0.16,0),new THREE.Vector3(0,0.16,0)]),
+      new THREE.LineBasicMaterial({color:INK,depthTest:false}));
+    g.add(disc,out,cross); g.traverse(o=>{o.renderOrder=1003;}); g.visible=false; scene.add(g); return g;
+  }
+  const cursor=marker(), pinA=marker();
 
   function clearTape(){ if(tape){ scene.remove(tape); tape.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); }); tape=null; } layer.style.display='none'; }
-  function clear(){ clearTape(); a=null; }
+  function reset(){ clearTape(); A=null; pinA.visible=false; lastPt=null; }
 
   function setOn(v){
     on=v; window.__tapeArmed=on; btn.classList.toggle('on',on);
-    hint.style.display=on?'block':'none'; hint.textContent='Tape — click a piece, then another';
+    hint.style.display=on?'block':'none'; say('Tape — click a piece, then another');
     cv.style.cursor=on?'none':'';
-    head.visible=false;
+    cursor.visible=false; hoverLine.visible=false;
     if(on){
       wasSpinning=!!tog.tSpin;
       if(tog.tSpin){ tog.tSpin=false; controls.autoRotate=false;
@@ -4292,11 +4320,15 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
     } else {
       if(wasSpinning){ tog.tSpin=true; controls.autoRotate=true;
         const sb=document.querySelector('.dock button[data-t="tSpin"]'); if(sb) sb.classList.add('on'); }
-      clear();
+      reset();
     }
   }
   btn.onclick=()=>setOn(!on);
-  addEventListener('keydown',e=>{ if(e.key==='Escape'&&on) setOn(false); });
+  addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&on){ if(A){ reset(); say('Tape — click a piece, then another'); } else setOn(false); }
+    if(e.key==='Shift'&&on&&!raw){ raw=true; say(A?'Tape — now click the second point':'Tape — click a piece, then another'); }
+  });
+  addEventListener('keyup',e=>{ if(e.key==='Shift'&&on&&raw){ raw=false; say(A?'Tape — now click the second point':'Tape — click a piece, then another'); } });
 
   function axisOf(o){
     const p=o.geometry&&o.geometry.parameters; if(!p||p.width==null) return null;
@@ -4307,7 +4339,7 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   }
   function snap(hit){
     const o=hit.object, p=o.geometry&&o.geometry.parameters, pt=hit.point.clone();
-    if(!p||p.width==null) return pt;
+    if(raw||!p||p.width==null) return pt;
     o.updateMatrixWorld(true);
     const loc=o.worldToLocal(pt.clone()), ext=[p.width,p.height,p.depth];
     const i=ext.indexOf(Math.max.apply(null,ext));
@@ -4329,23 +4361,44 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
     const f=Math.floor(ft), i=Math.round((ft-f)*12);
     return i? f+'′ '+i+'″' : f+'′';
   }
-
-  function drawTape(p1,p2,note){
+  function outline(o){
+    if(hoverObj===o) return;
+    hoverObj=o;
+    if(!o){ hoverLine.visible=false; return; }
+    hoverLine.geometry.dispose();
+    hoverLine.geometry=new THREE.EdgesGeometry(o.geometry);
+    o.updateMatrixWorld(true);
+    hoverLine.matrix.copy(o.matrixWorld); hoverLine.matrixAutoUpdate=false;
+    hoverLine.visible=true;
+  }
+  // two parallel members → the perpendicular centre-to-centre spacing, which is what "o.c." means
+  function resolve(objB,ptB){
+    let p1=A.pt, p2=ptB, note='';
+    if(!raw){
+      const d1=axisOf(A.obj), d2=axisOf(objB);
+      if(A.obj!==objB && d1 && d2 && Math.abs(d1.dot(d2))>0.985){
+        const v=new THREE.Vector3().subVectors(objB.getWorldPosition(new THREE.Vector3()), A.obj.getWorldPosition(new THREE.Vector3()));
+        const perp=v.clone().sub(d1.clone().multiplyScalar(v.dot(d1)));
+        if(perp.length()>0.01){ p2=p1.clone().add(perp); note=' o.c.'; }
+      }
+    }
+    return {p1,p2,note};
+  }
+  function drawTape(p1,p2,note,ghost){
     clearTape();
     const len=p1.distanceTo(p2); if(len<0.02) return;
     tape=new THREE.Group();
     const w=Math.min(0.20, Math.max(0.07, len*0.045));
     const blade=new THREE.Mesh(new THREE.PlaneGeometry(len,w),
-      new THREE.MeshBasicMaterial({color:YELLOW,depthTest:false,side:THREE.DoubleSide}));
+      new THREE.MeshBasicMaterial({color:YELLOW,depthTest:false,side:THREE.DoubleSide,transparent:!!ghost,opacity:ghost?0.55:1}));
     blade.renderOrder=1000; tape.add(blade);
-    const pts=[];
-    const E=(x,y)=>pts.push(new THREE.Vector3(x,y,0));
+    const pts=[], E=(x,y)=>pts.push(new THREE.Vector3(x,y,0));
     E(-len/2,w/2); E(len/2,w/2); E(-len/2,-w/2); E(len/2,-w/2);
     E(-len/2,-w/2); E(-len/2,w/2); E(len/2,-w/2); E(len/2,w/2);
     const step = state.unit==='met' ? 1/0.3048 : 1;
     for(let d=step; d<len-0.001; d+=step){ const x=-len/2+d; E(x,-w/2); E(x,w*0.075); }
     const edge=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({color:INK,depthTest:false}));
+      new THREE.LineBasicMaterial({color:INK,depthTest:false,transparent:!!ghost,opacity:ghost?0.6:1}));
     edge.renderOrder=1001; tape.add(edge);
     tape.userData={p1:p1.clone(),p2:p2.clone()};
     scene.add(tape);
@@ -4369,29 +4422,35 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
   cv.addEventListener('pointermove',e=>{
     if(!on) return;
     const h=pick(e.clientX,e.clientY);
-    if(!h){ head.visible=false; return; }
-    head.visible=true; head.position.copy(snap(h));
+    if(!h){ cursor.visible=false; outline(null); return; }
+    const pt=snap(h);
+    cursor.visible=true; cursor.position.copy(pt);
+    outline(h.object);
+    if(A){                                                    // rubber-band the tape while you aim
+      if(!lastPt || lastPt.distanceTo(pt)>0.01){
+        lastPt=pt.clone();
+        const r=resolve(h.object,pt);
+        drawTape(r.p1,r.p2,r.note,true);
+      }
+    }
   },true);
   cv.addEventListener('pointerup',e=>{
     if(!on) return;
-    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag, not a tap
+    if(Math.hypot(e.clientX-downX,e.clientY-downY)>7) return;   // that was an orbit drag
     const h=pick(e.clientX,e.clientY);
-    if(!h){ clear(); hint.textContent='Tape — click a piece, then another'; return; }
-    const obj=h.object, pt=snap(h);
-    if(!a){ a={pt:pt,obj:obj}; clearTape(); hint.textContent='Tape — now click the second point'; return; }
-    let p1=a.pt, p2=pt, note='';
-    const d1=axisOf(a.obj), d2=axisOf(obj);
-    if(a.obj!==obj && d1 && d2 && Math.abs(d1.dot(d2))>0.985){
-      const v=new THREE.Vector3().subVectors(obj.getWorldPosition(new THREE.Vector3()), a.obj.getWorldPosition(new THREE.Vector3()));
-      const perp=v.clone().sub(d1.clone().multiplyScalar(v.dot(d1)));
-      if(perp.length()>0.01){ p2=p1.clone().add(perp); note=' o.c.'; }
-    }
-    drawTape(p1,p2,note); a=null;
-    hint.textContent='Tape — click again to start a new measurement';
+    if(!h){ reset(); say('Tape — click a piece, then another'); return; }
+    const pt=snap(h);
+    if(!A){ A={pt:pt,obj:h.object}; pinA.position.copy(pt); pinA.visible=true; clearTape(); lastPt=null;
+      say('Tape — now click the second point'); return; }
+    const r=resolve(h.object,pt);
+    drawTape(r.p1,r.p2,r.note,false);
+    A=null; pinA.visible=false; lastPt=null;
+    say('Tape — click again to start a new measurement');
   },true);
 
   (function loop(){ requestAnimationFrame(loop);
-    if(head.visible){ head.quaternion.copy(camera.quaternion); head.scale.setScalar(camera.position.distanceTo(controls.target)*0.055); }
+    const s=camera.position.distanceTo(controls.target)*0.055;
+    for(const m of [cursor,pinA]) if(m.visible){ m.quaternion.copy(camera.quaternion); m.scale.setScalar(s); }
     orient();
     if(!tape) return;
     const v=lblPos.clone().project(camera);
