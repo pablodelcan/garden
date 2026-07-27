@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/>
+<title>OG — builder at the framing stage</title>
+<style>
+@font-face{font-family:'Delcan Mono';font-style:normal;font-weight:100 900;font-display:swap;
+    src:url('/fonts/DelcanMono-Regular0.5.otf') format('opentype'),url('fonts/DelcanMono-Regular0.5.otf') format('opentype');}
+@font-face{font-family:'FK Grotesk Mono';src:url('/fonts/FKGroteskMono-Regular.woff2') format('woff2');font-display:swap}
+html,body{margin:0;background:#f0ede3}
+canvas{display:block}
+</style></head><body>
+<canvas id="c" width="2000" height="1050"></canvas>
+<script>window.__errs=[];addEventListener("error",e=>window.__errs.push(String(e.message||e)));</script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+let hatchMats=[];
+const HATCH_VERT=`
+  varying vec3 vN;    // view-space normal (drives the lighting/tone)
+  varying vec3 vWp;   // world position (texture is locked to the geometry, so it holds as you orbit)
+  varying vec3 vWn;   // world-space normal (picks the triplanar plane)
+  void main(){
+    vN  = normalize(normalMatrix * normal);
+    vec4 wp = modelMatrix * vec4(position,1.0);
+    vWp = wp.xyz;
+    vWn = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * wp; }`;
+const HATCH_FRAG=`
+  precision highp float;
+  varying vec3 vN; varying vec3 vWp; varying vec3 vWn;
+  uniform vec3 uPaper, uInk, uLight, uInkCol;   // uPaper lit grey · uInk shadow grey · uLight = FIXED world sun dir · uInkCol = drafting-ink colour
+  uniform float uPx, uAlpha, uTex, uMat, uHi;   // uMat: 0 smooth·1 plywood·2 metal roof·3 wood·4 concrete   uHi: click-select highlight 0/1
+  float hash(vec2 p){ return fract(sin(dot(floor(p),vec2(41.31,289.17)))*43758.5453); }
+  float h1(float x){ return fract(sin(x*127.1)*43758.5453); }
+  // parallel drafted strokes in a plane (feet) → 1 in the gap, 0 on the ink line
+  float lines(vec2 uv, float a, float sp, float th, float aa){
+    float d = uv.x*cos(a)+uv.y*sin(a);
+    float w = (h1(floor(d/sp))-0.5)*sp*0.10;                 // slight per-stroke hand wobble
+    float f = abs(fract((d+w)/sp)-0.5)*sp;
+    return smoothstep(th, th+aa, f); }
+  float dots(vec2 uv, float sp, float r, float aa){
+    vec2 g = floor(uv/sp);
+    vec2 c = (fract(uv/sp)-0.5)*sp + (vec2(hash(g),hash(g+7.0))-0.5)*sp*0.4;
+    return smoothstep(r, r+aa, length(c)); }
+  float plane(vec2 uv, float mat, float aa){                                   // returns INK COVERAGE 0..1 — drawn onto a LIGHT base
+    if(mat<0.5) return 0.0;                                                     // glass — no texture
+    if(mat<1.5){ float d=1.0-dots(uv,0.038,0.0060,aa); float ba=1.0-lines(uv,1.5708,0.27,0.010,aa); float co=1.0-lines(uv,0.0,0.58,0.012,aa);
+                 float wg=1.0-lines(uv+vec2(sin(uv.y*2.6)*0.045+sin(uv.y*6.5)*0.018,0.0),1.5708,0.14,0.011,aa);
+                 return max(max(max(d*0.72, ba*0.34), co*0.20), wg*0.26); }     // siding: stipple + battens + ply courses + a SUBTLE vertical wood grain
+    if(mat<2.5){ float a=1.0-lines(uv,0.62,0.05,0.013,aa); float c=1.0-lines(uv,-0.62,0.05,0.013,aa); float s=1.0-lines(uv,0.0,0.3,0.02,aa);
+                 return max(max(a,c)*0.66, s*0.74); }                           // metal roof: fine cross-hatch + standing seams
+    if(mat<3.5){ float g1=1.0-lines(uv+vec2(0.0,sin(uv.x*3.2)*0.05+sin(uv.x*7.5)*0.018),0.0,0.11,0.012,aa);
+                 float g2=1.0-lines(uv+vec2(0.0,sin(uv.x*5.5)*0.022),0.0,0.046,0.008,aa);
+                 return max(g1*0.55, g2*0.24); }                               // wood: coarse wavy grain + fine hair grain
+    if(mat<4.5) return (1.0-dots(uv,0.08,0.0055,aa))*0.42;                      // concrete — sparse stipple
+    if(mat<5.5){ float d=1.0-dots(uv,0.055,0.0085,aa);                          // rough-sawn PT: coarse tooth, heavy grain, no battens
+                 float g=1.0-lines(uv+vec2(sin(uv.y*4.1)*0.06+sin(uv.y*9.3)*0.025,0.0),1.5708,0.085,0.014,aa);
+                 float co=1.0-lines(uv,0.0,0.58,0.012,aa);
+                 return max(max(d*0.86, g*0.52), co*0.18); }
+    { float co=1.0-lines(uv,0.0,0.58,0.011,aa);                                 // painted: panel joints only — paint hides the grain
+      float ba=1.0-lines(uv,1.5708,0.27,0.009,aa);
+      float d=1.0-dots(uv,0.030,0.0035,aa);
+      return max(max(co*0.30, ba*0.22), d*0.13); } }
+  float triTex(float mat){
+    float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
+    float aa = max(0.006, fw*0.9);                          // widen line edges by the pixel footprint → no shimmer while spinning
+    float fade = smoothstep(0.13, 0.03, fw);              // drop fine detail when zoomed far → kills Moiré
+    vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
+    float t = plane(vWp.zy,mat,aa)*an.x + plane(vWp.xz,mat,aa)*an.y + plane(vWp.xy,mat,aa)*an.z;
+    return t * fade; }
+  float shadowHatch(float dir){                              // engraving hatch strokes at ±45°, triplanar & locked to the geometry
+    float fw = fwidth(vWp.x)+fwidth(vWp.y)+fwidth(vWp.z);
+    float aa = max(0.006, fw*0.9);
+    float fade = smoothstep(0.17, 0.035, fw);
+    vec3 an = abs(normalize(vWn)); an /= (an.x+an.y+an.z);
+    float t = (1.0-lines(vWp.zy,dir,0.095,0.017,aa))*an.x + (1.0-lines(vWp.xz,dir,0.095,0.017,aa))*an.y + (1.0-lines(vWp.xy,dir,0.095,0.017,aa))*an.z;
+    return t * fade; }
+  void main(){
+    vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;       // VIEW-space normal → the key light reads relative to the camera
+    float ndl = dot(N, normalize(uLight));
+    float tone = clamp(ndl*0.5 + 0.5, 0.0, 1.0);              // 1 = facing the key light
+    vec3 base = mix(uInk, uPaper, mix(0.55, 1.0, tone));      // faces stay PAPER-WHITE with only the faintest tonal turn — pure line art
+    float mtl = triTex(uMat) * uTex * 0.50;                   // light material pattern — boards / standing seams / stipple
+    float s1 = smoothstep(0.62, 0.28, tone);                  // ENGRAVING SHADING: hatch strokes build up as a face turns from the light…
+    float s2 = smoothstep(0.34, 0.10, tone);                  // …and CROSS-hatch in deep shadow. Redraws live as the model spins.
+    float hat = shadowHatch(0.785)*s1*0.85 + shadowHatch(-0.785)*s2*0.75;
+    float ink = clamp(max(mtl, hat), 0.0, 1.0);
+    vec3 col = mix(base, uInkCol, ink);                       // black drafting ink on paper
+    vec2 sp = gl_FragCoord.xy / uPx;                          // faint print tooth
+    float grain = hash(sp*1.6)*0.62 + hash(sp*0.41)*0.38;
+    col *= (1.0 - grain*0.035);
+    col = mix(col, vec3(1.0,0.42,0.0), uHi*0.9);             // click-to-select → the piece flips to neon orange
+    gl_FragColor = vec4(col, uAlpha); }`;
+function makeHatchMat(litHex, shadeHex, alpha, tex, mat){
+  const m=new THREE.ShaderMaterial({
+    vertexShader:HATCH_VERT, fragmentShader:HATCH_FRAG,
+    extensions:{derivatives:true},
+    uniforms:{ uPaper:{value:new THREE.Color(litHex)}, uInk:{value:new THREE.Color(shadeHex)},
+      uInkCol:{value:new THREE.Color(0x1a1a18)},                        // black printing ink
+      uLight:{value:new THREE.Vector3(-0.86,0.30,0.42).normalize()},    // view-space side-raking key from screen-left → hatching redraws as the model turns
+      uPx:{value:Math.min(devicePixelRatio,2)}, uAlpha:{value:alpha==null?1:alpha}, uTex:{value:tex||0}, uMat:{value:mat||0}, uHi:{value:0} },
+    transparent:alpha!=null&&alpha<1, side:THREE.DoubleSide,
+    polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1 });
+  hatchMats.push(m); return m;
+}
+
+const CW=2000, CH=1050, INK=0x141414;
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1); renderer.setSize(CW,CH,false);
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(24, CW/CH, 0.5, 400);
+const lineMats=[];
+const WOOD=makeHatchMat(0xf6f4ec,0xe0ddd2,1,0.42,3);
+const BODY=makeHatchMat(0xf7f5ee,0xe6e3d8,1,0.26,4);
+
+// every piece is a box with the tool's ink outline, exactly like the builder draws
+function piece(parent,w,h,d,x,y,z,rot,mat){
+  const g=new THREE.BoxGeometry(w,h,d);
+  const m=new THREE.Mesh(g, mat||WOOD);
+  m.position.set(x,y,z);
+  if(rot) m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);
+  const lm=new LineMaterial({color:INK,linewidth:2.0}); lm.resolution.set(CW,CH); lineMats.push(lm);
+  const l=new LineSegments2(new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(g)), lm);
+  l.position.copy(m.position); l.rotation.copy(m.rotation);
+  parent.add(m); parent.add(l);
+  return m;
+}
+
+/* ── the frame, caught mid-build ── */
+const frame=new THREE.Group(); scene.add(frame);
+const W=7, D=9, FLOOR=3.4, th=0.3, ex=W/2-th/2, ez=D/2-th/2;
+for(const sx of [-1,1]) for(const z of [-ez,0,ez]){
+  piece(frame,0.62,0.26,0.62, sx*ex,0.13,z);
+  piece(frame,th,FLOOR,th, sx*ex,FLOOR/2,z);
+}
+for(const sx of [-1,1]) piece(frame,0.14,0.5,D, sx*ex,FLOOR-0.3,0);
+const nJ=Math.round(D/1.33)+1;
+for(let i=0;i<nJ;i++) piece(frame,W-0.3,0.46,0.13, 0,FLOOR-0.28,-D/2+0.15+i*((D-0.3)/(nJ-1)));
+piece(frame,W,0.09,D, 0,FLOOR+0.02,0);
+for(const sx of [-1,1]) for(const sz of [-1,1])
+  piece(frame,0.16,1.5,0.16, sx*(ex-0.42),FLOOR-1.05,sz*(ez-0.42),[0,0,sx*0.62]);
+
+const WH=4.6, WT=FLOOR+0.07;
+// Walls go up BEFORE any roof — you don't frame rafters over an unframed wall, and you
+// certainly don't stand on a structure that isn't braced yet. Three walls are stood and
+// plated; the near one is still going in, which is what the figure is carrying a stud for.
+function wall(side,len,frac){
+  const nS=Math.round(len/1.33)+1, n=Math.max(2,Math.round(nS*frac));
+  const fb=(side==='back'||side==='front'), sgn=(side==='back'||side==='left')?-1:1;
+  for(let i=0;i<n;i++){
+    const u=-len/2+0.15+i*((len-0.3)/(nS-1));
+    if(fb) piece(frame,0.12,WH,0.28, u,WT+WH/2,sgn*ez);
+    else   piece(frame,0.28,WH,0.12, sgn*ex,WT+WH/2,u);
+  }
+  if(fb){ piece(frame,len,0.12,0.3, 0,WT+0.06,sgn*ez); if(frac>=1) piece(frame,len,0.12,0.3, 0,WT+WH-0.06,sgn*ez); }
+  else  { piece(frame,0.3,0.12,len, sgn*ex,WT+0.06,0); if(frac>=1) piece(frame,0.3,0.12,len, sgn*ex,WT+WH-0.06,0); }
+}
+wall('back',W,1); wall('right',D,1); wall('front',W,1);
+wall('left',D,0.45);                                  // this one is mid-build
+piece(frame,0.3,0.12,D, -ex,WT+0.06,0);               // its sole plate is down and waiting
+// a couple of temporary braces holding the stood walls plumb — what you'd actually see on site
+piece(frame,0.14,3.2,0.14, -ex+0.9, WT+1.9, -ez+1.1, [0.5,0,0.35]);
+piece(frame,0.14,3.2,0.14,  ex-0.9, WT+1.9,  ez-1.1, [-0.5,0,-0.35]);
+
+/* ── the builder, in the foreground: standing at the frame with a stud ──
+   Proportions matter more than detail here: a heavy torso, solid limbs and one clear
+   gesture read as a person at share-card size; thin sticks just read as debris. */
+const fig=new THREE.Group(); scene.add(fig);
+const HIP=2.55, SHO=4.55;
+piece(fig,0.44,HIP,0.44, -0.30,HIP/2,0.10,[0.06,0,0.02], BODY);        // legs
+piece(fig,0.44,HIP,0.44,  0.32,HIP/2,-0.16,[-0.10,0,-0.03], BODY);
+piece(fig,1.30,1.95,0.78, 0.01,HIP+0.95,-0.02,[0.05,0,0], BODY);       // torso
+piece(fig,0.40,0.34,0.54, 0.01,SHO+0.12,-0.02, null, BODY);            // shoulders
+piece(fig,0.62,0.66,0.58, 0.02,SHO+0.62,0.02,[0.04,0,0], BODY);        // head
+piece(fig,0.34,1.85,0.34,  0.80,SHO-0.85,0.06,[0,0,-0.06], BODY);       // near arm, hanging
+piece(fig,0.34,1.30,0.34, -0.86,SHO-0.45,0.14,[0,0,0.30], BODY);      // far arm, up to the board
+piece(fig,0.30,1.10,0.30, -1.22,SHO+0.42,0.24,[0,0,0.10], BODY);
+piece(fig,0.26,7.0,0.42,  -1.42,3.5,0.30,[0,0,-0.05]);                  // the stud he's holding upright
+fig.rotation.y=0.82;
+fig.position.set(-(W/2)-3.4, 0, 7.4);
+
+cam.position.set(20,12.6,26);
+cam.lookAt(-2.4,3.6,2.2);
+for(const m of hatchMats) m.uniforms.uPx.value=1;
+renderer.render(scene,cam);
+window.__png=()=>{ renderer.render(scene,cam); return renderer.domElement.toDataURL('image/png'); };
+window.__ready=true;
+window.__card=async ()=>{
+  await document.fonts.ready;
+  renderer.render(scene,cam);
+  const W=1200,H=630;
+  const o=document.createElement('canvas'); o.width=W; o.height=H;
+  const x=o.getContext('2d');
+  x.fillStyle='#f0ede3'; x.fillRect(0,0,W,H);
+  x.drawImage(renderer.domElement, 0,0,CW,CH, 0,0,W,H);
+  // logomark: the same isometric cube, drawn flat
+  const s0=1.9, ox=62, oy=58;
+  const P=new Path2D('M12 2.6 L21 7.7 L21 16.3 L12 21.4 L3 16.3 L3 7.7 Z M12 12.8 L21 7.7 M12 12.8 L3 7.7 M12 12.8 L12 21.4');
+  x.save(); x.translate(ox,oy); x.scale(s0,s0);
+  x.strokeStyle='#141414'; x.lineWidth=1.5/s0*1.35; x.lineJoin='round'; x.stroke(P); x.restore();
+  x.fillStyle='#141414'; x.textBaseline='alphabetic';
+  x.font='700 24px "Delcan Mono", monospace';
+  x.fillText('Delcan & Co.', ox+58, oy+21);
+  x.fillText('Builder 1.0', ox+58, oy+44);
+  const d=o.toDataURL('image/jpeg',0.92);
+  const r=await fetch('http://127.0.0.1:3999/save',{method:'POST',body:d});
+  return await r.text();
+};
+</script></body></html>
