@@ -1289,8 +1289,8 @@ const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',o
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
   foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
-  door:{wall:'front',pos:0.5,size:'dutch'},
-   windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.75,size:'picture'}]};
+  door:{wall:'front',pos:0.3,size:'dutch'},
+   windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.78,size:'large'}]};
 const tog={tSiding:true,tRoof:true,tBraces:true,tLadder:true,tFraming:true,tSpin:false,tInterior:false,furniture:true,kids:true,tDims:false,tScale:false};
 const colors={struct:'#b07a43',siding:'#c68a4a',roof:'#5a4231',trim:'#b07a43',door:'#3a2517',accent:'#705339',
   walls:{front:null,back:null,left:null,right:null}};   // per-wall paint — null falls back to siding
@@ -2256,13 +2256,23 @@ function rebuild3D(p){
       for(const s2 of [-1,1]){ const t=railXZ(oEdge,uGap+s2*gapH);
         box(th,rh+0.55,th, t[0],floorY+(rh-0.55)/2,t[1], P.struct);
         const bt=railOutXZ(oEdge,uGap+s2*gapH,0.17); ball(0.042, bt[0], floorY-0.2, bt[1], '#46413a'); }
-      if(state.stairGate!==false){                                            // self-closing gate — latch on the OUTSIDE, out of kid reach
+      if(state.stairGate!==false){
+        // Drawn SWUNG OPEN, inward over the deck — the way the build steps say to hang it (never out
+        // over the stairs). Closed, its pickets matched the rail's balusters exactly and the whole
+        // opening read as unbroken fence; open, you can see it IS the way in.
         const gw=gapH*2-0.34, gy0=floorY+0.25, gy1=rtY-0.1, gmid=(gy0+gy1)/2, dOff=0.09;
-        for(const s2 of [-1,1]){ const t=railOutXZ(oEdge,uGap+s2*(gw/2-0.055),dOff); box(0.11,gy1-gy0,0.11, t[0],gmid,t[1], P.struct); }   // stiles
-        for(const yy of [gy1-0.055,gy0+0.055]){ const e1=railOutXZ(oEdge,uGap-(gw/2-0.05),dOff), e2=railOutXZ(oEdge,uGap+(gw/2-0.05),dOff);
-          strut([e1[0],yy,e1[1]],[e2[0],yy,e2[1]],0.1,P.struct); }              // top + bottom rails
-        for(let gk=-1;gk<=1;gk++){ const t=railOutXZ(oEdge,uGap+gk*gw/4,dOff); box(0.055,gy1-gy0-0.24,0.055, t[0],gmid,t[1], P.struct); }   // pickets
-        const lt=railOutXZ(oEdge,uGap+gw/2-0.05,0.16); ball(0.05, lt[0], gy1-0.12, lt[1], '#46413a');   // latch
+        const SW=54*Math.PI/180, cs=Math.cos(SW), sn=Math.sin(SW);
+        const uH=uGap-gw/2;                                              // hinge stile
+        const gp=(t,d)=> railOutXZ(oEdge, uH+t*cs, dOff-t*sn+(d||0));    // a point t along the leaf, swung
+        for(const t of [0.055, gw-0.055]){ const q=gp(t); box(0.11,gy1-gy0,0.11, q[0],gmid,q[1], P.struct); }
+        for(const yy of [gy1-0.055,gy0+0.055]){ const e1=gp(0.05), e2=gp(gw-0.05);
+          strut([e1[0],yy,e1[1]],[e2[0],yy,e2[1]],0.1,P.struct); }
+        for(const t of [gw*0.28,gw*0.5,gw*0.72]){ const q=gp(t); box(0.055,gy1-gy0-0.24,0.055, q[0],gmid,q[1], P.struct); }
+        { const b1=gp(0.09), b2=gp(gw-0.09);
+          strut([b1[0],gy0+0.12,b1[1]],[b2[0],gy1-0.12,b2[1]],0.085,P.struct); }   // brace: HINGE bottom → LATCH top, or it sags in a season
+        { const h=railOutXZ(oEdge,uGap-gw/2,dOff);
+          for(const hy of [gy0+0.30,gy1-0.30]) box(0.06,0.15,0.06, h[0],hy,h[1], P.struct); }
+        const lt=gp(gw-0.05,0.07); ball(0.05, lt[0], gy1-0.12, lt[1], '#46413a');   // latch on the free stile
       }
     }
     const balOn=(edge,a,b)=>{ const n=Math.max(2,Math.round((b-a)/0.7));       // balusters, skipping the opening
@@ -3061,6 +3071,8 @@ function autoSize(){
 }
 function safetyMsgs(s){   // shared by the side panel and the printed plan set
   s=s||state; const msgs=[];
+  for(const c of openingClashes(s))
+    msgs.push((c.hard?'⚠ ':'')+c.wall[0].toUpperCase()+c.wall.slice(1)+' wall — '+c.msg+'.');
   if(s.Hf>2.5) msgs.push('Floor is '+dim(s.Hf)+' up — code wants a guardrail (≥36" tall) anywhere the fall is over 30".');
   if(s.Dd>0){ const along=(s.deckSide==='front'||s.deckSide==='back')?s.W:s.D;
     const railLen=along+2*s.Dd, nBal=Math.ceil(railLen*12/4.5);
@@ -3131,7 +3143,9 @@ function renderWindows(){
   </div>`).join('') || '<div class="empty" style="font-size:12px;color:var(--tf);font-style:italic">No windows.</div>';
   el.querySelectorAll('.winrow').forEach((row,i)=>{ row.querySelector('.wsize').value=state.windows[i].size; row.querySelector('.wwall').value=state.windows[i].wall; });
 }
-document.getElementById('addWin').addEventListener('click',()=>{ state.windows.push({wall:'front',pos:0.5,size:'medium'}); renderWindows(); update(); });
+document.getElementById('addWin').addEventListener('click',()=>{
+  const slot=freeWindowSlot(state,'medium');            // never drop a new window on top of the door
+  state.windows.push({wall:slot.wall,pos:slot.pos,size:'medium'}); renderWindows(); update(); });
 document.getElementById('winList').addEventListener('input',e=>{
   const row=e.target.closest('.winrow'); if(!row)return; const i=+row.dataset.i;
   if(e.target.classList.contains('wsize')) state.windows[i].size=e.target.value;
@@ -3570,6 +3584,38 @@ function wallOpenings(s,k){               // openings on wall k, in wall-local c
   if(s.door.wall===k) place(dS.w,doorH,s.door.pos,0,'door',dS.label);
   for(const win of (s.windows||[])) if(win.wall===k){ const ws=WIN[win.size], wh=Math.min(ws.h,Hw-0.9), sill=Math.max(0.55,Math.min(Hw-wh-0.3,(Hw-wh)*0.6)); place(ws.w,wh,win.pos,sill,'window',ws.label); }
   return {L,Hw,ops};
+}
+const RO_GAP=0.5;    // 6″ between rough openings — a jack + king stud from each side
+const RO_END=0.42;   // and ~5″ from a corner, for the corner post plus a king
+function openingClashes(s){
+  const out=[];
+  for(const k of ['front','back','left','right']){
+    const {L,ops}=wallOpenings(s,k); if(!ops.length) continue;
+    const line=[...ops].sort((a,b)=>(a.uc-a.hw)-(b.uc-b.hw));
+    const name=o=>o.lbl+' '+o.kind;
+    for(let i=0;i<line.length;i++){
+      const a=line[i], b=line[i+1];
+      if(a.uc-a.hw<RO_END || a.uc+a.hw>L-RO_END)
+        out.push({wall:k, hard:false, msg:'the '+name(a)+' runs into the corner — slide it along the wall so the corner post has room'});
+      if(!b) continue;
+      const gap=(b.uc-b.hw)-(a.uc+a.hw);
+      if(gap<0) out.push({wall:k, hard:true, msg:'the '+name(a)+' and the '+name(b)+' OVERLAP — they cannot both be framed. Move one along the wall, or make one smaller'});
+      else if(gap<RO_GAP) out.push({wall:k, hard:false, msg:'only '+dimIn(Math.round(gap*12))+' between the '+name(a)+' and the '+name(b)+' — not enough for their jack and king studs. Aim for 6″'});
+    }
+  }
+  return out;
+}
+function freeWindowSlot(s,size){        // where a NEW window fits without fouling the door or another window
+  const ws=WIN[size]||WIN.medium;
+  for(const wall of ['back','left','right','front'])
+    for(const pos of [0.5,0.24,0.76,0.35,0.65]){
+      const {L,ops}=wallOpenings(s,wall);
+      const hw=Math.min(ws.w,L-0.7)/2, uc=Math.max(hw+0.25,Math.min(L-hw-0.25,pos*L));
+      if(uc-hw<RO_END || uc+hw>L-RO_END) continue;
+      if(ops.some(o=>Math.abs(o.uc-uc) < o.hw+hw+RO_GAP)) continue;
+      return {wall,pos};
+    }
+  return {wall:'back',pos:0.5};
 }
 function wallFraming(s,k,label,S,bare){
   S=S||30; const {L,Hw,ops}=wallOpenings(s,k);
