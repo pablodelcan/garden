@@ -282,6 +282,11 @@
   .ordclear{font-family:var(--mono);font-size:10px;color:var(--tm);background:none;border:1px solid var(--bd);border-radius:6px;padding:3px 8px;cursor:pointer}
   .ordclear:hover{color:var(--ac);border-color:var(--ac)}
   .item:last-child{border-bottom:none}
+  /* the row(s) that sell the piece you just tapped in the 3D */
+  .item.pickmatch{background:rgba(255,106,0,.13);box-shadow:inset 3px 0 0 #FF6A00}
+  @keyframes itemFlash{0%,100%{background:rgba(255,106,0,.13)}45%{background:rgba(255,106,0,.34)}}
+  .item.pickflash{animation:itemFlash .55s ease 2}
+  @media (prefers-reduced-motion:reduce){ .item.pickflash{animation:none} }
   .item .mqty{font-family:var(--serif);line-height:1.25}
   .item .mqty .q{font-family:var(--mono);font-size:12px;color:var(--tx)}
   .item .mdet{font-size:12px;color:var(--tm);margin-top:2px;line-height:1.4}
@@ -2698,10 +2703,13 @@ function computeMaterials(p){
   const cornerLen=stdLen(Hf+1+gExtra), midLen=stdLen(Hf+0.5+gExtra);   // platform frame — every post stops under the floor deck
 
   const groups=[]; let total=0;
+  // Tapping a piece in the 3D should land you on the line that sells it. The pieces already carry
+  // userData.stage, so every material line records the stage it belongs to and the two can be joined.
+  let _ms=0; const S=n=>{ _ms=n; };
   const G=n=>{const g={name:n,items:[],sum:0};groups.push(g);return g;};
-  const add=(g,qty,unit,label,detail,cost,link)=>{g.items.push({qty,unit,label,detail,cost,link});g.sum+=cost;total+=cost;};
+  const add=(g,qty,unit,label,detail,cost,link)=>{g.items.push({qty,unit,label,detail,cost,link,stage:_ms});g.sum+=cost;total+=cost;};
 
-  let g=G('Foundation');
+  let g=G('Foundation'); S(1);
   if(p.foundation==='piers'){ const bags=totalPosts*5;   // 10″×4 ft tube = ~2.2 cu ft; a 60 lb bag yields ~0.45
     add(g,totalPosts,'×','Concrete tube forms — 10″ × 4 ft','QUIKRETE QUIK-Tube, cut to depth',totalPosts*12,HW.tube);
     add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · 5 per pier — a 10″ × 4 ft tube takes ~2.2 cu ft',bags*7,HW.conc);
@@ -2715,46 +2723,48 @@ function computeMaterials(p){
     add(g,Math.ceil(totalPosts/2),'bags','Paver base gravel — 0.5 cu ft','tamped bed under each block, so it can\u2019t settle',Math.ceil(totalPosts/2)*5,lw('paver base gravel 0.5 cu ft'));
   }
 
-  g=G('Posts ('+post+' PT)');
+  g=G('Posts ('+post+' PT)'); S(2);
   add(g,4,'×',`Corner posts — ${cornerLen} ft`,'to just under the floor deck — walls frame on the platform',4*cornerLen*postPrice,lw(postTerm));
   if(mids>0) add(g,mids,'×',`Mid-span posts — ${midLen} ft`,'support the beams',mids*midLen*postPrice,lw(postTerm));
   if(grade>0) add(g,'⚑','','Sloped site — cut each post to a level line',`${Math.round(grade*100)}% grade · downhill posts run ~${dim(gExtra)} longer; buy long, scribe to a level string`,0,lw('post level string line'));
 
-  g=G('Platform');
+  g=G('Platform'); S(3);
   const beamLen=stdLen(D), beamQty=p.midBeam?6:4;
   add(g,beamQty,'×',`Beam 2×6 — ${beamLen} ft`,'doubled, two long sides'+(p.midBeam?' + center':''),beamQty*beamLen*PRICE.beam,lw('pressure treated 2x6'));
+  S(4);
   const joists=Math.ceil(D*12/oc)+1, perBoard=Math.max(1,Math.floor(16/W)), jBoards=Math.ceil(joists/perBoard);
   add(g,joists,'pcs',`Joists 2×6 @ ${oc}" O.C.`,`cut to ${W} ft · ${jBoards}× 16 ft`,jBoards*16*PRICE.joist,lw('pressure treated 2x6'));
   add(g,2,'pcs',`Rim boards 2×6 — ${stdLen(D)} ft`,'closes the joist ends so nothing can roll — step 4',2*stdLen(D)*PRICE.joist,lw('pressure treated 2x6'));
+  S(5);
   const floorSheets=Math.ceil(W*D/32);
   add(g,floorSheets,'×','¾" T&G plywood floor','4×8 exterior sheets',floorSheets*PRICE.plySheet,lw('3/4 plywood'));
 
-  g=G('Walls — '+fin.name);
+  g=G('Walls — '+fin.name); S(7);
   const perim=2*(W+D); let studs,studBoards,sideSheets;
   if(isA){ const peakH=Hw+W*0.45; studs=(Math.ceil(W/1.333)+1)*2; studBoards=Math.ceil((studs*peakH*0.6+W*4)/8); sideSheets=Math.ceil((W*peakH)/32); }
   else { const opens=1+state.windows.length, knee=(state.roof==='shed'||state.roof==='lean')?Math.ceil(Math.max(W,D)*12/16)+1:0;
     studs=Math.ceil(perim*12/16)+4 + 4 + 5*opens + knee;   // + 3-stud corner assemblies + kings/jacks/cripples per opening + shed knee wall
     studBoards=Math.ceil(((studs*Hw+perim*2)/8)*1.1); sideSheets=Math.ceil(perim*Hw/32); }   // +10% waste — running out mid-wall costs a trip
   add(g,studs,'studs','2×4 framing',isA?'two gable ends':'studs + plates',studBoards*8*PRICE.stud,lw('2x4 stud'));
-  add(g,sideSheets,'×','Siding — 4×8 panel','T1-11 grooved plywood, or LP SmartSide engineered panel',sideSheets*PRICE.siding*fin.mult,T11_URL);
+  S(9); add(g,sideSheets,'×','Siding — 4×8 panel','T1-11 grooved plywood, or LP SmartSide engineered panel',sideSheets*PRICE.siding*fin.mult,T11_URL);
   if(finish==='cedar'||finish==='redwood'){ const gal=Math.ceil((perim*Hw)/300);
     add(g,Math.max(1,gal),'gal',fin.name.replace(' look','')+'-tone stain','gets the '+fin.name.replace(' look','').toLowerCase()+' color on T1-11 / SmartSide (no real cedar at Lowe\'s)',Math.max(1,gal)*42,lw('exterior semi transparent stain cedar')); }
   if(finish==='paint'){ add(g,2,'gal','Primer + exterior paint','your color',135,lw('exterior paint primer')); }
   const dS=DOOR[p.door.size], doorH=Math.min(dS.h, Hw-0.25);
-  for(const win of p.windows){ const ws=WIN[win.size];
+  S(10.5); for(const win of p.windows){ const ws=WIN[win.size];
     add(g,1,'×',`Window — ${ws.label}`,`Shed Windows & More ${ws.type}, flush-mount tempered · on the ${win.wall} wall`,ws.price,ws.url); }
   // ---- door: custom-built board-and-batten (no stock door fits a playhouse opening) ----
-  const leaves=dS.dutch?2:1, faceBoards=Math.ceil(dS.w/0.46), ledges=leaves*3+1, nHinge=leaves*(doorH>4.5?3:2);
+  S(10); const leaves=dS.dutch?2:1, faceBoards=Math.ceil(dS.w/0.46), ledges=leaves*3+1, nHinge=leaves*(doorH>4.5?3:2);
   add(g,1,'×',`Door — ${dS.label}, custom built`,`board-and-batten, ~${dim(dS.w)}×${dim(doorH)}${dS.dutch?' · split dutch (2 leaves)':''} on the ${p.door.wall} wall — build it from the boards below; no stock shed door suits this opening`,0,'');
   add(g,faceBoards,'pcs',`1×6 T&G face boards — ${stdLen(doorH)} ft`,'vertical face of the door (or a siding offcut)',faceBoards*stdLen(doorH)*1.5,lw('1x6 tongue and groove cedar board'));
   add(g,ledges,'pcs',`1×4 ledge + Z-brace — ${stdLen(dS.w)} ft`,'battens that hold the face boards together',ledges*stdLen(dS.w)*PRICE.brace,lw('1x4 furring board'));
   add(g,nHinge,'×','Exterior strap / T-hinges',`${nHinge} for a ${dim(doorH)} door${leaves>1?' (both leaves)':''}`,nHinge*9,lw('exterior t-hinge strap'));
   add(g,leaves,'×','Gate latch + handle',leaves>1?'one per leaf + dutch shelf':'thumb latch or barrel bolt',leaves*13+(dS.dutch?14:0),lw('gate latch black'));
-  const openings=p.windows.length+1;
+  S(7); const openings=p.windows.length+1;
   add(g,openings*2,'pcs','Headers 2×6 — openings','DOUBLED over each opening, king + jack studs each side (step 7)',openings*2*stdLen(3)*PRICE.beam,lw('2x6'));
   add(g,4,'pcs',`Corner boards 1×4 — ${stdLen(Hw)} ft`,'cover the siding joint at each corner (step 9)',4*stdLen(Hw)*PRICE.brace*1.3,lw('1x4 primed trim board'));
 
-  g=G('Roof ('+roof+')');
+  g=G('Roof ('+roof+')'); S(8);
   let rafterLen,rafters,roofArea;
   const ovXm=(p.ovX!=null?p.ovX:1), ovZm=(p.ovZ!=null?p.ovZ:1);   // per-axis roof overhang
   const extOKM=isGable||isSalt||((roof==='shed'||roof==='lean')&&(state.slopeDir==='left'||state.slopeDir==='right'));
@@ -2777,6 +2787,7 @@ function computeMaterials(p){
     add(g,1,'pcs',`Ridge board 2×8 — ${rl} ft`,'set FIRST on temporary props — every rafter lands against it (step 8)',rl*PRICE.joist*1.55,lw('2x8')); }
   if(isGable||isSalt||isA){ const ct=Math.max(2,Math.ceil(rafters/4));
     add(g,ct,'pcs',`Collar ties 2×4 — ${stdLen(W*0.7)} ft`,'every other rafter pair — this is what stops the walls spreading',ct*stdLen(W*0.7)*PRICE.brace,lw('2x4 lumber')); }
+  S(8.5);
   const sheath=Math.ceil(roofArea/32);
   add(g,sheath,'×','Roof sheathing','7/16" OSB, 4×8',sheath*PRICE.sheath,lw('7/16 osb sheathing'));
   const eaveLF=2*(W+2*ovXm)+2*(De+2*ovZm);
@@ -2787,25 +2798,25 @@ function computeMaterials(p){
   add(g,Math.ceil(eaveLF/8)+1,'pcs',`Fascia 1×6 — 8 ft`,'covers the rafter tails; soffit + frieze blocking close the underside (step 8.5)',(Math.ceil(eaveLF/8)+1)*8*1.4,lw('1x6 primed trim board'));
 
   if(Dd>0){
-    g=G('Deck ('+Dd+' ft)');
+    g=G('Deck ('+Dd+' ft)'); S(11);
     const dcLen=stdLen(Hf+(dExtM>0?Hw:3)+1), dMids=W>9?1:0, dPosts=2+dMids;
     add(g,2,'×',`Deck corner posts ${post} — ${dcLen} ft`, dExtM>0?'CONTINUOUS: footing → porch header, one piece':'CONTINUOUS: footing → rail top — the fence hangs off structure, not spindles',2*dcLen*postPrice,lw(postTerm));
     if(dMids) add(g,1,'×',`Deck mid post ${post} — ${stdLen(Hf+0.3)} ft`,'under the rim, mid-span',stdLen(Hf+0.3)*postPrice,lw(postTerm));
     add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),HW.block);
-    const dj=Math.ceil(W*12/16)+1;
+    S(12); const dj=Math.ceil(W*12/16)+1;
     add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C. · hung ledger-to-rim',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
     add(g,1,'pcs',`Deck ledger 2×6 — ${stdLen(W)} ft`,'lagged to the house rim at deck height',stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
     if(dExtM>0){
       add(g,2,'×',`Porch header 2×6 — ${stdLen(W)} ft`,'doubled across the continued corner-post tops — the extended rafters land here',2*stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
     }
-    add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
-    const railLF=W+2*Dd;
+    S(13); add(g,Math.round(W*Dd),'sqft','Decking boards','5/4×6 PT or composite',W*Dd*PRICE.deckBoardSqft,lw('5/4 deck board'));
+    S(14); const railLF=W+2*Dd;
     add(g,Math.round(railLF),'ft','Railing + balusters','3 sides, ~36" tall',railLF*PRICE.railLF,lw('deck railing baluster'));
     add(g,2,'×',`Stair-opening posts ${post} — 4 ft`,'FULL 4×4s past the rim, 2 carriage bolts each — rail ends + gate hang on these',2*4*postPrice,lw(postTerm));
-    add(g,dj*2,'×','Deck joist hangers — Simpson LUS26Z','one at EACH end of every deck joist (step 12)',dj*2*PRICE.hanger,HW.hanger);
+    S(12); add(g,dj*2,'×','Deck joist hangers — Simpson LUS26Z','one at EACH end of every deck joist (step 12)',dj*2*PRICE.hanger,HW.hanger);
     { const lag=Math.max(4,Math.ceil(W*12/16)*2);
       add(g,lag,'×','½″ × 4″ lag screws — deck ledger','two rows staggered ~16″ into the house rim — this is the connection decks fail at',lag*1.6,lw('1/2 x 4 hex lag screw')); }
-    if(state.stairGate!==false) add(g,1,'kit','Stair gate — self-closing','2 spring hinges + gravity latch, mounted on the OUTSIDE top rail (out of kid reach)',38,lw('self closing gate hardware kit'));
+    S(14); if(state.stairGate!==false) add(g,1,'kit','Stair gate — self-closing','2 spring hinges + gravity latch, mounted on the OUTSIDE top rail (out of kid reach)',38,lw('self closing gate hardware kit'));
   }
 
   /* ---- ACCESS — the ladder or stair is built on EVERY design, deck or no deck. These counts come
@@ -2813,7 +2824,7 @@ function computeMaterials(p){
   { const ST=ACC_STOCK[state.accStock]||ACC_STOCK['2x6'];
     const L=LADDERS[state.ladderStyle]||LADDERS.rung;
     const railStock=ST.cut==='2×4'?'2×4':'2×6', railTerm=ST.cut==='2×4'?'2x4x10 pressure treated':'2x6x10 pressure treated';
-    g=G('Access — '+(p.access==='stairs'?'stairs':L.name.toLowerCase()+' ladder')+' ('+ST.cut+')');
+    g=G('Access — '+(p.access==='stairs'?'stairs':L.name.toLowerCase()+' ladder')+' ('+ST.cut+')'); S(15);
     if(p.access==='stairs'){
       const climb=Math.max(0.6,Hf), N=Math.max(3,Math.round(climb/0.58)), riseIn=climb*12/N, tot=N*0.83;
       const strLen=stdLen(Math.hypot(tot,climb)+1), treads=N-1;
@@ -2853,7 +2864,7 @@ function computeMaterials(p){
     add(g,2,'×','Pavers — 12 in square','a solid pad under each foot so it can’t sink or rot',2*4,lw('12 in square concrete paver'));
   }
 
-  g=G('Bracing & hardware');
+  g=G('Bracing & hardware'); S(6);
   const braceL=stdLen(Hf*0.9);
   add(g,8,'pcs',`Knee braces 2×4 — ${braceL} ft`,'45° at all four corners, both axes',8*braceL*PRICE.brace,lw('2x4x8 lumber'));
   const midPosts=Math.max(0,(perSide-2)*2), braceExtra=state.braceBoth?midPosts*2:0;
@@ -2868,13 +2879,13 @@ function computeMaterials(p){
       pcs*diagLen*PRICE.brace*1.5, lw('2x6x10 pressure treated'));
     add(g,pcs*2,'×','½″ × 6″ carriage bolts — X-brace ends','through the post at every diagonal end',pcs*2*PRICE.bolt,lw('1/2 x 6 galvanized carriage bolt'));
   }
-  const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
+  S(3); const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
   add(g,bolts,'×',`½″ × ${boltLen}″ carriage bolts`,'galvanized, through the beam sandwich + post (+ nuts/washers)',bolts*PRICE.bolt,lw(`1/2 x ${boltLen} galvanized carriage bolt`));
-  const hangers=joists*2*(p.midBeam?2:1);   // one at EACH end of every joist — and a centre beam splits every joist into two spans
+  S(4); const hangers=joists*2*(p.midBeam?2:1);   // one at EACH end of every joist — and a centre beam splits every joist into two spans
   add(g,hangers,'×','Joist hangers — Simpson LUS26Z',`ZMAX double-shear — one at EACH end of ${joists} joists${p.midBeam?', and the centre beam splits every joist into two spans':''}`,hangers*PRICE.hanger,HW.hanger);
-  const ties=Math.max(4, rafters*2);        // every rafter tied at both bearings
+  S(8.5); const ties=Math.max(4, rafters*2);        // every rafter tied at both bearings
   add(g,ties,'×','Hurricane ties — Simpson H1','rafter → top plate, one each side of every rafter. This is the connection that keeps the roof on in a blow.',ties*3.2,lw('simpson h1 hurricane tie'));
-  const straps=state.loadPath?8:0, caps=state.loadPath?4:0;
+  S(6); const straps=state.loadPath?8:0, caps=state.loadPath?4:0;
   if(straps){
     add(g,straps,'×','Strap ties — Simpson LSTA18','continuous load path: wall→floor and floor→beam STRAPPED, not toe-nailed. A structure that stays in one piece resists as one mass',straps*4.5,lw('simpson lsta18 strap tie'));
     add(g,caps,'×','Post caps — Simpson AC4','post → beam made a rated connector instead of bolts in shear',caps*6,lw('simpson ac4 post cap'));
@@ -2887,7 +2898,7 @@ function computeMaterials(p){
   /* ---- FASTENERS — the guide names a specific fixing at nearly every step; this is that list.
      Connector nails matter most: a Simpson hanger or tie is only rated with the nails it was
      tested with, and deck screws are not those nails. ---- */
-  g=G('Fasteners');
+  g=G('Fasteners'); S(6);
   const lagKnee=(8+braceExtra)*2*2;
   add(g,lagKnee,'×','⅜″ × 3½″ lag screws — knee braces',`2 per end × 2 ends × ${8+braceExtra} braces, pre-drilled (step 6)`,lagKnee*0.9,lw('3/8 x 3-1/2 hex lag screw'));
   const connNails=hangers*10+ties*8+straps*12+caps*8+(Dd>0?Math.ceil(W*12/16+1)*2*10:0);
@@ -2983,7 +2994,7 @@ function renderMaterials(m){
     for(const it of g.items){
       const link=it.link?` · <a href="${it.link}" target="_blank" rel="noopener">Lowe’s ↗</a>`:'';
       const k=itemKey(it), isOrd=ordered.has(k); if(isOrd){ ordCnt++; ordTotal+=it.cost; }
-      h+='<div class="item'+(isOrd?' ordered':'')+'" data-key="'+escAttr(k)+'">'
+      h+='<div class="item'+(isOrd?' ordered':'')+'" data-key="'+escAttr(k)+'" data-stage="'+(it.stage||0)+'">'
         +'<span class="ck">'+(isOrd?'✓':'')+'</span>'
         +'<div class="iinfo"><div class="mqty"><span class="q">'+it.qty+' '+it.unit+'</span> · '+it.label+
         '</div><div class="mdet">'+it.detail+link+'</div></div><div class="mcost">'+$(it.cost)+'</div></div>';
@@ -4492,6 +4503,26 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
       L.el.style.left=((v.x*0.5+0.5)*innerWidth)+'px'; L.el.style.top=((-v.y*0.5+0.5)*innerHeight)+'px';
       L.el.style.display=(v.z<1)?'block':'none'; }
   })();
+  /* --- tap a piece → find the line that sells it, open the panel, scroll to it and flash --- */
+  function clearListLink(){
+    document.querySelectorAll('#materials .item.pickmatch').forEach(el=>el.classList.remove('pickmatch','pickflash'));
+  }
+  function linkToList(st){
+    clearListLink();
+    const mats=document.getElementById('materials'); if(!mats||st==null) return 0;
+    const all=[...mats.querySelectorAll('.item[data-stage]')];
+    let rows=all.filter(el=>+el.dataset.stage===st);
+    if(!rows.length) rows=all.filter(el=>Math.floor(+el.dataset.stage)===Math.floor(st));   // 8.5 → the roof lines
+    if(!rows.length) return 0;
+    if(document.body.classList.contains('rhide')) setPanel('r',false);   // no sense highlighting a hidden panel
+    for(const el of rows){ el.classList.add('pickmatch'); el.classList.add('pickflash'); }
+    const body=document.querySelector('.rbody');
+    if(body) requestAnimationFrame(()=>{                                  // after the panel has finished sliding in
+      const r=rows[0].getBoundingClientRect(), b=body.getBoundingClientRect();
+      body.scrollTop += (r.top-b.top) - b.height*0.3;
+    });
+    return rows.length;
+  }
   function hiOn(m){ const mt=m&&m.material; if(!mt)return;
     if(mt.uniforms&&mt.uniforms.uHi){ mt.uniforms.uHi.value=1; }                                            // manual/blueprint hatch shader → neon-orange tint uniform
     else if(mt.color){ m.userData._pc=mt.color.getHex(); try{mt.color.setHex(0xFF6A00);}catch(e){} } }      // solid material → neon orange fill
@@ -4510,10 +4541,13 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
       '<br>cut length ≈ <b>'+fLen(dims[0])+'</b> · section '+fIn(IN(dims[1]))+' × '+fIn(IN(dims[2]))+
       (FASTENERS[st]?'<br><span style="opacity:.75">'+ICO.screw+FASTENERS[st]+'</span>':'')+
       '<br><span style="opacity:.5">tap empty space to dismiss</span>';
+    const n=linkToList(st);
+    if(n) card.innerHTML=card.innerHTML.replace('tap empty space to dismiss',
+      (n===1?'highlighted in the list →':n+' lines highlighted in the list →')+' · tap empty space to dismiss');
     card.style.display='block';
     buildDims(m);                                              // draft this piece's dimension lines onto the sheet
   }
-  function hide(){ if(picked){ hiOff(picked); picked=null; } card.style.display='none'; clearDims(); }
+  function hide(){ if(picked){ hiOff(picked); picked=null; } card.style.display='none'; clearDims(); clearListLink(); }
   cv.addEventListener('pointerdown',e=>{ downX=e.clientX; downY=e.clientY; });
   cv.addEventListener('pointerup',e=>{
     if(window.__tapeArmed) return;                              // the tape owns clicks while it's out
