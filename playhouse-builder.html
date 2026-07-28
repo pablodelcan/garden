@@ -156,6 +156,9 @@
   .infopop .ilegal b{color:var(--tx)}
   .infopop .ifoot{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tf);margin:9px 0 0}
   /* long option lists read as one line instead of a wall of chips */
+  .optrow{display:flex;align-items:flex-start;gap:8px;font-size:12px;cursor:pointer;margin:0 0 7px;line-height:1.45}
+  .optrow input{accent-color:var(--ac);width:15px;height:15px;flex:none;margin-top:1px}
+  .optrow span{color:var(--tm);font-size:10px;display:block}
   .seg.asmenu{display:none}
   .pselect{display:block;width:100%;box-sizing:border-box;font-family:var(--mono);font-size:11px;letter-spacing:.04em;
     text-transform:uppercase;color:var(--tx);padding:9px 27px 9px 9px;line-height:1.25;cursor:pointer;
@@ -980,6 +983,11 @@
         </div></div>
       <button class="sharebtn" id="autoSizeBtn" title="Apply the cheapest fixes until every member passes the span tables">▦ Auto-size structure</button>
       <div class="fincap" id="autoSizeMsg"></div>
+      <div class="ctl"><div class="row"><label>Security &amp; anchoring</label></div>
+        <label class="optrow"><input type="checkbox" id="optBraceBoth"> Knee brace every post <span>both axes, not just the corners</span></label>
+        <label class="optrow"><input type="checkbox" id="optLoadPath"> Strapped load path <span>wall → floor → beam → post</span></label>
+        <label class="optrow"><input type="checkbox" id="optAnchors"> Ground anchors <span>4 auger anchors + strapping</span></label>
+        <div class="fincap" id="secCap"></div></div>
       <div class="ctl"><div class="row"><label>Roof style</label></div>
         <div class="seg four" id="roof">
           <button data-v="shed">Shed</button>
@@ -1299,7 +1307,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 // with a deck, a railing and a real stair. Sides pulled in to 6″, front and back run long.
 const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',ovX:0.5,ovZ:1.25,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.3,size:'dutch'},
    windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.78,size:'large'}]};
@@ -2177,6 +2185,27 @@ function rebuild3D(p){
       strut([sx*ex,yb,sz*ez],[sx*ex,yt,sz*(ez-run)],0.17,P.struct);     // long-wall plane
       strut([sx*ex,yb,sz*ez],[sx*(ex-run),yt,sz*ez],0.17,P.struct);     // short-wall plane
     }
+    // Corners alone resist tipping in ONE direction well and the other barely. Bracing every post
+    // puts diagonal resistance in both axes — the cheapest real gain on the whole structure.
+    if(state.braceBoth) for(const sx of [-1,1]) for(let i=1;i<zPos.length-1;i++){
+      const z=zPos[i];
+      strut([sx*ex,yb,z],[sx*ex,yt,z-run],0.17,P.struct);
+      strut([sx*ex,yb,z],[sx*ex,yt,z+run],0.17,P.struct);
+    }
+    // Continuous load path: a structure that stays in one piece resists as one mass; one that is
+    // toe-nailed together peels apart joint by joint. Straps make the joints connectors, not nails.
+    if(state.loadPath){ const tie='#9a9a96';
+      for(const sx of [-1,1]) for(const sz of [-1,1]){
+        box(0.05,0.95,0.15, sx*(ex+0.155),floorY-0.30,sz*ez, tie);   // beam → post
+        box(0.05,0.85,0.15, sx*(ex+0.155),floorY+0.38,sz*ez, tie);   // floor → wall plate
+      } }
+    // Augered anchors resist uplift and overturning directly into the ground, which nothing else here does
+    if(state.groundAnchors){ const tie='#9a9a96';
+      for(const sx of [-1,1]) for(const sz of [-1,1]){
+        const ax=sx*(ex+1.2), az=sz*(ez+1.2), gy=groundAt(ax,az), py=groundAt(sx*ex,sz*ez)+2.2;
+        box(0.17,0.55,0.17, ax,gy+0.12,az, '#8c8a84',{rough:1});      // auger head at grade
+        strut([ax,gy+0.34,az],[sx*ex,py,sz*ez],0.075,tie);            // strap up to the post
+      } }
     // Once the floor is up past ~4.5 ft, knee braces at the corners stop being enough: the whole
     // frame can rack like a parallelogram. Full-bay X-bracing ties the posts base-to-top and is what
     // actually stiffens a tall platform. End bays of each long side + both end walls, as built on decks.
@@ -2826,7 +2855,11 @@ function computeMaterials(p){
 
   g=G('Bracing & hardware');
   const braceL=stdLen(Hf*0.9);
-  add(g,8,'pcs',`Knee braces 2×4 — ${braceL} ft`,'anti-racking, all corners',8*braceL*PRICE.brace,lw('2x4x8 lumber'));
+  add(g,8,'pcs',`Knee braces 2×4 — ${braceL} ft`,'45° at all four corners, both axes',8*braceL*PRICE.brace,lw('2x4x8 lumber'));
+  const midPosts=Math.max(0,(perSide-2)*2), braceExtra=state.braceBoth?midPosts*2:0;
+  if(braceExtra) add(g,braceExtra,'pcs',`Knee braces 2×4 — ${braceL} ft (intermediate posts)`,
+    `two per post at the ${midPosts} posts between the corners — diagonal resistance in BOTH directions, not just two sides. The cheapest real gain on the structure.`,
+    braceExtra*braceL*PRICE.brace,lw('2x4x8 lumber'));
   if(Hf>4.5){                                   // tall platform → full-bay X-bracing under the deck
     const zN=Math.max(2,Math.ceil(D/4)+1), bays=(zN>2?2:1)*2 + 2;      // end bays of each long side + both ends
     const diagLen=stdLen(Math.hypot(Math.max(W,D)/Math.max(1,zN-1), Hf)*1.05), pcs=bays*2;
@@ -2841,14 +2874,23 @@ function computeMaterials(p){
   add(g,hangers,'×','Joist hangers — Simpson LUS26Z',`ZMAX double-shear — one at EACH end of ${joists} joists${p.midBeam?', and the centre beam splits every joist into two spans':''}`,hangers*PRICE.hanger,HW.hanger);
   const ties=Math.max(4, rafters*2);        // every rafter tied at both bearings
   add(g,ties,'×','Hurricane ties — Simpson H1','rafter → top plate, one each side of every rafter. This is the connection that keeps the roof on in a blow.',ties*3.2,lw('simpson h1 hurricane tie'));
+  const straps=state.loadPath?8:0, caps=state.loadPath?4:0;
+  if(straps){
+    add(g,straps,'×','Strap ties — Simpson LSTA18','continuous load path: wall→floor and floor→beam STRAPPED, not toe-nailed. A structure that stays in one piece resists as one mass',straps*4.5,lw('simpson lsta18 strap tie'));
+    add(g,caps,'×','Post caps — Simpson AC4','post → beam made a rated connector instead of bolts in shear',caps*6,lw('simpson ac4 post cap'));
+  }
+  if(state.groundAnchors){
+    add(g,4,'×','Ground anchors — auger-in','mobile-home style, augered in at each corner. Adds thousands of ft-lb of overturning resistance for an afternoon of work',4*15,lw('mobile home auger anchor'));
+    add(g,4,'×','Anchor strap + tensioner','galvanized strap, anchor → corner post, tensioned',4*9,lw('galvanized anchor strap tensioner'));
+  }
 
   /* ---- FASTENERS — the guide names a specific fixing at nearly every step; this is that list.
      Connector nails matter most: a Simpson hanger or tie is only rated with the nails it was
      tested with, and deck screws are not those nails. ---- */
   g=G('Fasteners');
-  const lagKnee=8*2*2;
-  add(g,lagKnee,'×','⅜″ × 3½″ lag screws — knee braces','2 per end × 2 ends × 8 braces, pre-drilled (step 6)',lagKnee*0.9,lw('3/8 x 3-1/2 hex lag screw'));
-  const connNails=hangers*10+ties*8+(Dd>0?Math.ceil(W*12/16+1)*2*10:0);
+  const lagKnee=(8+braceExtra)*2*2;
+  add(g,lagKnee,'×','⅜″ × 3½″ lag screws — knee braces',`2 per end × 2 ends × ${8+braceExtra} braces, pre-drilled (step 6)`,lagKnee*0.9,lw('3/8 x 3-1/2 hex lag screw'));
+  const connNails=hangers*10+ties*8+straps*12+caps*8+(Dd>0?Math.ceil(W*12/16+1)*2*10:0);
   const nailLb=Math.max(1,Math.ceil(connNails/160));
   add(g,nailLb,'lb','Simpson connector nails — 10d × 1½″',`~${connNails} nails to fill every hanger and tie. Hangers and ties are only rated with THESE — deck screws don’t count.`,nailLb*10,lw('simpson strong tie 10d joist hanger nails'));
   const strLb=Math.max(2,Math.ceil((perim*Hw+rafters*4)/110));
@@ -2864,8 +2906,7 @@ function computeMaterials(p){
   add(g,3,'tubes','Exterior caulk','trim joints and window heads — not the window bottoms, those must drain',3*7,lw('exterior paintable caulk'));
   add(g,1,'lot','Misc — shims, string, stakes, pencils','the small stuff every step assumes you have',PRICE.misc*0.5,lw('composite shims'));
   g=groups.find(x=>x.name==='Bracing & hardware');
-  if(p.anchor){ add(g,totalPosts,'×','Hurricane ties — Simpson H2.5A','galvanized rafter/post uplift tie',totalPosts*PRICE.hanger,HW.htie);
-    add(g,totalPosts,'×','Footing anchor straps','galvanized, post-to-footing',totalPosts*4,lw('simpson post anchor strap')); }
+  if(state.loadPath) add(g,totalPosts,'×','Post-to-footing ties — Simpson H2.5A','closes the bottom of the load path at every post',totalPosts*PRICE.hanger,HW.htie);
 
   if(state.wing){
     g=G('Wing addition'+(state.split?' (split level)':''));
@@ -2910,9 +2951,9 @@ function computeMaterials(p){
     for(const k of activeExtras){ const [label,detail,cost,term]=EXTRA_ITEMS[k]; add(g,1,'×',label,detail,cost,lw(term)); } }
 
   let note,level; const big=W*D>88;
-  if(post==='6x6'){ level='good'; note='Rock solid. 6×6 posts handle this height and footprint with ease. Brace all four sides and through-bolt the beams.'; }
-  else if(Hf<=3){ level='good'; note='Solid. 4×4 posts are well within their limits at this height. Brace at least two sides.'; }
-  else if(Hf<=5){ level='warn'; note='Workable — add 45° knee braces on all four sides. At '+Hf+' ft, 4×4 posts need the bracing. Through-bolt beams (don’t just screw).'; }
+  if(post==='6x6'){ level='good'; note='Rock solid. 6×6 posts handle this height and footprint with ease. Brace both axes and through-bolt the beams.'; }
+  else if(Hf<=3){ level='good'; note='Solid. 4×4 posts are well within their limits at this height. Brace BOTH axes, not two sides — tipping needs diagonal resistance in each direction.'; }
+  else if(Hf<=5){ level='warn'; note='Workable — 45° knee braces in BOTH axes, with legs 24″ or longer, at every post. At '+Hf+' ft, 4×4 posts need it. Through-bolt beams (don’t just screw).'; }
   else { level='bad'; note='⚠ Marginal. Above 5 ft a 4×4 gets whippy and can rack. Switch to 6×6 or drop the floor lower.'; }
   if(big && post==='4x4' && level!=='bad'){ level='warn'; note+=' This footprint is large for 4×4 — consider 6×6 for the corners.'; }
   return {groups,total,note,level};
@@ -3090,7 +3131,10 @@ function safetyMsgs(s){   // shared by the side panel and the printed plan set
     const railLen=along+2*s.Dd, nBal=Math.ceil(railLen*12/4.5);
     msgs.push('Deck rail ~36" ✓ — for a code ≤4" baluster gap, run ~'+nBal+' balusters over '+dim(railLen)+' of railing.'); }
   if(s.access==='stairs'&&s.stairGate!==false) msgs.push('Stair gate is on — hang it to swing AWAY from the drop, with the latch on the outside face where a small child can’t reach it.');
-  if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.anchor) msgs.push('Tall &amp; exposed — add hurricane ties at the beams and ground anchors at the footings.');
+  if(!s.braceBoth) msgs.push('Braced at the corners only — for tipping you want diagonal resistance in BOTH axes. Turn on “knee brace every post”, or X-brace the open bays under the floor. It is the cheapest real gain here.');
+  if(!s.loadPath) msgs.push('No strapped load path — wall-to-floor and floor-to-beam are relying on toe-nails. A structure that stays in one piece resists as one mass; one that comes apart peels.');
+  if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.groundAnchors) msgs.push('Tall &amp; exposed and not anchored — four augered ground anchors strapped to the corner posts add thousands of ft-lb of overturning resistance for about $60 and an afternoon.');
+  if(s.foundation!=='piers'&&(s.Hf>4.5||s.groundAnchors===false&&s.Hf>5)) msgs.push('The real fix for tipping, sliding and frost heave together is four sonotube piers below the frost line with J-bolts set in the wet concrete — about $300 and a rented auger.');
   if(s.Hf>4.5) msgs.push('Floor is '+dim(s.Hf)+' up, so the frame gets full-bay 2×6 <b>X-bracing</b> under the deck — end bays of each long side and both ends. Corner knee braces alone let a platform this tall rack sideways. Through-bolt every diagonal end; don’t screw them.');
   if(s.slide) msgs.push('Slide: land it on soft fall material (mulch/rubber, 6" deep) running at least 6 ft past the exit.');
   if(s.swing) msgs.push('Swing set: keep 6 ft of clear space in front and behind the arc, and 2 ft to either side.');
@@ -3133,10 +3177,14 @@ document.getElementById('grade').addEventListener('input',e=>{ state.grade=+e.ta
 document.getElementById('stairPos').addEventListener('input',e=>{ state.stairPos=+e.target.value/100; update(); });
 const FOUND={
   blocks:'Cheapest, no digging. Best on firm, fairly level ground — level/shim each block. Not ideal on a real slope.',
-  piers:'Concrete in tube forms with post saddles on top — solid, keeps posts off the soil. On a slope, pour the pier tops to one level line.',
+  piers:'Sonotube piers poured BELOW the frost line, with J-bolts set in the wet concrete and post bases bolted to them. Solves tipping, sliding and heave in one move, keeps the posts off the soil, and is the strongest thing you can do here — roughly $300 and a rented auger. On a slope, pour the pier tops to one level line.',
   buried:'Posts set in concrete below the frost line — most rigid and great on slopes (cut each post to a level string line). Use Ground-Contact PT; it’ll still rot eventually.'
 };
-function renderFoundCap(){ const el=document.getElementById('foundCap'); if(el) el.innerHTML=FOUND[state.foundation]||''; }
+function renderFoundCap(){ const el=document.getElementById('foundCap'); if(el) el.innerHTML=FOUND[state.foundation]||'';
+  const sc=document.getElementById('secCap');
+  if(sc) sc.innerHTML = state.foundation==='piers'
+    ? 'On piers below the frost line with J-bolts you have already solved tipping, sliding and heave together — the rest is belt and braces.'
+    : 'Bracing both axes is the cheapest real gain. Anchors matter most on tall, exposed or windy sites. Piers below the frost line beat all of it if you can dig.'; }
 
 function segPick(id,fn){ const el=document.getElementById(id);
   el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
@@ -3330,7 +3378,8 @@ function stepDetail(c,s){
     3:`4× 2×6 beam plies (${s.D} ft) · sandwich the posts · through-bolt`,
     4:`${joists}× 2×6 joists @ ${s.oc}" O.C.`,
     5:`${sheets}× ¾" plywood sheet${sheets>1?'s':''}`,
-    6:(state.Hf>4.5?`8× 2×4 knee braces, 45° + X-bracing`:`8× 2×4 knee braces, 45°`),
+    6:(()=>{ const n=8+(state.braceBoth?Math.max(0,(Math.max(2,Math.ceil(state.D/4)+1)-2)*2)*2:0);
+      return `${n}× 2×4 knee braces, 45°`+(state.Hf>4.5?' + X-bracing':'')+(state.groundAnchors?' + ground anchors':''); })(),
     7:`back wall · 2×4 studs @ 16"`,
     7.4:`front wall · studs + door header`,
     7.7:`2× butt walls (fit between) + 2nd top plate`,
@@ -3452,6 +3501,8 @@ function applyDesign(d){
   setSeg('ladderStyle',state.ladderStyle||'rung'); setSeg('deckEdge',state.deckEdge||'left'); setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
   setSeg('midBeam',state.midBeam?'on':'off');
+  for(const [id,key] of [['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors'],['optRoofOver','roofOver'],['optStairGate','stairGate']]){
+    const cb=document.getElementById(id); if(cb) cb.checked = key==='stairGate' ? state[key]!==false : !!state[key]; }
   renderWindows();
   if(!colors.trim) colors.trim=colors.struct; if(!colors.door) colors.door='#3a2517'; if(!colors.accent) colors.accent=shade(colors.roof,1.25);
   if(!colors.walls) colors.walls={front:null,back:null,left:null,right:null};
@@ -3843,12 +3894,18 @@ function stepGuide(st,s){
     'Screw 2″ deck screws every 8″ on edges, 12″ in the field. Snap chalk lines over the joists so you don’t miss.',
     '✔ Check: walk it — no movement, no squeaks.'
   ];
-  G[6]=(()=>{ const run=Math.min(Hf*0.6,1.6), bl=run*1.414; return [
-    `Cut 8 knee braces from 2×4: ${dim(bl)} long with 45° cuts both ends (set your miter saw once, cut all 8).`,
-    'Fit each from post face to beam face — snug before fastening; gaps make wobble.',
-    'Fasten each end with 2× ⅜″ lag screws into pre-drilled holes.',
-    '✔ Check: shove the structure hard — racking should feel dead.'
-  ];})();
+  G[6]=(()=>{ const run=Math.min(Hf*0.6,1.6), bl=run*1.414;
+    const nMid=Math.max(0,(perSide-2)*2), nB=8+(s.braceBoth?nMid*2:0);
+    const out=[
+      `Cut ${nB} knee braces from 2×4: ${dim(bl)} long with 45° cuts both ends (set your miter saw once, cut them all). Keep the legs 24″ or longer — a stubby brace does almost nothing.`,
+      'Fit each from post face to beam face — snug before fastening; gaps make wobble.',
+      'Fasten each end with 2× ⅜″ lag screws into pre-drilled holes.'];
+    if(s.braceBoth) out.splice(1,0,`Brace BOTH axes, not two sides: the four corners get one brace in each plane, and each of the ${nMid} intermediate posts gets one running each way along the beam. Tipping resistance has to exist in both directions.`);
+    else out.splice(1,0,'These sit at the corners only. For real tipping resistance you want braces in both axes at every post — turn on “knee brace every post”, or X-brace the open bays.');
+    if(s.loadPath) out.push('Strap the load path while you are under there: LSTA18 straps tying wall to floor and floor to beam, AC4 caps at post-to-beam, H2.5A at post-to-footing. Toe-nails are what let a structure peel apart instead of resisting as one mass.');
+    if(s.groundAnchors) out.push('Ground anchors: auger one in ~1 ft out from each corner post until the head is at grade, run the strap up to the post, and tension it. Four of them is an afternoon and thousands of ft-lb of overturning resistance.');
+    out.push('✔ Check: shove the structure hard, from BOTH directions — racking should feel dead either way.');
+    return out; })();
   const wallCopy=(k,extra)=>{ const wo=wallOpenings(s,k), out=[
       `Frame the ${k} wall FLAT on the floor deck: bottom + top plate cut to EXACTLY the deck width (${dim(W)}) — this wall sits flush with the deck edge. Studs every ~16″, crowns all facing the same way.`];
     for(const o of wo.ops) out.push(`${o.kind[0].toUpperCase()+o.kind.slice(1)} rough opening: ${dim(o.hw*2)} wide × ${dim(o.vTop-o.vBot)} tall, ${dim(o.uc-o.hw)} from the left end — king stud each side, jack studs under a doubled 2×6 header${o.vBot>0.3?', sill below':''}.`);
@@ -4029,7 +4086,9 @@ function planSpec(s){
   R('Access', s.access==='stairs'
     ? 'Stairs · '+s.stairSide+' side, running '+(s.stairDir==='out'?'straight out':'along the wall')+(s.stairGate!==false?' · self-closing gate':'')
     : 'Ladder · '+(L?L.name:s.ladderStyle));
-  if(s.anchor) R('Anchoring', 'Hurricane ties / ground anchors');
+  R('Bracing', (s.braceBoth?'Knee braces at every post, both axes':'Knee braces at the corners')+(s.Hf>4.5?' + full-bay X-bracing':''));
+  R('Load path', s.loadPath?'Strapped — wall→floor→beam→post':'Toe-nailed (not strapped)');
+  if(s.groundAnchors) R('Anchoring', '4× augered ground anchors, strapped to the corner posts');
   if(s.sign) R('Sign', '“'+s.sign+'”');
   return '<h4>Design specification</h4><table class="cmptab spectab">'+
     rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</table>';
@@ -4115,7 +4174,7 @@ function openPlan(){
     h+='</div></div>';
   });
   h+='</div>';
-  h+='<h4>Build notes</h4><ul class="plannotes"><li>Footings below frost line (or deck blocks for casual builds), leveled to each other.</li><li>Through-bolt beams to posts; add 45° knee braces on all sides.</li><li>Joists '+s.oc+'" O.C. · '+(s.post==='6x6'?'6×6':'4×4')+' posts'+(s.Hf>5&&s.post==='4x4'?' (consider 6×6 at this height)':'')+'.</li><li>Use Ground-Contact PT near soil; flash/seal exposed end-grain.</li></ul>';
+  h+='<h4>Build notes</h4><ul class="plannotes"><li>Footings below frost line (or deck blocks for casual builds), leveled to each other.</li><li>Through-bolt beams to posts; 45° knee braces in BOTH axes with 24″+ legs.</li><li>Joists '+s.oc+'" O.C. · '+(s.post==='6x6'?'6×6':'4×4')+' posts'+(s.Hf>5&&s.post==='4x4'?' (consider 6×6 at this height)':'')+'.</li><li>Use Ground-Contact PT near soil; flash/seal exposed end-grain.</li></ul>';
   // repeats along the bottom of EVERY printed page (position:fixed prints per page), so no sheet
   // can be torn off and read as an engineered drawing
   h+='<div class="planrunfoot" aria-hidden="true">Delcan &amp; Co. Builder 1.0 · design aid, not a stamped or signed engineering plan · confirm against local code before building</div>';
@@ -4165,7 +4224,7 @@ function sanitizeDesign(d){
   en('post',['4x4','6x6']); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
   en('foundation',['blocks','piers','buried']); en('access',['ladder','stairs']);
   en('ladderStyle',Object.keys(LADDERS)); en('deckEdge',['outer','left','right']); en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
-  for(const k of ['midBeam','rafter8','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
+  for(const k of ['midBeam','rafter8','braceBoth','loadPath','groundAnchors','roofOver','stairGate','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
     if(typeof d[k]==='boolean') out[k]=d[k];
   if(typeof d.sign==='string') out.sign=d.sign.slice(0,16);
   if(d.door&&typeof d.door==='object'){
@@ -4306,6 +4365,14 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
 (function(){ const cb=document.getElementById('optStairGate'); if(!cb) return;
   cb.checked=state.stairGate!==false;
   cb.addEventListener('change',()=>{ state.stairGate=cb.checked; update(); });
+})();
+/* security & anchoring */
+(function(){
+  const opts=[['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors']];
+  for(const [id,key] of opts){ const cb=document.getElementById(id); if(!cb) continue;
+    cb.checked=!!state[key];
+    cb.addEventListener('change',()=>{ state[key]=cb.checked; update(); }); }
+  window.__syncSecurity=()=>{ for(const [id,key] of opts){ const cb=document.getElementById(id); if(cb) cb.checked=!!state[key]; } };
 })();
 
 setView('manual');   // boot straight into the LINE print-manual render — the only visualizer for now
