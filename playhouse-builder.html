@@ -1282,11 +1282,15 @@ import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ===== state (before render loop references it) ===== */
-const state={W:6,D:8,Hf:3.5,Hw:4,Dd:0,deckSide:'front',post:'4x4',roof:'lean',ovX:1,ovZ:1,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
+// The first thing anyone sees. 4 ft walls read as a hutch and a box on legs reads as a shed,
+// so the opening build stands up (5½ ft walls), gets a gable, and breaks its own silhouette
+// with a deck, a railing and a real stair. Sides pulled in to 6″, front and back run long.
+const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',ovX:0.5,ovZ:1.25,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'ladder',ladderStyle:'rung',accStock:'2x6',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'out',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
-  door:{wall:'front',pos:0.5,size:'standard'}, windows:[{wall:'right',pos:0.5,size:'medium'}]};
+  door:{wall:'front',pos:0.5,size:'dutch'},
+   windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.75,size:'picture'}]};
 const tog={tSiding:true,tRoof:true,tBraces:true,tLadder:true,tFraming:true,tSpin:false,tInterior:false,furniture:true,kids:true,tDims:false,tScale:false};
 const colors={struct:'#b07a43',siding:'#c68a4a',roof:'#5a4231',trim:'#b07a43',door:'#3a2517',accent:'#705339',
   walls:{front:null,back:null,left:null,right:null}};   // per-wall paint — null falls back to siding
@@ -3262,11 +3266,16 @@ document.getElementById('signText').addEventListener('input',e=>{ state.sign=e.t
 document.getElementById('walkIn').addEventListener('click',walkInside);
 document.getElementById('unitTog').addEventListener('click',e=>{ const b=e.target.closest('b'); if(!b)return; state.unit=b.dataset.u; document.querySelectorAll('#unitTog b').forEach(x=>x.classList.toggle('on',x.dataset.u===state.unit)); update(); });
 function frame(){ const dd=state.Dd>0?state.Dd:0, e=state.explode||0, ex=e*16;
-  controls.target.set(0,state.Hf+state.Hw/2+ex/2,0);
+  const ty=state.Hf+state.Hw/2+ex/2;
+  controls.target.set(0,ty,0);
   // exploded parts spread radially as well as lifting, so the fit has to grow in plan too
   const spread=1+e*1.25;
   const r=(Math.max(state.W,state.D)+dd)*spread+state.Hf+state.Hw+ex;
-  camera.position.set(r*0.95,r*0.7,r*1.15); }
+  const x=r*0.95, z=r*1.15;
+  // hold the eye at a FIXED low three-quarter. The old y-factor let the elevation drift with
+  // the proportions of the build; low reads heroic and puts the underframe on show.
+  const EL=9*Math.PI/180;
+  camera.position.set(x, ty+Math.hypot(x,z)*Math.tan(EL), z); }
 function updateSun(){
   if(!sun) return; const h=state.hour, f=Math.max(0,Math.min(1,(h-6)/12));   // 6am..6pm
   const el=Math.sin(f*Math.PI)*1.25, az=(f-0.5)*Math.PI*1.15;
@@ -3397,6 +3406,7 @@ function applyDesign(d){
   if(typeof EXTRAS_ON!=='undefined' && !EXTRAS_ON && typeof EXTRA_KEYS!=='undefined') EXTRA_KEYS.forEach(k=>{ state[k]=false; });
   if(state.hour==null) state.hour=14;
   for(const id of ['W','D','Hf','Hw','Dd','oc']) document.getElementById(id).value=state[id];
+  for(const id of ['ovX','ovZ']){ const el=document.getElementById(id); if(el&&state[id]!=null) el.value=state[id]; }
   if(state.grade==null) state.grade=0; if(!state.gradeDir) state.gradeDir='right';
   document.getElementById('grade').value=Math.round(state.grade*100); setSeg('gradeDir',state.gradeDir);
   document.getElementById('doorPos').value=state.door.pos;
@@ -4186,9 +4196,7 @@ renderWindows();
 
 document.body.dataset.view='color';
 applyFinish('cedar',true);
-update();
-updateSun();
-if(controls) frame();
+applyDesign({state:JSON.parse(JSON.stringify(state)), colors:JSON.parse(JSON.stringify(colors))});
 loadFromHash();
 // hide the redundant brand bar when embedded as a Studio OS tool (overlay shows its own title)
 if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.style.display='none'; }
@@ -4231,6 +4239,19 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
 })();
 
 setView('manual');   // boot straight into the LINE print-manual render — the only visualizer for now
+
+/* ===== first run opens in focus: the drawing gets the whole sheet, then the two panels
+   slide in a beat later. Only on the desktop layout — the phone build-guide mode owns
+   lhide/rhide for its own sheet behaviour and must not be second-guessed here. ===== */
+(function(){
+  if(matchMedia('(max-width:700px), (pointer:coarse) and (max-width:1000px)').matches) return;
+  setPanel('l',true); setPanel('r',true);
+  let done=false;
+  const reveal=()=>{ if(done) return; done=true; setPanel('l',false); setPanel('r',false); };
+  // the boot sequence tells us when the mark has landed; hold a beat, then the panels slide in
+  addEventListener('playhouse:booted',()=>setTimeout(reveal,1000),{once:true});
+  setTimeout(reveal,4200);                         // fallback if the boot screen never ran
+})();
 
 /* ===== the "i" — what this is, how to drive it, how to reach us ===== */
 (function(){
@@ -4475,6 +4496,7 @@ if(!ARCHITECT_ON){ const g=document.getElementById('archGroup'); if(g) g.style.d
         document.body.classList.remove('booting','bootland');
         document.body.classList.add('bootdone');
         boot.remove();
+        dispatchEvent(new Event('playhouse:booted'));
       },560);
     };
     let f=0;
