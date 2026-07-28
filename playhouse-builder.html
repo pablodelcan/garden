@@ -152,7 +152,9 @@
   .infopop dd{margin:0}
   .infopop a{color:var(--tx);text-decoration:none;box-shadow:inset 0 -1px 0 var(--bd)}
   .infopop a:hover{box-shadow:inset 0 -2px 0 currentColor}
-  .infopop .ifoot{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tf);margin:11px 0 0}
+  .infopop .ilegal{font-size:10.5px;line-height:1.62;color:var(--tm);margin:12px 0 0;padding-top:10px;border-top:1px solid var(--bd)}
+  .infopop .ilegal b{color:var(--tx)}
+  .infopop .ifoot{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tf);margin:9px 0 0}
   /* long option lists read as one line instead of a wall of chips */
   .seg.asmenu{display:none}
   .pselect{display:block;width:100%;box-sizing:border-box;font-family:var(--mono);font-size:11px;letter-spacing:.04em;
@@ -495,6 +497,9 @@
   .shoptab .gtot th{border-top:1.5px solid var(--ink);font-family:var(--cond);text-transform:uppercase;font-size:11px}
   .shoptab .gtot th:last-child{text-align:right;font-family:var(--mono)}
   .planfoot{font-size:11px;line-height:1.5;margin:8px 0 0;color:var(--tm)}
+  .planlegal{font-size:11px;line-height:1.6;margin:0 0 16px;padding:9px 11px;border:1px solid var(--bd);color:var(--tm)}
+  .planlegal b{color:var(--tx)}
+  .planrunfoot{display:none}
   .sprint.locked{background:var(--ink)!important;color:#fff!important}
   .sprint .ic{width:11px;height:11px;margin-right:5px;vertical-align:-1px}
   /* shown ONLY when someone prints without unlocking */
@@ -670,6 +675,12 @@
     body:not(.plan-unlocked) #printGate{display:block!important}
     #planModal .shophead{display:none!important}   /* the printed sheet carries its own masthead */
     .plansheethead{break-after:avoid;page-break-after:avoid}
+    .planlegal{break-inside:avoid;page-break-inside:avoid;border:1px solid #999!important;color:#222!important}
+    /* fixed elements repaint on every printed page — this is what puts the notice on all of them */
+    .planrunfoot{display:block!important;position:fixed;left:0;right:0;bottom:0;background:#fff;
+      font-family:var(--mono);font-size:8px;letter-spacing:.05em;text-transform:uppercase;color:#555;
+      border-top:.5px solid #bbb;padding:4px 0 3px}
+    @page{margin:14mm 12mm 18mm}   /* room at the foot for it */
     .shoptab tr,.spectab tr{break-inside:avoid;page-break-inside:avoid}
     .shoptab .ghead th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .framebox,.fsvg,.stepdiag svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -895,14 +906,15 @@
 
 <div class="infopop" id="infoPop" role="dialog" aria-label="About this tool">
   <h4>Delcan &amp; Co. Builder</h4>
-  <p>A drawing tool for things you can actually build. Set the size, structure and finish; it works out the framing, checks the spans and prints a plan set with a cut list and a shopping list.</p>
-  <p>Drag to orbit · scroll to zoom · hold <b>space</b> and drag to pan · click any piece for its size, stock and fasteners.</p>
+  <p>Everything here is drawn to be built. Set the size, the structure and the finish — it frames the thing, checks every span against the tables, and prints the whole set: cut list, shopping list, and the steps in the order you’d actually do them.</p>
+  <p>Drag to orbit · scroll to zoom · hold <b>space</b> and drag to pan · click any piece for its size, the stock it’s cut from, and what fastens it.</p>
   <div class="ihr"></div>
   <dl>
     <dt>Contact</dt><dd><a href="mailto:pablo@delcan.co">pablo@delcan.co</a></dd>
     <dt>Studio</dt><dd><a href="https://delcan.co" target="_blank" rel="noopener">delcan.co</a></dd>
   </dl>
-  <p class="ifoot">Builder 1.0 — drawings are a design aid, not stamped engineering. Check your local code before you dig.</p>
+  <p class="ilegal"><b>This is a design tool, not an engineering service.</b> What it prints is not a stamped or signed engineering plan, and no licensed engineer has reviewed your design. The structure check compares members against published span tables at assumed loads — it says nothing about your soil, your snow and wind, or your workmanship. Check your local code, pull a permit where one is required, and have a licensed professional review anything you are unsure of. You are responsible for what you build.</p>
+  <p class="ifoot">Builder 1.0</p>
 </div>
 
 <aside class="paper left">
@@ -3085,7 +3097,10 @@ function safetyMsgs(s){   // shared by the side panel and the printed plan set
   if(s.pole) msgs.push('Fireman pole: clear a 3 ft circle at the base and set soft fall material under it.');
   const eng=engineer(s);
   for(const m of eng.issues) msgs.push('⚠ '+m);
-  if(eng.pass) msgs.push('Structure ✓ — joists, beams, rafters, posts &amp; footings all inside span-table limits.');
+  // Not a blanket "✓". Say what was actually checked and what it assumed — the tool compares
+  // members against published span tables, which is narrow, and a bare tick reads as a safety
+  // assurance the check does not earn.
+  if(eng.pass) msgs.push('Spans checked — joists, beams, rafters, posts and footings are within published span tables for the sizes shown. That assumes sound lumber of the right species and grade, built as drawn. It is not an engineering review.');
   const ch=s.Hw, who = ch>=5.83?'adult standing room':ch>=4.0?'kid standing room (an adult must duck)':'a crawl-in / sit-in space';
   msgs.push('Interior clear height '+dim(ch)+' — '+who+'.');
   return msgs;
@@ -3987,7 +4002,13 @@ function planHeader(s){
   const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
   return '<div class="plansheethead"><div><div class="psh-brand">Delcan &amp; Co. Builder</div>'+
     '<div class="psh-sub">Playhouse plan set · '+dim(s.W)+' × '+dim(s.D)+' · '+FINISH[s.finish].name+'</div></div>'+
-    '<div class="psh-r"><div>'+date+'</div><div>Simplified reference — confirm against local code</div></div></div>';
+    '<div class="psh-r"><div>'+date+'</div><div>Design aid — not stamped engineering</div></div></div>'+
+    // says it once, plainly, on the artifact that actually leaves the site and gets handed to whoever builds
+    '<p class="planlegal"><b>This is a design tool, not an engineering service.</b> This sheet is not a stamped or ' +
+    'signed engineering plan, and no licensed engineer has reviewed this design. The structure check compares members ' +
+    'against published span tables at assumed loads — it is not a structural analysis of your site, your soil, your ' +
+    'snow and wind, or your workmanship. Check your local building code, pull a permit where one is required, and have ' +
+    'a licensed professional review anything you are unsure of. You are responsible for what you build.</p>';
 }
 function planSpec(s){
   const rows=[], R=(k,v)=>{ if(v) rows.push([k,v]); };
@@ -4052,7 +4073,7 @@ function openPlan(){
     h+=`<tr${mm.pass?'':' class="diff"'}><td>${mm.label}</td><td>${mm.need}</td><td>${mm.have}</td><td>${mm.pass?'✓ +'+mm.marginPct+'%':'✗ over'}</td></tr>`; }
   h+='</table>';
   h+= eng.pass
-    ? '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;color:var(--tm)">All members inside #2-SPF span-table limits (40 psf floor live · 30 psf roof snow · 1,500 psf soil). Still confirm against local code.</p>'
+    ? '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;color:var(--tm)">Every member is within #2-SPF span-table limits <b>at the assumed loads</b> — 40 psf floor live, 30 psf roof snow, 1,500 psf soil. Those are assumptions, not a survey of your site: snow, wind and soil all vary by location. This is a span-table check, not a structural analysis, and this sheet is not a stamped or signed engineering plan. Confirm against local code before you build.</p>'
     : '<ul class="plannotes">'+eng.issues.map(i=>'<li>'+i+'</li>').join('')+'</ul>';
   h+=planSafety(s);
   h+='<h4>Tools you’ll need</h4><div class="toolist">'+est.tools.map(t=>'<span>'+t+'</span>').join('')+'</div>';
@@ -4095,6 +4116,9 @@ function openPlan(){
   });
   h+='</div>';
   h+='<h4>Build notes</h4><ul class="plannotes"><li>Footings below frost line (or deck blocks for casual builds), leveled to each other.</li><li>Through-bolt beams to posts; add 45° knee braces on all sides.</li><li>Joists '+s.oc+'" O.C. · '+(s.post==='6x6'?'6×6':'4×4')+' posts'+(s.Hf>5&&s.post==='4x4'?' (consider 6×6 at this height)':'')+'.</li><li>Use Ground-Contact PT near soil; flash/seal exposed end-grain.</li></ul>';
+  // repeats along the bottom of EVERY printed page (position:fixed prints per page), so no sheet
+  // can be torn off and read as an engineered drawing
+  h+='<div class="planrunfoot" aria-hidden="true">Delcan &amp; Co. Builder 1.0 · design aid, not a stamped or signed engineering plan · confirm against local code before building</div>';
   document.getElementById('planBody').innerHTML=h;
   syncUnlock();
   const unl=planUnlocked(), pb=document.getElementById('planPrint'), pn=document.getElementById('planNote');
@@ -4103,8 +4127,8 @@ function openPlan(){
   if(pn) pn.innerHTML = isOwner()
     ? '<b>Owner access</b> — free, unlimited prints. Customers see the pay-what-you-want unlock here. Add <b>?relock=1</b> to the URL to see their view.'
     : unl
-      ? 'Thank you ✓ · print, or “Save as PDF” in the print dialog · confirm against local code before building'
-      : 'Everything on this sheet is free to read. Pay what you think it’s worth — '+PLAN_SUGGESTED+' suggested, '+PLAN_MIN+' minimum — to unlock printing and saving it as a PDF. Secure checkout via Stripe.';
+      ? 'Thank you ✓ · print, or “Save as PDF” in the print dialog · a design aid, not a stamped engineering plan — confirm against local code before building'
+      : 'Everything on this sheet is free to read. Pay what you think it’s worth — '+PLAN_SUGGESTED+' suggested, '+PLAN_MIN+' minimum — to unlock printing and saving it as a PDF. Secure checkout via Stripe. A design aid, not a stamped engineering plan.';
   document.getElementById('planModal').classList.add('on');
 }
 document.getElementById('openPlan').addEventListener('click',openPlan);
