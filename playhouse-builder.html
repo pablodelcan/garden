@@ -1095,6 +1095,7 @@
           <button data-v="standard" class="on">Standard</button>
           <button data-v="wide">Wide</button>
           <button data-v="dutch">Dutch</button>
+          <button data-v="barn">Barn (sliding)</button>
         </div></div>
       <div class="ctl"><div class="row"><label>Door wall</label></div>
         <div class="seg four" id="doorWall">
@@ -1320,13 +1321,22 @@ const tog={tSiding:true,tRoof:true,tBraces:true,tLadder:true,tFraming:true,tSpin
 const colors={struct:'#b07a43',siding:'#c68a4a',roof:'#5a4231',trim:'#b07a43',door:'#3a2517',accent:'#705339',
   walls:{front:null,back:null,left:null,right:null}};   // per-wall paint — null falls back to siding
 const DOOR={ kid:{w:2.0,h:4.2,label:'Kid'}, standard:{w:2.6,h:5.4,label:'Standard'},
-  wide:{w:3.4,h:5.4,label:'Wide'}, dutch:{w:2.6,h:5.4,dutch:true,label:'Dutch'} };
+  wide:{w:3.4,h:5.4,label:'Wide'}, dutch:{w:2.6,h:5.4,dutch:true,label:'Dutch'},
+  // slides on a track instead of swinging: nothing to swing into on a small deck, and the leaf
+  // overlaps the opening rather than fitting it, so it is the most forgiving door to build
+  barn:{w:3.0,h:5.4,barn:true,label:'Barn (sliding)'} };
 // real Lowe's "Shed Windows and More" flush-mount, tempered-glass units (in = nominal opening, sized so the model matches what you'd actually order)
 const WIN={
   small:  {w:1.0, h:1.5,  label:'Small · 12×18″',   type:'vertical slider',  price:48, url:'https://www.lowes.com/pd/Shed-Windows-and-More-Vertical-Slider-12-x-18-White-Aluminum-Window-Flush-Mount-Tempered-Glass/7151559'},
   medium: {w:1.5, h:1.92, label:'Medium · 18×23″',  type:'vertical slider',  price:64, url:'https://www.lowes.com/pd/Shed-Windows-and-More-Vertical-Slider-18-x-23-White-Aluminum-Window-Flush-Mount-Tempered-Glass/7151678'},
   large:  {w:2.0, h:2.25, label:'Large · 24×27″',   type:'vertical slider',  price:88, url:'https://www.lowes.com/pd/Shed-Windows-and-More-Vertical-Slider-24-x-27-White-Aluminum-Window-Flush-Mount-Tempered-Glass/7151723'},
-  picture:{w:2.5, h:0.83, label:'Transom · 10×30″', type:'fixed transom',    price:72, url:'https://www.lowes.com/pd/Shed-Windows-and-More-Fixed-Transom-10-x-30-White-Aluminum-Window-Flush-Mount-Fixed-Window-Tempered-Glass/7151478'} };
+  picture:{w:2.5, h:0.83, label:'Transom · 10×30″', type:'fixed transom',    price:72, url:'https://www.lowes.com/pd/Shed-Windows-and-More-Fixed-Transom-10-x-30-White-Aluminum-Window-Flush-Mount-Fixed-Window-Tempered-Glass/7151478'},
+  // Fixed acrylic lights, cut from sheet and set in stops. No unit to buy, no operable sash to
+  // fail, and safer than glass at kid height. Slim verticals read as slots in the siding.
+  slim:   {w:0.5,  h:2.5,  label:'Slim vertical · 6×30″', type:'fixed acrylic', plexi:true, price:0},
+  slot:   {w:0.42, h:3.5,  label:'Tall slot · 5×42″',     type:'fixed acrylic', plexi:true, price:0},
+  plexisq:{w:1.33, h:1.33, label:'Plexi square · 16×16″', type:'fixed acrylic', plexi:true, price:0} };
+const ACRYL={ shW:18, shH:24, price:26 };   // one 18×24″ × 0.093″ acrylic sheet
 
 /* ===== build-sequence state ===== */
 let stepOn=false, stepCur=1, _stage=0, _limit=Infinity, _explode=0;
@@ -1918,9 +1928,37 @@ function rebuild3D(p){
     onWall(op.k,op.uc+op.hw+0.06,mid,0.1,h+0.2,0.1,P.trim,{off:0.05,cast:false});
     if(type==='window'){
       onWall(op.k,op.uc,mid,ww,h,0.04,P.glass,{off:0.015,opacity:0.5,cast:false});
-      onWall(op.k,op.uc,mid,ww,0.05,0.06,P.trim,{off:0.04,cast:false});
-      onWall(op.k,op.uc,mid,0.05,h,0.06,P.trim,{off:0.04,cast:false});
-      onWall(op.k,op.uc,bot-0.12,ww+0.32,0.07,0.2,P.trim,{off:0.1,cast:false});             // projecting drip sill
+      if(spec.plexi){
+        // a fixed acrylic light set in stops — no sash, no muntins. A slim vertical wants to read
+        // as one uninterrupted slot, so crossing it with a bar would fight the whole point.
+        onWall(op.k,op.uc,top-0.03,ww+0.10,0.06,0.05,P.trim,{off:0.035,cast:false});
+        onWall(op.k,op.uc,bot+0.03,ww+0.10,0.06,0.05,P.trim,{off:0.035,cast:false});
+        for(const sgn of [-1,1]) onWall(op.k,op.uc+sgn*(op.hw+0.02),mid,0.06,h+0.06,0.05,P.trim,{off:0.035,cast:false});
+        onWall(op.k,op.uc,bot-0.07,ww+0.20,0.05,0.13,P.trim,{off:0.07,cast:false});          // slim drip sill
+      } else {
+        onWall(op.k,op.uc,mid,ww,0.05,0.06,P.trim,{off:0.04,cast:false});
+        onWall(op.k,op.uc,mid,0.05,h,0.06,P.trim,{off:0.04,cast:false});
+        onWall(op.k,op.uc,bot-0.12,ww+0.32,0.07,0.2,P.trim,{off:0.1,cast:false});            // projecting drip sill
+      }
+    } else if(spec.barn){
+      // The leaf OVERLAPS the opening instead of fitting it, hangs proud of the siding on a track,
+      // and slides to one side — so the track runs on past the opening to show where it goes.
+      const lw=ww+0.34, lh=h+0.22, lmid=(bot+lh/2)+0.02, D0=0.13;
+      // the track runs one door-width PAST the opening on whichever side has room — and stops at
+      // the corner, because a track cantilevered off the end of the building is not a thing
+      const Lw=(op.k==='front'||op.k==='back')?W:D;
+      const slideR=(Lw-(op.uc+op.hw))>=(op.uc-op.hw);
+      let t0=op.uc-op.hw-0.25, t1=op.uc+op.hw+0.25;
+      if(slideR) t1=Math.min(Lw-0.08,t1+ww); else t0=Math.max(0.08,t0-ww);
+      onWall(op.k,(t0+t1)/2,top+0.30,t1-t0,0.12,0.09,P.trim,{off:D0+0.06,cast:false});        // track
+      for(const s2 of [-1,1]) onWall(op.k,op.uc+s2*lw*0.34,top+0.19,0.09,0.30,0.07,P.trim,{off:D0+0.05,cast:false});   // roller hangers
+      onWall(op.k,op.uc,lmid,lw,lh,0.07,P.door,{off:D0,cast:false});                          // the leaf
+      for(const s2 of [-1,0,1]) onWall(op.k,op.uc+s2*lw*0.31,lmid,0.09,lh-0.08,0.05,P.trim,{off:D0+0.04,cast:false});  // vertical battens
+      for(const yy of [lmid+lh*0.40,lmid-lh*0.40]) onWall(op.k,op.uc,yy,lw-0.06,0.09,0.05,P.trim,{off:D0+0.04,cast:false});
+      // (the Z-brace diagonal goes on the BACK of the leaf — you don't see it from outside, and
+      //  onWall has no in-plane rotation, so drawing it here would have been a vertical bar lying)
+      onWall(op.k,op.uc+op.hw*0.72,lmid,0.09,0.72,0.10,P.trim,{off:D0+0.08,cast:false});      // long pull handle
+      onWall(op.k,op.uc-lw*0.5,bot+0.04,0.12,0.10,0.12,P.trim,{off:D0-0.02,cast:false});      // floor guide
     } else {
       onWall(op.k,op.uc,mid,ww,h,0.06,P.door,{off:0.02,cast:false});
       if(spec.dutch) onWall(op.k,op.uc,mid+h*0.04,ww,0.1,0.08,P.trim,{off:0.045,cast:false});
@@ -2751,15 +2789,36 @@ function computeMaterials(p){
     add(g,Math.max(1,gal),'gal',fin.name.replace(' look','')+'-tone stain','gets the '+fin.name.replace(' look','').toLowerCase()+' color on T1-11 / SmartSide (no real cedar at Lowe\'s)',Math.max(1,gal)*42,lw('exterior semi transparent stain cedar')); }
   if(finish==='paint'){ add(g,2,'gal','Primer + exterior paint','your color',135,lw('exterior paint primer')); }
   const dS=DOOR[p.door.size], doorH=Math.min(dS.h, Hw-0.25);
-  S(10.5); for(const win of p.windows){ const ws=WIN[win.size];
+  S(10.5);
+  for(const win of p.windows){ const ws=WIN[win.size]; if(ws.plexi) continue;
     add(g,1,'×',`Window — ${ws.label}`,`Shed Windows & More ${ws.type}, flush-mount tempered · on the ${win.wall} wall`,ws.price,ws.url); }
+  { const px=p.windows.filter(w=>WIN[w.size]&&WIN[w.size].plexi);
+    if(px.length){
+      // you don't buy these — you cut them out of sheet, so the list sells the sheet
+      const area=px.reduce((a,w)=>a+WIN[w.size].w*12*WIN[w.size].h*12,0);          // sq in of light
+      const sheets=Math.max(1,Math.ceil(area/(ACRYL.shW*ACRYL.shH*0.75)));          // 75% yield off a sheet
+      const stopLF=px.reduce((a,w)=>a+2*(WIN[w.size].w+WIN[w.size].h),0)*2;         // stops both faces
+      for(const w of px) add(g,1,'×',`Light — ${WIN[w.size].label}`,`fixed acrylic, cut from the sheet below and set in stops · on the ${w.wall} wall`,0,'');
+      add(g,sheets,'×',`Acrylic sheet — ${ACRYL.shW}×${ACRYL.shH}″ × 0.093″`,
+        `${px.length} light${px.length===1?'':'s'} cut from ${sheets} sheet${sheets===1?'':'s'}. Score-and-snap or a fine-tooth blade; leave the masking film on until the stops are pinned. Safer than glass at kid height and it will not shatter.`,
+        sheets*ACRYL.price,lw('acrylic sheet 18 x 24 clear'));
+      add(g,Math.ceil(stopLF/8),'pcs','Stop trim 1×2 — 8 ft',`~${Math.round(stopLF)} lf: a stop inside and out, so the sheet is captured rather than screwed through`,Math.ceil(stopLF/8)*8*PRICE.brace*1.2,lw('1x2 furring strip'));
+      add(g,1,'tube','Clear sealant — acrylic-safe','NEUTRAL-cure silicone. Ordinary acetoxy silicone and solvent caulks CRAZE acrylic — it goes cloudy and brittle',9,lw('neutral cure clear silicone sealant'));
+    } }
   // ---- door: custom-built board-and-batten (no stock door fits a playhouse opening) ----
   S(10); const leaves=dS.dutch?2:1, faceBoards=Math.ceil(dS.w/0.46), ledges=leaves*3+1, nHinge=leaves*(doorH>4.5?3:2);
-  add(g,1,'×',`Door — ${dS.label}, custom built`,`board-and-batten, ~${dim(dS.w)}×${dim(doorH)}${dS.dutch?' · split dutch (2 leaves)':''} on the ${p.door.wall} wall — build it from the boards below; no stock shed door suits this opening`,0,'');
+  add(g,1,'×',`Door — ${dS.label}, custom built`,`board-and-batten, ~${dim(dS.w)}×${dim(doorH)}${dS.dutch?' · split dutch (2 leaves)':''}${dS.barn?' · leaf built OVERSIZE so it laps the opening':''} on the ${p.door.wall} wall — build it from the boards below; no stock shed door suits this opening`,0,'');
   add(g,faceBoards,'pcs',`1×6 T&G face boards — ${stdLen(doorH)} ft`,'vertical face of the door (or a siding offcut)',faceBoards*stdLen(doorH)*1.5,lw('1x6 tongue and groove cedar board'));
   add(g,ledges,'pcs',`1×4 ledge + Z-brace — ${stdLen(dS.w)} ft`,'battens that hold the face boards together',ledges*stdLen(dS.w)*PRICE.brace,lw('1x4 furring board'));
-  add(g,nHinge,'×','Exterior strap / T-hinges',`${nHinge} for a ${dim(doorH)} door${leaves>1?' (both leaves)':''}`,nHinge*9,lw('exterior t-hinge strap'));
-  add(g,leaves,'×','Gate latch + handle',leaves>1?'one per leaf + dutch shelf':'thumb latch or barrel bolt',leaves*13+(dS.dutch?14:0),lw('gate latch black'));
+  if(dS.barn){
+    add(g,1,'kit',`Barn door track — ${Math.max(6,Math.ceil(dS.w*2))} ft`,`the track runs TWICE the door width so the leaf can clear the opening · two roller hangers, end stops and anti-jump discs`,120,lw('sliding barn door hardware kit 6 ft'));
+    add(g,1,'×','Floor guide','a stay-roller at the bottom — without it the leaf swings off the wall and the rollers wear',14,lw('barn door floor guide'));
+    add(g,1,'×','Pull handle','long vertical pull, both faces if it opens from inside',22,lw('barn door pull handle'));
+    add(g,2,'pcs',`Header backer 2×6 — ${stdLen(dS.w*2.2)} ft`,'the track CANNOT hang off siding — it lags into a continuous backer let into the studs above the opening',2*stdLen(dS.w*2.2)*PRICE.beam,lw('2x6'));
+  } else {
+    add(g,nHinge,'×','Exterior strap / T-hinges',`${nHinge} for a ${dim(doorH)} door${leaves>1?' (both leaves)':''}`,nHinge*9,lw('exterior t-hinge strap'));
+    add(g,leaves,'×','Gate latch + handle',leaves>1?'one per leaf + dutch shelf':'thumb latch or barrel bolt',leaves*13+(dS.dutch?14:0),lw('gate latch black'));
+  }
   S(7); const openings=p.windows.length+1;
   add(g,openings*2,'pcs','Headers 2×6 — openings','DOUBLED over each opening, king + jack studs each side (step 7)',openings*2*stdLen(3)*PRICE.beam,lw('2x6'));
   add(g,4,'pcs',`Corner boards 1×4 — ${stdLen(Hw)} ft`,'cover the siding joint at each corner (step 9)',4*stdLen(Hw)*PRICE.brace*1.3,lw('1x4 primed trim board'));
@@ -3679,6 +3738,15 @@ function openingClashes(s){
       if(gap<0) out.push({wall:k, hard:true, msg:'the '+name(a)+' and the '+name(b)+' OVERLAP — they cannot both be framed. Move one along the wall, or make one smaller'});
       else if(gap<RO_GAP) out.push({wall:k, hard:false, msg:'only '+dimIn(Math.round(gap*12))+' between the '+name(a)+' and the '+name(b)+' — not enough for their jack and king studs. Aim for 6″'});
     }
+    // a sliding door has to have somewhere to slide TO — a door width of clear wall on one side
+    if(k===s.door.wall && (DOOR[s.door.size]||{}).barn){
+      const d=line.find(o=>o.kind==='door');
+      if(d){ const ww=d.hw*2;
+        const clear=(a,b)=> a>=0 && b<=L && !line.some(o=>o!==d && (o.uc-o.hw)<b && (o.uc+o.hw)>a);
+        if(!clear(d.uc-d.hw-ww,d.uc-d.hw) && !clear(d.uc+d.hw,d.uc+d.hw+ww))
+          out.push({wall:k, hard:false, msg:'the barn door has nowhere to slide — it needs about a full door width of clear wall to one side, and the track runs twice the door width. Move it along the wall, narrow it, or shift whatever is beside it'});
+      }
+    }
   }
   return out;
 }
@@ -4003,17 +4071,32 @@ function stepGuide(st,s){
     `Fasten every 8″ on edges into studs. ${s.finish==='paint'?'Prime cut edges before they go up.':s.finish==='pt'?'Let PT dry a few weeks before any finish.':'Seal cut edges so the '+FINISH[s.finish].name.toLowerCase()+' doesn’t wick water.'}`,
     '✔ Check: no fastener missed a stud (you’ll hear it).'
   ];
-  G[10]=[
+  G[10]=(DOOR[s.door.size]||{}).barn ? [
+    `Build the leaf OVERSIZE: ${dim(DOOR[s.door.size].w+0.34)} wide × ${dim(Math.min(DOOR[s.door.size].h,s.Hw-0.25)+0.22)} tall, so it laps the opening by ~2″ all round instead of fitting inside it. That lap is what keeps weather and light out of the gap — a barn door never seals against a jamb.`,
+    'Boards vertical, two ledges across the back and ONE diagonal running from the bottom hinge-side corner up to the top pull-side corner. A barn leaf hangs from two points and will rack into a parallelogram without that diagonal.',
+    'Fit the header backer FIRST: a continuous 2× let into the studs above the opening, spanning twice the door width. The track lags into that. Lagging a track into siding will pull out — it is carrying the whole leaf plus a child hanging off it.',
+    `Track runs ${dim(DOOR[s.door.size].w*2)} — twice the door width — so the leaf clears the opening completely when it is open. Level it, then hang the rollers.`,
+    'Set the floor guide at the bottom so the leaf cannot swing away from the wall, and fit end stops plus anti-jump discs at both ends of the track.',
+    '✔ Check: it rolls the full travel with one finger, the lap covers the opening at both ends, and it cannot be lifted off the track.'
+  ] : [
     s.door.size==='dutch'?'Dutch door: hang the bottom leaf first, get its gap even, then the top leaf; a small shelf on the bottom leaf hides the meeting joint.':'Hang the door on its hinges to the jack stud, shim until the gap is even all round, then drive long screws through the shims.',
     'Trim the door — casing covers the shims and the RO gap; a sill/threshold keeps water walking out, not in.',
     '✔ Check: door swings closed and STAYS (not self-opening = plumb).'
   ];
-  G[10.5]=[
-    `Set each of the ${s.windows.length} window${s.windows.length===1?'':'s'} in its opening on the sill, flange screwed to the sheathing.`,
+  G[10.5]=(()=>{
+    const px=(s.windows||[]).filter(w=>WIN[w.size]&&WIN[w.size].plexi), gl=(s.windows||[]).filter(w=>WIN[w.size]&&!WIN[w.size].plexi);
+    const out=[];
+    if(px.length) out.push(
+      `${px.length} fixed acrylic light${px.length===1?'':'s'}: cut the sheet with a fine-tooth blade (or score-and-snap), leaving the masking film ON until the stops are pinned — it is the film that saves the face from scratches while you handle it.`,
+      'Cut the light ⅛″ UNDER the opening in both directions. Acrylic moves a lot more than glass with temperature, and a piece pinched tight will craze or bow.',
+      'Bed it on a stop inside, pin a stop outside, and seal with NEUTRAL-cure silicone only. Ordinary acetoxy silicone and most solvent caulks attack acrylic — it goes cloudy and then brittle.',
+      'Never screw through the face. The sheet is captured between the two stops; a screw through it starts a crack that runs.');
+    if(gl.length) out.push(`Set each of the ${gl.length} purchased window${gl.length===1?'':'s'} in its opening on the sill, flange screwed to the sheathing.`);
+    return out.concat([
     'Flash in the right order: sill pan tape first, then the side pieces, then the TOP piece over the sides — water always laps DOWNHILL over the layer below.',
     'Trim each window; back-caulk the top casing, leave the bottom edge open so any water can drain.',
     '✔ Check: spray each window with a hose from below and above — dry inside.'
-  ];
+  ]); })();
   G[11]=[`Deck footings exactly like step 1: ${(s.deckSide==='front'||s.deckSide==='back')?(W>9?3:2):(D>9?3:2)} posts at the deck’s outer edge, ${dim(s.Dd)} out from the house wall.`,
     s.roofOver&&(s.deckSide==='front'||s.deckSide==='back')?'The two CORNER posts run in ONE piece from their footings all the way to the porch-roof header — cut them long, trim at header height after the roof line is strung. Any mid post stops at the rim.':'The two CORNER posts run in ONE piece from their footings up to the RAIL TOP (36″ above the deck) — the railing bolts to solid posts, not spindly stubs. Any mid post stops at the rim.',
     'Cut the mid/rim height so the deck floor lands flush with the house floor.','✔ Check: outer posts plumb both ways and in line with the house wall posts.'];
@@ -4092,6 +4175,8 @@ function planSpec(s){
   R('Joists', s.oc+'" on centre');
   R('Door', DOOR[s.door.size].label+' · '+s.door.wall+' wall');
   R('Windows', s.windows.length ? s.windows.map(w=>WIN[w.size].label+' ('+w.wall+')').join(' · ') : 'None');
+  { const px=(s.windows||[]).filter(w=>WIN[w.size]&&WIN[w.size].plexi);
+    if(px.length) R('Glazing', px.length+' fixed acrylic light'+(px.length===1?'':'s')+' cut from sheet, set in stops · neutral-cure sealant only'); }
   if(s.Dd>0) R('Deck', dim(s.Dd)+' deep on the '+s.deckSide+' side · rail return '+s.deckEdge);
   const L=LADDERS[s.ladderStyle];
   R('Access', s.access==='stairs'
@@ -4241,10 +4326,10 @@ function sanitizeDesign(d){
   if(d.door&&typeof d.door==='object'){
     if(SID.includes(d.door.wall)) out.door.wall=d.door.wall;
     if(d.door.pos!=null&&isFinite(+d.door.pos)) out.door.pos=Math.max(0,Math.min(1,+d.door.pos));
-    if(['kid','standard','wide','dutch'].includes(d.door.size)) out.door.size=d.door.size; }
+    if(Object.keys(DOOR).includes(d.door.size)) out.door.size=d.door.size; }
   if(Array.isArray(d.windows)) out.windows=d.windows.slice(0,4).filter(w=>w&&typeof w==='object').map(w=>({
     wall:SID.includes(w.wall)?w.wall:'right', pos:(w.pos!=null&&isFinite(+w.pos))?Math.max(0,Math.min(1,+w.pos)):0.5,
-    size:['small','medium','large','picture'].includes(w.size)?w.size:'medium'}));
+    size:Object.keys(WIN).includes(w.size)?w.size:'medium'}));
   return out;
 }
 function verifyDesign(s){
