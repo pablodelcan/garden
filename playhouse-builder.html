@@ -1030,10 +1030,10 @@
         <div class="seg three" id="access">
           <button data-v="ladder" class="on">Ladder</button>
           <button data-v="stairs">Stairs</button>
-          <button data-v="rock">Rock wall</button>
+          <button data-v="rock">Rock wall only</button>
         </div></div>
       <div class="ctl" id="rockCtl">
-        <label class="optrow"><input type="checkbox" id="optRockWall"> Add a rock wall as well <span>a second way up, on another side</span></label>
+        <label class="optrow"><input type="checkbox" id="optRockWall"> Add a rock wall <b style="font-weight:700">as well</b> <span>keeps the ladder or stair — this is the second way up</span></label>
         <div class="row" id="rockSideRow"><label>Rock wall side</label></div>
         <div class="seg four" id="rockSide">
           <button data-v="beside" class="on">Beside the stairs</button>
@@ -2359,6 +2359,13 @@ function rebuild3D(p){
       rockDeck={ sm:dm, u:uR, pw:rpw, out:dP, edge:'outer', half:rpw/2+0.2 };
     }
   }
+  // no deck (or no room on it): stand it right next to the ladder/stair instead, off the same
+  // anchor, so "beside" means beside in every configuration rather than silently nothing
+  let rockBeside=null;
+  if(state.rockWall && p.access!=='rock' && !rockDeck && (state.rockSide||'beside')==='beside'){
+    const rpw=2.2, off=1.2+rpw/2+0.35;
+    rockBeside={ pt:(r,w,y)=>accPt(r, off+w, y), widthIsX:accWidthIsX, pw:rpw };
+  }
 
   // ---- deck (attaches to any wall; railing has an opening where the stair lands) ----
   if(Dd>0){
@@ -2544,7 +2551,11 @@ function rebuild3D(p){
     rockFace((r,w,y)=>rockDeck.sm.W3(rockDeck.u+w, rockDeck.out+r, y), rockDeck.sm.fb,
              floorY, groundAt(g[0],g[1]), rockDeck.pw);
   }
-  if(state.rockWall && p.access!=='rock' && sL && !rockDeck && (state.rockSide||'beside')!=='beside'){
+  if(rockBeside && sL){ _stage=15;
+    const g=rockBeside.pt(0.6,0,0);
+    rockFace(rockBeside.pt, rockBeside.widthIsX, floorY, groundAt(g[0],g[2]), rockBeside.pw);
+  }
+  if(state.rockWall && p.access!=='rock' && sL && !rockDeck && !rockBeside){
     _stage=15;
     const rs=state.rockSide||'back', rm=sideMap(rs);
     const rOnDeck = Dd>0 && rs===p.deckSide;
@@ -3288,7 +3299,10 @@ function update(){
     const cap=document.getElementById('rockCap');
     if(cap) cap.innerHTML = isRock
       ? 'The rock wall is the way up. Slabbed, not overhanging, with a grab bar over the lip — and it needs a mulched fall zone under it.'
-      : extra ? ((state.rockSide||'beside')==='beside' ? 'Climbs to the deck right beside the '+state.access+', with its own gap in the railing.' : 'Against the '+state.rockSide+' wall, climbing to floor level.')
+      : extra ? ((state.rockSide||'beside')==='beside'
+          ? (state.Dd>0 ? 'Climbs to the deck right beside the '+state.access+', with its own gap in the railing.'
+                        : 'Stands right beside the '+state.access+', climbing to floor level.')
+          : 'Against the '+state.rockSide+' wall, climbing to floor level.')
               : 'Kids will use a rock wall far more than the stair. It can be the way up, or sit alongside it.'; }
   const dec=document.getElementById('deckEdgeCtl'); if(dec) dec.style.display=state.Dd>0?'':'none';
   const vss=document.getElementById('vStairSide');     // a deck pins the access to the deck side so it always lands ON it
