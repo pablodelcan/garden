@@ -1511,6 +1511,7 @@ const STAGES={
   8:{name:'Roof framing', desc:'The roof structure only: ceiling joists, the knee wall or ridge that sets the slope, and rafters cut from one pattern. No sheathing yet — get the skeleton right first.'},
   8.5:{name:'Sheathing & roofing', desc:'Skin the roof: sheathing across the rafters, drip edge + underlayment, then the roof covering and trim.'},
   9:{name:'Siding', desc:'Sheathe the walls with siding, cutting around the door and window openings.'},
+  9.5:{name:'Trim & casing', desc:'Corner boards where the siding meets, and casing round every opening. All the same 1× stock — pick its width in Finish & colour.'},
   10:{name:'Door', desc:'Hang the door plumb in its opening and trim it out.'},
   10.5:{name:'Windows', desc:'Set each window in its opening, flash it properly, and trim it out.'},
   11:{name:'Deck footings & posts', desc:'Set the deck’s outer footings and stand its posts, leveled to the house floor.'},
@@ -1632,7 +1633,7 @@ function tri(pts,zpos,yBase,color,depth){
   for(let i=1;i<pts.length;i++) sh.lineTo(pts[i][0],pts[i][1]); sh.closePath();
   const g=new THREE.ExtrudeGeometry(sh,{depth:depth??0.08,bevelEnabled:false});
   const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.9,side:THREE.DoubleSide}));
-  m.position.set(0,yBase+eoff(),zpos-(depth??0.08)/2); m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.position.set(0,yBase+eoff(),zpos-(depth??0.08)/2); m.userData.stage=_stage; m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
 }
 function triHole(pts,holes,zpos,yBase,color,depth){
   if(!house||_stage>_limit)return;
@@ -1643,12 +1644,12 @@ function triHole(pts,holes,zpos,yBase,color,depth){
     sh.holes.push(pa); }
   const g=new THREE.ExtrudeGeometry(sh,{depth:depth??0.08,bevelEnabled:false});
   const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.9,side:THREE.DoubleSide}));
-  m.position.set(0,yBase+eoff(),zpos-(depth??0.08)/2); m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.position.set(0,yBase+eoff(),zpos-(depth??0.08)/2); m.userData.stage=_stage; m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
 }
 function ball(r,x,y,z,color){
   if(!house||_stage>_limit)return;
   const m=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),new THREE.MeshStandardMaterial({color,roughness:.92}));
-  m.position.set(x,y+eoff(),z); m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
+  m.position.set(x,y+eoff(),z); m.userData.stage=_stage; m.castShadow=true; m.receiveShadow=true; house.add(m); return m;
 }
 // flat polygon from 3D corner points (fan-triangulated, double-sided) — for gable-end caps in any plane
 function poly3(pts,color){
@@ -1661,7 +1662,7 @@ function poly3(pts,color){
   m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m;
 }
 // gate raw THREE.Mesh adds the same way box/strut/tri are gated (build-step + exploded view)
-function addRaw(m){ if(!house||_stage>_limit) return null; m.castShadow=true; m.receiveShadow=true; house.add(m); return m; }
+function addRaw(m){ if(!house||_stage>_limit) return null; m.castShadow=true; m.receiveShadow=true; m.userData.stage=_stage; house.add(m); return m; }
 const _signCache={};
 function signPlane(text){
   if(!_signCache[text]){
@@ -1992,11 +1993,13 @@ function rebuild3D(p){
   function renderOpening(op,type,spec){
     _stage = type==='door'?10:10.5;
     const top=op.vTop,bot=op.vBot,mid=(top+bot)/2,ww=op.hw*2,h=top-bot;
+    const _os=_stage; _stage=9.5;                       // casing is TRIM, not the door or the window
     const TW=(state.trimW||3.5)/12;                     // casing width, as chosen — 1×3 … 1×8
     onWall(op.k,op.uc,top+TW/2,ww+2*TW+0.04,TW,0.1,P.trim,{off:0.05,cast:false});
     onWall(op.k,op.uc,bot-TW/2,ww+2*TW+0.04,TW,0.1,P.trim,{off:0.05,cast:false});
     onWall(op.k,op.uc-op.hw-TW/2,mid,TW,h+0.04,0.1,P.trim,{off:0.05,cast:false});
     onWall(op.k,op.uc+op.hw+TW/2,mid,TW,h+0.04,0.1,P.trim,{off:0.05,cast:false});
+    _stage=_os;
     if(type==='window'){
       onWall(op.k,op.uc,mid,ww,h,0.04,P.glass,{off:0.015,opacity:0.5,cast:false});
       if(spec.plexi){
@@ -2046,7 +2049,7 @@ function rebuild3D(p){
     for(const win of p.windows){ const ws=winOf(win), sp=winSpec(ws);
       const r=rect(win.wall,win.pos,ws.w,sp.wh,floorY+sp.sill); r._ws=ws; wRects.push(r); byWall[win.wall].push(r); }
     for(const k of ['front','back','left','right']) renderWall(k,byWall[k]);
-    if(sS&&!interior){ _stage=9;                       // corner boards — finished trim where siding meets
+    if(sS&&!interior){ _stage=9.5;                     // corner boards — finished trim where siding meets
       const TWc=(state.trimW||3.5)/12;
       for(const sx of [-1,1]) for(const sz of [-1,1]){
         box(TWc,Hw-0.06,0.05, sx*(W/2-TWc/2+0.04),floorY+Hw/2,sz*(D/2+0.085), P.trim,{cast:false});
@@ -2990,7 +2993,7 @@ function computeMaterials(p){
   }
   S(7); const openings=p.windows.length+1;
   add(g,openings*2,'pcs','Headers 2×6 — openings','DOUBLED over each opening, king + jack studs each side (step 7)',openings*2*stdLen(3)*PRICE.beam,lw('2x6'));
-  S(9);
+  S(9.5);
   { const TWn=state.trimW||3.5, nom=TWn===2.5?3:TWn===3.5?4:TWn===5.5?6:8, TWft=TWn/12;
     add(g,4,'pcs',`Corner boards 1×${nom} — ${stdLen(Hw)} ft`,`cover the siding joint at each corner (step 9) · ${TWn}″ face`,
       4*stdLen(Hw)*PRICE.brace*1.3*(TWn/3.5),lw('1x'+nom+' primed trim board'));
@@ -3794,6 +3797,7 @@ const FASTENERS={
   8:'Rafters → plates: hurricane ties + 1½" tie nails; peaked roofs: rafters → ridge with 3" screws, toe-driven.',
   8.5:'Sheathing → rafters: 2" nails/screws @ 6" edges; metal roofing: 1¼" gasketed screws beside each rib.',
   9:'Siding → studs: 2" galvanized/exterior screws or ring-shank nails @ 8".',
+  9.5:'Trim: 2" exterior trim-head screws or 8d galvanised finish nails, pre-drilled near the ends. Prime the cut ends before they go up.',
   10:'Door: 3" screws through hinges + shims into the jack stud; trim: 2" finish screws.',
   10.5:'Window flange: 1½" roofing nails/screws into sheathing; flashing tape needs a roller, not fingers.',
   11:'Deck post bases → piers: ¼"×3" concrete screws; posts → bases: 1½" SD screws.',
