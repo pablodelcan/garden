@@ -1139,6 +1139,14 @@
 
     <div class="group">
       <p class="glabel">Finish &amp; color</p>
+      <div class="ctl"><div class="row"><label>Trim width</label><span class="val" id="vTrimW"></span></div>
+        <div class="seg four" id="trimW">
+          <button data-v="2.5">1×3</button>
+          <button data-v="3.5" class="on">1×4</button>
+          <button data-v="5.5">1×6</button>
+          <button data-v="7.25">1×8</button>
+        </div>
+        <div class="fincap" id="trimCap"></div></div>
       <div class="ctl"><div class="seg four" id="finish">
         <button data-v="pt">PT (raw)</button>
         <button data-v="cedar" class="on">Cedar</button>
@@ -1338,7 +1346,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 // with a deck, a railing and a real stair. Sides pulled in to 6″, front and back run long.
 const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',ovX:0.5,ovZ:1.25,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'beside',stairRail:'both',anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'beside',stairRail:'both',trimW:3.5,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.3,size:'dutch'},
    windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.78,size:'large'}]};
@@ -1954,10 +1962,11 @@ function rebuild3D(p){
   function renderOpening(op,type,spec){
     _stage = type==='door'?10:10.5;
     const top=op.vTop,bot=op.vBot,mid=(top+bot)/2,ww=op.hw*2,h=top-bot;
-    onWall(op.k,op.uc,top+0.05,ww+0.22,0.1,0.1,P.trim,{off:0.05,cast:false});
-    onWall(op.k,op.uc,bot-0.05,ww+0.22,0.1,0.1,P.trim,{off:0.05,cast:false});
-    onWall(op.k,op.uc-op.hw-0.06,mid,0.1,h+0.2,0.1,P.trim,{off:0.05,cast:false});
-    onWall(op.k,op.uc+op.hw+0.06,mid,0.1,h+0.2,0.1,P.trim,{off:0.05,cast:false});
+    const TW=(state.trimW||3.5)/12;                     // casing width, as chosen — 1×3 … 1×8
+    onWall(op.k,op.uc,top+TW/2,ww+2*TW+0.04,TW,0.1,P.trim,{off:0.05,cast:false});
+    onWall(op.k,op.uc,bot-TW/2,ww+2*TW+0.04,TW,0.1,P.trim,{off:0.05,cast:false});
+    onWall(op.k,op.uc-op.hw-TW/2,mid,TW,h+0.04,0.1,P.trim,{off:0.05,cast:false});
+    onWall(op.k,op.uc+op.hw+TW/2,mid,TW,h+0.04,0.1,P.trim,{off:0.05,cast:false});
     if(type==='window'){
       onWall(op.k,op.uc,mid,ww,h,0.04,P.glass,{off:0.015,opacity:0.5,cast:false});
       if(spec.plexi){
@@ -2008,9 +2017,10 @@ function rebuild3D(p){
       const r=rect(win.wall,win.pos,ws.w,sp.wh,floorY+sp.sill); r._ws=ws; wRects.push(r); byWall[win.wall].push(r); }
     for(const k of ['front','back','left','right']) renderWall(k,byWall[k]);
     if(sS&&!interior){ _stage=9;                       // corner boards — finished trim where siding meets
+      const TWc=(state.trimW||3.5)/12;
       for(const sx of [-1,1]) for(const sz of [-1,1]){
-        box(0.16,Hw-0.06,0.05, sx*(W/2-0.1),floorY+Hw/2,sz*(D/2+0.085), P.trim,{cast:false});
-        box(0.05,Hw-0.06,0.16, sx*(W/2+0.085),floorY+Hw/2,sz*(D/2-0.1), P.trim,{cast:false});
+        box(TWc,Hw-0.06,0.05, sx*(W/2-TWc/2+0.04),floorY+Hw/2,sz*(D/2+0.085), P.trim,{cast:false});
+        box(0.05,Hw-0.06,TWc, sx*(W/2+0.085),floorY+Hw/2,sz*(D/2-TWc/2+0.04), P.trim,{cast:false});
       }
     }
     if(sF&&!isA){ _stage=7.7;   // California-corner backing: ONE flat 2×4 per corner on the side-wall plane — gives the side siding's overhang a nailer (was a fat 4×4 that swallowed the studs)
@@ -2923,7 +2933,18 @@ function computeMaterials(p){
   }
   S(7); const openings=p.windows.length+1;
   add(g,openings*2,'pcs','Headers 2×6 — openings','DOUBLED over each opening, king + jack studs each side (step 7)',openings*2*stdLen(3)*PRICE.beam,lw('2x6'));
-  add(g,4,'pcs',`Corner boards 1×4 — ${stdLen(Hw)} ft`,'cover the siding joint at each corner (step 9)',4*stdLen(Hw)*PRICE.brace*1.3,lw('1x4 primed trim board'));
+  S(9);
+  { const TWn=state.trimW||3.5, nom=TWn===2.5?3:TWn===3.5?4:TWn===5.5?6:8, TWft=TWn/12;
+    add(g,4,'pcs',`Corner boards 1×${nom} — ${stdLen(Hw)} ft`,`cover the siding joint at each corner (step 9) · ${TWn}″ face`,
+      4*stdLen(Hw)*PRICE.brace*1.3*(TWn/3.5),lw('1x'+nom+' primed trim board'));
+    // casing round every opening — the steps tell you to trim them, the list never sold the boards
+    const dS2=DOOR[p.door.size], dH2=Math.min(dS2.h,Hw-0.25);
+    let caseLF=2*dH2+dS2.w+2*TWft;                                     // door: two legs + a head
+    for(const win of p.windows){ const ws=winOf(win), wh=Math.min(ws.h,Hw-0.9); caseLF+=2*(ws.w+wh)+4*TWft; }
+    const caseBoards=Math.ceil(caseLF*1.15/8);                          // +15%, because mitres eat stock
+    add(g,caseBoards,'pcs',`Casing 1×${nom} — 8 ft`,
+      `~${Math.round(caseLF)} lf round the door and ${p.windows.length} opening${p.windows.length===1?'':'s'}, +15% for mitres · ${TWn}″ face`,
+      caseBoards*8*PRICE.brace*1.3*(TWn/3.5),lw('1x'+nom+' primed trim board')); }
 
   g=G('Roof ('+roof+')'); S(8);
   let rafterLen,rafters,roofArea;
@@ -2956,7 +2977,8 @@ function computeMaterials(p){
   const felt=Math.max(1,Math.ceil(roofArea/400));
   add(g,felt,'roll','Underlayment — #15 felt','1 roll ≈ 400 sq ft · courses lap 4″ up the slope',felt*24,lw('15 lb roofing felt'));
   add(g,Math.round(roofArea),'sqft','Shingles or metal panels','the covering itself',roofArea*PRICE.roofCoverSqft,lw('asphalt shingles bundle'));
-  add(g,Math.ceil(eaveLF/8)+1,'pcs',`Fascia 1×6 — 8 ft`,'covers the rafter tails; soffit + frieze blocking close the underside (step 8.5)',(Math.ceil(eaveLF/8)+1)*8*1.4,lw('1x6 primed trim board'));
+  { const fn=p.rafter8?8:6;   // fascia is sized by the RAFTER it hides, not by taste
+    add(g,Math.ceil(eaveLF/8)+1,'pcs',`Fascia 1×${fn} — 8 ft`,`covers the ${p.rafter8?'2×8':'2×6'} rafter tails — it has to be at least as deep as they are; soffit + frieze blocking close the underside (step 8.5)`,(Math.ceil(eaveLF/8)+1)*8*1.4*(fn/6),lw('1x'+fn+' primed trim board')); }
 
   if(Dd>0){
     g=G('Deck ('+Dd+' ft)'); S(11);
@@ -3244,6 +3266,10 @@ function update(){
   const soz=document.getElementById('ovZ'); if(soz) soz.value=state.ovZ==null?1:state.ovZ;
   const svp=document.getElementById('vStairPos'); if(svp) svp.textContent=state.stairPos<0.34?'toward one end':state.stairPos>0.66?'toward the other':'center';
   { const as=document.getElementById('accStock'); const asc=as&&as.closest('.ctl'); if(asc) asc.style.display=state.access==='rock'?'none':''; }
+  { const TWn=state.trimW||3.5, nom=TWn===2.5?3:TWn===3.5?4:TWn===5.5?6:8;
+    const v=document.getElementById('vTrimW'); if(v) v.textContent=TWn+'″ face';
+    const cap=document.getElementById('trimCap');
+    if(cap) cap.innerHTML='1×'+nom+' for the corner boards and all the casing. Buy it PRIMED if you are painting — priming end-grain after a mitre is the job nobody does. Fascia is sized separately, to the rafter.'; }
   { const sc=document.getElementById('stairRailCtl'); if(sc) sc.style.display=state.access==='stairs'?'':'none';
     const cap=document.getElementById('stairRailCap');
     if(cap) cap.innerHTML = (state.stairRail||'both')==='none'
@@ -3379,7 +3405,9 @@ function seg(id,key){ const el=document.getElementById(id);
   el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
     [...el.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); state[key]=b.dataset.v;
     if(id==='finish') applyFinish(b.dataset.v,true); update(); }); }
-seg('rockSide','rockSide'); seg('stairRail','stairRail'); seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('ladderStyle','ladderStyle'); seg('accStock','accStock'); seg('deckEdge','deckEdge'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
+seg('rockSide','rockSide'); seg('stairRail','stairRail');
+document.getElementById('trimW').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  state.trimW=+b.dataset.v; setSeg('trimW',b.dataset.v); update(); }); seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('ladderStyle','ladderStyle'); seg('accStock','accStock'); seg('deckEdge','deckEdge'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
 document.getElementById('midBeam').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
   state.midBeam=b.dataset.v==='on'; setSeg('midBeam',b.dataset.v); update(); });
 document.getElementById('autoSizeBtn').addEventListener('click',()=>{
@@ -3721,7 +3749,7 @@ function applyDesign(d){
   setSeg('ladderStyle',state.ladderStyle||'rung'); setSeg('deckEdge',state.deckEdge||'left'); setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
   setSeg('midBeam',state.midBeam?'on':'off');
-  setSeg('rockSide',state.rockSide||'back'); setSeg('stairRail',state.stairRail||'both');
+  setSeg('rockSide',state.rockSide||'beside'); setSeg('stairRail',state.stairRail||'both'); setSeg('trimW',String(state.trimW||3.5));
   for(const [id,key] of [['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors'],['optRockWall','rockWall'],['optRoofOver','roofOver'],['optStairGate','stairGate']]){
     const cb=document.getElementById(id); if(cb) cb.checked = key==='stairGate' ? state[key]!==false : !!state[key]; }
   renderWindows();
@@ -4348,6 +4376,7 @@ function planSpec(s){
   R('Access', s.access==='stairs'
     ? 'Stairs · '+s.stairSide+' side, running '+(s.stairDir==='out'?'straight out':'along the wall')+(s.stairGate!==false?' · self-closing gate':'')
     : 'Ladder · '+(L?L.name:s.ladderStyle));
+  { const t=s.trimW||3.5; R('Trim', '1×'+(t===2.5?3:t===3.5?4:t===5.5?6:8)+' — corner boards + casing ('+t+'″ face)'); }
   if(s.access==='stairs') R('Stair railing', (s.stairRail||'both')==='none'?'None — open stringers':s.stairRail==='one'?'One side':'Both sides');
   R('Rock wall', s.access==='rock' ? 'Yes — it IS the way up (slabbed ply + bolt-on holds)'
       : s.rockWall ? ((s.rockSide||'beside')==='beside'?'Yes — on the deck beside the '+s.access+', own gap in the rail':'Yes — against the '+s.rockSide+' wall') : 'No');
@@ -4483,6 +4512,7 @@ function sanitizeDesign(d){
   const num=(k,lo,hi,st)=>{ const v=+d[k]; if(d[k]!=null&&isFinite(v)) out[k]=Math.max(lo,Math.min(hi,st?Math.round(v/st)*st:v)); };
   num('W',4,12,0.5); num('D',4,14,0.5); num('Hf',1,7,0.5); num('Hw',3,7,0.5); num('Dd',0,6,0.5); num('oc',8,24,1);
   num('grade',0,0.25,0.01); num('stairPos',0,1,0.01);
+  if([2.5,3.5,5.5,7.25].includes(+d.trimW)) out.trimW=+d.trimW;
   const SID=['front','back','left','right'];
   const en=(k,vals)=>{ if(vals.includes(d[k])) out[k]=d[k]; };
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
