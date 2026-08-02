@@ -285,6 +285,10 @@
   .ordsum b{color:var(--ac);font-weight:500} .ordsum.dim b{color:var(--tm)}
   .ordclear{font-family:var(--mono);font-size:10px;color:var(--tm);background:none;border:1px solid var(--bd);border-radius:6px;padding:3px 8px;cursor:pointer}
   .ordclear:hover{color:var(--ac);border-color:var(--ac)}
+  .storerow{margin:12px 0 0}
+  .storerow>span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--tf);margin:0 0 5px}
+  .storerow .seg{margin-bottom:0}
+  .storerow .planbtn{width:100%;margin-top:7px!important}
   .msearch{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:7px;margin:12px 0 0;padding:7px 0 8px;background:var(--field)}
   .msearch .mzi{width:14px;height:14px;flex:none;fill:none;stroke:var(--tf);stroke-width:1.9;stroke-linecap:round}
   .msearch input{flex:1;min-width:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;color:var(--tx);
@@ -1227,6 +1231,15 @@
     <button class="planbtn" id="openPlan"><svg class="ic" viewBox="0 0 24 24"><path d="M21 21H3L21 3v18z"/><path d="M13 21v-4"/><path d="M17 21v-6.5"/></svg>Plan sheet + cut list</button>
     <div class="budgetrow"><label>Budget $</label><input type="number" id="budget" placeholder="—" min="0"><span id="budgetMsg"></span></div>
     <div class="budgetsug" id="budgetSug"></div>
+    <div class="storerow">
+      <span>Shop at</span>
+      <div class="seg three" id="store">
+        <button data-v="lowes" class="on">Lowe’s</button>
+        <button data-v="homedepot">Home Depot</button>
+        <button data-v="none">No links</button>
+      </div>
+      <button class="planbtn" id="dlList"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 11l4.5 4.5 4.5-4.5"/><path d="M4 20h16"/></svg>Download list (.txt)</button>
+    </div>
   </div>
   <div class="rbody">
     <div id="note" class="note good"></div>
@@ -1363,7 +1376,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 // with a deck, a railing and a real stair. Sides pulled in to 6″, front and back run long.
 const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',ovX:0.5,ovZ:1.25,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'beside',stairRail:'both',trimW:3.5,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'beside',stairRail:'both',trimW:3.5,store:'lowes',anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.3,size:'dutch'},
    windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.78,size:'large'}]};
@@ -2855,9 +2868,19 @@ function explodeOutward(){
 const PRICE={ p4x4:2.6,p6x6:5.5,beam:1.7,joist:1.7,stud:0.9,brace:0.9,
   plySheet:52,siding:48,sheath:42,deckBlock:8,postBase:11,bolt:2.4,hanger:2.5,
   roofCoverSqft:1.6,misc:60,window:60,door:95,deckBoardSqft:3.4,railLF:13 };
-const lw=t=>'https://www.lowes.com/search?searchTerm='+encodeURIComponent(t);
-const WIN_URL=WIN.medium.url;   // generic glazing link (cupola / wing / clerestory)
-const T11_URL='https://www.lowes.com/pl/siding-stone-veneer/wood-siding-accessories/t1-11/2365411302-328841971';   // real panel siding (no cedar siding at Lowe's)
+/* Retailer is a setting, not a hardcode. Deep product links only exist for Lowe's, so anywhere
+   else they fall back to a search on the same term — and "no links" leaves the list clean for
+   anyone shopping a local yard. */
+const STORES={
+  lowes:{name:"Lowe’s", url:t=>'https://www.lowes.com/search?searchTerm='+encodeURIComponent(t)},
+  homedepot:{name:'Home Depot', url:t=>'https://www.homedepot.com/s/'+encodeURIComponent(t)},
+  none:{name:'No links', url:()=>''}
+};
+const storeNow=()=>STORES[state.store]||STORES.lowes;
+const lw=t=>storeNow().url(t);
+const hwl=(deep,term)=>(state.store||'lowes')==='lowes'?deep:lw(term);
+const WIN_URL=()=>hwl(WIN.medium.url,'shed window flush mount tempered');   // generic glazing (cupola / wing / clerestory)
+const T11_URL=()=>hwl('https://www.lowes.com/pl/siding-stone-veneer/wood-siding-accessories/t1-11/2365411302-328841971','t1-11 siding panel 4x8');
 // real Lowe's product pages for the structural hardware
 const HW={
   block:'https://www.lowes.com/pd/Midwest-Products-Group-Deck-Block-Accepts-6x6-and-4x4-Post/1002690830',
@@ -2889,15 +2912,15 @@ function computeMaterials(p){
 
   let g=G('Foundation'); S(1);
   if(p.foundation==='piers'){ const bags=totalPosts*5;   // 10″×4 ft tube = ~2.2 cu ft; a 60 lb bag yields ~0.45
-    add(g,totalPosts,'×','Concrete tube forms — 10″ × 4 ft','QUIKRETE QUIK-Tube, cut to depth',totalPosts*12,HW.tube);
-    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · 5 per pier — a 10″ × 4 ft tube takes ~2.2 cu ft',bags*7,HW.conc);
-    add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, set in each pier',totalPosts*PRICE.postBase,HW.base);
+    add(g,totalPosts,'×','Concrete tube forms — 10″ × 4 ft','QUIKRETE QUIK-Tube, cut to depth',totalPosts*12,hwl(HW.tube,'concrete tube form 10 in'));
+    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · 5 per pier — a 10″ × 4 ft tube takes ~2.2 cu ft',bags*7,hwl(HW.conc,'quikrete fast setting concrete 60 lb'));
+    add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, set in each pier',totalPosts*PRICE.postBase,hwl(HW.base,'simpson aba44z post base'));
   } else if(p.foundation==='buried'){ const bags=totalPosts*3;
-    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · ~3 per post hole',bags*7,HW.conc);
+    add(g,bags,'×','Concrete — 60 lb bags','QUIKRETE fast-setting · ~3 per post hole',bags*7,hwl(HW.conc,'quikrete fast setting concrete 60 lb'));
     add(g,totalPosts,'×','Paver-base gravel','few inches in each hole',totalPosts*4,lw('paver base gravel 0.5 cu ft'));
   } else {
-    add(g,totalPosts,'×','Deck blocks — precast pier','Midwest deck block, takes a 4×4/6×6 · one per post',totalPosts*PRICE.deckBlock,HW.block);
-    add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, off the soil',totalPosts*PRICE.postBase,HW.base);
+    add(g,totalPosts,'×','Deck blocks — precast pier','Midwest deck block, takes a 4×4/6×6 · one per post',totalPosts*PRICE.deckBlock,hwl(HW.block,'precast deck block'));
+    add(g,totalPosts,'×','Post bases — Simpson ABA44Z','ZMAX adjustable standoff, off the soil',totalPosts*PRICE.postBase,hwl(HW.base,'simpson aba44z post base'));
     add(g,Math.ceil(totalPosts/2),'bags','Paver base gravel — 0.5 cu ft','tamped bed under each block, so it can\u2019t settle',Math.ceil(totalPosts/2)*5,lw('paver base gravel 0.5 cu ft'));
   }
 
@@ -2924,14 +2947,14 @@ function computeMaterials(p){
     studs=Math.ceil(perim*12/16)+4 + 4 + 5*opens + knee;   // + 3-stud corner assemblies + kings/jacks/cripples per opening + shed knee wall
     studBoards=Math.ceil(((studs*Hw+perim*2)/8)*1.1); sideSheets=Math.ceil(perim*Hw/32); }   // +10% waste — running out mid-wall costs a trip
   add(g,studs,'studs','2×4 framing',isA?'two gable ends':'studs + plates',studBoards*8*PRICE.stud,lw('2x4 stud'));
-  S(9); add(g,sideSheets,'×','Siding — 4×8 panel','T1-11 grooved plywood, or LP SmartSide engineered panel',sideSheets*PRICE.siding*fin.mult,T11_URL);
+  S(9); add(g,sideSheets,'×','Siding — 4×8 panel','T1-11 grooved plywood, or LP SmartSide engineered panel',sideSheets*PRICE.siding*fin.mult,T11_URL());
   if(finish==='cedar'||finish==='redwood'){ const gal=Math.ceil((perim*Hw)/300);
     add(g,Math.max(1,gal),'gal',fin.name.replace(' look','')+'-tone stain','gets the '+fin.name.replace(' look','').toLowerCase()+' color on T1-11 / SmartSide (no real cedar at Lowe\'s)',Math.max(1,gal)*42,lw('exterior semi transparent stain cedar')); }
   if(finish==='paint'){ add(g,2,'gal','Primer + exterior paint','your color',135,lw('exterior paint primer')); }
   const dS=DOOR[p.door.size], doorH=Math.min(dS.h, Hw-0.25);
   S(10.5);
   for(const win of p.windows){ const ws=winOf(win); if(ws.plexi) continue;
-    add(g,1,'×',`Window — ${ws.label}`,`Shed Windows & More ${ws.type}, flush-mount tempered · on the ${win.wall} wall`,ws.price,ws.url); }
+    add(g,1,'×',`Window — ${ws.label}`,`Shed Windows & More ${ws.type}, flush-mount tempered · on the ${win.wall} wall`,ws.price,hwl(ws.url,ws.label.replace(/[·×].*$/,'')+' shed window')); }
   { const px=p.windows.filter(w=>WIN[w.size]&&WIN[w.size].plexi);
     if(px.length){
       // you don't buy these — you cut them out of sheet, so the list sells the sheet
@@ -2990,7 +3013,7 @@ function computeMaterials(p){
   const rDesc=isA?'A-frame slopes':isFlat?'flat — slope ¼"/ft to drain':isHip?'four hip slopes':isBfly?'two slopes to a centre valley':isSaw?'north-light sawtooth panels':isBarrel?'curved laminated ribs':isGable?'two slopes':'single slope';
   const rSize=p.rafter8?'2×8':'2×6', rPrice=p.rafter8?PRICE.joist*1.55:PRICE.joist;
   add(g,rafters,'pcs',`${isFlat?'Roof joists':isBarrel?'Curved ribs':'Rafters'} ${rSize} — ${rafterLen} ft`, rDesc+(p.rafter8?' · sized up for the span':''), rafters*rafterLen*rPrice, lw(isBarrel?'2x4':p.rafter8?'2x8':'2x6'));
-  if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); add(g,nT-1,'×','Clerestory glazing strips','north-light glass between the teeth',(nT-1)*PRICE.window,WIN_URL); }
+  if(isSaw){ const nT=Math.max(2,Math.round(W/3.2)); add(g,nT-1,'×','Clerestory glazing strips','north-light glass between the teeth',(nT-1)*PRICE.window,WIN_URL()); }
   if(isBfly) add(g,1,'×','Valley gutter + downspout','a butterfly drains to the centre — don’t skip this',48,lw('rain gutter kit'));
   if(isFlat){ const par=Math.ceil(2*(W+D)*0.9/32); add(g,Math.max(2,par),'×','Parapet siding + coping','low wall around the roof deck',Math.max(2,par)*PRICE.siding*fin.mult,lw('exterior t1-11 siding')); }
   if(isGable||isSalt||isGam||isHip){ const rl=stdLen(De+2);
@@ -3013,7 +3036,7 @@ function computeMaterials(p){
     const dcLen=stdLen(Hf+(dExtM>0?Hw:3)+1), dMids=W>9?1:0, dPosts=2+dMids;
     add(g,2,'×',`Deck corner posts ${post} — ${dcLen} ft`, dExtM>0?'CONTINUOUS: footing → porch header, one piece':'CONTINUOUS: footing → rail top — the fence hangs off structure, not spindles',2*dcLen*postPrice,lw(postTerm));
     if(dMids) add(g,1,'×',`Deck mid post ${post} — ${stdLen(Hf+0.3)} ft`,'under the rim, mid-span',stdLen(Hf+0.3)*postPrice,lw(postTerm));
-    add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),HW.block);
+    add(g,dPosts,'×','Deck blocks + ABA44Z bases','precast pier + post base, under deck posts',dPosts*(PRICE.deckBlock+PRICE.postBase),hwl(HW.block,'precast deck block'));
     S(12); const dj=Math.ceil(W*12/16)+1;
     add(g,dj,'pcs',`Deck joists 2×6 — ${stdLen(Dd)} ft`,'@ ~16" O.C. · hung ledger-to-rim',dj*stdLen(Dd)*PRICE.joist,lw('pressure treated 2x6'));
     add(g,1,'pcs',`Deck ledger 2×6 — ${stdLen(W)} ft`,'lagged to the house rim at deck height',stdLen(W)*PRICE.joist,lw('pressure treated 2x6'));
@@ -3024,7 +3047,7 @@ function computeMaterials(p){
     S(14); const railLF=W+2*Dd;
     add(g,Math.round(railLF),'ft','Railing + balusters','3 sides, ~36" tall',railLF*PRICE.railLF,lw('deck railing baluster'));
     add(g,2,'×',`Stair-opening posts ${post} — 4 ft`,'FULL 4×4s past the rim, 2 carriage bolts each — rail ends + gate hang on these',2*4*postPrice,lw(postTerm));
-    S(12); add(g,dj*2,'×','Deck joist hangers — Simpson LUS26Z','one at EACH end of every deck joist (step 12)',dj*2*PRICE.hanger,HW.hanger);
+    S(12); add(g,dj*2,'×','Deck joist hangers — Simpson LUS26Z','one at EACH end of every deck joist (step 12)',dj*2*PRICE.hanger,hwl(HW.hanger,'simpson lus26z joist hanger'));
     { const lag=Math.max(4,Math.ceil(W*12/16)*2);
       add(g,lag,'×','½″ × 4″ lag screws — deck ledger','two rows staggered ~16″ into the house rim — this is the connection decks fail at',lag*1.6,lw('1/2 x 4 hex lag screw')); }
     S(14); if(state.stairGate!==false) add(g,1,'kit','Stair gate — self-closing','2 spring hinges + gravity latch, mounted on the OUTSIDE top rail (out of kid reach)',38,lw('self closing gate hardware kit'));
@@ -3114,7 +3137,7 @@ function computeMaterials(p){
   S(3); const bolts=totalPosts*2, boltLen=post==='6x6'?10:8;   // must pass ply–post–ply: 1½+3½+1½ = 6½" (4×4) / 8½" (6×6)
   add(g,bolts,'×',`½″ × ${boltLen}″ carriage bolts`,'galvanized, through the beam sandwich + post (+ nuts/washers)',bolts*PRICE.bolt,lw(`1/2 x ${boltLen} galvanized carriage bolt`));
   S(4); const hangers=joists*2*(p.midBeam?2:1);   // one at EACH end of every joist — and a centre beam splits every joist into two spans
-  add(g,hangers,'×','Joist hangers — Simpson LUS26Z',`ZMAX double-shear — one at EACH end of ${joists} joists${p.midBeam?', and the centre beam splits every joist into two spans':''}`,hangers*PRICE.hanger,HW.hanger);
+  add(g,hangers,'×','Joist hangers — Simpson LUS26Z',`ZMAX double-shear — one at EACH end of ${joists} joists${p.midBeam?', and the centre beam splits every joist into two spans':''}`,hangers*PRICE.hanger,hwl(HW.hanger,'simpson lus26z joist hanger'));
   S(8.5); const ties=Math.max(4, rafters*2);        // every rafter tied at both bearings
   add(g,ties,'×','Hurricane ties — Simpson H1','rafter → top plate, one each side of every rafter. This is the connection that keeps the roof on in a blow.',ties*3.2,lw('simpson h1 hurricane tie'));
   S(6); const straps=state.loadPath?8:0, caps=state.loadPath?4:0;
@@ -3149,13 +3172,13 @@ function computeMaterials(p){
   add(g,3,'tubes','Exterior caulk','trim joints and window heads — not the window bottoms, those must drain',3*7,lw('exterior paintable caulk'));
   add(g,1,'lot','Misc — shims, string, stakes, pencils','the small stuff every step assumes you have',PRICE.misc*0.5,lw('composite shims'));
   g=groups.find(x=>x.name==='Bracing & hardware');
-  if(state.loadPath) add(g,totalPosts,'×','Post-to-footing ties — Simpson H2.5A','closes the bottom of the load path at every post',totalPosts*PRICE.hanger,HW.htie);
+  if(state.loadPath) add(g,totalPosts,'×','Post-to-footing ties — Simpson H2.5A','closes the bottom of the load path at every post',totalPosts*PRICE.hanger,hwl(HW.htie,'simpson h2.5a hurricane tie'));
 
   if(state.wing){
     g=G('Wing addition'+(state.split?' (split level)':''));
     const wW=Math.min(W*0.7,5), wD=Math.min(D*0.6,5), wpLen=stdLen(Hf+Hw*0.9+1);
     add(g,3,'×',`Wing posts ${post} — ${wpLen} ft`,'outer + front-inner corners',3*wpLen*postPrice,lw(postTerm));
-    add(g,3,'×','Deck blocks + ABA44Z bases','precast pier + post base, under the wing posts',3*(PRICE.deckBlock+PRICE.postBase),HW.block);
+    add(g,3,'×','Deck blocks + ABA44Z bases','precast pier + post base, under the wing posts',3*(PRICE.deckBlock+PRICE.postBase),hwl(HW.block,'precast deck block'));
     const wj=Math.max(2,Math.ceil(wD*12/oc)+1);
     add(g,wj,'pcs',`Wing joists 2×6 — ${stdLen(wW)} ft`,`@ ${oc}" O.C.`,wj*stdLen(wW)*PRICE.joist,lw('pressure treated 2x6'));
     const wFloor=Math.ceil(wW*wD/32);
@@ -3163,7 +3186,7 @@ function computeMaterials(p){
     const wSide=Math.max(2,Math.ceil((wW+wD)*2*Hw*0.9/32));
     add(g,wSide,'×','Siding ('+fin.name+')','wing walls, 4×8',wSide*PRICE.siding*fin.mult,lw('exterior t1-11 siding'));
     add(g,wFloor+1,'×','Wing shed roof','OSB sheathing + shingles/metal',(wFloor+1)*(PRICE.sheath+PRICE.roofCoverSqft*16),lw('7/16 osb sheathing'));
-    add(g,1,'×','Window — wing','on the wing outer wall',PRICE.window,WIN_URL);
+    add(g,1,'×','Window — wing','on the wing outer wall',PRICE.window,WIN_URL());
     if(state.split) add(g,1,'lot','Step framing','2×6 stringers + treads down to the wing',45,lw('2x6'));
   }
 
@@ -3201,6 +3224,49 @@ function computeMaterials(p){
   if(big && post==='4x4' && level!=='bad'){ level='warn'; note+=' This footprint is large for 4×4 — consider 6×6 for the corners.'; }
   return {groups,total,note,level};
 }
+
+/* ===== retailer + a plain text list for a local yard ===== */
+document.getElementById('store').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  state.store=b.dataset.v; setSeg('store',b.dataset.v); update(); });
+(function(){
+  const btn=document.getElementById('dlList'); if(!btn) return;
+  // no brand, no links, no prices anyone has to argue with at a counter — just what to buy
+  const asc=s=>(s||'').replace(/[×✕]/g,'x').replace(/[″”“]/g,'"').replace(/[’‘]/g,"'")
+    .replace(/[—–]/g,'-').replace(/½/g,'1/2').replace(/¼/g,'1/4').replace(/¾/g,'3/4')
+    .replace(/⅜/g,'3/8').replace(/⅝/g,'5/8').replace(/⅛/g,'1/8').replace(/≤/g,'<=').replace(/≥/g,'>=')
+    .replace(/[^\x20-\x7E\n]/g,'');
+  const wrap=(t,w,ind)=>{ const out=[]; let line='';
+    for(const word of t.split(' ')){ if((line+' '+word).trim().length>w){ out.push(line); line=word; } else line=(line?line+' ':'')+word; }
+    if(line) out.push(line); return out.map((l,i)=>(i?ind:ind)+l).join('\n'); };
+  btn.addEventListener('click',()=>{
+    const m=computeMaterials(state), s=state, L=[];
+    L.push('DELCAN & CO. BUILDER - PLAYHOUSE SHOPPING LIST');
+    L.push(asc(dim(s.W)+' x '+dim(s.D)+' - '+s.roof+' roof - '+s.post+' posts - '+FINISH[s.finish].name+(s.Dd>0?' - '+dim(s.Dd)+' deck':'')));
+    L.push('Estimated total: '+$(m.total));
+    L.push('');
+    L.push('Estimates only. Prices vary by region and grade; no waste factor beyond');
+    L.push('what is noted - buy about 10% extra on sheet goods and fasteners.');
+    L.push('A design aid, not a stamped engineering plan. Check your local code.');
+    for(const g of m.groups){
+      L.push(''); L.push(''.padEnd(64,'-'));
+      L.push(asc(g.name).toUpperCase().padEnd(52).slice(0,52)+$(g.sum).padStart(12));
+      L.push(''.padEnd(64,'-'));
+      for(const it of g.items){
+        const q=asc(String(it.qty)+' '+it.unit).padEnd(9).slice(0,9);
+        L.push('[ ] '+q+asc(it.label).padEnd(39).slice(0,39)+$(it.cost).padStart(12));
+        if(it.detail) L.push(wrap(asc(it.detail).replace(/<[^>]+>/g,'')
+          .replace(/https?:\/\/\S+/g,'').replace(/Shed Windows & More/gi,'')
+          .replace(/\b(at |from )?(Lowe'?s|Home Depot)\b/gi,'the store').replace(/\s+/g,' ').trim(),58,'        '));
+      }
+    }
+    L.push(''); L.push(''.padEnd(64,'='));
+    L.push('ESTIMATED TOTAL'.padEnd(52)+$(m.total).padStart(12));
+    const blob=new Blob([L.join('\n')+'\n'],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='playhouse-shopping-list-'+s.W+'x'+s.D+'.txt'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  });
+})();
 
 /* ===== search the materials list — 60+ lines is more than anyone should scroll to find a hanger ===== */
 (function(){
@@ -3255,7 +3321,7 @@ function renderMaterials(m){
   for(const g of m.groups){
     h+='<div class="mgroup"><h3>'+g.name+'<span class="gsum">'+$(g.sum)+'</span></h3>';
     for(const it of g.items){
-      const link=it.link?` · <a href="${it.link}" target="_blank" rel="noopener">Lowe’s ↗</a>`:'';
+      const link=it.link?` · <a href="${it.link}" target="_blank" rel="noopener">${storeNow().name} ↗</a>`:'';
       const k=itemKey(it), isOrd=ordered.has(k); if(isOrd){ ordCnt++; ordTotal+=it.cost; }
       h+='<div class="item'+(isOrd?' ordered':'')+'" data-key="'+escAttr(k)+'" data-stage="'+(it.stage||0)+'">'
         +'<span class="ck">'+(isOrd?'✓':'')+'</span>'
@@ -3814,7 +3880,7 @@ function applyDesign(d){
   setSeg('ladderStyle',state.ladderStyle||'rung'); setSeg('deckEdge',state.deckEdge||'left'); setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
   setSeg('midBeam',state.midBeam?'on':'off');
-  setSeg('rockSide',state.rockSide||'beside'); setSeg('stairRail',state.stairRail||'both'); setSeg('trimW',String(state.trimW||3.5));
+  setSeg('rockSide',state.rockSide||'beside'); setSeg('stairRail',state.stairRail||'both'); setSeg('trimW',String(state.trimW||3.5)); setSeg('store',state.store||'lowes');
   for(const [id,key] of [['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors'],['optRockWall','rockWall'],['optRoofOver','roofOver'],['optStairGate','stairGate']]){
     const cb=document.getElementById(id); if(cb) cb.checked = key==='stairGate' ? state[key]!==false : !!state[key]; }
   renderWindows();
@@ -4591,6 +4657,7 @@ function sanitizeDesign(d){
   num('W',4,12,0.5); num('D',4,14,0.5); num('Hf',1,7,0.5); num('Hw',3,7,0.5); num('Dd',0,6,0.5); num('oc',8,24,1);
   num('grade',0,0.25,0.01); num('stairPos',0,1,0.01);
   if([2.5,3.5,5.5,7.25].includes(+d.trimW)) out.trimW=+d.trimW;
+  if(['lowes','homedepot','none'].includes(d.store)) out.store=d.store;
   const SID=['front','back','left','right'];
   const en=(k,vals)=>{ if(vals.includes(d[k])) out[k]=d[k]; };
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
