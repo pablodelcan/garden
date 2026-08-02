@@ -2995,8 +2995,14 @@ function computeMaterials(p){
   add(g,openings*2,'pcs','Headers 2×6 — openings','DOUBLED over each opening, king + jack studs each side (step 7)',openings*2*stdLen(3)*PRICE.beam,lw('2x6'));
   S(9.5);
   { const TWn=state.trimW||3.5, nom=TWn===2.5?3:TWn===3.5?4:TWn===5.5?6:8, TWft=TWn/12;
-    add(g,4,'pcs',`Corner boards 1×${nom} — ${stdLen(Hw)} ft`,`cover the siding joint at each corner (step 9) · ${TWn}″ face`,
-      4*stdLen(Hw)*PRICE.brace*1.3*(TWn/3.5),lw('1x'+nom+' primed trim board'));
+    // Unpainted trim has to survive on its own, so it wants a naturally durable species — and
+    // stainless fasteners, because cedar and redwood tannins bleed black streaks off plain steel.
+    const bare=finish!=='paint';
+    const trimTerm = bare ? ('1x'+(nom===3?6:nom)+' cedar board') : ('1x'+nom+' primed trim board');
+    const ripNote = (bare&&nom===3) ? ' 1×3 cedar is rarely stocked — buy 1×6 and RIP IT: two pieces per board, cheaper per foot, and the sawn edge goes to the inside.' : '';
+    const bareNote = bare ? ` Unpainted, so use a durable species — cedar, cypress or redwood heartwood. Plain pine or fir will be soft in three summers.${ripNote}` : ' Buy it PRIMED, and prime the cut ends before they go up.';
+    add(g,4,'pcs',`Corner boards 1×${nom} — ${stdLen(Hw)} ft`,`cover the siding joint at each corner (step 9) · ${TWn}″ face.${bareNote}`,
+      4*stdLen(Hw)*PRICE.brace*1.3*(TWn/3.5)*(bare?1.7:1),lw(trimTerm));
     // casing round every opening — the steps tell you to trim them, the list never sold the boards
     const dS2=DOOR[p.door.size], dH2=Math.min(dS2.h,Hw-0.25);
     let caseLF=2*dH2+dS2.w+2*TWft;                                     // door: two legs + a head
@@ -3004,7 +3010,13 @@ function computeMaterials(p){
     const caseBoards=Math.ceil(caseLF*1.15/8);                          // +15%, because mitres eat stock
     add(g,caseBoards,'pcs',`Casing 1×${nom} — 8 ft`,
       `~${Math.round(caseLF)} lf round the door and ${p.windows.length} opening${p.windows.length===1?'':'s'}, +15% for mitres · ${TWn}″ face`,
-      caseBoards*8*PRICE.brace*1.3*(TWn/3.5),lw('1x'+nom+' primed trim board')); }
+      caseBoards*8*PRICE.brace*1.3*(TWn/3.5)*(bare?1.7:1),lw(trimTerm));
+    if(bare) add(g,1,'lb','Stainless trim screws — 2″ #8',
+      'STAINLESS, not galvanised. Cedar and redwood tannins react with plain and even some galvanised steel and bleed black streaks down the board — the one mistake that ruins an unpainted job, and it shows up months later',
+      26,lw('stainless steel trim head screws 2 in'));
+    if(bare) add(g,1,'qt','End-grain sealer / penetrating oil',
+      'end grain drinks water ~10× faster than the face. Seal every cut end. A UV-blocking penetrating oil also holds the warm colour — leave it bare and cedar silvers within a year, which is fine if that is what you want',
+      34,lw('penetrating exterior wood oil uv')); }
 
   g=G('Roof ('+roof+')'); S(8);
   let rafterLen,rafters,roofArea;
@@ -3406,7 +3418,10 @@ function update(){
   { const TWn=state.trimW||3.5, nom=TWn===2.5?3:TWn===3.5?4:TWn===5.5?6:8;
     const v=document.getElementById('vTrimW'); if(v) v.textContent=TWn+'″ face';
     const cap=document.getElementById('trimCap');
-    if(cap) cap.innerHTML='1×'+nom+' for the corner boards and all the casing. Buy it PRIMED if you are painting — priming end-grain after a mitre is the job nobody does. Fascia is sized separately, to the rafter.'; }
+    const bare=state.finish!=='paint';
+    if(cap) cap.innerHTML='1×'+nom+' for the corner boards and all the casing. '+(bare
+      ? 'Left bare, so it wants cedar, cypress or redwood — and <b>stainless</b> fasteners, or the tannins bleed black streaks down it.'+(nom===3?' 1×3 cedar is rarely stocked: buy 1×6 and rip it.':'')
+      : 'Buy it PRIMED — priming end grain after a mitre is the job nobody does.')+' Fascia is sized separately, to the rafter.'; }
   { const sc=document.getElementById('stairRailCtl'); if(sc) sc.style.display=state.access==='stairs'?'':'none';
     const cap=document.getElementById('stairRailCap');
     if(cap) cap.innerHTML = (state.stairRail||'both')==='none'
