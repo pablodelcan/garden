@@ -159,6 +159,10 @@
   .optrow{display:flex;align-items:flex-start;gap:8px;font-size:12px;cursor:pointer;margin:0 0 7px;line-height:1.45}
   .optrow input{accent-color:var(--ac);width:15px;height:15px;flex:none;margin-top:1px}
   .optrow span{color:var(--tm);font-size:10px;display:block}
+  .wht{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:2px}
+  .wht span{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--tf)}
+  .wht input{flex:1}
+  .wht b{font-family:var(--mono);font-size:10.5px;color:var(--tx);min-width:44px;text-align:right}
   .seg.asmenu{display:none}
   .pselect{display:block;width:100%;box-sizing:border-box;font-family:var(--mono);font-size:11px;letter-spacing:.04em;
     text-transform:uppercase;color:var(--tx);padding:9px 27px 9px 9px;line-height:1.25;cursor:pointer;
@@ -1023,10 +1027,21 @@
       <div class="ctl"><div class="row"><label>Joist spacing</label><span class="val" id="vOc">16 in · std</span></div>
         <input type="range" id="oc" min="8" max="24" step="1" value="16"></div>
       <div class="ctl"><div class="row"><label>Access</label></div>
-        <div class="seg two" id="access">
+        <div class="seg three" id="access">
           <button data-v="ladder" class="on">Ladder</button>
           <button data-v="stairs">Stairs</button>
+          <button data-v="rock">Rock wall</button>
         </div></div>
+      <div class="ctl" id="rockCtl">
+        <label class="optrow"><input type="checkbox" id="optRockWall"> Add a rock wall as well <span>a second way up, on another side</span></label>
+        <div class="row" id="rockSideRow"><label>Rock wall side</label></div>
+        <div class="seg four" id="rockSide">
+          <button data-v="front">Front</button>
+          <button data-v="back" class="on">Back</button>
+          <button data-v="left">Left</button>
+          <button data-v="right">Right</button>
+        </div>
+        <div class="fincap" id="rockCap"></div></div>
       <div class="ctl"><div class="row"><label>Built from</label><span class="val" id="vAccStock"></span></div>
         <div class="seg three" id="accStock">
           <button data-v="2x6" class="on">2×6 only</button>
@@ -1043,8 +1058,17 @@
           <button data-v="notch">Notched</button>
           <button data-v="wide">Wide tread</button>
           <button data-v="railed">Handrails</button>
+          <button data-v="alt">Alternating tread</button>
           <button data-v="ship">Ship’s stair</button>
+          <button data-v="rope">Rope</button>
         </div></div>
+      <div class="ctl" id="stairRailCtl"><div class="row"><label>Stair railing</label></div>
+        <div class="seg three" id="stairRail">
+          <button data-v="both" class="on">Both sides</button>
+          <button data-v="one">One side</button>
+          <button data-v="none">None — open</button>
+        </div>
+        <div class="fincap" id="stairRailCap"></div></div>
       <div class="ctl" id="deckEdgeCtl"><div class="row"><label>Deck access edge</label></div>
         <div class="seg three" id="deckEdge">
           <button data-v="outer">Front (out)</button>
@@ -1313,7 +1337,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 // with a deck, a railing and a real stair. Sides pulled in to 6″, front and back run long.
 const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',ovX:0.5,ovZ:1.25,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'back',stairRail:'both',anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.3,size:'dutch'},
    windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.78,size:'large'}]};
@@ -1335,7 +1359,10 @@ const WIN={
   // fail, and safer than glass at kid height. Slim verticals read as slots in the siding.
   slim:   {w:0.5,  h:2.5,  label:'Slim vertical · 6×30″', type:'fixed acrylic', plexi:true, price:0},
   slot:   {w:0.42, h:3.5,  label:'Tall slot · 5×42″',     type:'fixed acrylic', plexi:true, price:0},
+  slotxl: {w:0.42, h:4.5,  label:'Full-height slot · 5×54″', type:'fixed acrylic', plexi:true, price:0},
   plexisq:{w:1.33, h:1.33, label:'Plexi square · 16×16″', type:'fixed acrylic', plexi:true, price:0} };
+// an acrylic light is cut to size, so its height is yours to set — `hft` overrides the preset
+const winOf=w=>{ const b=WIN[(w&&w.size)]||WIN.medium; return (b.plexi && w && w.hft) ? Object.assign({},b,{h:w.hft}) : b; };
 const ACRYL={ shW:18, shH:24, price:26 };   // one 18×24″ × 0.093″ acrylic sheet
 
 /* ===== build-sequence state ===== */
@@ -1367,6 +1394,10 @@ const LADDERS={
     note:'Treads let into shallow dadoes cut in the rails — the load bears on wood instead of hanging off screws. The strong version of a cleat ladder.'},
   wide:  {name:'Wide tread', lw:2.0, oBot:1.45, ext:1.5, rail:0.18, gap:0.9, tread:'deep', hand:false, kid:4,
     note:'2×6 treads at a gentler angle — small kids can walk DOWN facing forward instead of backing out. Takes more room on the ground.'},
+  rope:  {name:'Rope', lw:1.3, oBot:0.06, ext:0.0, rail:0.055, gap:0.75, tread:'rung', hand:false, kid:1, rope:true,
+    note:'Hangs straight down off the deck edge on two ropes with wooden rungs. Hardest to climb and the most fun — it swings, which is the point. Not a way DOWN for small kids.'},
+  alt:   {name:'Alternating tread', lw:1.8, oBot:0.95, ext:1.1, rail:0.17, gap:1.05, tread:'alt', hand:false, kid:3,
+    note:'Half-width treads alternating left and right, so each foot gets a full step at twice the normal spacing. Steep as a ladder, walkable like a stair, and it takes almost no ground.'},
   railed:{name:'Handrails', lw:2.0, oBot:1.6, ext:2.6, rail:0.18, gap:0.9, tread:'deep', hand:true, kid:5,
     note:'Wide treads plus a grab rail each side carried past the landing — the safest ladder here, and the one small kids use unaided.'},
   ship:  {name:'Ship’s stair', lw:2.4, oBot:2.2, ext:2.8, rail:0.2, gap:0.85, tread:'deep', hand:true, kid:5,
@@ -1876,7 +1907,7 @@ function rebuild3D(p){
   const dS=DOOR[p.door.size];
   const doorH=Math.min(dS.h, Hw-0.25);
   const winSpec=ws=>{ const wh=Math.min(ws.h, Hw-0.9); return {wh, sill:Math.max(0.55, Math.min(Hw-wh-0.3,(Hw-wh)*0.6))}; };
-  const win0=p.windows[0], wS0=win0?WIN[win0.size]:null, winH0=wS0?Math.min(wS0.h,Hw-0.9):0;  // first window (A-frame fallback)
+  const win0=p.windows[0], wS0=win0?winOf(win0):null, winH0=wS0?Math.min(wS0.h,Hw-0.9):0;  // first window (A-frame fallback)
 
   // wall coordinate helpers
   function wInfo(k){
@@ -1972,7 +2003,7 @@ function rebuild3D(p){
     const byWall={front:[],back:[],left:[],right:[]};
     byWall[p.door.wall].push(dR);
     const wRects=[];
-    for(const win of p.windows){ const ws=WIN[win.size], sp=winSpec(ws);
+    for(const win of p.windows){ const ws=winOf(win), sp=winSpec(ws);
       const r=rect(win.wall,win.pos,ws.w,sp.wh,floorY+sp.sill); r._ws=ws; wRects.push(r); byWall[win.wall].push(r); }
     for(const k of ['front','back','left','right']) renderWall(k,byWall[k]);
     if(sS&&!interior){ _stage=9;                       // corner boards — finished trim where siding meets
@@ -2371,12 +2402,39 @@ function rebuild3D(p){
     }
   }
 
+  /* ---- rock wall: a raked plywood face with bolt-on holds. Slabbed (leaning back), never
+     overhanging — an overhang is an adult problem and a kid just falls off it. Takes the same
+     (run, width, y) anchor the ladder does, so it lands on the deck gap when it IS the way up. ---- */
+  function rockFace(pt,widthIsX,topY,gY,pw){
+    const rise=Math.max(1.0,topY-gY), lean=Math.max(0.45,rise*0.17);
+    const len=Math.hypot(lean,rise), ang=Math.atan2(lean,rise);
+    const o0=pt(0,0,0), o1=pt(1,0,0);                                   // which way "out" points in world
+    const sgn=widthIsX?Math.sign(o1[2]-o0[2]):Math.sign(o1[0]-o0[0]);
+    const c=pt(lean/2,0,0), cy=(gY+topY)/2;
+    box(widthIsX?pw:0.12, len, widthIsX?0.12:pw, c[0],cy,c[2], P.siding,
+        widthIsX?{rotX:-sgn*ang}:{rotZ:sgn*ang});                       // ¾" ply face
+    for(const s of [-1,1])                                              // 2×4 rails up each edge, behind the ply
+      strut(pt(lean+0.10,s*(pw/2-0.13),gY), pt(0.12,s*(pw/2-0.13),topY), 0.17, P.struct);
+    const HOLDS=[[0.20,0.10],[0.56,0.22],[0.84,0.14],[0.36,0.38],[0.70,0.46],[0.16,0.52],
+                 [0.88,0.62],[0.44,0.68],[0.24,0.80],[0.74,0.84],[0.50,0.93]];
+    for(const [u,t] of HOLDS){                                          // bolt-on holds, staggered so it climbs
+      const y=gY+0.3+t*(rise-0.55), r=lean*(1-t)+0.17, a=(u-0.5)*(pw-0.55), q=pt(r,a,y);
+      box(0.20,0.17,0.20, q[0],y,q[2], P.accent);
+    }
+    const g=pt(-0.06,0,0);                                              // grab bar over the lip — the last move
+    box(widthIsX?pw*0.6:0.14, 0.14, widthIsX?0.14:pw*0.6, g[0],topY+0.55,g[2], P.trim);
+    const f=pt(lean+0.25,0,0), fy=gY+0.08;                              // pad at the base
+    box(widthIsX?pw+0.5:0.5, 0.16, widthIsX?0.5:pw+0.5, f[0],fy,f[2], P.footing,{rough:1});
+  }
+
   // ---- access: ladder or stairs — positionable side, along-position & descent direction ----
   if(sL){
     _stage=15;
     const pt=accPt, widthIsX=accWidthIsX;   // unified anchor: wall side, deck outer edge, or a deck side edge
     const gAtRun=r=>{ const f=pt(r,0,0); return groundAt(f[0],f[2]); };   // ground height where the run lands (sloped sites)
-    if(p.access==='stairs'){
+    if(p.access==='rock'){
+      rockFace(pt,widthIsX,floorY,gAtRun(0.6),Math.min(3.0,(widthIsX?W:D)-1.2));
+    } else if(p.access==='stairs'){
       // A real stair, not a ramp with boards on it. Rise and run come from the actual climb — aim
       // for ~7" and hold every step identical. Everything hangs off one height function so the
       // treads, the rail and the balusters can't drift apart from each other.
@@ -2396,7 +2454,9 @@ function rebuild3D(p){
       }
       // newel posts: one pair at the landing, one pair at grade — the rail lands ON these, not in mid-air
       const nsec=ST.postSec||0.2, rTop=0.18, rBot=tot-0.18;
-      for(const s of [-1,1]){
+      const RS=state.stairRail||'both';
+      const railSides = RS==='none'?[] : RS==='one'?[1] : [-1,1];
+      for(const s of railSides){
         for(const [r,base] of [[rTop,yAt(rTop)],[rBot,gF]]){
           const topY=yAt(r)+RAILH, h=topY-base, c=pt(r,s*sw/2,base+h/2);
           box(nsec,h,nsec, c[0], base+h/2, c[2], P.struct);
@@ -2426,6 +2486,9 @@ function rebuild3D(p){
       const n=Math.max(3,Math.round(dy/S.gap));
       for(let i=1;i<=n;i++){ const t=i/(n+1), o=oBot+dr*t, y=gF+dy*t;
         if(S.tread==='rung') strut(pt(o,-lw/2,y), pt(o,lw/2,y), 0.07,P.struct);
+        else if(S.tread==='alt'){                                        // alternating half-treads, left/right
+          const sd=(i%2?1:-1), dp=Math.max(0.72,ST.treadDp*1.5), c=pt(o,sd*lw*0.22,y);
+          box(widthIsX?lw*0.46:dp, ST.treadTh, widthIsX?dp:lw*0.46, c[0], y+ST.treadTh/2, c[2], P.struct); }
         else { const c=pt(o,0,y), th2=ST.treadTh, dp=S.tread==='deep'?Math.max(0.62,ST.treadDp*1.35):ST.treadDp;
           box(widthIsX?lw-0.1:dp, th2, widthIsX?dp:lw-0.1, c[0], y+th2/2, c[2], P.struct); }
       }
@@ -2440,6 +2503,17 @@ function rebuild3D(p){
         strut(pt(oBot,s*(lw/2+0.12),gF+0.1), pt(oBot,s*(lw/2+0.12),gF+2.6), 0.1,P.struct);
       }
     }
+  }
+
+  // a SECOND way up, on a side of your choosing — the fun one, next to the sensible one
+  if(state.rockWall && p.access!=='rock' && sL){
+    _stage=15;
+    const rs=state.rockSide||'back', rm=sideMap(rs);
+    const rOnDeck = Dd>0 && rs===p.deckSide;
+    const rOut = rm.houseHalf + (rOnDeck?Dd:0);
+    const rpw=Math.min(3.0, rm.along-1.2);
+    const rpt=(r,w,y)=> rm.W3(w, rOut+r, y);
+    rockFace(rpt, rm.fb, floorY, groundAt(...(()=>{const t=rm.tw(0,rOut+0.5); return [t[0],t[1]];})()), rpw);
   }
 
   // ---- extras (normal view only; hidden during the step sequence) ----
@@ -2533,7 +2607,7 @@ function rebuild3D(p){
   // ---- charm extras: shutters, flower boxes, awnings, chimney, vane, flag, swing, pole, sandbox, lights, mailbox ----
   if(!isA && (state.shutters||state.flower||state.awning)){
     const accent=P.accent;
-    for(const win of p.windows){ const ws=WIN[win.size], sp2=winSpec(ws);
+    for(const win of p.windows){ const ws=winOf(win), sp2=winSpec(ws);
       const r=rect(win.wall,win.pos,ws.w,sp2.wh,floorY+sp2.sill), mid=(r.vTop+r.vBot)/2, h=r.vTop-r.vBot;
       if(state.shutters) for(const s of [-1,1]){
         onWall(r.k,r.uc+s*(r.hw+0.32),mid,0.42,h+0.1,0.05,accent,{off:0.14,cast:false});
@@ -2790,15 +2864,15 @@ function computeMaterials(p){
   if(finish==='paint'){ add(g,2,'gal','Primer + exterior paint','your color',135,lw('exterior paint primer')); }
   const dS=DOOR[p.door.size], doorH=Math.min(dS.h, Hw-0.25);
   S(10.5);
-  for(const win of p.windows){ const ws=WIN[win.size]; if(ws.plexi) continue;
+  for(const win of p.windows){ const ws=winOf(win); if(ws.plexi) continue;
     add(g,1,'×',`Window — ${ws.label}`,`Shed Windows & More ${ws.type}, flush-mount tempered · on the ${win.wall} wall`,ws.price,ws.url); }
   { const px=p.windows.filter(w=>WIN[w.size]&&WIN[w.size].plexi);
     if(px.length){
       // you don't buy these — you cut them out of sheet, so the list sells the sheet
-      const area=px.reduce((a,w)=>a+WIN[w.size].w*12*WIN[w.size].h*12,0);          // sq in of light
+      const area=px.reduce((a,w)=>a+winOf(w).w*12*winOf(w).h*12,0);                // sq in of light
       const sheets=Math.max(1,Math.ceil(area/(ACRYL.shW*ACRYL.shH*0.75)));          // 75% yield off a sheet
-      const stopLF=px.reduce((a,w)=>a+2*(WIN[w.size].w+WIN[w.size].h),0)*2;         // stops both faces
-      for(const w of px) add(g,1,'×',`Light — ${WIN[w.size].label}`,`fixed acrylic, cut from the sheet below and set in stops · on the ${w.wall} wall`,0,'');
+      const stopLF=px.reduce((a,w)=>a+2*(winOf(w).w+winOf(w).h),0)*2;               // stops both faces
+      for(const w of px) add(g,1,'×',`Light — ${winOf(w).label}${w.hft?' · cut '+dim(w.hft)+' tall':''}`,`fixed acrylic, cut from the sheet below and set in stops · on the ${w.wall} wall`,0,'');
       add(g,sheets,'×',`Acrylic sheet — ${ACRYL.shW}×${ACRYL.shH}″ × 0.093″`,
         `${px.length} light${px.length===1?'':'s'} cut from ${sheets} sheet${sheets===1?'':'s'}. Score-and-snap or a fine-tooth blade; leave the masking film on until the stops are pinned. Safer than glass at kid height and it will not shatter.`,
         sheets*ACRYL.price,lw('acrylic sheet 18 x 24 clear'));
@@ -2883,8 +2957,23 @@ function computeMaterials(p){
   { const ST=ACC_STOCK[state.accStock]||ACC_STOCK['2x6'];
     const L=LADDERS[state.ladderStyle]||LADDERS.rung;
     const railStock=ST.cut==='2×4'?'2×4':'2×6', railTerm=ST.cut==='2×4'?'2x4x10 pressure treated':'2x6x10 pressure treated';
-    g=G('Access — '+(p.access==='stairs'?'stairs':L.name.toLowerCase()+' ladder')+' ('+ST.cut+')'); S(15);
-    if(p.access==='stairs'){
+    // one rock-wall bill, whether it IS the way up or an addition
+    const rockBill=(gg,where)=>{
+      const rise=Math.max(1.0,Hf), pw=3.0, sheets=Math.max(1,Math.ceil((pw*Math.hypot(rise*0.17,rise))/32));
+      add(gg,sheets,'×','¾" exterior plywood — 4×8',`the climbing face${where?' ('+where+')':''}. ¾" so a T-nut has something to bite; ½" splits out around the holds`,sheets*PRICE.plySheet,lw('3/4 pressure treated plywood'));
+      add(gg,2,'pcs',`2×4 rails — ${stdLen(Math.hypot(rise*0.17,rise)+0.6)} ft`,'one up each edge behind the ply, lagged to the posts — the ply is the surface, these carry the load',2*stdLen(Math.hypot(rise*0.17,rise)+0.6)*PRICE.brace,lw('2x4x8 pressure treated'));
+      add(gg,3,'pcs','2×4 blocking — 3 ft','horizontal backing behind the hold rows so no bolt lands in unsupported ply',3*3*PRICE.brace,lw('2x4x8 lumber'));
+      add(gg,12,'×','Climbing holds + T-nuts + bolts','a starter set of 12. Set them in a staggered route, biggest and flattest at the bottom',52,lw('rock climbing holds kit with t nuts'));
+      add(gg,1,'pcs','Grab bar 2×4 — 3 ft','over the lip at the top — the last move is the one that needs a handhold',3*PRICE.brace,lw('2x4x8 pressure treated'));
+      add(gg,8,'×','⅜″ × 4″ lag screws — rails','rails into the posts, pre-drilled',8*1.2,lw('3/8 x 4 hex lag screw'));
+      add(gg,Math.max(6,Math.ceil((pw+6)*(6)/9)),'bags','Playground mulch — 2 cu ft',
+        'the fall zone under a climbing wall wants ~9″ of loose fill, out 6 ft from the base. This is not optional on a wall kids fall off on purpose',
+        Math.max(6,Math.ceil((pw+6)*6/9))*5,lw('playground wood mulch 2 cu ft'));
+    };
+    g=G('Access — '+(p.access==='rock'?'rock wall':p.access==='stairs'?'stairs':L.name.toLowerCase()+' ladder')+(p.access==='rock'?'':' ('+ST.cut+')')); S(15);
+    if(p.access==='rock'){
+      rockBill(g,'');
+    } else if(p.access==='stairs'){
       const climb=Math.max(0.6,Hf), N=Math.max(3,Math.round(climb/0.58)), riseIn=climb*12/N, tot=N*0.83;
       const strLen=stdLen(Math.hypot(tot,climb)+1), treads=N-1;
       add(g,2,'pcs',`Stair stringers ${railStock} — ${strLen} ft`,
@@ -2894,11 +2983,12 @@ function computeMaterials(p){
         `${treads} treads for ${N} risers — the floor deck is the top step, grade is the bottom · 2 screws each end`,
         treads*2.5*PRICE.brace, lw(ST.cut==='2×4'?'2x4x8 lumber':'2x6x8 pressure treated'));
       add(g,2,'×','Stringer hangers — Simpson LSCZ','adjustable connector hanging each stringer off the rim (step 15)',2*7,lw('simpson lscz stringer connector'));
-      add(g,4,'×',`Stair newel posts ${ST.postSec?'4×4':'2×4'} — 4 ft`,
-        'TWO at the landing and TWO at grade, both sides — the handrail dies into these instead of floating',
-        4*4*(ST.postSec?postPrice:PRICE.brace), lw(ST.postSec?'pressure treated 4x4':'2x4x8 pressure treated'));
-      add(g,2,'pcs',`Handrail 2×4 — ${strLen} ft`,'34–36″ above the nosings, post to post, one each side',2*strLen*PRICE.brace,lw('2x4x10 pressure treated'));
-      if(Hf>2.5){ const span=tot-0.36, bal=Math.max(2,Math.ceil(span/0.40)-1)*2;
+      const RSn=(state.stairRail||'both')==='none'?0:(state.stairRail==='one'?1:2);
+      if(RSn) add(g,2*RSn,'×',`Stair newel posts ${ST.postSec?'4×4':'2×4'} — 4 ft`,
+        'one at the landing and one at grade per railed side — the handrail dies into these instead of floating',
+        2*RSn*4*(ST.postSec?postPrice:PRICE.brace), lw(ST.postSec?'pressure treated 4x4':'2x4x8 pressure treated'));
+      if(RSn) add(g,RSn,'pcs',`Handrail 2×4 — ${strLen} ft`,'34–36″ above the nosings, post to post'+(RSn===1?' — one side only':', one each side'),RSn*strLen*PRICE.brace,lw('2x4x10 pressure treated'));
+      if(Hf>2.5&&RSn){ const span=tot-0.36, bal=Math.max(2,Math.ceil(span/0.40)-1)*RSn;
         add(g,bal,'pcs','Balusters 2×2 — 3 ft','≤4″ clear gap, both open sides — required once the walking surface is over 30″ up',bal*3*PRICE.brace*0.6,lw('2x2x8 lumber')); }
     } else {
       const topY=Hf+0.12, oBot=L.oBot*Math.max(1,Hf/3.5), dy=Math.max(0.4,topY), perY=(-0.05-oBot)/dy;
@@ -2920,7 +3010,8 @@ function computeMaterials(p){
       }
       if(ST.postSec) add(g,2,'×','Ladder feet 4×4 — 16 in','this build stands on posts so no rail end ever touches soil',2*1.4*postPrice,lw('pressure treated 4x4'));
     }
-    add(g,2,'×','Pavers — 12 in square','a solid pad under each foot so it can’t sink or rot',2*4,lw('12 in square concrete paver'));
+    if(p.access!=='rock') add(g,2,'×','Pavers — 12 in square','a solid pad under each foot so it can’t sink or rot',2*4,lw('12 in square concrete paver'));
+    if(state.rockWall && p.access!=='rock'){ const g2=G('Rock wall — '+(state.rockSide||'back')+' side'); S(15); rockBill(g2,(state.rockSide||'back')+' side'); }
   }
 
   g=G('Bracing & hardware'); S(6);
@@ -3122,7 +3213,27 @@ function update(){
   const sox=document.getElementById('ovX'); if(sox) sox.value=state.ovX==null?1:state.ovX;
   const soz=document.getElementById('ovZ'); if(soz) soz.value=state.ovZ==null?1:state.ovZ;
   const svp=document.getElementById('vStairPos'); if(svp) svp.textContent=state.stairPos<0.34?'toward one end':state.stairPos>0.66?'toward the other':'center';
+  { const as=document.getElementById('accStock'); const asc=as&&as.closest('.ctl'); if(asc) asc.style.display=state.access==='rock'?'none':''; }
+  { const sc=document.getElementById('stairRailCtl'); if(sc) sc.style.display=state.access==='stairs'?'':'none';
+    const cap=document.getElementById('stairRailCap');
+    if(cap) cap.innerHTML = (state.stairRail||'both')==='none'
+      ? 'Open stringers — nothing to grab. Code wants a handrail once the walk climbs past 30″.'
+      : state.stairRail==='one' ? 'One rail. Put it on the open side; the other can run against a wall or a bank.'
+      : 'A rail each side, with balusters under 4″ apart once the drop is over 30″.'; }
   const lsc=document.getElementById('ladderStyleCtl'); if(lsc) lsc.style.display=state.access==='ladder'?'':'none';
+  { const rc=document.getElementById('rockCtl'), cb=document.getElementById('optRockWall');
+    const isRock=state.access==='rock', extra=!!state.rockWall;
+    if(cb){ cb.checked=extra; cb.parentElement.style.display=isRock?'none':''; }
+    const row=document.getElementById('rockSideRow'), seg=document.getElementById('rockSide'), sel=document.getElementById('sel_rockSide');
+    const showSide=extra&&!isRock;                       // the side only matters for the EXTRA wall
+    if(row) row.style.display=showSide?'':'none';
+    if(seg) seg.style.display=showSide?'':'none';
+    if(sel) sel.style.display=showSide?'':'none';
+    const cap=document.getElementById('rockCap');
+    if(cap) cap.innerHTML = isRock
+      ? 'The rock wall is the way up. Slabbed, not overhanging, with a grab bar over the lip — and it needs a mulched fall zone under it.'
+      : extra ? 'A second way up on the '+(state.rockSide||'back')+' side, alongside the '+state.access+'.'
+              : 'Kids will use a rock wall far more than the stair. It can be the way up, or sit alongside it.'; }
   const dec=document.getElementById('deckEdgeCtl'); if(dec) dec.style.display=state.Dd>0?'':'none';
   const vss=document.getElementById('vStairSide');     // a deck pins the access to the deck side so it always lands ON it
   if(vss) vss.textContent = state.Dd>0 ? 'locked to the '+state.deckSide+' deck' : '';
@@ -3201,6 +3312,12 @@ function safetyMsgs(s){   // shared by the side panel and the printed plan set
     const railLen=along+2*s.Dd, nBal=Math.ceil(railLen*12/4.5);
     msgs.push('Deck rail ~36" ✓ — for a code ≤4" baluster gap, run ~'+nBal+' balusters over '+dim(railLen)+' of railing.'); }
   if(s.access==='stairs'&&s.stairGate!==false) msgs.push('Stair gate is on — hang it to swing AWAY from the drop, with the latch on the outside face where a small child can’t reach it.');
+  if(s.access==='stairs'&&(s.stairRail||'both')!=='both'&&s.Hf>2.5)
+    msgs.push((s.stairRail==='none'
+      ? '⚠ The stair has <b>no railing</b> and the walking surface climbs past 30″ — code wants a graspable handrail and a guard on any open side. Open stringers look wonderful and are the usual place a child falls from. If you keep them open, keep the run low, the treads wide, and the landing surface soft.'
+      : 'Railing on one side only — the open side still has a fall over 30″ on it. Fine if that side runs against a wall or a bank; otherwise guard it.'));
+  if(s.access==='rock'||s.rockWall) msgs.push('A climbing wall is the one thing here kids fall off <b>on purpose</b>. Put ~9″ of loose fill — playground mulch or wood chips — under it and 6 ft out from the base, and keep that fall zone clear of the stair, the posts and anything with a corner. Grass is not a fall surface.');
+  if(s.access==='rock') msgs.push('The rock wall is the ONLY way up on this build. Small children get up a slab long before they can get back down one — think about whether a ladder alongside it would get more use.');
   if(!s.braceBoth) msgs.push('Braced at the corners only — for tipping you want diagonal resistance in BOTH axes. Turn on “knee brace every post”, or X-brace the open bays under the floor. It is the cheapest real gain here.');
   if(!s.loadPath) msgs.push('No strapped load path — wall-to-floor and floor-to-beam are relying on toe-nails. A structure that stays in one piece resists as one mass; one that comes apart peels.');
   if(((s.Hf>5)||(s.Dd>0&&s.Hf>4))&&!s.groundAnchors) msgs.push('Tall &amp; exposed and not anchored — four augered ground anchors strapped to the corner posts add thousands of ft-lb of overturning resistance for about $60 and an afternoon.');
@@ -3232,7 +3349,7 @@ function seg(id,key){ const el=document.getElementById(id);
   el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
     [...el.children].forEach(c=>c.classList.remove('on')); b.classList.add('on'); state[key]=b.dataset.v;
     if(id==='finish') applyFinish(b.dataset.v,true); update(); }); }
-seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('ladderStyle','ladderStyle'); seg('accStock','accStock'); seg('deckEdge','deckEdge'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
+seg('rockSide','rockSide'); seg('stairRail','stairRail'); seg('post','post'); seg('roof','roof'); seg('finish','finish'); seg('access','access'); seg('ladderStyle','ladderStyle'); seg('accStock','accStock'); seg('deckEdge','deckEdge'); seg('foundation','foundation'); seg('slopeDir','slopeDir'); seg('gradeDir','gradeDir'); seg('stairSide','stairSide'); seg('stairDir','stairDir');
 document.getElementById('midBeam').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
   state.midBeam=b.dataset.v==='on'; setSeg('midBeam',b.dataset.v); update(); });
 document.getElementById('autoSizeBtn').addEventListener('click',()=>{
@@ -3273,6 +3390,7 @@ function renderWindows(){
     <select class="wwall">${WALL_OPTS}</select>
     <button class="wdel" title="Remove">×</button>
     <input type="range" class="wpos" min="0" max="1" step="0.05" value="${w.pos}">
+    ${(WIN[w.size]||{}).plexi?`<div class="wht"><span>height</span><input type="range" class="whgt" min="1" max="${Math.max(1.5,Math.round((state.Hw-0.9)*4)/4)}" step="0.25" value="${Math.min(w.hft||WIN[w.size].h,Math.max(1.5,state.Hw-0.9))}"><b>${dim(Math.min(w.hft||WIN[w.size].h,Math.max(1.5,state.Hw-0.9)))}</b></div>`:''}
   </div>`).join('') || '<div class="empty" style="font-size:12px;color:var(--tf);font-style:italic">No windows.</div>';
   el.querySelectorAll('.winrow').forEach((row,i)=>{ row.querySelector('.wsize').value=state.windows[i].size; row.querySelector('.wwall').value=state.windows[i].wall; });
 }
@@ -3281,7 +3399,9 @@ document.getElementById('addWin').addEventListener('click',()=>{
   state.windows.push({wall:slot.wall,pos:slot.pos,size:'medium'}); renderWindows(); update(); });
 document.getElementById('winList').addEventListener('input',e=>{
   const row=e.target.closest('.winrow'); if(!row)return; const i=+row.dataset.i;
-  if(e.target.classList.contains('wsize')) state.windows[i].size=e.target.value;
+  if(e.target.classList.contains('whgt')){ state.windows[i].hft=+e.target.value;
+    const b=row.querySelector('.wht b'); if(b) b.textContent=dim(+e.target.value); update(); return; }
+  if(e.target.classList.contains('wsize')){ state.windows[i].size=e.target.value; delete state.windows[i].hft; renderWindows(); }
   else if(e.target.classList.contains('wwall')) state.windows[i].wall=e.target.value;
   else if(e.target.classList.contains('wpos')) state.windows[i].pos=+e.target.value;
   update();
@@ -3462,7 +3582,7 @@ function stepDetail(c,s){
     12:`rim beam + ${Math.ceil(s.W*12/16)+1}× deck joists`,
     13:`decking — ~${Math.round(s.W*s.Dd)} sq ft of 5/4 board`,
     14:`railing ~${Math.round(s.W+2*s.Dd)} ft + balusters`,
-    15:`${s.access==='stairs'?'stairs + handrail':(LADDERS[s.ladderStyle]||LADDERS.rung).name.toLowerCase()+' ladder'}`,
+    15:`${s.access==='rock'?'rock wall + fall zone':s.access==='stairs'?'stairs + handrail':(LADDERS[s.ladderStyle]||LADDERS.rung).name.toLowerCase()+' ladder'}${s.rockWall&&s.access!=='rock'?' + rock wall':''}`,
     15.5:`finish/sealer + edge-easing + bolt re-torque`
   })[c]||'';
 }
@@ -3571,7 +3691,8 @@ function applyDesign(d){
   setSeg('ladderStyle',state.ladderStyle||'rung'); setSeg('deckEdge',state.deckEdge||'left'); setSeg('stairSide',state.stairSide); setSeg('stairDir',state.stairDir); document.getElementById('stairPos').value=Math.round(state.stairPos*100);
   if(state.midBeam==null) state.midBeam=false; if(state.rafter8==null) state.rafter8=false;
   setSeg('midBeam',state.midBeam?'on':'off');
-  for(const [id,key] of [['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors'],['optRoofOver','roofOver'],['optStairGate','stairGate']]){
+  setSeg('rockSide',state.rockSide||'back'); setSeg('stairRail',state.stairRail||'both');
+  for(const [id,key] of [['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors'],['optRockWall','rockWall'],['optRoofOver','roofOver'],['optStairGate','stairGate']]){
     const cb=document.getElementById(id); if(cb) cb.checked = key==='stairGate' ? state[key]!==false : !!state[key]; }
   renderWindows();
   if(!colors.trim) colors.trim=colors.struct; if(!colors.door) colors.door='#3a2517'; if(!colors.accent) colors.accent=shade(colors.roof,1.25);
@@ -3718,7 +3839,7 @@ function wallOpenings(s,k){               // openings on wall k, in wall-local c
   const dS=DOOR[s.door.size], doorH=Math.min(dS.h,Hw-0.25);
   const place=(ow,oh,pos,vBot,kind,lbl)=>{ const hw=Math.min(ow,L-0.7)/2, uc=Math.max(hw+0.25,Math.min(L-hw-0.25,pos*L)); ops.push({uc,hw,vBot,vTop:vBot+oh,kind,lbl}); };
   if(s.door.wall===k) place(dS.w,doorH,s.door.pos,0,'door',dS.label);
-  for(const win of (s.windows||[])) if(win.wall===k){ const ws=WIN[win.size], wh=Math.min(ws.h,Hw-0.9), sill=Math.max(0.55,Math.min(Hw-wh-0.3,(Hw-wh)*0.6)); place(ws.w,wh,win.pos,sill,'window',ws.label); }
+  for(const win of (s.windows||[])) if(win.wall===k){ const ws=winOf(win), wh=Math.min(ws.h,Hw-0.9), sill=Math.max(0.55,Math.min(Hw-wh-0.3,(Hw-wh)*0.6)); place(ws.w,wh,win.pos,sill,'window',ws.label); }
   return {L,Hw,ops};
 }
 const RO_GAP=0.5;    // 6″ between rough openings — a jack + king stud from each side
@@ -3928,7 +4049,7 @@ function stepSpecs(st,s){
     12:['rim beam + deck joists', '~16" O.C.'],
     13:[`${dim(s.Dd)} decking`, '~⅛" drainage gaps'],
     14:['rail posts + balusters', '~36" tall', 'gap at the ladder'],
-    15:[s.access==='stairs'?'stairs':(LADDERS[s.ladderStyle]||LADDERS.rung).name.toLowerCase()+' ladder', 'finish / sealer']
+    15:[s.access==='rock'?'rock wall':s.access==='stairs'?'stairs':(LADDERS[s.ladderStyle]||LADDERS.rung).name.toLowerCase()+' ladder'].concat(s.rockWall&&s.access!=='rock'?['+ rock wall']:[]).concat(['finish / sealer'])
   };
   return M[st]||[];
 }
@@ -4109,6 +4230,16 @@ function stepGuide(st,s){
     s.stairGate!==false?'Hang the self-closing gate between the opening posts: 2 spring hinges on one post, gravity latch on the OTHER — mounted on the OUTSIDE top, where little arms can’t reach over. Swing it INWARD over the deck (never out over the stairs).':null,
     'Top rail at 36″; balusters spaced under 4″ clear (a scrap block as a spacer keeps it even).','✔ Check: a 4″ ball can’t pass anywhere; rail takes a hard shake.'];
   G[15]=(()=>{ const ST=ACC_STOCK[s.accStock]||ACC_STOCK['2x6'];
+    const rockSteps=(where)=>[
+      `Rock wall${where?' — '+where:''}: two 2×4 rails first, lagged to the posts, raked so the FOOT sits about ${dim(Math.max(0.45,Hf*0.17))} further out than the top. Slabbed, never overhanging — an overhang is an adult problem and a small child just peels off it.`,
+      'Lay the ¾″ ply on the rails and mark your hold grid BEFORE you fasten anything: ~8″ apart, staggered, and every hole landing over a rail or a block. A T-nut in unsupported ply pulls through.',
+      'Drill the grid, hammer the T-nuts in from the BACK, then screw the ply down. Doing it in that order is the whole reason to dry-fit — you cannot reach the back once it is up.',
+      'Set the route with the biggest, flattest holds low and smaller ones higher. Bolt each hold with a washer and snug it; check them for spin every few weeks, because they do work loose.',
+      'Grab bar over the lip at the top. The last move — getting from the wall onto the deck — is the one that needs a handhold, and it is where a fall would be from full height.',
+      `Fall zone: ~9″ of playground mulch under the wall and 6 ft out from the base, kept clear of posts, the stair and anything with a corner.`,
+      '✔ Check: hang your own weight off the top holds, and off the grab bar. Nothing moves, nothing creaks.'
+    ];
+    if(s.access==='rock') return rockSteps('');
     const stockLine=`Built from ${ST.cut}. ${ST.build}`;
     const gF=grade?-(grade*(((s.stairSide==='front'||s.stairSide==='back')?D:W)/2+1)):0;
     if(s.access==='stairs'){
@@ -4120,7 +4251,12 @@ function stepGuide(st,s){
         `Stairs: ${N} steps · ${Math.round(riseIn*10)/10}″ rise each · 10″ run. Lay this out on two ${strStock} stringers with a framing square (clamp stops at ${Math.round(riseIn*10)/10}″ and 10″ and just walk it down the board).`,
         `Stringer stock: ~${dim(Math.hypot(Hf,N*0.85)+0.5)} long. Cut the bottom rise SHORTER by one tread thickness so every step ends up equal.`,
         'Hang the stringers from the deck/floor rim with stringer hangers; land the feet on a pad or pavers' + (grade?' — on your slope the downhill foot needs a deeper pad':'') + '.',
-        `Treads: ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} per step, 2 screws into each stringer. Handrail 34–36″ above the tread nosings, balusters ≤4″ apart.`,
+        `Treads: ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} per step, 2 screws into each stringer.`,
+        (s.stairRail||'both')==='none'
+          ? 'No railing on this one: cut the stringers clean, ease every edge, and keep the landing surface soft. An open stair reads beautifully and gives you nothing to grab — worth being honest with yourself about who is using it.'
+          : (s.stairRail==='one'
+            ? 'Handrail on one side, 34–36″ above the tread nosings, balusters ≤4″ apart. Put it on the open side, not the wall side.'
+            : 'Handrail both sides, 34–36″ above the tread nosings, balusters ≤4″ apart.'),
         '✔ Check: every rise within ⅛″ of the others — uneven steps trip people.'
       ]; }
     const L=LADDERS[s.ladderStyle]||LADDERS.rung, rise=Hf+0.8, foot=L.oBot*Math.max(1,Hf/3.5);
@@ -4174,7 +4310,7 @@ function planSpec(s){
     ((s.roofOver&&s.Dd>0)?' · carried over the deck':''));
   R('Joists', s.oc+'" on centre');
   R('Door', DOOR[s.door.size].label+' · '+s.door.wall+' wall');
-  R('Windows', s.windows.length ? s.windows.map(w=>WIN[w.size].label+' ('+w.wall+')').join(' · ') : 'None');
+  R('Windows', s.windows.length ? s.windows.map(w=>winOf(w).label+(w.hft?' cut '+dim(w.hft):'')+' ('+w.wall+')').join(' · ') : 'None');
   { const px=(s.windows||[]).filter(w=>WIN[w.size]&&WIN[w.size].plexi);
     if(px.length) R('Glazing', px.length+' fixed acrylic light'+(px.length===1?'':'s')+' cut from sheet, set in stops · neutral-cure sealant only'); }
   if(s.Dd>0) R('Deck', dim(s.Dd)+' deep on the '+s.deckSide+' side · rail return '+s.deckEdge);
@@ -4182,6 +4318,9 @@ function planSpec(s){
   R('Access', s.access==='stairs'
     ? 'Stairs · '+s.stairSide+' side, running '+(s.stairDir==='out'?'straight out':'along the wall')+(s.stairGate!==false?' · self-closing gate':'')
     : 'Ladder · '+(L?L.name:s.ladderStyle));
+  if(s.access==='stairs') R('Stair railing', (s.stairRail||'both')==='none'?'None — open stringers':s.stairRail==='one'?'One side':'Both sides');
+  R('Rock wall', s.access==='rock' ? 'Yes — it IS the way up (slabbed ply + bolt-on holds)'
+      : s.rockWall ? 'Yes — extra, on the '+(s.rockSide||'back')+' side, alongside the '+s.access : 'No');
   R('Bracing', (s.braceBoth?'Knee braces at every post, both axes':'Knee braces at the corners')+(s.Hf>4.5?' + full-bay X-bracing':''));
   R('Load path', s.loadPath?'Strapped — wall→floor→beam→post':'Toe-nailed (not strapped)');
   if(s.groundAnchors) R('Anchoring', '4× augered ground anchors, strapped to the corner posts');
@@ -4317,10 +4456,10 @@ function sanitizeDesign(d){
   const SID=['front','back','left','right'];
   const en=(k,vals)=>{ if(vals.includes(d[k])) out[k]=d[k]; };
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
-  en('post',['4x4','6x6']); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
-  en('foundation',['blocks','piers','buried']); en('access',['ladder','stairs']);
-  en('ladderStyle',Object.keys(LADDERS)); en('deckEdge',['outer','left','right']); en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
-  for(const k of ['midBeam','rafter8','braceBoth','loadPath','groundAnchors','roofOver','stairGate','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
+  en('post',['4x4','6x6']); en('rockSide',SID); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
+  en('foundation',['blocks','piers','buried']); en('access',['ladder','stairs','rock']);
+  en('ladderStyle',Object.keys(LADDERS)); en('stairRail',['both','one','none']); en('deckEdge',['outer','left','right']); en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
+  for(const k of ['midBeam','rafter8','braceBoth','loadPath','groundAnchors','rockWall','roofOver','stairGate','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
     if(typeof d[k]==='boolean') out[k]=d[k];
   if(typeof d.sign==='string') out.sign=d.sign.slice(0,16);
   if(d.door&&typeof d.door==='object'){
@@ -4329,7 +4468,8 @@ function sanitizeDesign(d){
     if(Object.keys(DOOR).includes(d.door.size)) out.door.size=d.door.size; }
   if(Array.isArray(d.windows)) out.windows=d.windows.slice(0,4).filter(w=>w&&typeof w==='object').map(w=>({
     wall:SID.includes(w.wall)?w.wall:'right', pos:(w.pos!=null&&isFinite(+w.pos))?Math.max(0,Math.min(1,+w.pos)):0.5,
-    size:Object.keys(WIN).includes(w.size)?w.size:'medium'}));
+    size:Object.keys(WIN).includes(w.size)?w.size:'medium',
+    ...(w.hft!=null&&isFinite(+w.hft)?{hft:Math.max(0.8,Math.min(7,+w.hft))}:{})}));
   return out;
 }
 function verifyDesign(s){
@@ -4464,7 +4604,7 @@ if(window.self!==window.top){ const b=document.querySelector('.brand'); if(b) b.
 })();
 /* security & anchoring */
 (function(){
-  const opts=[['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors']];
+  const opts=[['optBraceBoth','braceBoth'],['optLoadPath','loadPath'],['optAnchors','groundAnchors'],['optRockWall','rockWall']];
   for(const [id,key] of opts){ const cb=document.getElementById(id); if(!cb) continue;
     cb.checked=!!state[key];
     cb.addEventListener('change',()=>{ state[key]=cb.checked; update(); }); }
