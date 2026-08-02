@@ -285,6 +285,17 @@
   .ordsum b{color:var(--ac);font-weight:500} .ordsum.dim b{color:var(--tm)}
   .ordclear{font-family:var(--mono);font-size:10px;color:var(--tm);background:none;border:1px solid var(--bd);border-radius:6px;padding:3px 8px;cursor:pointer}
   .ordclear:hover{color:var(--ac);border-color:var(--ac)}
+  .msearch{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:7px;margin:12px 0 0;padding:7px 0 8px;background:var(--field)}
+  .msearch .mzi{width:14px;height:14px;flex:none;fill:none;stroke:var(--tf);stroke-width:1.9;stroke-linecap:round}
+  .msearch input{flex:1;min-width:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;color:var(--tx);
+    background:rgba(0,0,0,.06);border:none;border-radius:0;padding:7px 9px;-webkit-appearance:none;appearance:none}
+  .msearch input::placeholder{color:var(--tf)}
+  .msearch input:focus{outline:none;box-shadow:inset 0 -2px 0 var(--ink)}
+  .msearch input::-webkit-search-cancel-button{display:none}
+  .msearch button{display:none;font-family:var(--mono);font-size:15px;line-height:1;color:var(--tm);background:none;border:none;cursor:pointer;padding:2px 4px}
+  .msearch button:hover{color:var(--tx)}
+  .msearchmsg{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tf);margin:0 0 2px;min-height:0}
+  .msearchmsg:not(:empty){margin:2px 0 6px}
   .item:last-child{border-bottom:none}
   /* the row(s) that sell the piece you just tapped in the 3D */
   .item.pickmatch{background:rgba(255,106,0,.13);box-shadow:inset 3px 0 0 #FF6A00}
@@ -1220,6 +1231,12 @@
   <div class="rbody">
     <div id="note" class="note good"></div>
     <div id="safetyNote"></div>
+    <div class="msearch">
+      <svg class="mzi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21"/></svg>
+      <input type="search" id="matSearch" placeholder="Search the list — “hanger”, “2×6”, “lag”…" autocomplete="off" spellcheck="false">
+      <button id="matClear" title="Clear" aria-label="Clear search">×</button>
+    </div>
+    <div class="msearchmsg" id="matSearchMsg"></div>
     <div id="materials"></div>
     <div class="foot">
       Rough U.S. retail estimates — vary by region &amp; grade. No waste factor; buy ~10% extra.
@@ -3038,8 +3055,10 @@ function computeMaterials(p){
       const climb=Math.max(0.6,Hf), N=Math.max(3,Math.round(climb/0.58)), riseIn=climb*12/N, tot=N*0.83;
       const strLen=stdLen(Math.hypot(tot,climb)+1), treads=N-1;
       add(g,2,'pcs',`Stair stringers ${railStock} — ${strLen} ft`,
-        `cut from ONE marked pattern so all ${N} risers match · ${Math.round(riseIn*10)/10}″ rise · 10″ run`,
+        `left FULL LENGTH and cleated — not notched. Marked as a clamped pair so all ${N} risers match · ${Math.round(riseIn*10)/10}″ rise · 10″ run`,
         2*strLen*PRICE.brace*1.4, lw(railTerm));
+      add(g,(N-1)*2,'pcs','Tread cleats 2×4 — 8 in',`one under each end of every tread · ${(N-1)*2} in total, 3 screws each. This is the joint that carries every step`,(N-1)*2*0.7*PRICE.brace,lw('2x4x8 pressure treated'));
+      add(g,2,'×','Foot cleats / stakes','screwed to the pad in front of each stringer so the stair cannot slide forward',2*3,lw('galvanized stake'));
       add(g,treads,'pcs',`Treads ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} — 2 ft 6 in`,
         `${treads} treads for ${N} risers — the floor deck is the top step, grade is the bottom · 2 screws each end`,
         treads*2.5*PRICE.brace, lw(ST.cut==='2×4'?'2x4x8 lumber':'2x6x8 pressure treated'));
@@ -3183,6 +3202,37 @@ function computeMaterials(p){
   return {groups,total,note,level};
 }
 
+/* ===== search the materials list — 60+ lines is more than anyone should scroll to find a hanger ===== */
+(function(){
+  const inp=document.getElementById('matSearch'), mats=document.getElementById('materials'),
+        clear=document.getElementById('matClear'), msg=document.getElementById('matSearchMsg');
+  if(!inp||!mats) return;
+  // 2x6 / 2×6 / "2 x 6" should all find the same board
+  const norm=s=>(s||'').toLowerCase().replace(/[×✕]/g,'x').replace(/[^a-z0-9./-]+/g,' ').replace(/\s+/g,' ').trim();
+  window.__matFilter=()=>{
+    const raw=inp.value.trim(), q=norm(raw), terms=q?q.split(' '):[];
+    if(clear) clear.style.display=raw?'block':'none';
+    let hits=0;
+    for(const g of mats.querySelectorAll('.mgroup')){
+      let any=false;
+      for(const it of g.querySelectorAll('.item')){
+        const hay=norm(it.innerText)+' '+norm(g.querySelector('h3')?g.querySelector('h3').textContent:'');
+        const show=!terms.length||terms.every(t=>hay.includes(t));
+        it.style.display=show?'':'none'; if(show){ any=true; hits++; }
+      }
+      g.style.display=(!terms.length||any)?'':'none';
+    }
+    const os=mats.querySelector('.ordsum'); if(os) os.style.display=terms.length?'none':'';
+    if(msg) msg.textContent = !raw ? ''
+      : hits ? hits+' line'+(hits===1?'':'s')+' match “'+raw+'”'
+             : 'nothing matches “'+raw+'”';
+  };
+  window.__matSearchClear=()=>{ if(inp.value){ inp.value=''; window.__matFilter(); } };
+  inp.addEventListener('input',window.__matFilter);
+  inp.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.stopPropagation(); window.__matSearchClear(); inp.blur(); } });
+  if(clear) clear.addEventListener('click',()=>{ window.__matSearchClear(); inp.focus(); });
+})();
+
 /* ===== ordered tracker — check items off as you buy them (persists in localStorage) ===== */
 const OKEY='playhouse:ordered';
 function loadOrdered(){ try{ return new Set(JSON.parse(localStorage.getItem(OKEY))||[]); }catch(e){ return new Set(); } }
@@ -3218,6 +3268,7 @@ function renderMaterials(m){
     ? `<div class="ordsum"><span><b>✓ ${ordCnt} ordered</b> · <b>${$(m.total-ordTotal)}</b> still to buy</span><button class="ordclear" id="ordClear">clear</button></div>`
     : `<div class="ordsum dim">Tap an item to check it off as you order it →</div>`;
   document.getElementById('materials').innerHTML=sum+h;
+  if(window.__matFilter) window.__matFilter();     // the list is rebuilt on every update; keep the filter applied
 }
 function refreshOrdSum(){
   const m=computeMaterials(state); let cnt=0, ot=0;
@@ -4318,35 +4369,48 @@ function stepGuide(st,s){
       const climb=Math.max(0.6,Hf-Math.min(0,gF));
       const N=Math.max(3,Math.round(climb/0.58)), riseIn=climb*12/N;   // matches the model exactly
       const strStock=ST.cut==='2×4'?'2×4':'2×6';
+      const treads=N-1, run=10, totRun=(N*run)/12;
+      const nStr=2;   // 28.8″ between them; a wider stair would want a third
       return [
         stockLine,
-        `Stairs: ${N} steps · ${Math.round(riseIn*10)/10}″ rise each · 10″ run. Lay this out on two ${strStock} stringers with a framing square (clamp stops at ${Math.round(riseIn*10)/10}″ and 10″ and just walk it down the board).`,
-        `Stringer stock: ~${dim(Math.hypot(Hf,N*0.85)+0.5)} long. Cut the bottom rise SHORTER by one tread thickness so every step ends up equal.`,
-        'Hang the stringers from the deck/floor rim with stringer hangers; land the feet on a pad or pavers' + (grade?' — on your slope the downhill foot needs a deeper pad':'') + '.',
-        `Treads: ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut} per step, 2 screws into each stringer.`,
+        `<b>Measure the real rise before you cut anything.</b> Set a straight board level out from the ${s.Dd>0?'deck':'floor'} surface to where the bottom step will land and measure straight down. That number — not the one on this sheet — is your total rise. The drawing assumes flat ground and yours will not be.`,
+        `Divide it into equal risers: ${N} risers gives about <b>${Math.round(riseIn*10)/10}″ each</b> over a ${dim(totRun)} run, with ${treads} treads (the ${s.Dd>0?'deck':'floor'} is the top step and grade is the bottom). Equal matters far more than the exact number — a foot learns the rhythm in two steps and trips on the one that is different.`,
+        `<b>These are CLEATED stringers, not cut ones.</b> Two full-length ${strStock}s left whole, with a cleat under every tread. Do not try to notch a 2×6: cutting a ${Math.round(riseIn*10)/10}″ rise and a 10″ run out of a 5½″-deep board leaves nothing behind the notch. A cut stringer needs a 2×12 so at least <b>3½″ of throat</b> — the uncut wood behind the notches — is left. That throat IS the stringer; it is where under-built stairs break.`,
+        'Lay the two stringers out TOGETHER: clamp them face to face, mark once, and fasten through both to the same marks. Marking them separately is how you end up with treads that wind.',
+        `Mark along the stringer, not along the ground: the cleat spacing measured on the slope is ${Math.round(Math.hypot(riseIn,run)*10)/10}″ from tread to tread. Set each cleat so its TOP is where the underside of the tread will sit.`,
+        'Cleats: 2×4 offcuts or metal tread brackets, 3 screws minimum into each stringer, pre-drilled near the ends so the cleat does not split. This joint carries every step — it is not a place for two screws and hope.',
+        `Hang the top: stringer hangers or angle brackets into the ${s.Dd>0?'deck rim':'floor rim'}, or a ledger let into it. Never toe-nails — a toe-nailed stringer is held on by friction and pulls off in a season.`,
+        'Land the feet on a solid pad — pavers or a poured pad, bearing full width' + (grade?' — and on your slope the downhill foot needs the deeper one':'') + '. Then FIX them so they cannot kick out: a cleat screwed to the pad in front of each stringer, or a stake driven behind it. A stair that slides at the bottom is the classic playhouse failure.',
+        `Re-check the bottom riser once the pad is down. If the pad raised the landing, take the difference off the stringer feet — the bottom step is the one that gets walked on hardest and noticed least.`,
+        `Treads: ${ST.cut==='4×4 + 2×6 + 2×4'?'2×4':ST.cut}, overhanging each stringer by about ¾″, 2 screws per stringer per tread, and ease the front edge with a block plane or 80-grit. Bare feet in summer.`,
         (s.stairRail||'both')==='none'
           ? 'No railing on this one: cut the stringers clean, ease every edge, and keep the landing surface soft. An open stair reads beautifully and gives you nothing to grab — worth being honest with yourself about who is using it.'
           : (s.stairRail==='one'
             ? 'Handrail on one side, 34–36″ above the tread nosings, balusters ≤4″ apart. Put it on the open side, not the wall side.'
             : 'Handrail both sides, 34–36″ above the tread nosings, balusters ≤4″ apart.'),
-        '✔ Check: every rise within ⅛″ of the others — uneven steps trip people.'
+        `✔ Check, in this order: every riser within ⅛″ of the others · a level laid across each tread reads flat side to side · the whole stair does not move when you bounce on the middle tread · the feet cannot slide forward.`
       ]; }
     const L=LADDERS[s.ladderStyle]||LADDERS.rung, rise=Hf+0.8, foot=L.oBot*Math.max(1,Hf/3.5);
     const out=[
       stockLine,
       `${L.name} ladder — ${L.note}`,
-      `Two ${ST.cut==='2×4'?'2×4':'2×6'} rails ~${dim(Math.hypot(rise,foot)+L.ext+0.4)} long. Stand the foot ${dim(foot)} out from the ${s.Dd>0?'deck edge':'wall'} — that’s about ${Math.round(Math.atan2(rise,foot)*180/Math.PI)}°.`
+      `<b>Measure the real rise first.</b> From the ${s.Dd>0?'deck':'floor'} surface straight down to the ground where the feet will land. Cut to that, not to the sheet — the drawing assumes flat ground.`,
+      `Two ${ST.cut==='2×4'?'2×4':'2×6'} rails ~${dim(Math.hypot(rise,foot)+L.ext+0.4)} long. Stand the feet ${dim(foot)} out from the ${s.Dd>0?'deck edge':'wall'} — about ${Math.round(Math.atan2(rise,foot)*180/Math.PI)}° from horizontal.${L.rope?'':' Steeper than ~75° and small children climb down backwards; shallower than ~60° and it wants to be a stair.'}`,
+      'Cut and mark BOTH rails at once — clamp them face to face and lay out every rung position through both. Rails marked separately give you rungs that are not level, and a rung that is not level is the one a foot slips off.',
+      `Set the rung spacing measured ALONG the rail, not vertically: ${dim(L.gap)} vertical works out to about ${Math.round(Math.hypot(L.gap, L.gap*(foot/Math.max(0.1,rise)))*12*10)/10}″ along the slope. Keep every gap identical — the top one included.`,
+      `Put the TOP rung level with the ${s.Dd>0?'deck':'floor'} surface, or one full spacing below it. A short last step is where people misjudge the transition and it is the highest point on the climb.`
     ];
-    if(L.tread==='rung') out.push(`Rungs every ~${dim(L.gap)}: 2×2 stock, either let into ¾″-deep notches in the rails or screwed through the rail face with 3″ screws. Notched is far stronger.`);
+    if(L.tread==='rung') out.push(`Rungs: 2×2 stock, let into notches in the rails or screwed through the rail face with 3″ screws. Notched is far stronger — the load bears on wood instead of hanging off fasteners in shear. <b>Never cut a notch deeper than a third of the rail thickness</b>; past that you have made a row of hinges out of your rail.`);
     else if(s.ladderStyle==='notch') out.push(`Treads every ~${dim(L.gap)}: cut shallow (¼–⅜″) dadoes across both rails so each tread SITS in wood, then screw through the rail into the tread end. This is the joint that stops treads working loose.`);
     else out.push(`Treads every ~${dim(L.gap)}: ${ST.cut==='2×4'?'2×4':'2×6'} flat, screwed to the rail faces (2× 3″ screws per end) — or dado them in if you want it to outlive the kids.`);
     if(L.ext>0) out.push(`Run the rails ${dim(L.ext)} PAST the landing — that’s the handhold you grab stepping on and off. This is the single biggest safety difference between ladder styles.`);
     if(L.hand) out.push('Add the grab rails: a rail each side on short posts, ~34–36″ above the treads, carried past the top. Round the ends over.');
-    out.push(`Fasten the TOP: a 2×4 cleat across the rails, then lag the rails to the ${s.Dd>0?'deck rim':'floor rim'} with 2× ⅜″ × 4″ lags. ${s.Dd>0?'It lands in the railing gap between the two 4×4 opening posts.':''}`);
+    out.push(`Fasten the TOP with BOLTS, not screws: a 2×4 cleat across the rails, then 2× ⅜″ × 4″ lags per rail into the ${s.Dd>0?'deck rim':'floor rim'}, pre-drilled. ${s.Dd>0?'It lands in the railing gap between the two 4×4 opening posts. ':''}Every bit of a climber's weight, plus whatever they do swinging on it, goes through this one joint.`);
+    out.push('Fix the FEET so they cannot slide out: a cleat screwed to the pad in front of each rail, or a stake behind. A ladder that walks away from the wall at the bottom drops the climber from the top, and it is the single most common way these fail.');
     if(ST.postSec) out.push('This build stands on 4×4 feet: set a short 4×4 under each rail, bolt the rail to it, and stand THAT on the pad — the end grain of a rail never touches soil.');
     out.push('Land the feet on a paver or pad so they don’t sink or rot' + (grade?' — on your slope the downhill foot needs a deeper pad':'') + '.');
-    out.push('Round over every rung/tread edge — kid hands.');
-    out.push(`✔ Check: treads take a hard bounce without flex, and the top can’t slide sideways.`);
+    out.push('Round over every rung and tread edge, and the rail ends. Kid hands, bare feet, and a 3″ radius on a rail end is the difference between leaning on it and being cut by it.');
+    out.push('✔ Check, in this order: every gap identical top to bottom · both rails in the same plane (sight down them) · the top cannot lift off · the feet cannot slide · your full weight on the middle rung produces no flex and no creak.');
     return out; })();
   G[15.5]=[
     s.finish==='pt'?'Finish: let PT weather a few weeks, then a penetrating oil if you want.':s.finish==='paint'?'Finish: prime + 2 coats exterior paint; caulk trim joints first.':'Finish: clear penetrating sealer on '+FINISH[s.finish].name.toLowerCase()+'; recoat yearly-ish.',
@@ -4808,6 +4872,7 @@ setView('manual');   // boot straight into the LINE print-manual render — the 
   }
   function linkToList(st){
     clearListLink();
+    if(window.__matSearchClear) window.__matSearchClear();   // tapping a piece means "show me this one"
     const mats=document.getElementById('materials'); if(!mats||st==null) return 0;
     const all=[...mats.querySelectorAll('.item[data-stage]')];
     let rows=all.filter(el=>+el.dataset.stage===st);
