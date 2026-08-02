@@ -1036,8 +1036,9 @@
         <label class="optrow"><input type="checkbox" id="optRockWall"> Add a rock wall as well <span>a second way up, on another side</span></label>
         <div class="row" id="rockSideRow"><label>Rock wall side</label></div>
         <div class="seg four" id="rockSide">
+          <button data-v="beside" class="on">Beside the stairs</button>
           <button data-v="front">Front</button>
-          <button data-v="back" class="on">Back</button>
+          <button data-v="back">Back</button>
           <button data-v="left">Left</button>
           <button data-v="right">Right</button>
         </div>
@@ -1337,7 +1338,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 // with a deck, a railing and a real stair. Sides pulled in to 6″, front and back run long.
 const state={W:7,D:9,Hf:4,Hw:5.5,Dd:3,deckSide:'front',post:'4x4',roof:'gable',ovX:0.5,ovZ:1.25,slopeDir:'right',grade:0,gradeDir:'right',oc:16,finish:'cedar',hour:14,
   loft:false,porch:false,roofOver:false,stairGate:true,slide:false,climb:false,explode:0,sign:'',unit:'imp',view:'color',
-  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'back',stairRail:'both',anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
+  foundation:'blocks',access:'stairs',ladderStyle:'rung',accStock:'mix',deckEdge:'left',stairSide:'front',stairPos:0.5,stairDir:'left',midBeam:false,rafter8:false,braceBoth:true,loadPath:true,groundAnchors:false,rockWall:false,rockSide:'beside',stairRail:'both',anchor:false,cupola:false,tower:false,bay:false,dormer:false,jetty:false,
   shutters:false,flower:false,awning:false,chimney:false,vane:false,flag:false,swing:false,pole:false,sandbox:false,lights:false,mailbox:false,
   door:{wall:'front',pos:0.3,size:'dutch'},
    windows:[{wall:'right',pos:0.5,size:'large'},{wall:'left',pos:0.5,size:'large'},{wall:'front',pos:0.78,size:'large'}]};
@@ -2336,6 +2337,19 @@ function rebuild3D(p){
     } }
   const deckGapC = gapEdge==='outer' ? gapAlong : null;   // back-compat: outer-rail opening position (null when on a side edge)
 
+  /* Rock wall ON THE DECK, beside the stair — climbs to deck level at the outer rail and gets its
+     own opening there, rather than being stranded against a house wall under the floor. */
+  let rockDeck=null;
+  if(state.rockWall && p.access!=='rock' && Dd>0 && (state.rockSide||'beside')==='beside'){
+    const dm=sideMap(p.deckSide), dAl=dm.along, dP=dm.houseHalf+Dd-th/2;
+    const rpw=Math.min(2.4, dAl-1.7);
+    if(rpw>1.1){
+      const near = deckEdge==='left' ? -1 : deckEdge==='right' ? 1 : (stairAC>=0?-1:1);   // hug the stair end
+      const uR = near*(dAl/2 - rpw/2 - 0.5);
+      rockDeck={ sm:dm, u:uR, pw:rpw, out:dP, edge:'outer', half:rpw/2+0.2 };
+    }
+  }
+
   // ---- deck (attaches to any wall; railing has an opening where the stair lands) ----
   if(Dd>0){
     _stage=11;
@@ -2359,19 +2373,28 @@ function rebuild3D(p){
     _stage=14;
     // the opening (gap + bolted 4×4 posts + gate) can sit on ANY of the three railed edges — outer, left or right.
     const oEdge=gapEdge, uGap = oEdge==='outer'?deckGapC : oEdge!=='none'?gapOut : null;
+    // The railing used to know about exactly one opening — the stair's. A rock wall arriving at the
+    // deck needs its own, so openings are now a list and each rail is split around all of its own.
+    const OPS=[];
+    if(oEdge!=='none' && uGap!=null) OPS.push({edge:oEdge,u:uGap,half:gapH,gate:true});
+    if(rockDeck) OPS.push({edge:rockDeck.edge,u:rockDeck.u,half:rockDeck.half,gate:false});
+    const opsOn=e=>OPS.filter(o=>o.edge===e).sort((x,y)=>x.u-y.u);
     const railXZ=(edge,u)=> edge==='outer'? sm.tw(u,oP) : sm.tw((edge==='left'?-1:1)*along/2, u);           // point on a rail
     const railOutXZ=(edge,u,d)=> edge==='outer'? sm.tw(u,oP+d) : sm.tw((edge==='left'?-1:1)*(along/2+d), u); // pushed to that rail's OUTSIDE
     const railStrut=(edge,a,b)=>{ const p1=railXZ(edge,a),p2=railXZ(edge,b); strut([p1[0],rtY,p1[1]],[p2[0],rtY,p2[1]],0.12,P.struct); };
-    for(const [edge,a,b] of [['outer',-along/2,along/2],['left',oIn,oP],['right',oIn,oP]]){   // three rails, split the one with the opening
-      if(oEdge===edge && uGap!=null){ railStrut(edge,a,uGap-gapH); railStrut(edge,uGap+gapH,b); }
-      else railStrut(edge,a,b);
+    for(const [edge,a,b] of [['outer',-along/2,along/2],['left',oIn,oP],['right',oIn,oP]]){   // three rails, split around every opening on each
+      let cur=a;
+      for(const o of opsOn(edge)){ if(o.u-o.half>cur) railStrut(edge,cur,o.u-o.half); cur=Math.max(cur,o.u+o.half); }
+      if(cur<b) railStrut(edge,cur,b);
     }
     [[-along/2,oIn],[along/2,oIn]].forEach(([a,o])=>{ const t=sm.tw(a,o); box(0.16,rh,0.16, t[0],floorY+rh/2,t[1], P.struct); });   // house-side posts
-    if(oEdge!=='none' && uGap!=null){                                          // FULL 4×4 opening posts, through-bolted — kids swing on these
+    for(const OP of OPS){                                                     // FULL 4×4 opening posts, through-bolted — kids swing on these
+      const oEdge=OP.edge, uGap=OP.u, gapH=OP.half;
       for(const s2 of [-1,1]){ const t=railXZ(oEdge,uGap+s2*gapH);
         box(th,rh+0.55,th, t[0],floorY+(rh-0.55)/2,t[1], P.struct);
         const bt=railOutXZ(oEdge,uGap+s2*gapH,0.17); ball(0.042, bt[0], floorY-0.2, bt[1], '#46413a'); }
-      if(state.stairGate!==false){
+      if(!OP.gate){ const gt=railXZ(oEdge,uGap); box(0.14,0.14,0.14, gt[0],floorY+rh-0.12,gt[1], P.trim); }   // grab knob over a gateless opening
+      if(OP.gate && state.stairGate!==false){
         // Drawn SWUNG OPEN, inward over the deck — the way the build steps say to hang it (never out
         // over the stairs). Closed, its pickets matched the rail's balusters exactly and the whole
         // opening read as unbroken fence; open, you can see it IS the way in.
@@ -2391,7 +2414,7 @@ function rebuild3D(p){
       }
     }
     const balOn=(edge,a,b)=>{ const n=Math.max(2,Math.round((b-a)/0.7));       // balusters, skipping the opening
-      for(let i=1;i<n;i++){ const u=a+i*(b-a)/n; if(oEdge===edge && uGap!=null && Math.abs(u-uGap)<gapH+0.1) continue;
+      for(let i=1;i<n;i++){ const u=a+i*(b-a)/n; if(opsOn(edge).some(o=>Math.abs(u-o.u)<o.half+0.1)) continue;
         const t=railXZ(edge,u); box(0.06,rh-0.1,0.06, t[0],floorY+rh/2,t[1], P.struct); } };
     balOn('outer',-along/2,along/2); balOn('left',oIn,oP); balOn('right',oIn,oP);
     if(state.porch){ _stage=99;                       // covered-porch roof over the deck
@@ -2505,8 +2528,13 @@ function rebuild3D(p){
     }
   }
 
-  // a SECOND way up, on a side of your choosing — the fun one, next to the sensible one
-  if(state.rockWall && p.access!=='rock' && sL){
+  // a SECOND way up: on the deck beside the stair, or against a house wall if you'd rather
+  if(rockDeck && sL){ _stage=15;
+    const g=rockDeck.sm.tw(rockDeck.u, rockDeck.out+0.6);
+    rockFace((r,w,y)=>rockDeck.sm.W3(rockDeck.u+w, rockDeck.out+r, y), rockDeck.sm.fb,
+             floorY, groundAt(g[0],g[1]), rockDeck.pw);
+  }
+  if(state.rockWall && p.access!=='rock' && sL && !rockDeck && (state.rockSide||'beside')!=='beside'){
     _stage=15;
     const rs=state.rockSide||'back', rm=sideMap(rs);
     const rOnDeck = Dd>0 && rs===p.deckSide;
@@ -3011,7 +3039,9 @@ function computeMaterials(p){
       if(ST.postSec) add(g,2,'×','Ladder feet 4×4 — 16 in','this build stands on posts so no rail end ever touches soil',2*1.4*postPrice,lw('pressure treated 4x4'));
     }
     if(p.access!=='rock') add(g,2,'×','Pavers — 12 in square','a solid pad under each foot so it can’t sink or rot',2*4,lw('12 in square concrete paver'));
-    if(state.rockWall && p.access!=='rock'){ const g2=G('Rock wall — '+(state.rockSide||'back')+' side'); S(15); rockBill(g2,(state.rockSide||'back')+' side'); }
+    if(state.rockWall && p.access!=='rock'){ const rw=(state.rockSide||'beside');
+      const where=(rw==='beside'&&Dd>0)?'on the deck, beside the '+p.access:rw+' side';
+      const g2=G('Rock wall — '+where); S(15); rockBill(g2,where); }
   }
 
   g=G('Bracing & hardware'); S(6);
@@ -3232,7 +3262,7 @@ function update(){
     const cap=document.getElementById('rockCap');
     if(cap) cap.innerHTML = isRock
       ? 'The rock wall is the way up. Slabbed, not overhanging, with a grab bar over the lip — and it needs a mulched fall zone under it.'
-      : extra ? 'A second way up on the '+(state.rockSide||'back')+' side, alongside the '+state.access+'.'
+      : extra ? ((state.rockSide||'beside')==='beside' ? 'Climbs to the deck right beside the '+state.access+', with its own gap in the railing.' : 'Against the '+state.rockSide+' wall, climbing to floor level.')
               : 'Kids will use a rock wall far more than the stair. It can be the way up, or sit alongside it.'; }
   const dec=document.getElementById('deckEdgeCtl'); if(dec) dec.style.display=state.Dd>0?'':'none';
   const vss=document.getElementById('vStairSide');     // a deck pins the access to the deck side so it always lands ON it
@@ -4320,7 +4350,7 @@ function planSpec(s){
     : 'Ladder · '+(L?L.name:s.ladderStyle));
   if(s.access==='stairs') R('Stair railing', (s.stairRail||'both')==='none'?'None — open stringers':s.stairRail==='one'?'One side':'Both sides');
   R('Rock wall', s.access==='rock' ? 'Yes — it IS the way up (slabbed ply + bolt-on holds)'
-      : s.rockWall ? 'Yes — extra, on the '+(s.rockSide||'back')+' side, alongside the '+s.access : 'No');
+      : s.rockWall ? ((s.rockSide||'beside')==='beside'?'Yes — on the deck beside the '+s.access+', own gap in the rail':'Yes — against the '+s.rockSide+' wall') : 'No');
   R('Bracing', (s.braceBoth?'Knee braces at every post, both axes':'Knee braces at the corners')+(s.Hf>4.5?' + full-bay X-bracing':''));
   R('Load path', s.loadPath?'Strapped — wall→floor→beam→post':'Toe-nailed (not strapped)');
   if(s.groundAnchors) R('Anchoring', '4× augered ground anchors, strapped to the corner posts');
@@ -4456,7 +4486,7 @@ function sanitizeDesign(d){
   const SID=['front','back','left','right'];
   const en=(k,vals)=>{ if(vals.includes(d[k])) out[k]=d[k]; };
   en('roof',['shed','lean','gable','aframe','saltbox','gambrel','clerestory','hip','flat','butterfly','sawtooth','barrel']);
-  en('post',['4x4','6x6']); en('rockSide',SID); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
+  en('post',['4x4','6x6']); en('rockSide',SID.concat(['beside'])); en('finish',['pt','cedar','redwood','paint']); en('deckSide',SID);
   en('foundation',['blocks','piers','buried']); en('access',['ladder','stairs','rock']);
   en('ladderStyle',Object.keys(LADDERS)); en('stairRail',['both','one','none']); en('deckEdge',['outer','left','right']); en('stairSide',SID); en('stairDir',['out','left','right']); en('slopeDir',SID); en('gradeDir',SID);
   for(const k of ['midBeam','rafter8','braceBoth','loadPath','groundAnchors','rockWall','roofOver','stairGate','anchor','cupola','tower','bay','dormer','jetty','wing','split','loft','porch','slide','climb','shutters','flower','awning','chimney','vane','flag','swing','pole','sandbox','lights','mailbox'])
