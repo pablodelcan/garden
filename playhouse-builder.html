@@ -4252,6 +4252,9 @@ function openingClashes(s){
         const clear=(a,b)=> a>=0 && b<=L && !line.some(o=>o!==d && (o.uc-o.hw)<b && (o.uc+o.hw)>a);
         if(!clear(d.uc-d.hw-ww,d.uc-d.hw) && !clear(d.uc+d.hw,d.uc+d.hw+ww))
           out.push({wall:k, hard:false, msg:'the barn door has nowhere to slide — it needs about a full door width of clear wall to one side, and the track runs twice the door width. Move it along the wall, narrow it, or shift whatever is beside it'});
+        // and the TRACK itself has to fit between the corners, which is a different question
+        const dSb=DOOR[s.door.size], leaf=dSb.w+0.34, track=leaf*2, avail=L-0.6;   // 0.6 ft ≈ the two corner boards
+        if(track>avail) out.push({wall:k, hard:true, msg:'the barn track will not FIT this wall — a '+dim(leaf)+' leaf needs about '+Math.ceil(track*12)+'″ of track and the '+dim(L)+' wall gives you about '+Math.round(avail*12)+'″ between the corner boards. Put the door on a longer wall, or narrow it'});
       }
     }
   }
