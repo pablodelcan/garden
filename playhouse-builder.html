@@ -519,6 +519,8 @@
   .fsvg.dtl .fix{fill:var(--tm)}
   .fsvg.dtl .fixhi{fill:#FF6A00}
   .fsvg.dtl .brace.dim2{stroke:var(--tm);stroke-width:2.2}
+  .fsvg.dtl .brc{fill:color-mix(in srgb,var(--ac) 30%,transparent);stroke:var(--tx);stroke-width:1.2}
+  .fsvg.dtl .brc.on{fill:color-mix(in srgb,#FF6A00 32%,transparent);stroke:#FF6A00;stroke-width:1.8}
   .fsvg.dtl .dim2{stroke:#FF6A00;stroke-width:1.4;stroke-dasharray:5 3}
   .fsvg.dtl .strg.hot{stroke:#FF6A00;stroke-width:3}
   .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-top:3px}
@@ -4125,13 +4127,14 @@ function doorDetail(s,sub){
   if(on(3)) for(const ly of ledY)
     g+=`<rect class="${hi(3)?'post':'plate'}" x="${X(inset)}" y="${Y(ly)-8}" width="${(lw-2*inset)*S}" height="16"/>`;
   if(on(4)){
-    // one diagonal per BAY — each cut to fit tight between two ledges so it bears on them
+    // one diagonal per BAY, drawn as the 1× board it is: horizontal end cuts butting the ledges
+    const bw=(state.trimW?3.5:3.5)/12*S/2;                     // half a 1×4 face, in px
+    const x1=X(inset+0.12), x2=X(lw-inset-0.12);
     for(const [a,b] of [[ledY[2],ledY[1]],[ledY[1],ledY[0]]]){
-      g+=`<line class="brace${hi(4)?'':' dim2'}" x1="${X(inset+0.12)}" y1="${Y(a)-8}" x2="${X(lw-inset-0.12)}" y2="${Y(b)+8}"/>`;
+      const y1=Y(a)-8, y2=Y(b)+8;
+      g+=`<polygon class="brc${hi(4)?' on':''}" points="${x1-bw},${y1} ${x1+bw},${y1} ${x2+bw},${y2} ${x2-bw},${y2}"/>`;
     }
-    if(hi(4)){ const mx=X(lw*0.52), my=(Y(ledY[1])+Y(ledY[0]))/2,
-      ang=Math.atan2(Y(ledY[0])-Y(ledY[1]), X(lw-inset-0.12)-X(inset+0.12))*180/Math.PI;
-      g+=`<text x="${mx}" y="${my-8}" text-anchor="middle" class="hot" transform="rotate(${ang} ${mx} ${my-8})">COMPRESSION →</text>`; }
+    if(hi(4)) g+=`<text x="${X(lw/2)}" y="${Y(ledY[1])-3}" text-anchor="middle" class="hot">↗ COMPRESSION</text>`;
   }
   if(on(5)) for(const ly of ledY) for(let i=0;i<n;i++){ const x=X(lw*(i+0.5)/n);
     g+=`<circle class="${hi(5)?'fixhi':'fix'}" cx="${x}" cy="${Y(ly)}" r="${hi(5)?2.6:1.8}"/>`; }
