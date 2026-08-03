@@ -3002,10 +3002,10 @@ function computeMaterials(p){
       add(g,1,'tube','Clear sealant — acrylic-safe','NEUTRAL-cure silicone. Ordinary acetoxy silicone and solvent caulks CRAZE acrylic — it goes cloudy and brittle',9,lw('neutral cure clear silicone sealant'));
     } }
   // ---- door: custom-built board-and-batten (no stock door fits a playhouse opening) ----
-  S(10); const leaves=dS.dutch?2:1, faceBoards=Math.ceil(dS.w/0.46), ledges=leaves*3+1, nHinge=leaves*(doorH>4.5?3:2);
+  S(10); const leaves=dS.dutch?2:1, faceBoards=Math.ceil(dS.w/0.46), ledges=leaves*5, nHinge=leaves*(doorH>4.5?3:2);
   add(g,1,'×',`Door — ${dS.label}, custom built`,`board-and-batten, ~${dim(dS.w)}×${dim(doorH)}${dS.dutch?' · split dutch (2 leaves)':''}${dS.barn?' · leaf built OVERSIZE so it laps the opening':''} on the ${p.door.wall} wall — build it from the boards below; no stock shed door suits this opening`,0,'');
   add(g,faceBoards,'pcs',`1×6 T&G face boards — ${stdLen(doorH)} ft`,'vertical face of the door (or a siding offcut)',faceBoards*stdLen(doorH)*1.5,lw('1x6 tongue and groove cedar board'));
-  add(g,ledges,'pcs',`1×4 ledge + brace — ${stdLen(dS.w)} ft`,`${leaves*3} ledges${dS.dutch?' (three per leaf)':''} + the diagonal brace — which runs bottom-hinge-side to top-latch-side so it works in compression`,ledges*stdLen(dS.w)*PRICE.brace,lw('1x4 furring board'));
+  add(g,ledges,'pcs',`1×4 ledge + brace — ${stdLen(dS.w)} ft`,`${leaves*3} ledges + ${leaves*2} diagonal braces${dS.dutch?', three and two per leaf':''} — one brace per bay, each rising from the hinge side toward the latch side so it works in compression`,ledges*stdLen(dS.w)*PRICE.brace,lw('1x4 furring board'));
   if(!dS.barn){
     add(g,3,'pcs',`Door jamb 1×6 — ${stdLen(doorH)} ft`,'two legs and a head lining the opening — the hinges and the stop both land on this, and it is what you shim plumb',3*stdLen(doorH)*PRICE.brace*1.3,lw('1x6 primed board'));
     add(g,3,'pcs',`Door stop 1×2 — ${stdLen(doorH)} ft`,'bead round the jamb so the door shuts against wood instead of against the latch',3*stdLen(doorH)*PRICE.brace*0.8,lw('1x2 furring strip'));
@@ -4125,10 +4125,13 @@ function doorDetail(s,sub){
   if(on(3)) for(const ly of ledY)
     g+=`<rect class="${hi(3)?'post':'plate'}" x="${X(inset)}" y="${Y(ly)-8}" width="${(lw-2*inset)*S}" height="16"/>`;
   if(on(4)){
-    g+=`<line class="brace${hi(4)?'':' dim2'}" x1="${X(inset+0.1)}" y1="${Y(ledY[2])}" x2="${X(lw-inset-0.1)}" y2="${Y(ledY[0])}"/>`;
-    if(hi(4)){ const mx=X(lw/2), my=(Y(ledY[2])+Y(ledY[0]))/2,
-      ang=Math.atan2(Y(ledY[0])-Y(ledY[2]), X(lw-inset-0.1)-X(inset+0.1))*180/Math.PI;
-      g+=`<text x="${mx}" y="${my-9}" text-anchor="middle" class="hot" transform="rotate(${ang} ${mx} ${my-9})">IN COMPRESSION →</text>`; }
+    // one diagonal per BAY — each cut to fit tight between two ledges so it bears on them
+    for(const [a,b] of [[ledY[2],ledY[1]],[ledY[1],ledY[0]]]){
+      g+=`<line class="brace${hi(4)?'':' dim2'}" x1="${X(inset+0.12)}" y1="${Y(a)-8}" x2="${X(lw-inset-0.12)}" y2="${Y(b)+8}"/>`;
+    }
+    if(hi(4)){ const mx=X(lw*0.52), my=(Y(ledY[1])+Y(ledY[0]))/2,
+      ang=Math.atan2(Y(ledY[0])-Y(ledY[1]), X(lw-inset-0.12)-X(inset+0.12))*180/Math.PI;
+      g+=`<text x="${mx}" y="${my-8}" text-anchor="middle" class="hot" transform="rotate(${ang} ${mx} ${my-8})">COMPRESSION →</text>`; }
   }
   if(on(5)) for(const ly of ledY) for(let i=0;i<n;i++){ const x=X(lw*(i+0.5)/n);
     g+=`<circle class="${hi(5)?'fixhi':'fix'}" cx="${x}" cy="${Y(ly)}" r="${hi(5)?2.6:1.8}"/>`; }
@@ -4593,7 +4596,8 @@ function stepGuide(st,s){
       `Lay out about ${nBoards} 1×6 T&G boards face down, tongues engaged, and RIP THE TWO OUTER BOARDS EQUALLY to land on the width. A door with a full board one side and a 1″ sliver the other is the detail everyone notices and nobody can unsee.`,
       'Do not glue the tongues. The face has to breathe across its width — a glued-up slab of T&G will cup or split its outer board within a year outdoors.',
       `Ledges: three 1×4s across the back — top, middle, bottom${isDutch?' on EACH leaf':''} — held in about 2″ from the top and bottom edges, and short of the hinge and latch edges so they never foul the jamb.`,
-      `<b>The brace runs from the BOTTOM of the HINGE side up to the TOP of the ${isBarn?'pull':'latch'} side.</b> That puts the diagonal in COMPRESSION and the door hangs off it. Run it the other way and it is in tension, the joints open, and the door drops at the outer corner within a season. This is the single most-got-wrong detail on a batten door, and once it sags you cannot fix it without taking it apart.`,
+      `<b>The braces run from the HINGE side UP toward the ${isBarn?'pull':'latch'} side</b> — one in each bay between the ledges, cut to a tight fit so each one BEARS on the ledge at either end rather than hanging off screws. Three ledges means two diagonals; a single one running the full height would have to pass through the middle ledge.`,
+      `Direction is the whole point. Hung on hinges, the door's weight pulls the outer top corner down, which tries to SHORTEN a brace laid this way — and wood in compression barely cares. Lay it the other way and the same sag tries to stretch it, so the load lands entirely on the fasteners, they creep out of end grain, and the door drops at the outer corner within a season. This is the single most-got-wrong detail on a batten door, and once it has sagged you cannot fix it without taking the door apart.`,
       'Fasten from the FACE into the ledges — screws sized so nothing pokes through the back, or clench-nail it the old way (drive the nail through, bend the point over across the grain, hammer it flat). Two fixings per board per ledge.',
       'Ease every edge and seal the end grain top and bottom now, while it is flat and reachable. The top edge is the one that rots, because it is the one nobody finishes.'
     ];
