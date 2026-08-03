@@ -289,6 +289,10 @@
   .storerow>span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--tf);margin:0 0 5px}
   .storerow .seg{margin-bottom:0}
   .storerow .planbtn{width:100%;margin-top:7px!important}
+  .sdetailsvg{margin:8px 0 2px}
+  .sdetailsvg .framebox{max-width:100%}
+  .sdetailsvg .framebox .fsvg.dtl{display:block;margin:0 auto;max-height:175px;width:auto;max-width:100%}
+  .sdetailsvg .flabel{margin-top:2px}
   .swalk{display:none;margin:7px 0 2px;padding:8px 10px;background:rgba(255,106,0,.10);box-shadow:inset 3px 0 0 #FF6A00;
     font-size:12.5px;line-height:1.55;color:var(--tx);text-align:left}
   .swalk.on{display:block}
@@ -495,6 +499,7 @@
   .stepdiag img,.stepdiag svg{max-width:100%;max-height:100%}
   .framewrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:6px}
   .framebox{text-align:left;flex:1 1 300px;max-width:360px}
+  .framebox .fsvg.dtl{max-height:300px;width:auto;max-width:100%}
   .fsvg{width:100%;height:auto}
   .fsvg .mem{fill:color-mix(in srgb,var(--ac) 12%,transparent);stroke:var(--tx);stroke-width:1.2}
   .fsvg .plate{fill:color-mix(in srgb,var(--ac) 26%,transparent);stroke:var(--tx);stroke-width:1.2}
@@ -502,6 +507,12 @@
   .fsvg .open{fill:none;stroke:var(--ac);stroke-width:1.3;stroke-dasharray:4 3}
   .fsvg .dim{stroke:var(--tm);stroke-width:0.8;fill:none}
   .fsvg .dimt{font-family:var(--mono);font-size:10px;fill:var(--tx)}
+  .fsvg.dtl .brd{stroke:var(--tm);stroke-width:0.7}
+  .fsvg.dtl .brace{stroke:#FF6A00;stroke-width:3.4;stroke-linecap:round}
+  .fsvg.dtl .strg{stroke:var(--tx);stroke-width:2.2}
+  .fsvg.dtl .cut{stroke:var(--tx);stroke-width:1.2;stroke-dasharray:6 4}
+  .fsvg.dtl text{font-family:var(--mono);font-size:10px;fill:var(--tm)}
+  .fsvg.dtl text.hot{fill:#FF6A00;font-size:10.5px;letter-spacing:.05em}
   .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-top:3px}
   .stepinfo{flex:1;min-width:0}
   .stepnum{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
@@ -1301,6 +1312,7 @@
     <div class="sdesc" id="stepDesc"></div>
     <div class="swalk" id="stepWalk"><span class="swn" id="stepWalkNum"></span><span id="stepWalkTxt"></span></div>
     <div class="sdetail" id="stepDetail2"></div>
+    <div class="sdetailsvg" id="stepDetailSvg"></div>
     <div class="sfast" id="stepFast"></div>
     <label class="jrnl"><input type="checkbox" id="stepDone"> Built this step <span id="jrnlProg"></span></label>
     <input type="range" id="stepRange" min="1" max="11" step="1" value="1">
@@ -3855,6 +3867,9 @@ function renderStepNav(){
     document.getElementById('stepWalkTxt').innerHTML=at+(stepSub===guide.length-1&&checks.length?'<br><br>'+checks.join('<br>'):'');
   }
   window.__stepGuideLen=guide.length;
+  { const dv=document.getElementById('stepDetailSvg');
+    if(dv){ const svg = canon===10 ? doorDetail(state) : canon===15 ? stairDetail(state) : '';
+      dv.innerHTML = (stepOn&&svg)?svg:''; dv.style.display=(stepOn&&svg)?'':'none'; } }
   document.getElementById('stepNum').textContent=stepCur+' / '+total;
   document.getElementById('stepName').textContent=(done?'✓ ':'')+st.name;
   document.getElementById('stepDesc').textContent=st.desc;
@@ -4074,6 +4089,65 @@ function elev(wf,hf,hw,roof,label){
   p+=`<text x="${Xl-20}" y="${Y(hf/2)}" text-anchor="middle" transform="rotate(-90 ${Xl-20} ${Y(hf/2)})">floor ${dim(hf)}</text>`;
   return `<div class="elevbox"><svg viewBox="0 0 ${Wpx} ${Hpx}" class="elevsvg">${p}</svg><div class="elabel">${label}</div></div>`;
 }
+/* ===== detail drawings for the two things you actually assemble: the door leaf and the stair =====
+   Both are drawn from the state, so they change with the design rather than being generic clip art. */
+function doorDetail(s){
+  const dS=DOOR[s.door.size]||DOOR.standard, isBarn=!!dS.barn, isDutch=!!dS.dutch;
+  const dH=Math.min(dS.h,s.Hw-0.25);
+  const lw=isBarn?dS.w+0.34:dS.w-0.06, lh=isBarn?dH+0.22:dH-0.06;
+  const S=42, pad=52, W=lw*S+pad*2, H=lh*S+pad*1.5;
+  const X=f=>pad+f*S, Y=f=>pad*0.6+(lh-f)*S;                 // 0,0 = bottom-left of the leaf
+  const n=Math.max(2,Math.ceil(lw/0.46));
+  let g='';
+  g+=`<rect class="mem" x="${X(0)}" y="${Y(lh)}" width="${lw*S}" height="${lh*S}"/>`;
+  for(let i=1;i<n;i++){ const x=X(lw*i/n); g+=`<line class="brd" x1="${x}" y1="${Y(lh)}" x2="${x}" y2="${Y(0)}"/>`; }
+  const ledY=[lh-0.28, lh/2, 0.28], inset=0.12;
+  for(const ly of ledY) g+=`<rect class="plate" x="${X(inset)}" y="${Y(ly)-9}" width="${(lw-2*inset)*S}" height="18"/>`;
+  // the brace: bottom of the HINGE side up to the top of the latch side, so it works in compression
+  g+=`<line class="brace" x1="${X(inset+0.1)}" y1="${Y(ledY[2])}" x2="${X(lw-inset-0.1)}" y2="${Y(ledY[0])}"/>`;
+  { const mx=X(lw/2), my=(Y(ledY[2])+Y(ledY[0]))/2, ang=Math.atan2(Y(ledY[0])-Y(ledY[2]), X(lw-inset-0.1)-X(inset+0.1))*180/Math.PI;
+    g+=`<text x="${mx}" y="${my-9}" text-anchor="middle" class="hot" transform="rotate(${ang} ${mx} ${my-9})">IN COMPRESSION →</text>`; }
+  g+=`<text x="${X(0)-9}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(-90 ${X(0)-9} ${Y(lh/2)})" class="hot">HINGE SIDE</text>`;
+  g+=`<text x="${X(lw)+11}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(90 ${X(lw)+11} ${Y(lh/2)})">${isBarn?'PULL':'LATCH'} SIDE</text>`;
+  if(isDutch){ g+=`<line class="cut" x1="${X(-0.12)}" y1="${Y(lh/2)}" x2="${X(lw+0.12)}" y2="${Y(lh/2)}"/>`;
+    g+=`<text x="${X(lw)}" y="${Y(lh/2)-9}" text-anchor="end">split here</text>`; }
+  g+=`<line class="dim" x1="${X(0)}" y1="${Y(0)+26}" x2="${X(lw)}" y2="${Y(0)+26}"/>`;
+  g+=`<text x="${X(lw/2)}" y="${Y(0)+41}" text-anchor="middle" class="dimt">${dim(lw)} leaf${isBarn?' (laps the '+dim(dS.w)+' opening)':''}</text>`;
+  g+=`<line class="dim" x1="${X(lw)+22}" y1="${Y(0)}" x2="${X(lw)+22}" y2="${Y(lh)}"/>`;
+  g+=`<text x="${X(lw)+34}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(90 ${X(lw)+34} ${Y(lh/2)})" class="dimt">${dim(lh)}</text>`;
+  return `<div class="framebox"><svg viewBox="0 0 ${W} ${H}" class="fsvg dtl">${g}</svg><div class="flabel">Door leaf — seen from the BACK · ${n} boards, 3 ledges, one brace</div></div>`;
+}
+function stairDetail(s){
+  if(s.access!=='stairs') return '';
+  const ST=ACC_STOCK[s.accStock]||ACC_STOCK['2x6'];
+  const climb=Math.max(0.6,s.Hf), N=Math.max(3,Math.round(climb/0.58)), rise=climb/N, run=0.83, tot=N*run;
+  const S=Math.min(40, 380/Math.max(tot,climb)), pad=54, W=tot*S+pad*2.2, H=climb*S+pad*1.7;
+  const X=f=>pad+f*S, Y=f=>pad*0.6+(climb-f)*S;
+  let g='';
+  g+=`<line class="grnd" x1="${X(-0.3)}" y1="${Y(0)}" x2="${X(tot+0.3)}" y2="${Y(0)}"/>`;
+  g+=`<rect class="plate" x="${X(-0.25)}" y="${Y(climb)-16}" width="${0.5*S}" height="16"/>`;
+  g+=`<text x="${X(-0.25)}" y="${Y(climb)-22}" class="dimt">deck rim</text>`;
+  // the stringer, left FULL — not notched
+  g+=`<line class="strg" x1="${X(0)}" y1="${Y(climb)}" x2="${X(tot)}" y2="${Y(0)}"/>`;
+  g+=`<line class="strg" x1="${X(0)}" y1="${Y(climb)+15}" x2="${X(tot)}" y2="${Y(0)+15}"/>`;
+  for(let i=1;i<N;i++){ const y=climb-i*rise, x=i*run;
+    g+=`<rect class="mem" x="${X(x-0.42)}" y="${Y(y)-7}" width="${0.84*S}" height="7"/>`;      // tread
+    g+=`<rect class="post" x="${X(x-0.16)}" y="${Y(y)}" width="${0.32*S}" height="9"/>`;        // cleat under it
+  }
+  g+=`<text x="${X(tot*0.52)}" y="${Y(climb*0.52)+2}" class="hot">CLEATED — stringer left full length</text>`;
+  // the rise/run triangle
+  const bx=tot*0.66, by=climb-(bx/tot)*climb;
+  g+=`<line class="dim" x1="${X(bx)}" y1="${Y(by)}" x2="${X(bx)}" y2="${Y(by-rise)}"/>`;
+  g+=`<line class="dim" x1="${X(bx)}" y1="${Y(by-rise)}" x2="${X(bx+run)}" y2="${Y(by-rise)}"/>`;
+  g+=`<text x="${X(bx)-8}" y="${Y(by-rise/2)}" text-anchor="end" class="dimt">${Math.round(rise*12*10)/10}″</text>`;
+  g+=`<text x="${X(bx+run/2)}" y="${Y(by-rise)+15}" text-anchor="middle" class="dimt">10″</text>`;
+  g+=`<rect class="plate" x="${X(tot-0.35)}" y="${Y(0)}" width="${0.9*S}" height="11"/>`;
+  g+=`<text x="${X(tot+0.05)}" y="${Y(0)+26}" text-anchor="middle" class="dimt">pad + foot cleat</text>`;
+  g+=`<line class="dim" x1="${X(0)}" y1="${Y(0)+40}" x2="${X(tot)}" y2="${Y(0)+40}"/>`;
+  g+=`<text x="${X(tot/2)}" y="${Y(0)+55}" text-anchor="middle" class="dimt">${dim(tot)} run · ${N} risers · ${N-1} treads</text>`;
+  return `<div class="framebox"><svg viewBox="0 0 ${W} ${H}" class="fsvg dtl">${g}</svg><div class="flabel">Stair section — ${ST.cut} · ${Math.round(rise*12*10)/10}″ rise, 10″ run</div></div>`;
+}
+
 /* ===== dimensioned flat framing drawings (orthographic, with distances) ===== */
 function ocLabel(ft){ return state.unit==='met'?Math.round(ft*30.48)+' cm':Math.round(ft*12)+'"'; }
 function fdimH(x1,x2,y,t,ext){            // horizontal dimension line (+ optional extension lines to object edge `ext`)
@@ -4675,6 +4749,7 @@ function openPlan(){
     h+=`<div class="cutrow"><div class="ctype">${type} <span>(${lens.length} pcs)</span></div><div class="cbuy">buy <b>${bp.boards.length}× ${bp.stock} ft</b> · ${wp}% waste</div>`;
     h+='<div class="cuts">'+bp.boards.map((b,i)=>`<span>${b.cuts.map(c=>c+"'").join(' + ')}</span>`).join('')+'</div></div>';
   }
+  h+='<h4>Assembly details — door &amp; stair</h4><div class="framerow">'+doorDetail(s)+stairDetail(s)+'</div>';
   h+='<h4>Framing drawings — dimensioned</h4>';
   h+='<div class="framewrap">'+framingPlan(s,'foundation',30)+framingPlan(s,'floor',30)+'</div>';
   h+='<div class="framewrap">'+roofSection(s,26)+'</div>';
