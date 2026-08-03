@@ -1141,6 +1141,7 @@
           <button data-v="wide">Wide</button>
           <button data-v="dutch">Dutch</button>
           <button data-v="barn">Barn (sliding)</button>
+          <button data-v="barnS">Barn — narrow</button>
         </div></div>
       <div class="ctl"><div class="row"><label>Door wall</label></div>
         <div class="seg four" id="doorWall">
@@ -1393,7 +1394,10 @@ const DOOR={ kid:{w:2.0,h:4.2,label:'Kid'}, standard:{w:2.6,h:5.4,label:'Standar
   wide:{w:3.4,h:5.4,label:'Wide'}, dutch:{w:2.6,h:5.4,dutch:true,label:'Dutch'},
   // slides on a track instead of swinging: nothing to swing into on a small deck, and the leaf
   // overlaps the opening rather than fitting it, so it is the most forgiving door to build
-  barn:{w:3.0,h:5.4,barn:true,label:'Barn (sliding)'} };
+  barn:{w:3.0,h:5.4,barn:true,label:'Barn (sliding)'},
+  // a 36" opening is a lot on a playhouse, and a narrower leaf lands on a smaller — cheaper,
+  // far more common — track kit
+  barnS:{w:2.5,h:5.4,barn:true,label:'Barn — narrow'} };
 // real Lowe's "Shed Windows and More" flush-mount, tempered-glass units (in = nominal opening, sized so the model matches what you'd actually order)
 const WIN={
   small:  {w:1.0, h:1.5,  label:'Small · 12×18″',   type:'vertical slider',  price:48, url:'https://www.lowes.com/pd/Shed-Windows-and-More-Vertical-Slider-12-x-18-White-Aluminum-Window-Flush-Mount-Tempered-Glass/7151559'},
