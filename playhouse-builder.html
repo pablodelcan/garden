@@ -2989,7 +2989,11 @@ function computeMaterials(p){
     if(dS.dutch) add(g,1,'×','Barrel bolt — leaf to leaf','locks the two halves together when you want it to behave like one door',11,lw('barrel bolt black'));
   }
   if(dS.barn){
-    add(g,1,'kit',`Barn door track — ${Math.max(6,Math.ceil(dS.w*2))} ft`,`the track runs TWICE the door width so the leaf can clear the opening · two roller hangers, end stops and anti-jump discs`,120,lw('sliding barn door hardware kit 6 ft'));
+    { const leafW=dS.w+0.34, needIn=Math.ceil(leafW*2*12);        // TWICE THE LEAF, not the opening
+      const STOCK=[4,5,6,6.6,8,10,12], kit=STOCK.find(k=>k*12>=needIn)||Math.ceil(needIn/12);
+      add(g,1,'kit',`Barn door track — ${kit} ft`,
+        `sized off the LEAF, not the opening: a ${dim(leafW)} leaf needs about ${needIn}″ of track to slide fully clear, so the next stock size up is ${kit} ft. Kits are sold by the door width they suit — check that figure against ${Math.round(leafW*12)}″, not the ${Math.round(dS.w*12)}″ rough opening. <b>Get an EXTERIOR-rated kit</b> — most cheap ones are powder-coated carbon steel with sealed bearings that rust and seize outdoors within a season or two`,
+        120,lw('exterior sliding barn door hardware kit '+kit+' ft')); }
     add(g,1,'×','Floor guide','a stay-roller at the bottom — without it the leaf swings off the wall and the rollers wear',14,lw('barn door floor guide'));
     add(g,1,'×','Pull handle','long vertical pull, both faces if it opens from inside',22,lw('barn door pull handle'));
     add(g,2,'pcs',`Header backer 2×6 — ${stdLen(dS.w*2.2)} ft`,'the track CANNOT hang off siding — it lags into a continuous backer let into the studs above the opening',2*stdLen(dS.w*2.2)*PRICE.beam,lw('2x6'));
@@ -4460,7 +4464,8 @@ function stepGuide(st,s){
     ];
     if(isBarn) return leaf.concat([
       'Fit the header backer BEFORE the track: a continuous 2× let into the studs above the opening, spanning twice the door width. Lagging a track into siding will pull out — it carries the whole leaf plus whatever child is hanging off it.',
-      `Track runs ${dim(dS.w*2)} — twice the door width — so the leaf clears the opening completely when it is open. Level it along its whole length before you hang anything; a track out of level makes the door roll shut by itself.`,
+      `Track runs about ${Math.ceil((dS.w+0.34)*2*12)}″ — twice the LEAF width, not twice the opening — so the door clears the opening completely when it is open. Hardware kits are advertised by the door width they suit, so check that figure against your leaf. Level the track along its whole length before you hang anything: out of level, the door rolls shut on its own.`,
+      'Outdoors, the hardware is the weak part. Most barn kits are powder-coated carbon steel with sealed bearings meant for a hallway — outside they rust and the rollers seize. Mount the track UNDER the roof overhang if you can, swap the supplied lags for stainless, oil the bearings on the way up and once a year after, and treat the kit as a wear part.',
       'Hang the rollers, then set the floor guide at the bottom so the leaf cannot swing away from the wall, and fit end stops plus anti-jump discs at both ends.',
       '✔ Check: it rolls the full travel with one finger, the lap covers the opening at both ends, and it cannot be lifted off the track.'
     ]);
