@@ -513,6 +513,14 @@
   .fsvg.dtl .cut{stroke:var(--tx);stroke-width:1.2;stroke-dasharray:6 4}
   .fsvg.dtl text{font-family:var(--mono);font-size:10px;fill:var(--tm)}
   .fsvg.dtl text.hot{fill:#FF6A00;font-size:10.5px;letter-spacing:.05em}
+  .fsvg.dtl .jt{stroke:#FF6A00;stroke-width:1.1}
+  .fsvg.dtl .rip{fill:color-mix(in srgb,#FF6A00 22%,transparent);stroke:#FF6A00;stroke-width:1.4}
+  .fsvg.dtl .edge{fill:none;stroke:#FF6A00;stroke-width:3.2}
+  .fsvg.dtl .fix{fill:var(--tm)}
+  .fsvg.dtl .fixhi{fill:#FF6A00}
+  .fsvg.dtl .brace.dim2{stroke:var(--tm);stroke-width:2.2}
+  .fsvg.dtl .dim2{stroke:#FF6A00;stroke-width:1.4;stroke-dasharray:5 3}
+  .fsvg.dtl .strg.hot{stroke:#FF6A00;stroke-width:3}
   .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-top:3px}
   .stepinfo{flex:1;min-width:0}
   .stepnum{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
@@ -3868,7 +3876,7 @@ function renderStepNav(){
   }
   window.__stepGuideLen=guide.length;
   { const dv=document.getElementById('stepDetailSvg');
-    if(dv){ const svg = canon===10 ? doorDetail(state) : canon===15 ? stairDetail(state) : '';
+    if(dv){ const svg = canon===10 ? doorDetail(state,stepSub) : canon===15 ? stairDetail(state,stepSub) : '';
       dv.innerHTML = (stepOn&&svg)?svg:''; dv.style.display=(stepOn&&svg)?'':'none'; } }
   document.getElementById('stepNum').textContent=stepCur+' / '+total;
   document.getElementById('stepName').textContent=(done?'✓ ':'')+st.name;
@@ -4091,61 +4099,107 @@ function elev(wf,hf,hw,roof,label){
 }
 /* ===== detail drawings for the two things you actually assemble: the door leaf and the stair =====
    Both are drawn from the state, so they change with the design rather than being generic clip art. */
-function doorDetail(s){
+function doorDetail(s,sub){
   const dS=DOOR[s.door.size]||DOOR.standard, isBarn=!!dS.barn, isDutch=!!dS.dutch;
   const dH=Math.min(dS.h,s.Hw-0.25);
   const lw=isBarn?dS.w+0.34:dS.w-0.06, lh=isBarn?dH+0.22:dH-0.06;
-  const S=42, pad=52, W=lw*S+pad*2, H=lh*S+pad*1.5;
-  const X=f=>pad+f*S, Y=f=>pad*0.6+(lh-f)*S;                 // 0,0 = bottom-left of the leaf
-  const n=Math.max(2,Math.ceil(lw/0.46));
-  let g='';
-  g+=`<rect class="mem" x="${X(0)}" y="${Y(lh)}" width="${lw*S}" height="${lh*S}"/>`;
-  for(let i=1;i<n;i++){ const x=X(lw*i/n); g+=`<line class="brd" x1="${x}" y1="${Y(lh)}" x2="${x}" y2="${Y(0)}"/>`; }
-  const ledY=[lh-0.28, lh/2, 0.28], inset=0.12;
-  for(const ly of ledY) g+=`<rect class="plate" x="${X(inset)}" y="${Y(ly)-9}" width="${(lw-2*inset)*S}" height="18"/>`;
-  // the brace: bottom of the HINGE side up to the top of the latch side, so it works in compression
-  g+=`<line class="brace" x1="${X(inset+0.1)}" y1="${Y(ledY[2])}" x2="${X(lw-inset-0.1)}" y2="${Y(ledY[0])}"/>`;
-  { const mx=X(lw/2), my=(Y(ledY[2])+Y(ledY[0]))/2, ang=Math.atan2(Y(ledY[0])-Y(ledY[2]), X(lw-inset-0.1)-X(inset+0.1))*180/Math.PI;
-    g+=`<text x="${mx}" y="${my-9}" text-anchor="middle" class="hot" transform="rotate(${ang} ${mx} ${my-9})">IN COMPRESSION →</text>`; }
+  const FULL=99; sub=(sub==null?FULL:sub);
+  const on=i=>sub>=i, hi=i=>sub===i;                       // draw once you reach it, light it while you're on it
+  const jamb=on(7)&&!isBarn;
+  const S=40, pad=jamb?66:54, W=lw*S+pad*2, H=lh*S+pad*1.6;
+  const X=f=>pad+f*S, Y=f=>pad*0.55+(lh-f)*S;
+  const n=Math.max(2,Math.ceil(lw/0.46)), inset=0.12, ledY=[lh-0.28, lh/2, 0.28];
+  let g='', cap='';
+  if(jamb){                                                 // the opening it hangs in
+    const jw=0.14;
+    for(const x of [-jw-0.06, lw+0.06]) g+=`<rect class="${hi(7)?'post':'plate'}" x="${X(x)}" y="${Y(lh+0.18)}" width="${jw*S}" height="${(lh+0.24)*S}"/>`;
+    g+=`<rect class="${hi(7)?'post':'plate'}" x="${X(-jw-0.06)}" y="${Y(lh+0.18)}" width="${(lw+2*jw+0.12)*S}" height="${jw*S}"/>`;
+    if(hi(7)) for(const yy of ledY) for(const x of [-jw-0.06, lw+0.06]){
+      g+=`<line class="dim" x1="${X(x)+2}" y1="${Y(yy)}" x2="${X(x)+jw*S-2}" y2="${Y(yy)}"/>`; }   // shims at the hinge points
+  }
+  g+=`<rect class="${hi(0)?'post':'mem'}" x="${X(0)}" y="${Y(lh)}" width="${lw*S}" height="${lh*S}"/>`;
+  if(on(1)) for(let i=1;i<n;i++){ const x=X(lw*i/n);
+    g+=`<line class="${(hi(2))?'jt':'brd'}" x1="${x}" y1="${Y(lh)}" x2="${x}" y2="${Y(0)}"/>`; }
+  if(hi(1)) for(const x of [[0,lw/n],[lw-lw/n,lw]])          // the two boards you rip
+    g+=`<rect class="rip" x="${X(x[0])}" y="${Y(lh)}" width="${(x[1]-x[0])*S}" height="${lh*S}"/>`;
+  if(on(3)) for(const ly of ledY)
+    g+=`<rect class="${hi(3)?'post':'plate'}" x="${X(inset)}" y="${Y(ly)-8}" width="${(lw-2*inset)*S}" height="16"/>`;
+  if(on(4)){
+    g+=`<line class="brace${hi(4)?'':' dim2'}" x1="${X(inset+0.1)}" y1="${Y(ledY[2])}" x2="${X(lw-inset-0.1)}" y2="${Y(ledY[0])}"/>`;
+    if(hi(4)){ const mx=X(lw/2), my=(Y(ledY[2])+Y(ledY[0]))/2,
+      ang=Math.atan2(Y(ledY[0])-Y(ledY[2]), X(lw-inset-0.1)-X(inset+0.1))*180/Math.PI;
+      g+=`<text x="${mx}" y="${my-9}" text-anchor="middle" class="hot" transform="rotate(${ang} ${mx} ${my-9})">IN COMPRESSION →</text>`; }
+  }
+  if(on(5)) for(const ly of ledY) for(let i=0;i<n;i++){ const x=X(lw*(i+0.5)/n);
+    g+=`<circle class="${hi(5)?'fixhi':'fix'}" cx="${x}" cy="${Y(ly)}" r="${hi(5)?2.6:1.8}"/>`; }
+  if(hi(6)) g+=`<rect class="edge" x="${X(0)}" y="${Y(lh)}" width="${lw*S}" height="${lh*S}"/>`;
+  if(on(8)&&!isBarn) for(const ly of [ledY[0],ledY[2]].concat(lh>4.5?[ledY[1]]:[]))
+    g+=`<rect class="${hi(8)?'post':'plate'}" x="${X(-0.05)}" y="${Y(ly)-6}" width="${0.44*S}" height="12"/>`;
+  if(isDutch&&on(9)) g+=`<line class="cut" x1="${X(-0.12)}" y1="${Y(lh/2)}" x2="${X(lw+0.12)}" y2="${Y(lh/2)}"/>`;
+  if(on(11)&&!isBarn){ const bx=X(lw+0.06);                 // stop bead on the jamb
+    g+=`<rect class="${hi(11)?'post':'plate'}" x="${bx+3}" y="${Y(lh)}" width="7" height="${lh*S}"/>`; }
   g+=`<text x="${X(0)-9}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(-90 ${X(0)-9} ${Y(lh/2)})" class="hot">HINGE SIDE</text>`;
   g+=`<text x="${X(lw)+11}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(90 ${X(lw)+11} ${Y(lh/2)})">${isBarn?'PULL':'LATCH'} SIDE</text>`;
-  if(isDutch){ g+=`<line class="cut" x1="${X(-0.12)}" y1="${Y(lh/2)}" x2="${X(lw+0.12)}" y2="${Y(lh/2)}"/>`;
-    g+=`<text x="${X(lw)}" y="${Y(lh/2)-9}" text-anchor="end">split here</text>`; }
-  g+=`<line class="dim" x1="${X(0)}" y1="${Y(0)+26}" x2="${X(lw)}" y2="${Y(0)+26}"/>`;
-  g+=`<text x="${X(lw/2)}" y="${Y(0)+41}" text-anchor="middle" class="dimt">${dim(lw)} leaf${isBarn?' (laps the '+dim(dS.w)+' opening)':''}</text>`;
-  g+=`<line class="dim" x1="${X(lw)+22}" y1="${Y(0)}" x2="${X(lw)+22}" y2="${Y(lh)}"/>`;
-  g+=`<text x="${X(lw)+34}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(90 ${X(lw)+34} ${Y(lh/2)})" class="dimt">${dim(lh)}</text>`;
-  return `<div class="framebox"><svg viewBox="0 0 ${W} ${H}" class="fsvg dtl">${g}</svg><div class="flabel">Door leaf — seen from the BACK · ${n} boards, 3 ledges, one brace</div></div>`;
+  if(sub<2||sub>=FULL){
+    g+=`<line class="dim" x1="${X(0)}" y1="${Y(0)+24}" x2="${X(lw)}" y2="${Y(0)+24}"/>`;
+    g+=`<text x="${X(lw/2)}" y="${Y(0)+38}" text-anchor="middle" class="dimt">${dim(lw)} leaf${isBarn?' (laps '+dim(dS.w)+')':''}</text>`;
+    g+=`<line class="dim" x1="${X(lw)+24}" y1="${Y(0)}" x2="${X(lw)+24}" y2="${Y(lh)}"/>`;
+    g+=`<text x="${X(lw)+36}" y="${Y(lh/2)}" text-anchor="middle" transform="rotate(90 ${X(lw)+36} ${Y(lh/2)})" class="dimt">${dim(lh)}</text>`;
+  }
+  const CAPS=['the leaf, to size','rip the two OUTER boards equally','tongues engaged — not glued',
+    'three ledges across the back','brace: hinge-bottom → latch-top','fasten from the face into the ledges',
+    'ease every edge, seal the end grain','jamb plumb, shimmed at each hinge',
+    'hinge screws land in the LEDGES', isDutch?'split at the middle ledge':'top hinge first, then check the gap',
+    'swing it inward','stop bead, then casing'];
+  cap = sub>=FULL ? `${n} boards, 3 ledges, one brace` : (CAPS[sub]||CAPS[CAPS.length-1]);
+  return `<div class="framebox"><svg viewBox="0 0 ${W} ${H}" class="fsvg dtl">${g}</svg><div class="flabel">Door leaf, from the BACK — ${cap}</div></div>`;
 }
-function stairDetail(s){
+function stairDetail(s,sub){
   if(s.access!=='stairs') return '';
   const ST=ACC_STOCK[s.accStock]||ACC_STOCK['2x6'];
   const climb=Math.max(0.6,s.Hf), N=Math.max(3,Math.round(climb/0.58)), rise=climb/N, run=0.83, tot=N*run;
-  const S=Math.min(40, 380/Math.max(tot,climb)), pad=54, W=tot*S+pad*2.2, H=climb*S+pad*1.7;
-  const X=f=>pad+f*S, Y=f=>pad*0.6+(climb-f)*S;
+  const FULL=99; sub=(sub==null?FULL:sub);
+  const on=i=>sub>=i, hi=i=>sub===i;
+  const S=Math.min(38, 360/Math.max(tot,climb)), pad=52, W=tot*S+pad*2.2, H=climb*S+pad*1.7;
+  const X=f=>pad+f*S, Y=f=>pad*0.55+(climb-f)*S;
   let g='';
-  g+=`<line class="grnd" x1="${X(-0.3)}" y1="${Y(0)}" x2="${X(tot+0.3)}" y2="${Y(0)}"/>`;
-  g+=`<rect class="plate" x="${X(-0.25)}" y="${Y(climb)-16}" width="${0.5*S}" height="16"/>`;
-  g+=`<text x="${X(-0.25)}" y="${Y(climb)-22}" class="dimt">deck rim</text>`;
-  // the stringer, left FULL — not notched
-  g+=`<line class="strg" x1="${X(0)}" y1="${Y(climb)}" x2="${X(tot)}" y2="${Y(0)}"/>`;
-  g+=`<line class="strg" x1="${X(0)}" y1="${Y(climb)+15}" x2="${X(tot)}" y2="${Y(0)+15}"/>`;
-  for(let i=1;i<N;i++){ const y=climb-i*rise, x=i*run;
-    g+=`<rect class="mem" x="${X(x-0.42)}" y="${Y(y)-7}" width="${0.84*S}" height="7"/>`;      // tread
-    g+=`<rect class="post" x="${X(x-0.16)}" y="${Y(y)}" width="${0.32*S}" height="9"/>`;        // cleat under it
+  g+=`<line class="grnd" x1="${X(-0.35)}" y1="${Y(0)}" x2="${X(tot+0.35)}" y2="${Y(0)}"/>`;
+  g+=`<rect class="${hi(0)?'post':'plate'}" x="${X(-0.3)}" y="${Y(climb)-15}" width="${0.6*S}" height="15"/>`;
+  g+=`<text x="${X(-0.3)}" y="${Y(climb)-21}" class="dimt">deck</text>`;
+  if(hi(0)){                                                    // measure the REAL rise on site
+    g+=`<line class="dim" x1="${X(0.3)}" y1="${Y(climb)}" x2="${X(0.3)}" y2="${Y(0)}"/>`;
+    g+=`<text x="${X(0.45)}" y="${Y(climb/2)}" class="hot">measure HERE</text>`;
   }
-  g+=`<text x="${X(tot*0.52)}" y="${Y(climb*0.52)+2}" class="hot">CLEATED — stringer left full length</text>`;
-  // the rise/run triangle
-  const bx=tot*0.66, by=climb-(bx/tot)*climb;
-  g+=`<line class="dim" x1="${X(bx)}" y1="${Y(by)}" x2="${X(bx)}" y2="${Y(by-rise)}"/>`;
-  g+=`<line class="dim" x1="${X(bx)}" y1="${Y(by-rise)}" x2="${X(bx+run)}" y2="${Y(by-rise)}"/>`;
-  g+=`<text x="${X(bx)-8}" y="${Y(by-rise/2)}" text-anchor="end" class="dimt">${Math.round(rise*12*10)/10}″</text>`;
-  g+=`<text x="${X(bx+run/2)}" y="${Y(by-rise)+15}" text-anchor="middle" class="dimt">10″</text>`;
-  g+=`<rect class="plate" x="${X(tot-0.35)}" y="${Y(0)}" width="${0.9*S}" height="11"/>`;
-  g+=`<text x="${X(tot+0.05)}" y="${Y(0)+26}" text-anchor="middle" class="dimt">pad + foot cleat</text>`;
-  g+=`<line class="dim" x1="${X(0)}" y1="${Y(0)+40}" x2="${X(tot)}" y2="${Y(0)+40}"/>`;
-  g+=`<text x="${X(tot/2)}" y="${Y(0)+55}" text-anchor="middle" class="dimt">${dim(tot)} run · ${N} risers · ${N-1} treads</text>`;
-  return `<div class="framebox"><svg viewBox="0 0 ${W} ${H}" class="fsvg dtl">${g}</svg><div class="flabel">Stair section — ${ST.cut} · ${Math.round(rise*12*10)/10}″ rise, 10″ run</div></div>`;
+  if(hi(1)){                                                    // equal risers
+    for(let i=1;i<N;i++) g+=`<line class="dim" x1="${X(-0.2)}" y1="${Y(climb-i*rise)}" x2="${X(tot)}" y2="${Y(climb-i*rise)}"/>`;
+    g+=`<text x="${X(tot*0.5)}" y="${Y(climb)+16}" text-anchor="middle" class="hot">${N} equal risers</text>`;
+  }
+  if(on(2)){                                                    // the stringers, left FULL
+    g+=`<line class="strg${hi(2)?' hot':''}" x1="${X(0)}" y1="${Y(climb)}" x2="${X(tot)}" y2="${Y(0)}"/>`;
+    g+=`<line class="strg${hi(2)?' hot':''}" x1="${X(0)}" y1="${Y(climb)+15}" x2="${X(tot)}" y2="${Y(0)+15}"/>`;
+    if(hi(2)) g+=`<text x="${X(tot*0.5)}" y="${Y(climb*0.5)-10}" text-anchor="middle" class="hot">left FULL — not notched</text>`;
+  }
+  if(on(5)) for(let i=1;i<N;i++){ const y=climb-i*rise, x=i*run;
+    g+=`<rect class="${hi(5)?'post':'plate'}" x="${X(x-0.16)}" y="${Y(y)}" width="${0.32*S}" height="9"/>`; }
+  if(on(9)) for(let i=1;i<N;i++){ const y=climb-i*rise, x=i*run;
+    g+=`<rect class="${hi(9)?'post':'mem'}" x="${X(x-0.42)}" y="${Y(y)-7}" width="${0.84*S}" height="7"/>`; }
+  if(hi(4)){ const bx=tot*0.6, by=climb-(bx/tot)*climb;         // spacing measured ALONG the slope
+    g+=`<line class="dim2" x1="${X(bx)}" y1="${Y(by)}" x2="${X(bx+run)}" y2="${Y(by-rise)}"/>`;
+    g+=`<text x="${X(bx+run/2)+8}" y="${Y(by-rise/2)}" class="hot">${Math.round(Math.hypot(rise,run)*12*10)/10}″ along</text>`; }
+  if(on(6)) g+=`<rect class="${hi(6)?'post':'plate'}" x="${X(-0.1)}" y="${Y(climb)-2}" width="${0.34*S}" height="13"/>`;
+  if(on(7)){ g+=`<rect class="${hi(7)?'post':'plate'}" x="${X(tot-0.4)}" y="${Y(0)}" width="${1.0*S}" height="11"/>`;
+    if(hi(7)) g+=`<text x="${X(tot+0.1)}" y="${Y(0)+26}" text-anchor="middle" class="hot">pad + foot cleat</text>`; }
+  { const bx=tot*0.32, by=climb-(bx/tot)*climb;
+    g+=`<line class="dim" x1="${X(bx)}" y1="${Y(by)}" x2="${X(bx)}" y2="${Y(by-rise)}"/>`;
+    g+=`<line class="dim" x1="${X(bx)}" y1="${Y(by-rise)}" x2="${X(bx+run)}" y2="${Y(by-rise)}"/>`;
+    g+=`<text x="${X(bx)-7}" y="${Y(by-rise/2)}" text-anchor="end" class="dimt">${Math.round(rise*12*10)/10}″</text>`;
+    g+=`<text x="${X(bx+run/2)}" y="${Y(by-rise)+14}" text-anchor="middle" class="dimt">10″</text>`; }
+  const CAPS=['measure the real rise on site','divide into equal risers','stringers left FULL — cleated, not cut',
+    'mark the pair clamped together','cleat spacing measured ALONG the slope','cleats — 3 screws each',
+    'hang the top off the rim','pad, and fix the feet','re-check the bottom riser','treads, overhanging ¾″','railing'];
+  const cap = sub>=FULL ? `${ST.cut} · ${Math.round(rise*12*10)/10}″ rise, 10″ run`
+                        : (CAPS[sub]||CAPS[CAPS.length-1]);
+  return `<div class="framebox"><svg viewBox="0 0 ${W} ${H}" class="fsvg dtl">${g}</svg><div class="flabel">Stair section — ${cap}</div></div>`;
 }
 
 /* ===== dimensioned flat framing drawings (orthographic, with distances) ===== */
