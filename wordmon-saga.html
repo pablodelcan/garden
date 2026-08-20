@@ -150,6 +150,7 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
     </div>
   </div>
   <div id="hudBtns">
+    <div class="hud-btn gba-box px" onclick="G.save();location.href='wordquest.html'">⌂ WQ</div>
     <div class="hud-btn gba-box px" onclick="UI.openQuest()">📋 QUEST</div>
     <div class="hud-btn gba-box px" onclick="UI.openParty()">👥 TEAM</div>
     <div class="hud-btn gba-box px" onclick="UI.openBag()">🎒 BAG</div>
@@ -211,6 +212,7 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
     <div id="titleBody">
       <div style="font-size:3.5rem;margin-bottom:10px">📖✨</div>
       <button class="title-btn" onclick="G.titleStart()">▶ PRESS START</button>
+      <div style="margin-top:14px"><a href="wordquest.html" style="font-family:'Press Start 2P',monospace;font-size:.5rem;color:#8b7aa8;text-decoration:none;letter-spacing:.1em">⬅ BACK TO WORDQUEST</a></div>
       <div id="titleHint" style="font-family:'Press Start 2P',monospace;font-size:.45rem;color:#8b7aa8;margin-top:18px;line-height:2">A READING ADVENTURE<br>FOR RÍO</div>
     </div>
   </div>
@@ -860,6 +862,13 @@ const STORY={
     c.wire(ok=>{
      if(ok){
       G.pages.push(zone);G.coins+=20;G.score+=25;
+      // Cross-game reward: Lost Pages also pay into the WordQuest wallet
+      try{
+        const wq=JSON.parse(localStorage.getItem('rio_reads_save')||'{}');
+        wq.coins=(wq.coins||0)+20;
+        localStorage.setItem('rio_reads_save',JSON.stringify(wq));
+        setTimeout(()=>G.toast('💰 +20 WordQuest coins too!',2600),3400);
+      }catch(e){}
       SFX.play('page');
       G.toast('📜 '+pg.title+' recovered! +20 coins',3200);
       speak("You recovered "+pg.title+"! Amazing reading, Río!");

@@ -618,7 +618,9 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 </div>
 
 <!-- WHAT'S NEW BUTTON — replays the egg intro voice-over -->
-<button id="whatsNewBtn" onclick="G.showEggIntro&&G.showEggIntro(true)" title="What's New? Hear the voice-over again" style="position:fixed;bottom:218px;left:22px;width:44px;height:44px;opacity:.75;border-radius:50%;border:2px solid #fde047;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;cursor:pointer;box-shadow:0 4px 12px rgba(251,191,36,.45);z-index:100;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s">🆕</button>
+<button id="sagaBtn" onclick="G.saveGame&&G.saveGame();location.href='wordmon-saga.html'" title="Wordmon Saga — the story adventure!" style="position:fixed;bottom:218px;left:16px;width:56px;height:56px;border-radius:50%;border:3px solid #c4b5fd;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,.5);z-index:100;display:flex;align-items:center;justify-content:center;font-size:1.6rem;transition:transform .15s">📖<span id="sagaBadge" style="display:none;position:absolute;top:-4px;right:-6px;background:#fde047;color:#7c2d12;font-family:'Fredoka One',cursive;font-size:.55rem;min-width:20px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;border:2px solid #fff;padding:0 4px">0/5</span></button>
+
+<button id="whatsNewBtn" onclick="G.showEggIntro&&G.showEggIntro(true)" title="What's New? Hear the voice-over again" style="position:fixed;bottom:286px;left:22px;width:44px;height:44px;opacity:.75;border-radius:50%;border:2px solid #fde047;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;cursor:pointer;box-shadow:0 4px 12px rgba(251,191,36,.45);z-index:100;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s">🆕</button>
 
 <!-- 💰 TREASURE RUN BUTTON — bonus reading game worth up to 50 coins -->
 <button id="treasureBtn" onclick="G.openTreasureHub&&G.openTreasureHub()" title="Treasure Games — win up to 100 coins!" style="position:fixed;bottom:218px;right:16px;width:56px;height:56px;border-radius:50%;border:3px solid #fde047;background:linear-gradient(135deg,#fbbf24,#d97706);color:#7c2d12;cursor:pointer;box-shadow:0 4px 16px rgba(217,119,6,.5);z-index:150;display:flex;align-items:center;justify-content:center;font-size:1.7rem;transition:transform .15s;animation:treasureFloat 2.6s ease-in-out infinite">💰</button>
@@ -2666,6 +2668,12 @@ const G = {
     // 🥚 Mystery Egg system — daily login + bonus golden egg
     try{this.initDailyLogin();this.updateEggHud();}catch(e){console.warn('egg init',e);}
     try{this.refreshTreasureBtn();}catch(e){}
+    // Saga link badge — show Lost Pages progress from the Saga's save
+    try{
+      const sg=JSON.parse(localStorage.getItem('wordmon_saga')||'null');
+      const b=document.getElementById('sagaBadge');
+      if(b&&sg&&sg.pages&&sg.pages.length){b.style.display='flex';b.textContent=sg.pages.length+'/5';}
+    }catch(e){}
     // One-time announcement of the egg feature (with voice-over)
     setTimeout(()=>{try{this.showEggIntro();}catch(e){console.warn('intro',e);}}, 1400);
     // auto-save every 30s
