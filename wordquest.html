@@ -610,7 +610,7 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 </style>
 
 <!-- EXPLORE BUTTON -->
-<button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:150px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!"><img src="sprites/ico_explore.png" style="width:32px;height:32px"></button>
+<button id="exploreBtn" onclick="G.openAdventure()" style="position:fixed;bottom:82px;left:16px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Explore the world!"><img src="sprites/ico_explore.png" style="width:32px;height:32px"></button>
 
 <!-- MYSTERY EGG WIDGET — floats on home screen, shows progress -->
 <div id="eggWidget" style="display:none;position:fixed;bottom:150px;right:16px;z-index:150;background:linear-gradient(135deg,rgba(91,33,182,.92),rgba(124,58,237,.92));border:2px solid rgba(255,255,255,.4);border-radius:18px;cursor:pointer;box-shadow:0 6px 18px rgba(91,33,182,.45),inset 0 1px 0 rgba(255,255,255,.3);overflow:hidden;transition:transform .2s" onclick="G.peekEgg&&G.peekEgg()" title="Mystery Egg — answer questions to hatch it!">
@@ -618,13 +618,13 @@ h1,h2,h3,.recoleta{font-family:'Recoleta','Fredoka One',serif;font-weight:400;le
 </div>
 
 <!-- WHAT'S NEW BUTTON — replays the egg intro voice-over -->
-<button id="whatsNewBtn" onclick="G.showEggIntro&&G.showEggIntro(true)" title="What's New? Hear the voice-over again" style="position:fixed;bottom:286px;left:16px;width:42px;height:42px;border-radius:50%;border:2px solid #fde047;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;cursor:pointer;box-shadow:0 4px 12px rgba(251,191,36,.45);z-index:100;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s">🆕</button>
+<button id="whatsNewBtn" onclick="G.showEggIntro&&G.showEggIntro(true)" title="What's New? Hear the voice-over again" style="position:fixed;bottom:218px;left:22px;width:44px;height:44px;opacity:.75;border-radius:50%;border:2px solid #fde047;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#7c2d12;cursor:pointer;box-shadow:0 4px 12px rgba(251,191,36,.45);z-index:100;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s">🆕</button>
 
 <!-- 💰 TREASURE RUN BUTTON — bonus reading game worth up to 50 coins -->
-<button id="treasureBtn" onclick="G.openTreasureRun&&G.openTreasureRun()" title="Treasure Run — read 5 words to win up to 50 coins!" style="position:fixed;bottom:218px;right:16px;width:56px;height:56px;border-radius:50%;border:3px solid #fde047;background:linear-gradient(135deg,#fbbf24,#d97706);color:#7c2d12;cursor:pointer;box-shadow:0 4px 16px rgba(217,119,6,.5);z-index:150;display:flex;align-items:center;justify-content:center;font-size:1.7rem;transition:transform .15s;animation:treasureFloat 2.6s ease-in-out infinite">💰</button>
+<button id="treasureBtn" onclick="G.openTreasureHub&&G.openTreasureHub()" title="Treasure Games — win up to 100 coins!" style="position:fixed;bottom:218px;right:16px;width:56px;height:56px;border-radius:50%;border:3px solid #fde047;background:linear-gradient(135deg,#fbbf24,#d97706);color:#7c2d12;cursor:pointer;box-shadow:0 4px 16px rgba(217,119,6,.5);z-index:150;display:flex;align-items:center;justify-content:center;font-size:1.7rem;transition:transform .15s;animation:treasureFloat 2.6s ease-in-out infinite">💰</button>
 
 <!-- HOME BUTTON -->
-<button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:218px;left:16px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(147,51,234,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
+<button id="homeBtn" onclick="openHouse()" style="position:fixed;bottom:150px;left:16px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(147,51,234,.4);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Río's House"><img src="sprites/ico_home.png" style="width:32px;height:32px"></button>
 
 <!-- WORDMON TOWN OVERLAY (GBC style) -->
 <div id="houseOverlay" style="display:none;position:fixed;inset:0;background:#0a0a14;z-index:200;overflow-y:auto">
@@ -1423,7 +1423,48 @@ const WORDMONS = [
     {name:'Breezling',hp:32,bio:'A bright sky-blue baby bird with a cloud tail and a leaf in its beak.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="22" ry="20" fill="#7dd3fc"/><ellipse cx="50" cy="60" rx="16" ry="14" fill="#bae6fd"/><circle cx="50" cy="36" r="14" fill="#7dd3fc"/><circle cx="44" cy="34" r="4" fill="#fff"/><circle cx="56" cy="34" r="4" fill="#fff"/><circle cx="44" cy="34" r="2" fill="#1e293b"/><circle cx="56" cy="34" r="2" fill="#1e293b"/><polygon points="50,40 46,46 54,46" fill="#fbbf24"/><circle cx="44" cy="42" r="2" fill="#fca5a5"/><circle cx="56" cy="42" r="2" fill="#fca5a5"/><path d="M20 58 Q4 50 14 70" fill="#7dd3fc"/><path d="M80 58 Q96 50 86 70" fill="#7dd3fc"/><circle cx="72" cy="64" r="10" fill="#fff"/><circle cx="78" cy="60" r="8" fill="#fff"/><circle cx="82" cy="66" r="6" fill="#fff"/><circle cx="76" cy="70" r="6" fill="#fff"/><path d="M50 24 Q56 14 62 20" stroke="#22c55e" stroke-width="2" fill="none" stroke-linecap="round"/><polygon points="62,20 64,16 60,16" fill="#22c55e"/></svg>`},
     {name:'Skywhirl',hp:48,bio:'Skywhirl rides the wind! Her tail is a swirling tornado of fluffy clouds. She can fly to the very top of the sky.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="26" ry="22" fill="#38bdf8"/><ellipse cx="50" cy="58" rx="20" ry="16" fill="#7dd3fc"/><circle cx="50" cy="32" r="16" fill="#38bdf8"/><circle cx="42" cy="30" r="5" fill="#fff"/><circle cx="58" cy="30" r="5" fill="#fff"/><circle cx="42" cy="30" r="2.5" fill="#1e293b"/><circle cx="58" cy="30" r="2.5" fill="#1e293b"/><polygon points="50,36 44,44 56,44" fill="#fbbf24"/><circle cx="42" cy="40" r="2.5" fill="#fca5a5"/><circle cx="58" cy="40" r="2.5" fill="#fca5a5"/><path d="M16 50 Q-2 38 8 68" fill="#38bdf8"/><path d="M84 50 Q102 38 92 68" fill="#38bdf8"/><circle cx="78" cy="68" r="12" fill="#fff"/><circle cx="86" cy="60" r="10" fill="#fff"/><circle cx="90" cy="72" r="8" fill="#fff"/><circle cx="80" cy="80" r="8" fill="#fff"/><circle cx="92" cy="84" r="6" fill="#fff"/></svg>`},
     {name:'Stormgale',hp:68,bio:'Stormgale commands the winds! Lightning crackles around her wings and her cloud-tail can grow into a hurricane.',svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="30" ry="24" fill="#0284c7"/><ellipse cx="50" cy="56" rx="24" ry="20" fill="#38bdf8"/><circle cx="50" cy="28" r="18" fill="#0284c7"/><circle cx="40" cy="26" r="6" fill="#fff"/><circle cx="60" cy="26" r="6" fill="#fff"/><circle cx="40" cy="26" r="3" fill="#1e293b"/><circle cx="60" cy="26" r="3" fill="#1e293b"/><polygon points="50,32 42,42 58,42" fill="#fbbf24"/><circle cx="38" cy="36" r="3" fill="#fca5a5"/><circle cx="62" cy="36" r="3" fill="#fca5a5"/><path d="M10 46 Q-12 30 4 70" fill="#0284c7"/><path d="M90 46 Q112 30 96 70" fill="#0284c7"/><polygon points="0,36 8,42 4,38 12,46 6,40 14,50 8,42" fill="#fde047"/><polygon points="100,36 92,42 96,38 88,46 94,40 86,50 92,42" fill="#fde047"/><circle cx="76" cy="74" r="14" fill="#fff"/><circle cx="86" cy="66" r="11" fill="#fff"/><circle cx="92" cy="78" r="9" fill="#fff"/><circle cx="80" cy="86" r="9" fill="#fff"/><circle cx="94" cy="90" r="7" fill="#fff"/><polygon points="80,76 88,78 82,82 90,90 84,84" fill="#fde047"/></svg>`}
-  ]}
+  ]},
+  // ===== AUG 2026 BATCH — 8 "2nd grade" Wordmons (cooler designs) =====
+  {id:'drakelet',type:'Dragon',color:'#16a34a',bio:'Drakelet is a baby dragon who practices his fire-breath every morning. So far he can only make smoke rings — but every book you read makes his flame grow hotter!',stages:[
+    {name:'Drakelet',hp:36,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="26" ry="24" fill="#4ade80"/><ellipse cx="50" cy="62" rx="18" ry="15" fill="#bbf7d0"/><polygon points="34,32 28,18 42,28" fill="#16a34a"/><polygon points="66,32 72,18 58,28" fill="#16a34a"/><circle cx="42" cy="52" r="5.5" fill="#1e293b"/><circle cx="58" cy="52" r="5.5" fill="#1e293b"/><circle cx="43.5" cy="50" r="2" fill="#fff"/><circle cx="59.5" cy="50" r="2" fill="#fff"/><path d="M44 64 Q50 69 56 64" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M20 52 Q8 44 14 62" fill="#22c55e"/><path d="M80 52 Q92 44 86 62" fill="#22c55e"/><circle cx="64" cy="40" r="3" fill="#cbd5e1" opacity=".8"/><circle cx="69" cy="34" r="2" fill="#cbd5e1" opacity=".6"/></svg>`},
+    {name:'Wyvernix',hp:52,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="30" ry="27" fill="#22c55e"/><ellipse cx="50" cy="60" rx="21" ry="17" fill="#fbbf24"/><polygon points="30,28 22,10 40,24" fill="#16a34a"/><polygon points="70,28 78,10 60,24" fill="#16a34a"/><path d="M16 46 Q-6 30 8 64 Q14 52 16 46" fill="#16a34a"/><path d="M84 46 Q106 30 92 64 Q86 52 84 46" fill="#16a34a"/><circle cx="40" cy="48" r="6" fill="#1e293b"/><circle cx="60" cy="48" r="6" fill="#1e293b"/><circle cx="42" cy="46" r="2.5" fill="#fff"/><circle cx="62" cy="46" r="2.5" fill="#fff"/><path d="M42 62 Q50 68 58 62" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="46,74 50,84 54,74" fill="#16a34a"/></svg>`},
+    {name:'Dracolord',hp:76,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="34" ry="30" fill="#15803d"/><ellipse cx="50" cy="58" rx="25" ry="21" fill="#fbbf24"/><polygon points="26,24 16,2 38,20" fill="#166534"/><polygon points="74,24 84,2 62,20" fill="#166534"/><polygon points="42,18 46,4 50,16 54,4 58,18" fill="#fde047" stroke="#d97706" stroke-width="1.5"/><path d="M10 42 Q-14 22 4 66 Q10 50 10 42" fill="#166534"/><path d="M90 42 Q114 22 96 66 Q90 50 90 42" fill="#166534"/><circle cx="38" cy="46" r="7" fill="#1e293b"/><circle cx="62" cy="46" r="7" fill="#1e293b"/><circle cx="40" cy="44" r="3" fill="#fff"/><circle cx="64" cy="44" r="3" fill="#fff"/><circle cx="41" cy="43" r="1.2" fill="#f97316"/><circle cx="65" cy="43" r="1.2" fill="#f97316"/><path d="M40 62 Q50 70 60 62" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M44 70 Q50 78 56 70" stroke="#f97316" stroke-width="3" fill="none" stroke-linecap="round"/><polygon points="44,80 50,94 56,80" fill="#166534"/></svg>`}
+  ]},
+  {id:'shadowpaw',type:'Dark',color:'#334155',bio:'Shadowpaw is a ninja cat who trained in a secret mountain library. She moves without a sound and can slice a falling leaf in half — but she would never hurt a friend.',stages:[
+    {name:'Shadowpaw',hp:34,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="25" ry="22" fill="#334155"/><polygon points="32,34 26,18 42,30" fill="#334155"/><polygon points="68,34 74,18 58,30" fill="#334155"/><rect x="30" y="44" width="40" height="10" rx="5" fill="#dc2626"/><circle cx="42" cy="49" r="4" fill="#fde047"/><circle cx="58" cy="49" r="4" fill="#fde047"/><ellipse cx="42" cy="49" rx="1.5" ry="3.5" fill="#1e293b"/><ellipse cx="58" cy="49" rx="1.5" ry="3.5" fill="#1e293b"/><path d="M45 62 Q50 66 55 62" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M74 60 Q88 48 82 74" stroke="#334155" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M64 44 L78 38" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/></svg>`},
+    {name:'Ninjaclaw',hp:50,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="29" ry="26" fill="#1e293b"/><polygon points="28,30 20,10 40,26" fill="#1e293b"/><polygon points="72,30 80,10 60,26" fill="#1e293b"/><rect x="26" y="42" width="48" height="11" rx="5" fill="#dc2626"/><circle cx="40" cy="47" r="5" fill="#fde047"/><circle cx="60" cy="47" r="5" fill="#fde047"/><ellipse cx="40" cy="47" rx="1.8" ry="4.2" fill="#1e293b"/><ellipse cx="60" cy="47" rx="1.8" ry="4.2" fill="#1e293b"/><path d="M18 62 L4 54 M18 68 L4 66 M18 74 L6 78" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/><path d="M82 62 L96 54 M82 68 L96 66 M82 74 L94 78" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/><path d="M68 40 L84 32" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/><path d="M44 62 Q50 67 56 62" stroke="#94a3b8" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+    {name:'Phantomstrike',hp:72,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="33" ry="30" fill="#0f172a"/><polygon points="24,26 14,4 38,22" fill="#0f172a"/><polygon points="76,26 86,4 62,22" fill="#0f172a"/><rect x="22" y="40" width="56" height="12" rx="6" fill="#b91c1c"/><circle cx="38" cy="46" r="6" fill="#ef4444"/><circle cx="62" cy="46" r="6" fill="#ef4444"/><ellipse cx="38" cy="46" rx="2" ry="5" fill="#0f172a"/><ellipse cx="62" cy="46" rx="2" ry="5" fill="#0f172a"/><path d="M14 60 L-2 50 M14 68 L0 66 M14 76 L2 82" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/><path d="M86 60 L102 50 M86 68 L100 66 M86 76 L98 82" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/><path d="M72 36 L92 26" stroke="#b91c1c" stroke-width="5" stroke-linecap="round"/><ellipse cx="24" cy="86" rx="10" ry="4" fill="#475569" opacity=".5"/><ellipse cx="76" cy="86" rx="10" ry="4" fill="#475569" opacity=".5"/><path d="M42 62 Q50 68 58 62" stroke="#94a3b8" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`}
+  ]},
+  {id:'gearbot',type:'Steel',color:'#94a3b8',bio:'Gearbot was built from spare parts in a toy factory, and the first word he ever read was his own serial number. Now he reads instruction manuals for FUN and can build almost anything.',stages:[
+    {name:'Gearbot',hp:38,svg:`<svg viewBox="0 0 100 100"><rect x="28" y="30" width="44" height="40" rx="8" fill="#94a3b8"/><rect x="34" y="36" width="32" height="18" rx="5" fill="#1e293b"/><circle cx="50" cy="45" r="7" fill="#38bdf8"/><circle cx="50" cy="45" r="3" fill="#e0f2fe"/><rect x="42" y="58" width="16" height="6" rx="3" fill="#475569"/><circle cx="36" cy="76" r="6" fill="#64748b"/><circle cx="64" cy="76" r="6" fill="#64748b"/><rect x="20" y="42" width="8" height="16" rx="4" fill="#64748b"/><rect x="72" y="42" width="8" height="16" rx="4" fill="#64748b"/><line x1="50" y1="30" x2="50" y2="20" stroke="#64748b" stroke-width="3"/><circle cx="50" cy="17" r="4" fill="#f97316"/></svg>`},
+    {name:'Mechatron',hp:54,svg:`<svg viewBox="0 0 100 100"><rect x="24" y="24" width="52" height="48" rx="9" fill="#64748b"/><rect x="30" y="30" width="40" height="20" rx="6" fill="#0f172a"/><circle cx="42" cy="40" r="5.5" fill="#38bdf8"/><circle cx="58" cy="40" r="5.5" fill="#38bdf8"/><circle cx="43" cy="38" r="2" fill="#e0f2fe"/><circle cx="59" cy="38" r="2" fill="#e0f2fe"/><circle cx="50" cy="60" r="8" fill="#475569"/><circle cx="50" cy="60" r="4" fill="#fbbf24"/><path d="M50 52 L50 48 M50 68 L50 72 M42 60 L38 60 M58 60 L62 60" stroke="#334155" stroke-width="3"/><rect x="12" y="36" width="12" height="22" rx="5" fill="#475569"/><rect x="76" y="36" width="12" height="22" rx="5" fill="#475569"/><rect x="32" y="72" width="12" height="14" rx="4" fill="#475569"/><rect x="56" y="72" width="12" height="14" rx="4" fill="#475569"/></svg>`},
+    {name:'Titancore',hp:80,svg:`<svg viewBox="0 0 100 100"><rect x="18" y="18" width="64" height="58" rx="10" fill="#475569"/><rect x="10" y="24" width="14" height="26" rx="5" fill="#334155"/><rect x="76" y="24" width="14" height="26" rx="5" fill="#334155"/><rect x="26" y="26" width="48" height="20" rx="7" fill="#0f172a"/><circle cx="40" cy="36" r="6" fill="#f97316"/><circle cx="60" cy="36" r="6" fill="#f97316"/><circle cx="41" cy="34" r="2.2" fill="#ffedd5"/><circle cx="61" cy="34" r="2.2" fill="#ffedd5"/><circle cx="50" cy="60" r="11" fill="#1e293b"/><circle cx="50" cy="60" r="7" fill="#f97316"/><circle cx="50" cy="60" r="3" fill="#fde047"/><rect x="28" y="76" width="16" height="16" rx="4" fill="#334155"/><rect x="56" y="76" width="16" height="16" rx="4" fill="#334155"/><polygon points="32,18 36,8 42,18" fill="#64748b"/><polygon points="58,18 64,8 68,18" fill="#64748b"/></svg>`}
+  ]},
+  {id:'finfang',type:'Water',color:'#0ea5e9',bio:'Finfang is a little shark who reads with one eye above the water and one below. His favorite stories are about pirates, because he always finds the treasure first.',stages:[
+    {name:'Finfang',hp:36,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="30" ry="22" fill="#38bdf8"/><ellipse cx="50" cy="62" rx="24" ry="14" fill="#e0f2fe"/><polygon points="50,20 40,40 62,40" fill="#0ea5e9"/><circle cx="40" cy="50" r="5.5" fill="#1e293b"/><circle cx="60" cy="50" r="5.5" fill="#1e293b"/><circle cx="41.5" cy="48" r="2" fill="#fff"/><circle cx="61.5" cy="48" r="2" fill="#fff"/><path d="M40 64 Q50 70 60 64" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="46,66 50,72 54,66" fill="#fff"/><path d="M18 56 Q6 50 12 66" fill="#0ea5e9"/><path d="M82 56 Q94 50 88 66" fill="#0ea5e9"/></svg>`},
+    {name:'Jawtide',hp:52,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="34" ry="26" fill="#0ea5e9"/><ellipse cx="50" cy="62" rx="27" ry="16" fill="#e0f2fe"/><polygon points="50,12 38,36 64,36" fill="#0284c7"/><path d="M64,20 L70,28 L62,30 Z" fill="#0284c7"/><circle cx="38" cy="48" r="6" fill="#1e293b"/><circle cx="62" cy="48" r="6" fill="#1e293b"/><circle cx="40" cy="46" r="2.5" fill="#fff"/><circle cx="64" cy="46" r="2.5" fill="#fff"/><path d="M36 62 Q50 72 64 62" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/><polygon points="40,64 44,71 48,64" fill="#fff"/><polygon points="52,64 56,71 60,64" fill="#fff"/><path d="M14 52 Q0 44 8 66" fill="#0284c7"/><path d="M86 52 Q100 44 92 66" fill="#0284c7"/></svg>`},
+    {name:'Megajaw',hp:78,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="52" rx="38" ry="30" fill="#0369a1"/><ellipse cx="50" cy="62" rx="30" ry="18" fill="#e0f2fe"/><polygon points="50,6 36,34 66,34" fill="#075985"/><path d="M68,14 L76,24 L64,26 Z" fill="#075985"/><circle cx="36" cy="46" r="7" fill="#ef4444"/><circle cx="64" cy="46" r="7" fill="#ef4444"/><ellipse cx="36" cy="46" rx="2.5" ry="6" fill="#0f172a"/><ellipse cx="64" cy="46" rx="2.5" ry="6" fill="#0f172a"/><path d="M30 62 Q50 76 70 62" stroke="#0f172a" stroke-width="3.5" fill="none" stroke-linecap="round"/><polygon points="34,64 38,73 42,64" fill="#fff"/><polygon points="46,66 50,75 54,66" fill="#fff"/><polygon points="58,64 62,73 66,64" fill="#fff"/><path d="M10 48 Q-6 38 4 64" fill="#075985"/><path d="M90 48 Q106 38 96 64" fill="#075985"/><path d="M26 36 L34 40" stroke="#e0f2fe" stroke-width="2" stroke-linecap="round"/></svg>`}
+  ]},
+  {id:'rexling',type:'Ground',color:'#84cc16',bio:'Rexling hatched from an egg that sat in a museum for a million years — right next to the library! He may be small now, but his roar already rattles the bookshelves.',stages:[
+    {name:'Rexling',hp:38,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="27" ry="25" fill="#a3e635"/><ellipse cx="50" cy="62" rx="19" ry="15" fill="#ecfccb"/><circle cx="42" cy="48" r="6" fill="#1e293b"/><circle cx="60" cy="48" r="6" fill="#1e293b"/><circle cx="43.5" cy="46" r="2.3" fill="#fff"/><circle cx="61.5" cy="46" r="2.3" fill="#fff"/><path d="M40 64 Q50 70 60 64" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="44,65 47,70 50,65" fill="#fff"/><rect x="26" y="58" width="9" height="6" rx="3" fill="#84cc16"/><rect x="65" y="58" width="9" height="6" rx="3" fill="#84cc16"/><path d="M36 32 Q40 24 46 30 M54 30 Q60 24 64 32" stroke="#65a30d" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`},
+    {name:'Raptorix',hp:54,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="31" ry="28" fill="#84cc16"/><ellipse cx="50" cy="60" rx="22" ry="17" fill="#ecfccb"/><path d="M28 30 L36 22 L40 30 L48 20 L52 30 L60 20 L66 30" stroke="#4d7c0f" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="40" cy="46" r="6.5" fill="#1e293b"/><circle cx="60" cy="46" r="6.5" fill="#1e293b"/><circle cx="42" cy="44" r="2.5" fill="#fff"/><circle cx="62" cy="44" r="2.5" fill="#fff"/><path d="M38 62 Q50 70 62 62" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/><polygon points="42,64 45,70 48,64" fill="#fff"/><polygon points="52,64 55,70 58,64" fill="#fff"/><path d="M20 58 L8 52 M20 64 L10 64" stroke="#65a30d" stroke-width="3" stroke-linecap="round"/><path d="M80 58 L92 52 M80 64 L90 64" stroke="#65a30d" stroke-width="3" stroke-linecap="round"/></svg>`},
+    {name:'Tyrannoking',hp:80,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="35" ry="31" fill="#65a30d"/><ellipse cx="50" cy="61" rx="25" ry="19" fill="#d9f99d"/><polygon points="38,16 42,4 47,14 50,2 53,14 58,4 62,16" fill="#fde047" stroke="#d97706" stroke-width="1.5"/><circle cx="38" cy="44" r="7" fill="#1e293b"/><circle cx="62" cy="44" r="7" fill="#1e293b"/><circle cx="40" cy="42" r="3" fill="#fff"/><circle cx="64" cy="42" r="3" fill="#fff"/><circle cx="41" cy="41" r="1.2" fill="#f97316"/><circle cx="65" cy="41" r="1.2" fill="#f97316"/><path d="M34 60 Q50 74 66 60" stroke="#1e293b" stroke-width="3.5" fill="none" stroke-linecap="round"/><polygon points="38,62 42,71 46,62" fill="#fff"/><polygon points="54,62 58,71 62,62" fill="#fff"/><rect x="22" y="66" width="10" height="7" rx="3.5" fill="#4d7c0f"/><rect x="68" y="66" width="10" height="7" rx="3.5" fill="#4d7c0f"/><path d="M28 28 Q34 20 40 26 M60 26 Q66 20 72 28" stroke="#4d7c0f" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>`}
+  ]},
+  {id:'emberhawk',type:'Fire',color:'#f97316',bio:'Emberhawk hatched inside a campfire while someone was reading ghost stories out loud. She loves stories so much that her feathers glow brighter at every plot twist.',stages:[
+    {name:'Emberhawk',hp:34,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="22" ry="21" fill="#fb923c"/><circle cx="50" cy="38" r="14" fill="#fdba74"/><circle cx="45" cy="36" r="4" fill="#1e293b"/><circle cx="55" cy="36" r="4" fill="#1e293b"/><circle cx="46" cy="34.5" r="1.5" fill="#fff"/><circle cx="56" cy="34.5" r="1.5" fill="#fff"/><polygon points="50,40 46,46 54,46" fill="#fbbf24"/><path d="M28 54 Q12 44 20 66 Q26 58 28 54" fill="#f97316"/><path d="M72 54 Q88 44 80 66 Q74 58 72 54" fill="#f97316"/><path d="M22 62 Q16 58 18 66" fill="#fde047"/><path d="M78 62 Q84 58 82 66" fill="#fde047"/><path d="M42 22 Q46 12 50 20 Q54 12 58 22" stroke="#ef4444" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`},
+    {name:'Flarewing',hp:50,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="54" rx="25" ry="24" fill="#f97316"/><circle cx="50" cy="34" r="16" fill="#fb923c"/><circle cx="44" cy="32" r="4.5" fill="#1e293b"/><circle cx="56" cy="32" r="4.5" fill="#1e293b"/><circle cx="45.5" cy="30" r="1.8" fill="#fff"/><circle cx="57.5" cy="30" r="1.8" fill="#fff"/><polygon points="50,36 45,43 55,43" fill="#fbbf24"/><path d="M25 48 Q2 34 14 68 Q22 56 25 48" fill="#ef4444"/><path d="M75 48 Q98 34 86 68 Q78 56 75 48" fill="#ef4444"/><path d="M16 58 Q8 52 12 66" fill="#fde047"/><path d="M84 58 Q92 52 88 66" fill="#fde047"/><path d="M38 18 Q42 6 48 16 Q50 8 54 16 Q58 6 62 18" stroke="#ef4444" stroke-width="3.5" fill="none" stroke-linecap="round"/><polygon points="44,76 50,88 56,76" fill="#ef4444"/></svg>`},
+    {name:'Solarphoenix',hp:74,svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#fde047" opacity=".25"/><ellipse cx="50" cy="52" rx="27" ry="26" fill="#ef4444"/><circle cx="50" cy="30" r="17" fill="#f97316"/><circle cx="43" cy="28" r="5" fill="#1e293b"/><circle cx="57" cy="28" r="5" fill="#1e293b"/><circle cx="44.5" cy="26" r="2" fill="#fff"/><circle cx="58.5" cy="26" r="2" fill="#fff"/><polygon points="50,33 44,41 56,41" fill="#fde047"/><path d="M22 44 Q-6 26 10 70 Q18 54 22 44" fill="#f97316"/><path d="M78 44 Q106 26 90 70 Q82 54 78 44" fill="#f97316"/><path d="M12 58 Q2 50 8 70" fill="#fde047"/><path d="M88 58 Q98 50 92 70" fill="#fde047"/><path d="M34 14 Q38 2 44 12 Q47 2 50 12 Q53 2 56 12 Q62 2 66 14" stroke="#fbbf24" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M40 76 Q44 90 50 80 Q56 90 60 76" stroke="#fde047" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`}
+  ]},
+  {id:'knightpup',type:'Steel',color:'#eab308',bio:'Knightpup swore an oath to protect every reader in the kingdom. His armor is polished with beeswax and his tail never stops wagging — even in battle.',stages:[
+    {name:'Knightpup',hp:38,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="60" rx="24" ry="21" fill="#fbbf24"/><ellipse cx="50" cy="65" rx="17" ry="13" fill="#fef3c7"/><path d="M30 40 Q30 22 50 22 Q70 22 70 40 L70 46 L30 46 Z" fill="#94a3b8"/><rect x="34" y="34" width="32" height="7" rx="3.5" fill="#334155"/><polygon points="50,22 46,12 54,12" fill="#cbd5e1"/><circle cx="42" cy="54" r="5" fill="#1e293b"/><circle cx="58" cy="54" r="5" fill="#1e293b"/><circle cx="43.5" cy="52.5" r="2" fill="#fff"/><circle cx="59.5" cy="52.5" r="2" fill="#fff"/><ellipse cx="50" cy="63" rx="3.5" ry="2.5" fill="#1e293b"/><path d="M45 68 Q50 72 55 68" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M76 62 Q88 52 84 72" stroke="#fbbf24" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`},
+    {name:'Squirehound',hp:54,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="58" rx="28" ry="25" fill="#f59e0b"/><rect x="30" y="52" width="40" height="24" rx="9" fill="#94a3b8"/><circle cx="50" cy="64" r="6" fill="#fde047"/><path d="M28 36 Q28 18 50 18 Q72 18 72 36 L72 42 L28 42 Z" fill="#64748b"/><rect x="32" y="31" width="36" height="7" rx="3.5" fill="#1e293b"/><polygon points="50,18 45,6 55,6" fill="#cbd5e1"/><circle cx="41" cy="48" r="5.5" fill="#1e293b"/><circle cx="59" cy="48" r="5.5" fill="#1e293b"/><circle cx="42.5" cy="46.5" r="2.2" fill="#fff"/><circle cx="60.5" cy="46.5" r="2.2" fill="#fff"/><rect x="12" y="48" width="14" height="22" rx="6" fill="#38bdf8" stroke="#0369a1" stroke-width="2.5"/><path d="M80 58 Q94 46 88 72" stroke="#f59e0b" stroke-width="7" fill="none" stroke-linecap="round"/></svg>`},
+    {name:'Paladinwolf',hp:78,svg:`<svg viewBox="0 0 100 100"><path d="M26 40 Q20 88 50 88 Q80 88 74 40 Z" fill="#1d4ed8" opacity=".85"/><ellipse cx="50" cy="56" rx="30" ry="27" fill="#d97706"/><path d="M26 34 Q26 14 50 14 Q74 14 74 34 L74 40 L26 40 Z" fill="#475569"/><rect x="30" y="28" width="40" height="8" rx="4" fill="#0f172a"/><polygon points="50,14 44,2 56,2" fill="#e2e8f0"/><polygon points="30,16 24,6 36,12" fill="#475569"/><polygon points="70,16 76,6 64,12" fill="#475569"/><circle cx="40" cy="46" r="6" fill="#1e293b"/><circle cx="60" cy="46" r="6" fill="#1e293b"/><circle cx="41.5" cy="44.5" r="2.5" fill="#7dd3fc"/><circle cx="61.5" cy="44.5" r="2.5" fill="#7dd3fc"/><path d="M42 62 Q50 68 58 62" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="8" y="42" width="16" height="26" rx="7" fill="#38bdf8" stroke="#0369a1" stroke-width="3"/><path d="M16 46 L16 62 M10 54 L22 54" stroke="#fef3c7" stroke-width="2.5"/><rect x="76" y="36" width="7" height="34" rx="3" fill="#cbd5e1"/><polygon points="76,36 79.5,26 83,36" fill="#e2e8f0"/><rect x="72" y="68" width="15" height="6" rx="3" fill="#d97706"/></svg>`}
+  ]},
+  {id:'viperling',type:'Poison',color:'#10b981',bio:'Viperling can taste words in the air with her tongue. Sweet stories taste like strawberries; scary ones taste like pepper. Her hypnotic eyes help slow readers focus!',stages:[
+    {name:'Viperling',hp:34,svg:`<svg viewBox="0 0 100 100"><path d="M30 76 Q14 70 22 58 Q30 48 44 54 Q60 60 70 50" stroke="#34d399" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="72" cy="42" r="15" fill="#34d399"/><circle cx="67" cy="39" r="4.5" fill="#1e293b"/><circle cx="78" cy="39" r="4.5" fill="#1e293b"/><circle cx="68.5" cy="37.5" r="1.8" fill="#fff"/><circle cx="79.5" cy="37.5" r="1.8" fill="#fff"/><path d="M70 50 Q72 54 74 50" stroke="#1e293b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M72 54 L72 60 M72 60 L69 64 M72 60 L75 64" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/><circle cx="36" cy="62" r="3" fill="#059669"/><circle cx="48" cy="57" r="3" fill="#059669"/></svg>`},
+    {name:'Cobracoil',hp:50,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="76" rx="26" ry="12" fill="#059669"/><ellipse cx="50" cy="76" rx="17" ry="7" fill="#34d399"/><path d="M50 74 Q46 52 50 38" stroke="#10b981" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M32 34 Q32 12 50 12 Q68 12 68 34 Q68 46 50 46 Q32 46 32 34" fill="#10b981"/><path d="M38 32 Q38 20 50 20 Q62 20 62 32 Q62 40 50 40 Q38 40 38 32" fill="#a7f3d0"/><circle cx="44" cy="28" r="4.5" fill="#1e293b"/><circle cx="56" cy="28" r="4.5" fill="#1e293b"/><circle cx="45.5" cy="26.5" r="1.8" fill="#fbbf24"/><circle cx="57.5" cy="26.5" r="1.8" fill="#fbbf24"/><path d="M48 36 Q50 38 52 36" stroke="#1e293b" stroke-width="2" fill="none"/><path d="M50 40 L50 46 M50 46 L47 50 M50 46 L53 50" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/><circle cx="50" cy="14" r="2.5" fill="#059669"/></svg>`},
+    {name:'Basilisk',hp:76,svg:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="80" rx="32" ry="12" fill="#047857"/><ellipse cx="50" cy="80" rx="22" ry="7" fill="#10b981"/><path d="M50 78 Q44 52 50 36" stroke="#059669" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M28 32 Q28 6 50 6 Q72 6 72 32 Q72 46 50 46 Q28 46 28 32" fill="#059669"/><path d="M35 30 Q35 15 50 15 Q65 15 65 30 Q65 40 50 40 Q35 40 35 30" fill="#a7f3d0"/><polygon points="42,8 46,-2 50,7 54,-2 58,8" fill="#fde047" stroke="#d97706" stroke-width="1.5"/><circle cx="43" cy="26" r="5.5" fill="#a855f7"/><circle cx="57" cy="26" r="5.5" fill="#a855f7"/><ellipse cx="43" cy="26" rx="2" ry="4.8" fill="#1e293b"/><ellipse cx="57" cy="26" rx="2" ry="4.8" fill="#1e293b"/><path d="M47 35 Q50 38 53 35" stroke="#1e293b" stroke-width="2.2" fill="none"/><path d="M50 40 L50 48 M50 48 L46 53 M50 48 L54 53" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><circle cx="34" cy="36" r="2.5" fill="#047857"/><circle cx="66" cy="36" r="2.5" fill="#047857"/></svg>`}
+  ]},
 ];
 
 // ========================================================
@@ -2578,6 +2619,7 @@ const G = {
   // 💰 Treasure Run — a bonus reading game worth up to 50 coins.
   // Daily-limited so the shop economy stays meaningful.
   treasureDate:'', treasureRuns:0,   // YYYY-MM-DD + plays used today
+  goldDate:'', goldRuns:0,           // Gold Rush daily tracking (100-coin game)
   // Parent-portal extras: purchase history, custom chores, screen-time IOUs
   purchaseLog:[],   // [{id,name,date}] — what Río has earned, with dates
   chores:[],        // [{id,label,coins}] — parent-defined ways to earn coins
@@ -2810,6 +2852,7 @@ const G = {
       currentZone:this.currentZone||0,wordStats:this.wordStats||{},popQuizWins:this.popQuizWins||0,wordmonHpMap:this.wordmonHpMap||{},
       egg:this.egg||null, eggsHatched:this.eggsHatched||0, lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0,
       treasureDate:this.treasureDate||'', treasureRuns:this.treasureRuns||0,
+      goldDate:this.goldDate||'', goldRuns:this.goldRuns||0,
       purchaseLog:this.purchaseLog||[], chores:this.chores||[], choreLog:this.choreLog||[],
       screenOwed:this.screenOwed||0, screenLog:this.screenLog||[]};
     try{localStorage.setItem('rio_reads_save',JSON.stringify(d));}catch(e){}
@@ -2851,6 +2894,8 @@ const G = {
       if(d.loginStreak!==undefined) this.loginStreak=d.loginStreak;
       if(d.treasureDate!==undefined) this.treasureDate=d.treasureDate;
       if(d.treasureRuns!==undefined) this.treasureRuns=d.treasureRuns;
+      if(d.goldDate!==undefined) this.goldDate=d.goldDate;
+      if(d.goldRuns!==undefined) this.goldRuns=d.goldRuns;
       if(d.purchaseLog) this.purchaseLog=d.purchaseLog;
       if(d.chores) this.chores=d.chores;
       if(d.choreLog) this.choreLog=d.choreLog;
@@ -2863,22 +2908,22 @@ const G = {
     document.getElementById('bpBadge').textContent=this.coins;
   },
 
-  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story',writing:'mode_story',speakback:'mode_hear',math:'mode_decode',art:'mode_story'},
-  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next',writing:'✍️ Be a Writer',speakback:'🎤 Speak It',math:'🧮 Math Quest',art:'🎨 Art Studio'},
+  MODE_ICONS:{fill:'mode_fillin',spell:'mode_spell',tricky:'mode_tricky',hear:'mode_hear',flash:'mode_flash',decode:'mode_decode',story:'mode_story',shop:'mode_shop',storybook:'mode_story',comicchat:'mode_story',scramble:'mode_fillin',readfind:'mode_story',finisher:'mode_story',writing:'mode_story',speakback:'mode_hear',math:'mode_decode',art:'mode_story',opposites:'mode_flash',compound:'mode_fillin'},
+  MODE_NAMES:{fill:'Fill In',spell:'Spell It',tricky:'Tricky Letters',hear:'Hear It',flash:'Flash',decode:'Decode',story:'Story',readalong:'Read Along',sentence:'Build It',popquiz:'Pop Quiz',shop:'Shop',storybook:'📖 Storybook',comicchat:'💬 Comic',scramble:'🔀 Scramble',readfind:'🔎 Read & Find',finisher:'📚 What Comes Next',writing:'✍️ Be a Writer',speakback:'🎤 Speak It',math:'🧮 Math Quest',art:'🎨 Art Studio',opposites:'🔄 Opposites',compound:'🧩 Word Builder'},
   // === HARD READING MODES (active) — Río only sees these ===
   // scramble/tricky moved to LEGACY because they're easier and let Río
   // get points without doing real reading. Only the harder modes that
   // force real comprehension are in rotation.
-  GAME_MODES:['storybook','comicchat','readfind','finisher','writing','speakback','math','art'],
+  GAME_MODES:['storybook','comicchat','readfind','finisher','writing','speakback','math','art','opposites','compound'],
   // === LEGACY MODES (hidden but preserved — restore by moving back into GAME_MODES) ===
   LEGACY_MODES:['fill','spell','hear','flash','decode','story','readalong','sentence','scramble','tricky'],
   // Reading level progresses with totalCorrect: harder text as Río improves
   getReadingLevel(){
     const tc=this.totalCorrect||0;
-    if(tc<15) return 1;   // 2-3 word sentences
-    if(tc<50) return 2;   // 3-5 word sentences
-    if(tc<120) return 3;  // short stories (3 sentences)
-    return 4;             // full 1st grade stories (4-6 sentences)
+    if(tc<8) return 1;    // 2-3 word sentences (2nd-grade tuning: brief on-ramp)
+    if(tc<25) return 2;   // 3-5 word sentences
+    if(tc<70) return 3;   // short stories (3 sentences)
+    return 4;             // full stories (4-6 sentences)
   },
 
   updateModeBar(){
@@ -3240,9 +3285,9 @@ const G = {
   refreshTreasureBtn(){
     const b=document.getElementById('treasureBtn');
     if(!b) return;
-    const left=this.treasureRunsLeft();
-    if(left<=0){ b.classList.add('tr-done'); b.title='Treasure Run — come back tomorrow for more!'; }
-    else { b.classList.remove('tr-done'); b.title='Treasure Run — '+left+' left today! Win up to 50 coins!'; }
+    const tl=this.treasureRunsLeft(), gl=(this.goldRunsLeft?this.goldRunsLeft():0);
+    if(tl<=0&&gl<=0){ b.classList.add('tr-done'); b.title='Treasure Games — come back tomorrow!'; }
+    else { b.classList.remove('tr-done'); b.title='Treasure Games — Treasure Run ('+tl+' left) + Gold Rush ('+gl+' left)'; }
   },
 
   // ---- HARDER question pools (made tougher June 2026) ----
@@ -3448,6 +3493,209 @@ const G = {
     };
 
     renderQ();
+  },
+
+  // ============================================================
+  // 🏆 GOLD RUSH — the LONG one: 10 challenges, up to 100 coins
+  // ============================================================
+  // 2nd-grade difficulty: nastier confusables, longer spelling words,
+  // and real reading passages. NO audio, NO answer reveals — pure
+  // reading, same rules as Treasure Run. 2 runs per day.
+  GOLD_RUNS_PER_DAY:2,
+  GOLD_COINS_PER_STAGE:10,
+  GOLD_MC:[
+    {w:'thought',sent:'I ___ about my birthday all day.',d:['through','though','taught']},
+    {w:'through',sent:'The train went ___ the tunnel.',d:['thought','though','threw']},
+    {w:'quiet',sent:'The library is a very ___ place.',d:['quite','quit','quilt']},
+    {w:'quite',sent:'That puzzle was ___ hard!',d:['quiet','quit','white']},
+    {w:'weather',sent:'The ___ today is sunny and warm.',d:['whether','wither','feather']},
+    {w:'break',sent:'Be careful not to ___ the glass.',d:['brake','bread','beak']},
+    {w:'whole',sent:'He ate the ___ pizza by himself!',d:['hole','whale','wheel']},
+    {w:'knight',sent:'The ___ wore shining armor.',d:['night','light','kite']},
+    {w:'write',sent:'Please ___ your name at the top.',d:['right','white','wrote']},
+    {w:'heard',sent:'I ___ a strange noise outside.',d:['herd','hard','head']},
+    {w:'won',sent:'Our team ___ the big game!',d:['one','win','when']},
+    {w:'threw',sent:'She ___ the ball across the field.',d:['through','three','thraw']},
+    {w:'caught',sent:'The goalie ___ the ball.',d:['cought','court','count']},
+    {w:'friend',sent:'A good ___ shares their toys.',d:['fiend','frend','front']},
+    {w:'enough',sent:'Do we have ___ cake for everyone?',d:['enuff','though','rough']},
+    {w:'except',sent:'Everyone came ___ Leo, who was sick.',d:['accept','expect','excite']}
+  ],
+  GOLD_SPELL:['dragon','planet','winter','garden','monster','rocket','thunder','crystal','jungle','castle','spider','wizard','pirate','island','friend','animal'],
+  GOLD_PASSAGE:[
+    {p:'Marco the dragon could not breathe fire like his brothers. Instead, when he sneezed, tiny snowflakes came out. At first he was embarrassed — until the hottest day of summer, when every dragon in the valley lined up to stand in his cool, frosty wind.',q:'Why did the dragons line up by Marco?',a:'His sneezes made cool snow',d:['He breathed the hottest fire','He was giving away gold','He told funny jokes']},
+    {p:'The old lighthouse keeper climbed ninety-nine steps every night to light the lamp. One stormy evening, his cat Biscuit raced ahead of him and batted the switch with her paw. From that night on, Biscuit had a job — and a tiny hat to match.',q:'How did Biscuit turn on the light?',a:'She hit the switch with her paw',d:['She meowed at the lamp','She climbed the ladder','She woke the keeper up']},
+    {p:'Zara planted a mystery seed from her grandmother. She watered it every morning and read it a story every night. In spring it grew into a tree with silver leaves — and when the wind blew, the leaves sounded exactly like her grandmother laughing.',q:'What did the silver leaves sound like?',a:'Her grandmother laughing',d:['A drum playing','Rain on the roof','A cat purring']},
+    {p:'Deep in the jungle, an explorer found a temple with a locked stone door. The lock had no key — only letters. She spelled the word OPEN by pressing the stones, and the door slid away with a great rumble of dust.',q:'How did the explorer open the door?',a:'She spelled a word on the stones',d:['She pushed with all her might','She used a golden key','She said a magic rhyme']},
+    {p:'Sam built a robot for the science fair that was supposed to sort socks. Instead, it sorted everything — pencils, snacks, even Sam\'s little sister\'s toys, by color and size. Sam did not win first prize, but every parent in town wanted to buy one.',q:'What did the robot ACTUALLY do?',a:'Sorted everything, not just socks',d:['Only sorted socks','Broke at the fair','Cooked snacks']},
+    {p:'The night market only appeared when the moon was full. Stalls sold bottled dreams, maps to places that don\'t exist yet, and cocoa that made you hiccup sparks. Nina bought one bottled dream and saved it for a rainy day.',q:'When did the night market appear?',a:'When the moon was full',d:['Every single night','On rainy days','On her birthday']},
+    {p:'Coach Rivera told the team the secret to winning was not being fastest — it was passing the ball the moment a teammate was open. The Tigers practiced passing for two whole weeks. At the championship, they made eleven passes and scored the winning goal.',q:'What was the coach\'s secret to winning?',a:'Passing when a teammate is open',d:['Running the fastest','Kicking the hardest','Practicing at night']},
+    {p:'A comet shaped like a fish swam across the sky every seventy years. Astronomers named it Splash. The last person to see it was Great-Grandpa Joe, so the whole family camped on the roof with telescopes, waiting to be the next ones.',q:'Why did the family camp on the roof?',a:'To see the comet return',d:['To catch a real fish','To fix the chimney','To watch fireworks']}
+  ],
+  goldRunsLeft(){
+    if(this.goldDate!==this._today()) return this.GOLD_RUNS_PER_DAY;
+    return Math.max(0,this.GOLD_RUNS_PER_DAY-(this.goldRuns||0));
+  },
+
+  // ---- Treasure hub: choose between the two money games ----
+  openTreasureHub(){
+    try{SFX.play('click');}catch(e){}
+    const ex=document.getElementById('trHub');if(ex)ex.remove();
+    const tl=this.treasureRunsLeft(), gl=this.goldRunsLeft();
+    const o=document.createElement('div');
+    o.id='trHub';
+    o.className='tr-overlay';
+    o.style.justifyContent='center';
+    o.onclick=e=>{if(e.target===o)o.remove();};
+    const card=(emoji,title,desc,meta,cls,enabled,onclickJs)=>
+      '<div onclick="'+(enabled?onclickJs:'')+'" style="background:var(--card,#fff);border:3px solid '+(cls==='gold'?'#d97706':'var(--gold,#d4a548)')+';border-radius:20px;padding:16px;width:100%;max-width:360px;margin-bottom:12px;cursor:'+(enabled?'pointer':'default')+';'+(enabled?'':'opacity:.45;filter:grayscale(.6);')+'text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35)">'+
+        '<div style="font-size:2.6rem">'+emoji+'</div>'+
+        '<div style="font-family:\'Fredoka One\',cursive;font-size:1.15rem;color:var(--text);margin:4px 0">'+title+'</div>'+
+        '<div style="font-size:.85rem;color:var(--text2);font-weight:700;margin-bottom:6px">'+desc+'</div>'+
+        '<div style="font-family:\'Fredoka One\',cursive;font-size:.78rem;color:'+(enabled?'#16a34a':'#94a3b8')+'">'+meta+'</div>'+
+      '</div>';
+    o.innerHTML=
+      '<div class="tr-eyebrow">💰 Treasure Games</div>'+
+      '<div class="tr-title" style="margin-bottom:14px">Pick your challenge!</div>'+
+      card('💰','Treasure Run','5 words · up to 50 coins','',
+        'run',tl>0,"document.getElementById('trHub').remove();G.openTreasureRun()")
+        .replace("<div style=\"font-family:'Fredoka One',cursive;font-size:.78rem;color:#16a34a\"></div>",
+          '<div style="font-family:\'Fredoka One\',cursive;font-size:.78rem;color:'+(tl>0?'#16a34a':'#94a3b8')+'">'+(tl>0?tl+' left today':'Come back tomorrow!')+'</div>')+
+      card('🏆','GOLD RUSH','10 harder challenges · up to 100 coins!','',
+        'gold',gl>0,"document.getElementById('trHub').remove();G.openGoldRush()")
+        .replace("<div style=\"font-family:'Fredoka One',cursive;font-size:.78rem;color:#16a34a\"></div>",
+          '<div style="font-family:\'Fredoka One\',cursive;font-size:.78rem;color:'+(gl>0?'#16a34a':'#94a3b8')+'">'+(gl>0?gl+' left today · 2nd grade level':'Come back tomorrow!')+'</div>')+
+      '<button class="tr-btn" onclick="document.getElementById(\'trHub\').remove()">Close</button>';
+    document.body.appendChild(o);
+  },
+
+  // ---- The Gold Rush game itself ----
+  _goldQuestions(){
+    const mc=shuffle(this.GOLD_MC).slice(0,4).map(t=>({type:'mc',word:t.w,sent:t.sent,choices:shuffle([t.w,...t.d])}));
+    const sp=shuffle(this.GOLD_SPELL).slice(0,3).map(w=>({type:'spell',word:w}));
+    const ps=shuffle(this.GOLD_PASSAGE).slice(0,3).map(t=>({type:'passage',p:t.p,q:t.q,word:t.a,choices:shuffle([t.a,...t.d])}));
+    // passages spread through the run, not all at the end
+    return shuffle([...mc,...sp,...ps]);
+  },
+  openGoldRush(){
+    if(this.goldRunsLeft()<=0){this._treasureLockedScreen();return;}
+    try{SFX.play('fanfare');}catch(e){}
+    if(this.goldDate!==this._today()){this.goldDate=this._today();this.goldRuns=0;}
+    this.goldRuns=(this.goldRuns||0)+1;
+    this.saveGame();this.refreshTreasureBtn();
+
+    const qs=this._goldQuestions();
+    let idx=0, earned=0;
+    const overlay=document.createElement('div');
+    overlay.className='tr-overlay';
+    document.body.appendChild(overlay);
+
+    const gemsHtml=()=>'<div class="tr-gems" style="flex-wrap:wrap;max-width:340px;margin:6px auto 12px">'+qs.map((q,i)=>'<div class="tr-gem'+(i<idx?(qs[i]._got?' on':' miss'):'')+'" id="grGem'+i+'" style="width:28px;height:28px;font-size:.9rem">🪙</div>').join('')+'</div>';
+    const header=(tag)=>
+      '<div class="tr-eyebrow" style="background:linear-gradient(135deg,#b45309,#7c2d12)">🏆 GOLD RUSH</div>'+
+      '<div class="tr-title">The 100-Coin Quest!</div>'+
+      '<div class="tr-sub">Challenge '+(idx+1)+' of 10 · '+earned+' coins banked</div>'+
+      gemsHtml()+
+      '<div class="tr-card" style="border-color:#d97706">'+
+        '<div class="tr-progress"><span style="color:#b45309;font-weight:800">'+tag+'</span></div>';
+    const award=(got)=>{qs[idx]._got=got;if(got)earned+=this.GOLD_COINS_PER_STAGE;};
+    const next=()=>{idx++;if(idx>=qs.length)finish();else render();};
+
+    const render=()=>{
+      const q=qs[idx];
+      if(q.type==='spell'){
+        const word=q.word.toUpperCase();
+        const extra=[];const ALPH='BCDFGHJKLMNPRSTVW';
+        while(extra.length<3){const l=ALPH[Math.floor(Math.random()*ALPH.length)];if(word.indexOf(l)<0&&extra.indexOf(l)<0)extra.push(l);}
+        const tiles=shuffle([...word.split(''),...extra]);
+        overlay.innerHTML=header('🔤 SPELL IT — '+word.length+' letters')+
+          '<div style="text-align:center;font-size:3rem;margin:4px 0">'+({dragon:'🐉',planet:'🪐',winter:'❄️',garden:'🌷',monster:'👾',rocket:'🚀',thunder:'⛈️',crystal:'🔮',jungle:'🌴',castle:'🏰',spider:'🕷️',wizard:'🧙',pirate:'🏴‍☠️',island:'🏝️',friend:'🤝',animal:'🐾'}[q.word]||'✨')+'</div>'+
+          '<div class="tr-readhint">👀 What is this? Spell it with the tiles!</div>'+
+          '<div class="tr-slots">'+word.split('').map((_,i)=>'<span class="tr-slot" id="grSlot'+i+'"></span>').join('')+'</div>'+
+          '<div class="tr-tiles">'+tiles.map((l,i)=>'<button class="tr-tile" data-l="'+l+'" data-i="'+i+'">'+l+'</button>').join('')+'</div>'+
+          '<div class="tr-coin-pot">🏆 '+earned+' / 100 coins</div></div>';
+        let pos=0,wrongs=0,done=false;
+        const fin=(got)=>{if(done)return;done=true;award(got);try{SFX.play(got?'coin':'wrong');}catch(e){}setTimeout(next,800);};
+        overlay.querySelectorAll('.tr-tile').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(done||btn.disabled)return;
+            if(btn.dataset.l===word[pos]){
+              const s=document.getElementById('grSlot'+pos);if(s){s.textContent=word[pos];s.classList.add('on');}
+              btn.disabled=true;btn.classList.add('used');pos++;
+              try{SFX.play('blip');}catch(e){}
+              if(pos>=word.length)fin(wrongs===0);
+            }else{
+              wrongs++;btn.classList.add('bad');setTimeout(()=>btn.classList.remove('bad'),350);
+              try{SFX.play('wrong');}catch(e){}
+            }
+          });
+        });
+      } else if(q.type==='passage'){
+        overlay.innerHTML=header('📖 READ THE STORY')+
+          '<div style="background:#fff;border:3px solid var(--accent);border-radius:14px;padding:14px;font-family:\'Fredoka One\',cursive;font-size:1.02rem;line-height:1.85;color:var(--text);margin-bottom:10px;text-align:left">'+q.p+'</div>'+
+          '<div class="tr-sentence" style="font-size:1.15rem">'+q.q+'</div>'+
+          '<div class="tr-readhint">👀 Read carefully — no hints in Gold Rush!</div>'+
+          '<div class="tr-choices" style="grid-template-columns:1fr">'+q.choices.map(c=>'<button class="tr-choice" data-w="'+c.replace(/"/g,'&quot;')+'" style="font-size:1.05rem;padding:12px 10px">'+c+'</button>').join('')+'</div>'+
+          '<div class="tr-coin-pot">🏆 '+earned+' / 100 coins</div></div>';
+        let answered=false;
+        overlay.querySelectorAll('.tr-choice').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(answered)return;answered=true;
+            overlay.querySelectorAll('.tr-choice').forEach(b=>b.style.pointerEvents='none');
+            const ok=btn.dataset.w===q.word;
+            btn.classList.add(ok?'ok':'bad');award(ok);
+            try{SFX.play(ok?'coin':'wrong');}catch(e){}
+            setTimeout(next,ok?750:950);
+          });
+        });
+      } else { // mc
+        overlay.innerHTML=header('✏️ PICK THE WORD')+
+          '<div class="tr-sentence">'+q.sent.replace('___','<span class="tr-blank">?</span>')+'</div>'+
+          '<div class="tr-readhint">👀 Read it yourself — the words look alike on purpose!</div>'+
+          '<div class="tr-choices">'+q.choices.map(c=>'<button class="tr-choice" data-w="'+c+'">'+c+'</button>').join('')+'</div>'+
+          '<div class="tr-coin-pot">🏆 '+earned+' / 100 coins</div></div>';
+        let answered=false;
+        overlay.querySelectorAll('.tr-choice').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(answered)return;answered=true;
+            overlay.querySelectorAll('.tr-choice').forEach(b=>b.style.pointerEvents='none');
+            const ok=btn.dataset.w===q.word;
+            btn.classList.add(ok?'ok':'bad');award(ok);
+            try{SFX.play(ok?'coin':'wrong');}catch(e){}
+            setTimeout(next,ok?700:950);
+          });
+        });
+      }
+    };
+
+    const finish=()=>{
+      const correct=qs.filter(q=>q._got).length;
+      const coins=correct*this.GOLD_COINS_PER_STAGE;
+      if(coins>0){this.addCoins(coins);this.saveGame();}
+      const perfect=correct===10;
+      try{SFX.play(perfect?'fanfare':correct>=6?'levelup':'correct');}catch(e){}
+      try{this.fireConfetti&&this.fireConfetti();}catch(e){}
+      let rain='';
+      if(perfect){for(let i=0;i<20;i++){rain+='<div style="position:absolute;top:0;left:'+(3+Math.random()*94)+'%;font-size:'+(1.2+Math.random()*1.3)+'rem;animation:trCoinRain '+(1.3+Math.random()*1.4)+'s linear '+(Math.random()*1)+'s infinite">🪙</div>';}}
+      const gl=this.goldRunsLeft();
+      overlay.innerHTML=rain+
+        '<div class="tr-eyebrow" style="background:linear-gradient(135deg,#b45309,#7c2d12)">'+(perfect?'👑 LEGENDARY!':'🏆 GOLD RUSH')+'</div>'+
+        '<div style="font-size:4.5rem;margin:10px 0;animation:trChestShake .6s ease">'+(perfect?'👑':correct>=6?'🏆':'⛏️')+'</div>'+
+        '<div class="tr-title">'+(perfect?'PERFECT! 100 coins!':'You banked '+coins+' coins!')+'</div>'+
+        '<div class="tr-sub">'+(perfect?'A flawless Gold Rush. You are a READING LEGEND, Río!':correct>=6?'That was 2nd-grade level reading. Strong work!':'Gold Rush is tough! Every run makes you stronger.')+'</div>'+
+        '<div class="tr-gems" style="flex-wrap:wrap;max-width:340px;margin:6px auto 12px">'+qs.map(q=>'<div class="tr-gem '+(q._got?'on':'miss')+'" style="width:28px;height:28px;font-size:.9rem">'+(q._got?'🪙':'·')+'</div>').join('')+'</div>'+
+        '<div class="tr-coin-pot">🏆 +'+coins+' coins added!</div>'+
+        '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">'+
+          (gl>0?'<button class="tr-btn gold" id="grAgain">Run it again ('+gl+' left)</button>':'')+
+          '<button class="tr-btn" id="grClose">Done!</button>'+
+        '</div>';
+      try{speak(perfect?'Legendary! A perfect gold rush! One hundred coins!':'You banked '+coins+' coins in the Gold Rush!',0.85);}catch(e){}
+      const ag=document.getElementById('grAgain');
+      if(ag)ag.addEventListener('click',()=>{overlay.remove();this.openGoldRush();});
+      document.getElementById('grClose').addEventListener('click',()=>{try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}overlay.remove();});
+    };
+
+    render();
   },
 
   _treasureLockedScreen(){
@@ -4234,6 +4482,8 @@ const G = {
       case'speakback':this.loadSpeakBack();break;
       case'math':this.loadMath();break;
       case'art':this.loadArt();break;
+      case'opposites':this.loadOpposites();break;
+      case'compound':this.loadCompound();break;
       case'tricky':this.loadTricky();break; // kept active — helps with b/d n/u
       // === LEGACY (hidden but still callable if forced) ===
       case'fill':this.loadFillIn();break;
@@ -6310,6 +6560,104 @@ const G = {
   // =========================================================
   // 📖 STORYBOOK — page-by-page reading + comprehension question
   // =========================================================
+  // =========================================================
+  // 🔄 OPPOSITES — 2nd-grade antonyms
+  // =========================================================
+  OPPOSITES:[
+    ['hot','cold'],['big','small'],['fast','slow'],['up','down'],['happy','sad'],
+    ['day','night'],['open','closed'],['loud','quiet'],['hard','soft'],['wet','dry'],
+    ['full','empty'],['light','heavy'],['clean','dirty'],['old','new'],['tall','short'],
+    ['early','late'],['first','last'],['begin','end'],['strong','weak'],['brave','scared'],
+    ['smooth','rough'],['near','far'],['above','below'],['always','never'],['awake','asleep'],
+    ['float','sink'],['whisper','shout'],['remember','forget'],['appear','vanish'],['freeze','melt']
+  ],
+  loadOpposites(){
+    const area=document.getElementById('gameArea');
+    const pair=this.OPPOSITES[Math.floor(Math.random()*this.OPPOSITES.length)];
+    const flip=Math.random()<.5;
+    const word=flip?pair[0]:pair[1], answer=flip?pair[1]:pair[0];
+    // distractors: words from OTHER pairs (never the answer)
+    const others=shuffle(this.OPPOSITES.filter(p=>p!==pair).flat().filter(w=>w!==answer&&w!==word)).slice(0,3);
+    const cs=shuffle([answer,...others]);
+    this._pendingWord={w:'opp_'+word};
+    area.innerHTML='<div class="card fade-in" id="qCard">'+
+      '<div style="text-align:center"><span class="eyebrow pink">🔄 Opposites</span></div>'+
+      '<div style="text-align:center;font-size:2.2rem;margin:8px 0">⬅️➡️</div>'+
+      '<div class="question-text" style="font-size:1.35rem">What is the <u>opposite</u> of<br><span style="font-size:1.9rem;color:var(--accent);-webkit-text-fill-color:var(--accent)">'+word+'</span> ?</div>'+
+      '<div class="choices">'+cs.map(c=>'<button class="choice-btn" data-w="'+c+'">'+c+'</button>').join('')+'</div>'+
+      '<div id="jokeArea"></div></div>';
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(btn.dataset.w===answer){
+          btn.classList.add('correct');
+          this.onCorrect({w:'opp_'+word,joke:'Opposites attract! '+word+' ↔ '+answer+'!'});
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.w===answer)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this._speak('The opposite of '+word+' is '+answer+'.',0.75);
+          this.onWrong({w:'opp_'+word,joke:'Tricky one! '+word+' and '+answer+' are opposites.'});
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),2);
+  },
+
+  // =========================================================
+  // 🧩 WORD BUILDER — 2nd-grade compound words
+  // =========================================================
+  COMPOUNDS:[
+    {a:'rain',b:'bow',pic:'🌈'},{a:'cup',b:'cake',pic:'🧁'},{a:'foot',b:'ball',pic:'⚽'},
+    {a:'sun',b:'flower',pic:'🌻'},{a:'star',b:'fish',pic:'⭐🐟'},{a:'butter',b:'fly',pic:'🦋'},
+    {a:'snow',b:'man',pic:'⛄'},{a:'fire',b:'truck',pic:'🚒'},{a:'pop',b:'corn',pic:'🍿'},
+    {a:'basket',b:'ball',pic:'🏀'},{a:'bed',b:'room',pic:'🛏️'},{a:'skate',b:'board',pic:'🛹'},
+    {a:'air',b:'plane',pic:'✈️'},{a:'rail',b:'road',pic:'🛤️'},{a:'tooth',b:'brush',pic:'🪥'},
+    {a:'book',b:'shelf',pic:'📚'},{a:'camp',b:'fire',pic:'🏕️🔥'},{a:'pan',b:'cake',pic:'🥞'},
+    {a:'sea',b:'shell',pic:'🐚'},{a:'light',b:'house',pic:'🗼'},{a:'moon',b:'light',pic:'🌙'},
+    {a:'water',b:'fall',pic:'🏞️'},{a:'earth',b:'quake',pic:'🌍'},{a:'thunder',b:'storm',pic:'⛈️'}
+  ],
+  loadCompound(){
+    const area=document.getElementById('gameArea');
+    const t=this.COMPOUNDS[Math.floor(Math.random()*this.COMPOUNDS.length)];
+    // distractor second-halves from other compounds
+    const others=shuffle(this.COMPOUNDS.filter(c=>c!==t&&c.b!==t.b)).slice(0,3).map(c=>c.b);
+    const cs=shuffle([t.b,...others]);
+    this._pendingWord={w:'comp_'+t.a+t.b};
+    area.innerHTML='<div class="card fade-in" id="qCard">'+
+      '<div style="text-align:center"><span class="eyebrow green">🧩 Word Builder</span></div>'+
+      '<div style="text-align:center;font-size:2.6rem;margin:8px 0">'+t.pic+'</div>'+
+      '<div class="question-text" style="font-size:1.3rem">Build the compound word!<br>'+
+        '<span style="font-size:1.8rem;color:var(--accent);-webkit-text-fill-color:var(--accent)">'+t.a+'</span>'+
+        '<span style="font-size:1.5rem;color:var(--text2);-webkit-text-fill-color:var(--text2)"> + </span>'+
+        '<span style="font-size:1.8rem;letter-spacing:2px;border-bottom:4px solid var(--gold);color:var(--gold);-webkit-text-fill-color:var(--gold)">___</span>'+
+      '</div>'+
+      '<div class="choices">'+cs.map(c=>'<button class="choice-btn" data-w="'+c+'">'+c+'</button>').join('')+'</div>'+
+      '<div id="jokeArea"></div></div>';
+    area.querySelectorAll('.choice-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(this.answering)return;
+        this.answering=true;
+        const card=document.getElementById('qCard');
+        card.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+        if(btn.dataset.w===t.b){
+          btn.classList.add('correct');
+          this.onCorrect({w:'comp_'+t.a+t.b,joke:t.a+' + '+t.b+' = '+t.a+t.b+'! '+t.pic});
+        }else{
+          btn.classList.add('wrong-pick');
+          card.querySelectorAll('.choice-btn').forEach(b=>{if(b.dataset.w===t.b)b.classList.add('correct');});
+          card.classList.add('wrong-shake');
+          this._speak(t.a+' plus '+t.b+' makes '+t.a+t.b+'.',0.75);
+          this.onWrong({w:'comp_'+t.a+t.b,joke:'Almost! '+t.a+' + '+t.b+' = '+t.a+t.b+'.'});
+        }
+      });
+    });
+    this.thinkFirst(document.getElementById('qCard'),2);
+  },
+
   loadStorybook(){
     const level=this.getReadingLevel();
     const pool=STORYBOOKS[level]||STORYBOOKS[1];
