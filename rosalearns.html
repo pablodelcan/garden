@@ -123,6 +123,19 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
   .big-letter,.big-number{font-size:4.5rem}
   .buddy img{width:80px;height:80px}
 }
+
+/* 🌈 Rainbow Hunt */
+.rosa-rainbow-btn{font-family:'Fredoka One',cursive;font-size:.75rem;padding:6px 12px;border-radius:10px;border:none;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#fef3c7,#fce7f3,#dbeafe);animation:rhPulse 2.4s ease-in-out infinite}
+.rosa-rainbow-btn:hover{transform:translateY(-1px) scale(1.05)}
+@keyframes rhPulse{0%,100%{box-shadow:0 0 0 0 rgba(236,72,153,.35)}50%{box-shadow:0 0 12px 4px rgba(236,72,153,.35)}}
+.rh-overlay{position:fixed;inset:0;z-index:400;background:radial-gradient(circle at 50% 30%,rgba(236,72,153,.85),rgba(91,33,182,.92));display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px);overflow-y:auto}
+.rh-card{background:#fff;border-radius:26px;max-width:400px;width:100%;padding:18px 16px;text-align:center;border:5px solid #fde047;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.rh-eyebrow{display:inline-block;font-family:'Fredoka One',cursive;font-size:.8rem;background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;padding:6px 16px;border-radius:99px;letter-spacing:.08em;margin-bottom:6px}
+.rh-title{font-family:'Fredoka One',cursive;font-size:1.7rem;color:#be185d;margin:6px 0 2px}
+.rh-sub{font-family:'Nunito',sans-serif;font-size:.95rem;color:#7c3aed;font-weight:800}
+.rh-btn{font-family:'Fredoka One',cursive;font-size:1.1rem;padding:12px 26px;border-radius:14px;border:none;background:linear-gradient(135deg,#ec4899,#a855f7);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(236,72,153,.4)}
+.rh-arc{position:relative;height:110px;display:flex;align-items:flex-end;justify-content:center;margin:6px 0 2px}
+.rh-stripe{position:absolute;bottom:0;transition:background .4s}
 </style>
 </head>
 <body>
@@ -158,7 +171,7 @@ body{font-family:'Nunito',sans-serif;background:#fce4ec;color:var(--text);min-he
 <div class="mode-bar" id="modeBar">
   <div class="mode-pill active" id="modeIndicator" style="font-size:1.5rem">🔤</div>
   <div style="font-weight:700;font-size:1rem;color:var(--text2)" id="progressLabel">⭐<span id="progressDots"></span></div>
-  <button class="rosa-shop-btn" onclick="G.loadShop()" style="font-size:1.4rem">🎁</button>
+  <button class="rosa-rainbow-btn" onclick="G.openRainbowHunt()" title="Rainbow Hunt!" style="font-size:1.4rem">🌈</button><button class="rosa-shop-btn" onclick="G.loadShop()" style="font-size:1.4rem">🎁</button>
   <button class="rosa-awards-btn" onclick="G.loadAwards()" style="font-size:1.4rem">🏆</button>
 </div>
 
@@ -365,6 +378,15 @@ const ROSA_DAILY_STICKERS=[
   {id:'heeler_house',src:null, fallback:'🏠', name:'Heeler House'},
   {id:'rainbow',     src:null, fallback:'🌈', name:'Rainbow'},
   {id:'unicorn',     src:null, fallback:'🦄', name:'Unicorn'},
+  // Pre-K collection — Rosa starts school soon!
+  {id:'school_bus',  src:null, fallback:'🚌', name:'School Bus'},
+  {id:'backpack',    src:null, fallback:'🎒', name:'Backpack'},
+  {id:'crayons',     src:null, fallback:'🖍️', name:'Crayons'},
+  {id:'pencil',      src:null, fallback:'✏️', name:'Big Pencil'},
+  {id:'apple_teach', src:null, fallback:'🍎', name:'Teacher Apple'},
+  {id:'abc_block',   src:null, fallback:'🔤', name:'ABC Block'},
+  {id:'lunchbox',    src:null, fallback:'🥪', name:'Lunchbox'},
+  {id:'gold_star',   src:null, fallback:'⭐', name:'Star Student'},
 ];
 
 // ========================================================
@@ -378,10 +400,10 @@ const G={
   currentSpoken:'', // what to repeat when speaker is tapped
   // Phrases mode disabled — too text-heavy for a 3-year-old who can't read.
   // It stays in code (LEGACY) so it can be re-enabled later for an older Rosa.
-  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','smemory','maze','days','spidey','bluey','count20'],
+  GAME_MODES:['letters','numbers','colors','shapes','matching','spanish','smemory','maze','days','spidey','bluey','count20','patterns','sizes','sounds'],
   LEGACY_MODES:['phrases'],
   // Icon-only mode names — Rosa is 4 and can't read words yet
-  MODE_NAMES:{letters:'🔤',numbers:'🔢',colors:'🎨',shapes:'🔷',matching:'🃏',spanish:'🇪🇸',phrases:'💬',smemory:'🧠🇪🇸',maze:'🌀',days:'📅',spidey:'🕷️',bluey:'🐕',count20:'🔢'},
+  MODE_NAMES:{letters:'🔤',numbers:'🔢',colors:'🎨',shapes:'🔷',matching:'🃏',spanish:'🇪🇸',phrases:'💬',smemory:'🧠🇪🇸',maze:'🌀',days:'📅',spidey:'🕷️',bluey:'🐕',count20:'🔢',patterns:'🔁',sizes:'📏',sounds:'🔊'},
 
   init(){
     this.loadGame();
@@ -406,7 +428,8 @@ const G={
       totalCorrect:this.totalCorrect,stickers:this.stickers,
       maxStreak:this.maxStreak||0,purchased:this.purchased||[],
       purchaseCounts:this.purchaseCounts||{},
-      dailyStickers:this.dailyStickers||[], lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0
+      dailyStickers:this.dailyStickers||[], lastLoginDate:this.lastLoginDate||'', loginStreak:this.loginStreak||0,
+      rainbowDate:this.rainbowDate||'', rainbowRuns:this.rainbowRuns||0
     }));}catch(e){}
   },
   loadGame(){
@@ -546,6 +569,9 @@ const G={
       case'spidey':this.loadSpidey();break;
       case'bluey':this.loadBluey();break;
       case'count20':this.loadCount20();break;
+      case'patterns':this.loadPatterns();break;
+      case'sizes':this.loadSizes();break;
+      case'sounds':this.loadSounds();break;
     }
   },
 
@@ -936,6 +962,171 @@ const G={
   },
 
   // =============== CHOICE HANDLER ===============
+  // =============== 🔁 PATTERNS — pre-K AB patterns ===============
+  PATTERN_ITEMS:[{e:'🍎',n:'apple'},{e:'🍌',n:'banana'},{e:'⭐',n:'star'},{e:'❤️',n:'heart'},{e:'🐶',n:'dog'},{e:'🐱',n:'cat'},{e:'🌸',n:'flower'},{e:'🚗',n:'car'},{e:'🦋',n:'butterfly'},{e:'⚽',n:'ball'}],
+  loadPatterns(){
+    const area=document.getElementById('gameArea');
+    const pool=shuffle(this.PATTERN_ITEMS);
+    const A=pool[0], B=pool[1];
+    // AB AB A ? — the answer is always what continues the pattern
+    const seq=[A,B,A,B,A];
+    const answer=B;
+    const decoys=pool.slice(2,4);
+    const choices=shuffle([answer,...[A],...decoys]).slice(0,4);
+    if(!choices.includes(answer)) choices[0]=answer;
+    this.currentSpoken="What comes next? "+A.n+", "+B.n+", "+A.n+", "+B.n+", "+A.n+"... what comes next?";
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-size:2.2rem;margin:6px 0">🔁❓</div>'+
+      '<div style="text-align:center;font-size:2.6rem;letter-spacing:8px;margin:10px 0;background:#fff;border-radius:16px;padding:14px 6px;border:3px dashed var(--pink,#ec4899)">'+
+        seq.map(x=>x.e).join('')+' <span style="opacity:.45">❓</span>'+
+      '</div>'+
+      '<div class="big-choices">'+shuffle(choices).map(c=>'<button class="big-btn" data-val="'+c.n+'"><span style="font-size:3.2rem">'+c.e+'</span></button>').join('')+'</div></div>';
+    this.setupChoices(answer.n);
+    this.speakAndHighlight("Look at the pattern! "+A.n+", "+B.n+", "+A.n+", "+B.n+", "+A.n+"... What comes next?", choices.map(c=>c.n), answer.n);
+  },
+
+  // =============== 📏 BIG & SMALL — size comparison ===============
+  loadSizes(){
+    const area=document.getElementById('gameArea');
+    const items=[{e:'🐶',n:'dog'},{e:'🐘',n:'elephant'},{e:'🚗',n:'car'},{e:'🌻',n:'flower'},{e:'🐟',n:'fish'},{e:'🎈',n:'balloon'},{e:'🧸',n:'teddy bear'},{e:'🦖',n:'dinosaur'}];
+    const it=items[Math.floor(Math.random()*items.length)];
+    const wantBig=Math.random()<.5;
+    const sizes=shuffle([{id:'big',px:5.2},{id:'medium',px:3.4},{id:'small',px:1.9}]);
+    const answer=wantBig?'big':'small';
+    this.currentSpoken="Tap the "+(wantBig?'BIGGEST':'SMALLEST')+" "+it.n+"!";
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-size:2.2rem;margin:6px 0">📏❓</div>'+
+      '<div style="text-align:center;font-family:Fredoka One,cursive;font-size:1.1rem;color:var(--pink,#ec4899);margin-bottom:6px">'+(wantBig?'⬆️ BIGGEST!':'⬇️ smallest!')+'</div>'+
+      '<div class="big-choices" style="grid-template-columns:1fr 1fr 1fr;align-items:end">'+
+        sizes.map(s=>'<button class="big-btn" data-val="'+s.id+'" style="min-height:140px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px"><span style="font-size:'+s.px+'rem;line-height:1">'+it.e+'</span></button>').join('')+
+      '</div></div>';
+    this.setupChoices(answer);
+    speak("Tap the "+(wantBig?'biggest':'smallest')+" "+it.n+"!",0.8,1.15);
+    setTimeout(()=>{const btns=document.querySelectorAll('.big-btn');btns.forEach(b=>{b.style.opacity='1';b.style.pointerEvents='auto';});},1200);
+  },
+
+  // =============== 🔊 LETTER SOUNDS — pre-K phonics ===============
+  LETTER_SOUNDS:{B:'buh',C:'kuh',D:'duh',F:'fff',G:'guh',H:'hhh',J:'juh',K:'kuh',L:'lll',M:'mmm',N:'nnn',P:'puh',R:'rrr',S:'sss',T:'tuh',W:'wuh',Z:'zzz'},
+  loadSounds(){
+    const area=document.getElementById('gameArea');
+    const letters=Object.keys(this.LETTER_SOUNDS);
+    const target=letters[Math.floor(Math.random()*letters.length)];
+    const word=LETTER_WORDS[target]||'';
+    const wordEmoji=(word.match(/[\p{Emoji}]+/u)||['❓'])[0];
+    const wordName=word.replace(/[^a-zA-Z ]/g,'').trim();
+    const wrongs=shuffle(letters.filter(l=>l!==target)).slice(0,3);
+    const choices=shuffle([target,...wrongs]);
+    const snd=this.LETTER_SOUNDS[target];
+    this.currentSpoken="Which letter says "+snd+"... "+snd+"... like "+wordName+"?";
+    area.innerHTML='<div class="card" id="qCard">'+
+      '<div style="text-align:center;font-size:2.2rem;margin:6px 0">🔊❓</div>'+
+      '<div style="text-align:center;font-size:3.4rem;margin:4px 0">'+wordEmoji+'</div>'+
+      '<div class="big-choices">'+choices.map(c=>'<button class="big-btn" data-val="'+c+'"><span style="font-size:3.2rem">'+c+'</span></button>').join('')+'</div></div>';
+    this.setupChoices(target);
+    this.speakAndHighlight("Which letter says "+snd+", "+snd+", like "+wordName+"?", choices, target);
+  },
+
+  // ============================================================
+  // 🌈 RAINBOW HUNT — Rosa's big-prize game (up to 50 coins)
+  // ============================================================
+  // 5 questions fill 5 rainbow stripes. First-try correct = 10 coins,
+  // but pre-K gentle: a wrong tap just gets an encouraging voice and
+  // she TRIES AGAIN until she gets it (that stripe pays 5 instead).
+  // She always finishes, always celebrates. 3 hunts per day.
+  RAINBOW_RUNS_PER_DAY:3,
+  rainbowRunsLeft(){
+    if(this.rainbowDate!==this._today()) return this.RAINBOW_RUNS_PER_DAY;
+    return Math.max(0,this.RAINBOW_RUNS_PER_DAY-(this.rainbowRuns||0));
+  },
+  _rainbowQuestions(){
+    const qs=[];
+    // 1. color
+    const col=COLORS[Math.floor(Math.random()*COLORS.length)];
+    qs.push({kind:'color',prompt:'What color is this?',big:'<div class="color-swatch" style="background:'+col.hex+';margin:6px auto"></div>',answer:col.name,choices:shuffle([col,...shuffle(COLORS.filter(c=>c.name!==col.name)).slice(0,3)]).map(c=>({v:c.name,label:'<span style="font-size:2.8rem">'+c.emoji+'</span>',say:c.name}))});
+    // 2. number 1-5
+    const n=Math.floor(Math.random()*5)+1;
+    let wr=new Set();while(wr.size<3){const x=Math.floor(Math.random()*5)+1;if(x!==n)wr.add(x);}
+    qs.push({kind:'number',prompt:'Count the stars! How many?',big:'<div style="text-align:center;font-size:2.6rem;letter-spacing:6px;margin:8px 0">'+'⭐'.repeat(n)+'</div>',answer:String(n),choices:shuffle([n,...wr]).map(x=>({v:String(x),label:'<span style="font-size:3rem;font-family:Fredoka One,cursive">'+x+'</span>',say:String(x)}))});
+    // 3. letter match
+    const L='ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)];
+    const lw=shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(x=>x!==L)).slice(0,3);
+    qs.push({kind:'letter',prompt:'Find the letter '+L+'!',big:'<div style="text-align:center;font-family:Fredoka One,cursive;font-size:4rem;color:var(--pink,#ec4899)">'+L+'</div>',answer:L,choices:shuffle([L,...lw]).map(x=>({v:x,label:'<span style="font-size:3rem">'+x+'</span>',say:x}))});
+    // 4. shape
+    const sh=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+    qs.push({kind:'shape',prompt:'What shape is this?',big:'<div class="shape-display" style="margin:6px auto"><svg viewBox="0 0 120 120" style="width:110px;height:110px">'+sh.svg.replace('VAR','#f472b6')+'</svg></div>',answer:sh.name,choices:shuffle([sh,...shuffle(SHAPES.filter(x=>x.name!==sh.name)).slice(0,3)]).map(x=>({v:x.name,label:'<span style="font-size:3rem">'+x.emoji+'</span>',say:x.name}))});
+    // 5. pattern
+    const pp=shuffle(this.PATTERN_ITEMS);const A=pp[0],B=pp[1];
+    qs.push({kind:'pattern',prompt:'What comes next? '+A.n+', '+B.n+', '+A.n+', '+B.n+', '+A.n+'...',big:'<div style="text-align:center;font-size:2.4rem;letter-spacing:6px;margin:8px 0">'+[A,B,A,B,A].map(x=>x.e).join('')+' <span style="opacity:.45">❓</span></div>',answer:B.n,choices:shuffle([B,A,pp[2],pp[3]]).map(x=>({v:x.n,label:'<span style="font-size:3rem">'+x.e+'</span>',say:x.n}))});
+    return shuffle(qs);
+  },
+  openRainbowHunt(){
+    if(this.rainbowRunsLeft()<=0){
+      speak("You found all the rainbows for today! Come back tomorrow, Rosa!",0.82,1.15);
+      const o=document.createElement('div');o.className='rh-overlay';o.onclick=e=>{if(e.target===o)o.remove();};
+      o.innerHTML='<div class="rh-card"><div style="font-size:4rem">🌙</div><div class="rh-title">All done for today!</div><div class="rh-sub">Come back tomorrow for more rainbows!</div><button class="rh-btn" onclick="this.closest(\'.rh-overlay\').remove()">OK! 💖</button></div>';
+      document.body.appendChild(o);return;
+    }
+    SFX.play('fanfare');
+    if(this.rainbowDate!==this._today()){this.rainbowDate=this._today();this.rainbowRuns=0;}
+    this.rainbowRuns=(this.rainbowRuns||0)+1;
+    this.saveGame();
+    const qs=this._rainbowQuestions();
+    const STRIPES=['#ef4444','#f97316','#facc15','#22c55e','#3b82f6'];
+    let idx=0, earned=0;
+    const overlay=document.createElement('div');
+    overlay.className='rh-overlay';
+    document.body.appendChild(overlay);
+    const arc=()=>'<div class="rh-arc">'+STRIPES.map((c,i)=>'<div class="rh-stripe" style="background:'+(i<idx?(qs[i]._first?c:c+'99'):'#e5e7eb')+';width:'+(210-i*34)+'px;height:'+(105-i*17)+'px;border-radius:'+(210-i*34)+'px '+(210-i*34)+'px 0 0"></div>').join('')+'</div>';
+    const render=()=>{
+      const q=qs[idx];
+      overlay.innerHTML='<div class="rh-card">'+
+        '<div class="rh-eyebrow">🌈 Rainbow Hunt</div>'+
+        arc()+
+        '<div class="rh-sub" style="margin:4px 0 8px">'+earned+' coins so far! 🪙</div>'+
+        q.big+
+        '<div class="big-choices" id="rhChoices" style="margin-top:8px">'+q.choices.map(c=>'<button class="big-btn" data-val="'+c.v+'" style="min-height:76px">'+c.label+'</button>').join('')+'</div>'+
+        '</div>';
+      speak(q.prompt,0.8,1.15);
+      let firstTry=true, locked=false;
+      overlay.querySelectorAll('.big-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          if(locked)return;
+          if(btn.dataset.val===q.answer){
+            locked=true;
+            btn.classList.add('correct');
+            q._first=firstTry; earned+=firstTry?10:5;
+            SFX.play('correct');
+            speak(firstTry?"Yes! Amazing!":"You got it!",0.85,1.2);
+            setTimeout(()=>{idx++;if(idx>=qs.length)finish();else render();},1000);
+          }else{
+            firstTry=false;
+            btn.classList.add('wrong-pick');
+            setTimeout(()=>btn.classList.remove('wrong-pick'),600);
+            SFX.play('wrong');
+            speak("Almost! Try again, Rosa!",0.82,1.15);
+          }
+        });
+      });
+    };
+    const finish=()=>{
+      this.gems+=earned;
+      this.updateHUD();this.saveGame();
+      this.fireConfetti();this.fireStars&&this.fireStars(15);
+      SFX.play('fanfare');
+      const perfect=qs.every(q=>q._first);
+      overlay.innerHTML='<div class="rh-card">'+
+        '<div class="rh-eyebrow">'+(perfect?'👑 PERFECT RAINBOW!':'🌈 Rainbow Hunt')+'</div>'+
+        '<div style="font-size:4.2rem;margin:8px 0">'+(perfect?'🌈👑':'🌈🎉')+'</div>'+
+        '<div class="rh-title">+'+earned+' coins!</div>'+
+        '<div class="rh-sub">'+(perfect?'Every stripe on the first try! WOW, Rosa!':'You finished the whole rainbow!')+'</div>'+
+        '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">'+
+        (this.rainbowRunsLeft()>0?'<button class="rh-btn" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)" onclick="this.closest(\'.rh-overlay\').remove();G.openRainbowHunt()">Again! 🌈</button>':'')+
+        '<button class="rh-btn" onclick="this.closest(\'.rh-overlay\').remove()">Yay! 💖</button></div></div>';
+      speak(perfect?"A perfect rainbow! You won "+earned+" coins! Incredible, Rosa!":"You won "+earned+" coins! Great job, Rosa!",0.82,1.15);
+    };
+    render();
+  },
+
   setupChoices(answer){
     const area=document.getElementById('gameArea');
     area.querySelectorAll('.big-btn').forEach(btn=>{
